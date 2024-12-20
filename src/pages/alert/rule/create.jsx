@@ -655,7 +655,7 @@ export const AlertRule = ({ type }) => {
 
         if (trimmedValue !== value) {
             // 输入值中含有空格时，提示错误信息
-            newErrors[index] = '输入的值不允许包含空格';
+            newErrors[index] = '输入值的开头不允许有空格';
         } else if (validateExpr(trimmedValue) || trimmedValue === '') {
             updateExprRule(index, 'expr', trimmedValue);
             newErrors[index] = '';

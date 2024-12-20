@@ -10,7 +10,7 @@ import {
     AreaChartOutlined,
     FileDoneOutlined,
     SettingOutlined,
-    SafetyCertificateOutlined,
+    ExceptionOutlined,
     ApiOutlined
     // CloudSyncOutlined,
     // SafetyOutlined
@@ -51,7 +51,7 @@ export const ComponentSider = (props) => {
                             <Menu.Item key='2-6' onClick={(e) => handleMenuClick(e.key, '/subscribes')}>告警订阅</Menu.Item>
 
                         </SubMenu>
-
+                        {/*<Menu.Item key='12' onClick={(e) => handleMenuClick(e.key, '/snags')} icon={<ExceptionOutlined />}>故障中心</Menu.Item >*/}
                         <SubMenu key='3' icon={<NotificationOutlined />} title='通知管理'>
                             <Menu.Item key='3-1' onClick={(e) => handleMenuClick(e.key, '/noticeObjects')}>通知对象</Menu.Item>
                             <Menu.Item key='3-2' onClick={(e) => handleMenuClick(e.key, '/noticeTemplate')}>通知模版</Menu.Item>
