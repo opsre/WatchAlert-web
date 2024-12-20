@@ -147,7 +147,7 @@ export const ComponentsContent = (props) => {
                 {/* 导航栏 */}
                 <div style={{
                     marginLeft: '15px',
-                    marginTop: '90px',
+                    marginTop: '94px',
                 }}>
                     {<ComponentSider userInfo={userInfo} />}
                 </div>
