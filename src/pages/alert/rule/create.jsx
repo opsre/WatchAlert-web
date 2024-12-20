@@ -42,6 +42,7 @@ import ESImg from "./img/ElasticSearch.svg"
 import {PrometheusPromQL} from "../../promethues";
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
 import { useRule } from '../../../context/RuleContext';
+import TextArea from "antd/es/input/TextArea";
 
 const format = 'HH:mm';
 const MyFormItemContext = React.createContext([])
@@ -1041,7 +1042,7 @@ export const AlertRule = ({ type }) => {
                                                     required: true,
                                                 },
                                             ]}>
-                                            <Input/>
+                                            <TextArea rows={2} placeholder="输入告警事件的详细消息内容，如：服务器: ${instanace}，发生故障请紧急排查!" maxLength={10000} />
                                         </MyFormItem>
                                     </div>
 
