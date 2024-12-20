@@ -511,7 +511,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                 required: true,
                             },
                         ]}>
-                        <Input/>
+                        <TextArea rows={2} placeholder="输入告警事件的详细消息内容，如：站点: ${address}，请求不可达请紧急排查!" maxLength={10000} />
                     </MyFormItem>
                 </div>
 
