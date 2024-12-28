@@ -192,7 +192,14 @@ export const AlertRuleGroup = ({ }) => {
                     />
                 </div>
                 <div>
-                    <Button type="primary" onClick={() => setCreateModalVisible(true)} style={{marginLeft: 'auto'}}>
+                    <Button
+                        type="primary"
+                        onClick={() => setCreateModalVisible(true)}
+                        style={{
+                            marginLeft: 'auto',
+                            backgroundColor: '#000000'
+                        }}
+                    >
                         创建
                     </Button>
                 </div>

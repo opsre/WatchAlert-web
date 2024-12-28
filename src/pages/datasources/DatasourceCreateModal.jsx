@@ -439,7 +439,15 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                     <Button type="default" onClick={handleTestConnection}>
                         连接测试
                     </Button>
-                    <Button type="primary" htmlType="submit" loading={submitLoading} onClick={handleSubmit}>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={submitLoading}
+                        onClick={handleSubmit}
+                        style={{
+                            backgroundColor: '#000000'
+                        }}
+                    >
                         提交
                     </Button>
                 </div>

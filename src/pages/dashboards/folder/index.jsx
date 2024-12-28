@@ -140,7 +140,13 @@ export const DashboardFolder = () => {
                     />
                 </div>
                 <div>
-                    <Button type="primary" onClick={() => { setCreateModalVisible(true) }} >
+                    <Button
+                        type="primary"
+                        onClick={() => { setCreateModalVisible(true) }}
+                        style={{
+                            backgroundColor: '#000000'
+                        }}
+                    >
                         创建
                     </Button>
                 </div>

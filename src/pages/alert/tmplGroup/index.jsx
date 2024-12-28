@@ -229,7 +229,13 @@ export const RuleTemplateGroup = () => {
                         />
                     </div>
                     <div>
-                        <Button type="primary" onClick={() => setVisible(true)}>
+                        <Button
+                            type="primary"
+                            onClick={() => setVisible(true)}
+                            style={{
+                                backgroundColor: '#000000'
+                            }}
+                        >
                             创建
                         </Button>
                     </div>
@@ -251,11 +257,11 @@ export const RuleTemplateGroup = () => {
                         handleList={handleList}/>
                 </div>
 
-                <div style={{overflowX: 'auto', marginTop: 10}}>
+                <div style={{ overflowX: 'auto', marginTop: 10 }}>
                     <Table
                         columns={columns}
                         dataSource={list}
-                        scroll={{x: 1000, y: height - 400}}
+                        scroll={{ y: height - 400 }}
                     />
                 </div>
             </div>

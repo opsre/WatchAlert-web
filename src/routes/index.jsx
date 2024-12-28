@@ -31,6 +31,7 @@ import {AlertEvent} from "../pages/event";
 import {Probing} from "../pages/probing";
 import {CreateProbingRule} from "../pages/probing/create";
 import {OnceProbing} from "../pages/probing/once";
+import Profile from "../pages/profile";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default [
@@ -165,6 +166,10 @@ export default [
     {
         path: '/subscribe/create',
         element: <ComponentsContent name="添加订阅" c={<CreateSubscribeModel />} />
+    },
+    {
+        path: '/profile',
+        element: <ComponentsContent name="个人信息" c={<Profile />} />
     },
     {
         path: '/*',

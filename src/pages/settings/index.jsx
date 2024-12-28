@@ -115,7 +115,13 @@ export const SystemSettings = () => {
                         <Popconfirm title="取消后修改的配置将不会保存!" onConfirm={handleCancel}>
                             <Button type="dashed">取消</Button>
                         </Popconfirm>
-                        <Button type="primary" htmlType="submit">保存</Button>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            style={{
+                                backgroundColor: '#000000'
+                            }}
+                        >保存</Button>
                     </section>
                 </Form>
             </div>

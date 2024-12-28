@@ -160,7 +160,13 @@ export const CreateDutyModal = ({ visible, onClose, handleList, selectedRow, typ
                 </Form.Item>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button type="primary" htmlType="submit">
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        style={{
+                            backgroundColor: '#000000'
+                        }}
+                    >
                         提交
                     </Button>
                 </div>

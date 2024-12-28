@@ -114,7 +114,13 @@ export const TenantQuota = ({tenantInfo})=>{
                         取消
                     </Button>
                 </Popconfirm>
-                <Button type="primary" htmlType="submit">
+                <Button
+                    type="primary"
+                    htmlType="submit"
+                    style={{
+                        backgroundColor: '#000000'
+                    }}
+                >
                     保存
                 </Button>
             </div>

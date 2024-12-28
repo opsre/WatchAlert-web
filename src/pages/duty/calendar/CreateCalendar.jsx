@@ -262,7 +262,13 @@ export const CreateCalendarModal = ({ visible, onClose, dutyId }) => {
             </Form>
 
             <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                <Button type="primary" onClick={generateCalendar}>
+                <Button
+                    type="primary"
+                    onClick={generateCalendar}
+                    style={{
+                        backgroundColor: '#000000'
+                    }}
+                >
                     提交
                 </Button>
             </div>

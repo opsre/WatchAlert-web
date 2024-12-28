@@ -178,7 +178,12 @@ export const Subscribe = () => {
 
                 <div>
                     <Link to={`/subscribe/create`}>
-                        <Button type="primary"> 创 建 </Button>
+                        <Button
+                            type="primary"
+                            style={{
+                                backgroundColor: '#000000'
+                            }}
+                        > 创 建 </Button>
                     </Link>
                 </div>
             </div>
