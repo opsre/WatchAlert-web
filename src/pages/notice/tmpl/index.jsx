@@ -159,7 +159,13 @@ export const NoticeTemplate = () => {
                     />
                 </div>
                 <div>
-                    <Button type="primary" onClick={() => setVisible(true)}>
+                    <Button
+                        type="primary"
+                        onClick={() => setVisible(true)}
+                        style={{
+                            backgroundColor: '#000000'
+                        }}
+                    >
                         创建
                     </Button>
                 </div>

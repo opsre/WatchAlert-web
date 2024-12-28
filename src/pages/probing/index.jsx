@@ -497,7 +497,12 @@ export const Probing = () => {
                         handleList(probingType)
                     }}>刷 新</Button>
                     <Link to={`/probing/create`}>
-                        <Button type="primary"> 创 建 </Button>
+                        <Button
+                            type="primary"
+                            style={{
+                                backgroundColor: '#000000'
+                            }}
+                        > 创 建 </Button>
                     </Link>
                 </div>
             </div>

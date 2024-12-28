@@ -583,7 +583,15 @@ export const CreateProbingRule = ({ type, handleList }) => {
                 </div>
 
                 <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                    <Button type="primary" htmlType="submit" loading={submitLoading} onClick={handleSubmit}>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={submitLoading}
+                        onClick={handleSubmit}
+                        style={{
+                            backgroundColor: '#000000'
+                        }}
+                    >
                         提交
                     </Button>
                 </div>

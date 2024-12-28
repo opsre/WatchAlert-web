@@ -66,7 +66,13 @@ const UserChangePass = ({ visible, onClose, userid, username }) => {
                 </Form.Item>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Form.Item wrapperCol={{ offset: 100, span: 16 }}>
-                        <Button type="primary" htmlType="submit">
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            style={{
+                                backgroundColor: '#000000'
+                            }}
+                        >
                             提交
                         </Button>
                     </Form.Item>

@@ -89,7 +89,14 @@ export const UpdateCalendarModal = ({ visible, onClose, time, tenantId, dutyId, 
 
             </Form.Item>
 
-            <Button type="primary" htmlType="submit" onClick={handleFormSubmit}>
+            <Button
+                type="primary"
+                htmlType="submit"
+                onClick={handleFormSubmit}
+                style={{
+                    backgroundColor: '#000000'
+                }}
+            >
                 提交
             </Button>
 

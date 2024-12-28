@@ -185,7 +185,13 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                 </MyFormItem>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button type="primary" htmlType="submit">
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        style={{
+                            backgroundColor: '#000000'
+                        }}
+                    >
                         提交
                     </Button>
                 </div>

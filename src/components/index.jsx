@@ -15,13 +15,12 @@ import {
 } from '@ant-design/icons';
 import { DownOutlined, LeftOutlined } from '@ant-design/icons';
 import logoIcon from '../img/logo.jpeg'
-import githubIcon from '../img/github_logo.png'
 import { getUserInfo } from '../api/user'
 import Auth from '../utils/Auth'
 import { getTenantList } from '../api/tenant'
 import './index.css';
 import { ComponentSider } from './sider'
-import { useNavigate } from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
 
 export const ComponentsContent = (props) => {
     const { name, c } = props
@@ -45,6 +44,10 @@ export const ComponentsContent = (props) => {
 
     const content = (
         <>
+            <Button type="text">
+                <Link to={`/profile`}>个人信息</Link>
+            </Button>
+
             <Button type="text" onClick={handleLogout}>
                 <span style={{color: 'red'}}>退出登录</span>
             </Button>
@@ -97,6 +100,8 @@ export const ComponentsContent = (props) => {
             }
             setTenantStatus(true);
         } catch (error) {
+            localStorage.clear()
+            message.error("获取租户错误, 退出登录")
             console.error(error)
         }
     }
