@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Divider, List } from 'antd';
-import { Line } from '@pansy/react-charts';
+import { Card, List, Row, Col, Statistic } from 'antd';
 import { getDashboardInfo } from '../api/other';
 
 export const Home = () => {
     const [dashboardInfo, setDashboardInfo] = useState([]);
+    const contentMaxHeight = 'calc((-145px + 100vh) - 65px - 10px)';
 
     const fetchDashboardInfo = async () => {
         try {
@@ -19,21 +19,6 @@ export const Home = () => {
     useEffect(() => {
         fetchDashboardInfo();
     }, []);
-
-    const gaugeChartConfig = (value) => ({
-        series: [
-            {
-                type: 'gauge',
-                progress: { show: true, width: 10, stroke: '#48b' },
-                axisTick: { show: false },
-                splitLine: { length: 10, lineStyle: { width: 2, color: '#999' } },
-                axisLabel: { distance: 25, color: '#999', fontSize: 12 },
-                anchor: { show: true, size: 25, itemStyle: { borderWidth: 10 } },
-                detail: { offsetCenter: [0, '70%'], valueAnimation: true, fontSize: 18 },
-                data: [{ value: value || 0 }],
-            },
-        ],
-    });
 
     const alarmDistributionOption = {
         xAxis: { type: 'category', data: ['P0', 'P1', 'P2'] },
@@ -75,56 +60,98 @@ export const Home = () => {
     };
 
     return (
-        <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px', height: '35vh', marginTop: '-20px' }}>
-                <div style={{ width: '25%', minWidth: '200px', height: '80%' }}>
-                    <Divider>规则总数</Divider>
-                    <ReactECharts
-                        option={gaugeChartConfig(dashboardInfo?.countAlertRules)}
-                        style={{ height: '100%', width: '100%' }}
-                    />
-                </div>
+        <div style={{
+            alignItems: 'flex-start',
+            textAlign: 'start',
+            marginTop: '-20px',
+            maxHeight: contentMaxHeight,
+            overflowY: 'auto'
+        }}>
+            {/* 第一行：规则总数、当前告警总数、服务资源使用率 */}
+            <Row gutter={[16, 16]} style={{ marginBottom: '16px' }}>
+                <Col xs={24} sm={12} md={8}>
+                    <Card
+                        bordered={false}
+                        style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
+                    >
+                        <Statistic
+                            value={dashboardInfo?.countAlertRules || 0}
+                            valueStyle={{ fontSize: '32px', fontWeight: 'bold', color: '#1890ff' }}
+                        />
+                        <div style={{ color: '#999', marginTop: '8px' }}>当前规则总数</div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                    <Card
+                        bordered={false}
+                        style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
+                    >
+                        <Statistic
+                            value={dashboardInfo?.curAlerts || 0}
+                            valueStyle={{ fontSize: '32px', fontWeight: 'bold', color: '#ff4d4f' }}
+                        />
+                        <div style={{ color: '#999', marginTop: '8px' }}>当前告警总数</div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                    <Card
+                        bordered={false}
+                        style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
+                    >
+                        <Statistic
+                            value={dashboardInfo?.curMutes || 0}
+                            valueStyle={{ fontSize: '32px', fontWeight: 'bold', color: '#b1b1b1' }}
+                        />
+                        <div style={{ color: '#999', marginTop: '8px' }}>运行静默总数</div>
+                    </Card>
+                </Col>
+                {/*<Col xs={24} md={8}>*/}
+                {/*    <Card*/}
+                {/*        title="服务资源使用率"*/}
+                {/*        bordered={false}*/}
+                {/*        style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}*/}
+                {/*    >*/}
+                {/*        <Line*/}
+                {/*            style={{ height: '200px', width: '100%' }}*/}
+                {/*            {...lineChartConfig}*/}
+                {/*        />*/}
+                {/*    </Card>*/}
+                {/*</Col>*/}
+            </Row>
 
-                <div style={{ width: '25%', minWidth: '200px', height: '80%' }}>
-                    <Divider>当前告警总数</Divider>
-                    <ReactECharts
-                        option={gaugeChartConfig(dashboardInfo?.curAlerts)}
-                        style={{ height: '100%', width: '100%' }}
-                    />
-                </div>
-
-                <div style={{ width: '45%', minWidth: '200px', height: '80%' }}>
-                    <Divider>服务资源使用率</Divider>
-                    <Line
-                        style={{ height: '100%', width: '100%' }}
-                        {...lineChartConfig}
-                    />
-                </div>
-            </div>
-
-            <div style={{display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px'}}>
-                <div style={{width: '50%', minWidth: '300px', height: '40vh'}}>
-                    <Divider>最近告警列表</Divider>
-                    <List
-                        bordered
-                        dataSource={dashboardInfo?.curAlertList ?? []}
-                        style={{height: '30vh', overflow: 'auto'}}
-                        renderItem={(item) => (
-                            <List.Item>
-                                <div style={{overflowX: 'auto', whiteSpace: 'nowrap'}}>{item}</div>
-                            </List.Item>
-                        )}
-                    />
-                </div>
-
-                <div style={{width: '48%', minWidth: '200px', height: '80%'}}>
-                    <Divider>告警分布</Divider>
-                    <ReactECharts
-                        option={alarmDistributionOption}
-                        style={{height: '45vh', overflow: 'auto', marginTop: '-50px'}}
-                    />
-                </div>
-            </div>
-        </>
+            {/* 第二行：最近告警列表、告警分布 */}
+            <Row gutter={[16, 16]}>
+                <Col xs={24} md={12}>
+                    <Card
+                        title="最近告警列表"
+                        bordered={false}
+                        style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
+                    >
+                        <List
+                            bordered
+                            dataSource={dashboardInfo?.curAlertList ?? []}
+                            style={{ height: '300px', overflow: 'auto' }}
+                            renderItem={(item) => (
+                                <List.Item>
+                                    <div style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>{item}</div>
+                                </List.Item>
+                            )}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={24} md={12}>
+                    <Card
+                        title="告警分布"
+                        bordered={false}
+                        style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
+                    >
+                        <ReactECharts
+                            option={alarmDistributionOption}
+                            style={{ width: '550px' }}
+                        />
+                    </Card>
+                </Col>
+            </Row>
+        </div>
     );
 };
