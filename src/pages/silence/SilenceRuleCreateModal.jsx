@@ -30,6 +30,7 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
             form.setFieldsValue({
                 datasource_type: selectedRow.datasource_type,
                 fingerprint: selectedRow.fingerprint,
+                comment: selectedRow.comment,
             })
         }
     }, [selectedRow, form])
@@ -180,7 +181,11 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                     />
                 </MyFormItem>
 
-                <MyFormItem name="comment" label="评论">
+                <MyFormItem
+                    name="comment"
+                    label="评论"
+                    rules={[{required: true}]}
+                >
                     <Input />
                 </MyFormItem>
 
