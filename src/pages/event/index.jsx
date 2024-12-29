@@ -23,6 +23,12 @@ export const AlertEvent = () => {
             width: 'auto',
         },
         {
+            title: '告警指纹',
+            dataIndex: 'fingerprint',
+            key: 'fingerprint',
+            width: 'auto',
+        },
+        {
             title: '数据源',
             dataIndex: 'datasourceId',
             key: 'datasourceId',
@@ -42,8 +48,8 @@ export const AlertEvent = () => {
                 <div style={{display: 'flex', alignItems: 'center'}}>
                     <div
                         style={{
-                            width: '10px',
-                            height: '10px',
+                            width: '8px',
+                            height: '8px',
                             backgroundColor: severityColors[text],
                             borderRadius: '50%',
                             marginRight: '8px',
@@ -57,7 +63,7 @@ export const AlertEvent = () => {
             title: '事件标签',
             dataIndex: 'metric',
             key: 'metric',
-            width: 350,
+            width: 250,
             render: (text, record) => (
                 <span>{showMoreTags([], record)}</span>
             ),
@@ -94,7 +100,7 @@ export const AlertEvent = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 200,
+            width: 100,
             render: (_, record) =>
                 currentEventList.length >= 1 ? (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
@@ -119,6 +125,12 @@ export const AlertEvent = () => {
             width: 'auto',
         },
         {
+            title: '告警指纹',
+            dataIndex: 'fingerprint',
+            key: 'fingerprint',
+            width: 'auto',
+        },
+        {
             title: '数据源',
             dataIndex: 'datasourceId',
             key: 'datasourceId',
@@ -138,8 +150,8 @@ export const AlertEvent = () => {
                 <div style={{display: 'flex', alignItems: 'center'}}>
                     <div
                         style={{
-                            width: '10px',
-                            height: '10px',
+                            width: '8px',
+                            height: '8px',
                             backgroundColor: severityColors[text],
                             borderRadius: '50%',
                             marginRight: '8px',
@@ -153,7 +165,7 @@ export const AlertEvent = () => {
             title: '事件标签',
             dataIndex: 'metric',
             key: 'metric',
-            width: 350,
+            width: 250,
             render: (text, record) => (
                 <span>{showMoreTags([], record)}</span>
             ),
@@ -167,7 +179,7 @@ export const AlertEvent = () => {
                 <span>
                     {record.annotations && (
                         <span>
-                            {record.annotations.substring(0, 100)}
+                            {record.annotations.substring(0, 50)}
                             <Button type="link" onClick={() => { showDrawer(record.annotations) }}>
                                 查看详情
                             </Button>
@@ -679,8 +691,12 @@ export const AlertEvent = () => {
                         }}
                         onChange={handleCurrentPageChange}
                         scroll={{
-                            y: height-380
+                            y: height - 400, // 动态设置滚动高度
+                            x: 'max-content', // 水平滚动
                         }}
+                        bordered // 添加表格边框
+                        style={{ backgroundColor: '#fff' }} // 设置表格背景色
+                        rowKey={(record) => record.id} // 设置行唯一键
                     />
                 ) || (
                     <Table
@@ -695,8 +711,12 @@ export const AlertEvent = () => {
                         }}
                         onChange={handleHistoryPageChange}
                         scroll={{
-                            y: height-380
+                            y: height - 400, // 动态设置滚动高度
+                            x: 'max-content', // 水平滚动
                         }}
+                        bordered // 添加表格边框
+                        style={{ backgroundColor: '#fff' }} // 设置表格背景色
+                        rowKey={(record) => record.id} // 设置行唯一键
                     />
                 )}
             </div>

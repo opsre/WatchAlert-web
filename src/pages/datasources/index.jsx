@@ -10,6 +10,7 @@ import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
 import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
+import './index.css'
 
 export const Datasources = () => {
     const { Search } = Input
@@ -75,9 +76,12 @@ export const Datasources = () => {
             dataIndex: 'enabled',
             key: 'enabled',
             render: enabled => (
-                enabled ?
-                    <Tag color="success">启用</Tag> :
-                    <Tag color="error">禁用</Tag>
+                <div className="status-container">
+                    <div
+                        className={`status-dot ${enabled ? 'status-enabled' : 'status-disabled'}`}
+                    />
+                    <span>{enabled ? '启用' : '禁用'}</span>
+                </div>
             ),
         },
         {
@@ -208,9 +212,12 @@ export const Datasources = () => {
                     dataSource={list}
                     columns={columns}
                     scroll={{
-                        x: 1000,
-                        y: height-400
+                        y: height - 400, // 动态设置滚动高度
+                        x: 'max-content', // 水平滚动
                     }}
+                    bordered // 添加表格边框
+                    style={{ backgroundColor: '#fff' }} // 设置表格背景色
+                    rowKey={(record) => record.id} // 设置行唯一键
                 />
             </div>
 

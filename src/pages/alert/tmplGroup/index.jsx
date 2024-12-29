@@ -261,7 +261,13 @@ export const RuleTemplateGroup = () => {
                     <Table
                         columns={columns}
                         dataSource={list}
-                        scroll={{ y: height - 400 }}
+                        scroll={{
+                            y: height - 400, // 动态设置滚动高度
+                            x: 'max-content', // 水平滚动
+                        }}
+                        bordered // 添加表格边框
+                        style={{ backgroundColor: '#fff' }} // 设置表格背景色
+                        rowKey={(record) => record.id} // 设置行唯一键
                     />
                 </div>
             </div>
