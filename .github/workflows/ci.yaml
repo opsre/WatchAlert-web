@@ -13,24 +13,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: 1. Set env
-        run: |
-          echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
-          echo "SHORT_SHA=$(echo ${GITHUB_SHA:0:4})" >> $GITHUB_ENV
-          echo "DATE=$(TZ=Asia/Shanghai date +%Y-%m-%d.%H-%M-%S)" >> $GITHUB_ENV
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      - name: 2. Build Docker image
-        run: |
-          docker build -t cairry/watchalert-web:$BRANCH_NAME.$DATE.$SHORT_SHA -f Dockerfile-nginx .
-          docker tag cairry/watchalert-web:$BRANCH_NAME.$DATE.$SHORT_SHA cairry/watchalert-web:latest
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v4
 
-      - name: 3. Login to Docker Hub
-        uses: docker/login-action@v1
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 4. Push Docker image to Docker Hub
+      - name: Set env variables
+        id: set_env
         run: |
-          docker push cairry/watchalert-web:latest
-          docker push cairry/watchalert-web:$BRANCH_NAME.$DATE.$SHORT_SHA
+          echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "SHORT_SHA=${GITHUB_SHA:0:4}" >> $GITHUB_ENV
+          echo "DATE=$(TZ=Asia/Shanghai date +%Y-%m-%d.%H-%M-%S)" >> $GITHUB_ENV
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/arm64,linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          build-args: |
+            VERSION=${{ env.DATE }}
+          tags: |
+            cairry/watchalert-web:latest
+            cairry/watchalert-web:${{ env.BRANCH_NAME }}.${{ env.DATE }}.${{ env.SHORT_SHA }}
