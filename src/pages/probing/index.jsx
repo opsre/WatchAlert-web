@@ -59,9 +59,12 @@ export const Probing = () => {
             key: 'enabled',
             width: 'auto',
             render: enabled => (
-                enabled ?
-                    <Tag color="success">启用</Tag> :
-                    <Tag color="error">禁用</Tag>
+                <div className="status-container">
+                    <div
+                        className={`status-dot ${enabled ? 'status-enabled' : 'status-disabled'}`}
+                    />
+                    <span>{enabled ? '启用' : '禁用'}</span>
+                </div>
             ),
         },
         {
@@ -151,9 +154,12 @@ export const Probing = () => {
             key: 'enabled',
             width: 'auto',
             render: enabled => (
-                enabled ?
-                    <Tag color="success">启用</Tag> :
-                    <Tag color="error">禁用</Tag>
+                <div className="status-container">
+                    <div
+                        className={`status-dot ${enabled ? 'status-enabled' : 'status-disabled'}`}
+                    />
+                    <span>{enabled ? '启用' : '禁用'}</span>
+                </div>
             ),
         },
         {
@@ -221,9 +227,12 @@ export const Probing = () => {
             key: 'enabled',
             width: 'auto',
             render: enabled => (
-                enabled ?
-                    <Tag color="success">启用</Tag> :
-                    <Tag color="error">禁用</Tag>
+                <div className="status-container">
+                    <div
+                        className={`status-dot ${enabled ? 'status-enabled' : 'status-disabled'}`}
+                    />
+                    <span>{enabled ? '启用' : '禁用'}</span>
+                </div>
             ),
         },
         {
@@ -326,9 +335,12 @@ export const Probing = () => {
             key: 'enabled',
             width: 'auto',
             render: enabled => (
-                enabled ?
-                    <Tag color="success">启用</Tag> :
-                    <Tag color="error">禁用</Tag>
+                <div className="status-container">
+                    <div
+                        className={`status-dot ${enabled ? 'status-enabled' : 'status-disabled'}`}
+                    />
+                    <span>{enabled ? '启用' : '禁用'}</span>
+                </div>
             ),
         },
         {
