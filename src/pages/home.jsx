@@ -143,11 +143,15 @@ export const Home = () => {
                     <Card
                         title="告警分布"
                         bordered={false}
-                        style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
+                        style={{
+                            borderRadius: '8px',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                            overflow: 'hidden',
+                        }}
                     >
                         <ReactECharts
                             option={alarmDistributionOption}
-                            style={{ width: '550px' }}
+                            style={{ width: '100%', height: '300px' }}
                         />
                     </Card>
                 </Col>
