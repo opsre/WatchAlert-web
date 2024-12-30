@@ -1,0 +1,53 @@
+
+/* 状态容器 */
+.status-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 小圆点 */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: relative;
+}
+
+/* 启用状态的小圆点 */
+.status-enabled {
+    background-color: #52c41a; /* 绿色 */
+    animation: pulse-enabled 1.5s infinite;
+}
+
+/* 禁用状态的小圆点 */
+.status-disabled {
+    background-color: #ff4d4f; /* 红色 */
+    animation: pulse-disabled 1.5s infinite;
+}
+
+/* 启用状态动态效果 */
+@keyframes pulse-enabled {
+    0% {
+        box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(82, 196, 26, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
+    }
+}
+
+/* 禁用状态动态效果 */
+@keyframes pulse-disabled {
+    0% {
+        box-shadow: 0 0 0 0 rgba(196, 26, 26, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(82, 196, 26, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
+    }
+}
