@@ -106,6 +106,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
             setRecoverNotify(selectedRow.recoverNotify)
             setEnabled(selectedRow.enabled)
             setMethodType(selectedRow.probingEndpointConfig.http.method)
+            setCalculate(selectedRow.probingEndpointConfig.strategy.operator)
             form.setFieldsValue({
                 ruleName: selectedRow.ruleName,
                 ruleType: selectedRow.ruleType,
@@ -454,7 +455,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                             <Select
                                                 placeholder="运算"
                                                 style={{
-                                                    width: '90px',
+                                                    width: '100px',
                                                     borderRadius: '0',
                                                 }}
                                                 defaultValue={">"}
