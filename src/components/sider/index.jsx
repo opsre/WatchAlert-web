@@ -41,17 +41,15 @@ export const ComponentSider = (props) => {
                         selectedKeys={[selectedMenuKey]}
                         onClick={handleMenuClick}
                     >
-                        <Menu.Item key='1' onClick={(e) => handleMenuClick(e.key, '/')} icon={<AreaChartOutlined />}>监控分析</Menu.Item >
+                        <Menu.Item key='1' onClick={(e) => handleMenuClick(e.key, '/')} icon={<AreaChartOutlined />}>概览</Menu.Item >
 
                         <SubMenu key='2' icon={<BellOutlined />} title='告警管理'>
                             <Menu.Item key='2-1' onClick={(e) => handleMenuClick(e.key, '/ruleGroup')}>告警规则</Menu.Item>
-                            <Menu.Item key='2-2' onClick={(e) => handleMenuClick(e.key, '/silenceRules')}>静默规则</Menu.Item>
-                            <Menu.Item key='2-3' onClick={(e) => handleMenuClick(e.key, '/events')}>告警事件</Menu.Item>
                             <Menu.Item key='2-5' onClick={(e) => handleMenuClick(e.key, '/tmplType/Metrics/group')}>规则模版</Menu.Item>
                             <Menu.Item key='2-6' onClick={(e) => handleMenuClick(e.key, '/subscribes')}>告警订阅</Menu.Item>
 
                         </SubMenu>
-                        {/*<Menu.Item key='12' onClick={(e) => handleMenuClick(e.key, '/snags')} icon={<ExceptionOutlined />}>故障中心</Menu.Item >*/}
+                        <Menu.Item key='12' onClick={(e) => handleMenuClick(e.key, '/faultCenter')} icon={<ExceptionOutlined />}>故障中心</Menu.Item >
                         <SubMenu key='3' icon={<NotificationOutlined />} title='通知管理'>
                             <Menu.Item key='3-1' onClick={(e) => handleMenuClick(e.key, '/noticeObjects')}>通知对象</Menu.Item>
                             <Menu.Item key='3-2' onClick={(e) => handleMenuClick(e.key, '/noticeTemplate')}>通知模版</Menu.Item>
@@ -85,15 +83,13 @@ export const ComponentSider = (props) => {
                         selectedKeys={[selectedMenuKey]}
                         onClick={handleMenuClick}
                     >
-                        <Menu.Item key='1' onClick={(e) => handleMenuClick(e.key, '/')} icon={<AreaChartOutlined />}>监控分析</Menu.Item >
+                        <Menu.Item key='1' onClick={(e) => handleMenuClick(e.key, '/')} icon={<AreaChartOutlined />}>概览</Menu.Item >
                         <SubMenu key='2' icon={<BellOutlined />} title='告警管理'>
                             <Menu.Item key='2-1' onClick={(e) => handleMenuClick(e.key, '/ruleGroup')}>告警规则</Menu.Item>
-                            <Menu.Item key='2-2' onClick={(e) => handleMenuClick(e.key, '/silenceRules')}>静默规则</Menu.Item>
-                            <Menu.Item key='2-3' onClick={(e) => handleMenuClick(e.key, '/events')}>告警事件</Menu.Item>
-                            <Menu.Item key='2-5' onClick={(e) => handleMenuClick(e.key, '/ruleTemplateGroup')}>规则模版</Menu.Item>
+                            <Menu.Item key='2-5' onClick={(e) => handleMenuClick(e.key, '/tmplType/Metrics/group')}>规则模版</Menu.Item>
                             <Menu.Item key='2-6' onClick={(e) => handleMenuClick(e.key, '/subscribes')}>告警订阅</Menu.Item>
                         </SubMenu>
-
+                        <Menu.Item key='12' onClick={(e) => handleMenuClick(e.key, '/faultCenter')} icon={<ExceptionOutlined />}>故障中心</Menu.Item >
                         <SubMenu key='3' icon={<NotificationOutlined />} title='通知管理'>
                             <Menu.Item key='3-1' onClick={(e) => handleMenuClick(e.key, '/noticeObjects')}>通知对象</Menu.Item>
                             <Menu.Item key='3-2' onClick={(e) => handleMenuClick(e.key, '/noticeTemplate')}>通知模版</Menu.Item>

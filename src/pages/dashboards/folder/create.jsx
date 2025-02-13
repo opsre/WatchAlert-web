@@ -1,6 +1,7 @@
-import {Modal, Form, Input, Button, InputNumber, Segmented} from 'antd'
+import {Modal, Form, Input, Button, Segmented, Drawer} from 'antd'
 import React, {useEffect, useState} from 'react'
 import {createDashboardFolder, updateDashboardFolder} from '../../../api/dashboard';
+import {DownOutlined, RightOutlined} from "@ant-design/icons";
 
 const MyFormItemContext = React.createContext([])
 
@@ -17,7 +18,7 @@ const MyFormItem = ({ name, ...props }) => {
 const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) => {
     const [form] = Form.useForm()
     const [theme,setTheme] = useState('light')
-
+    const [folderHelpExpanded, setFolderHelpExpanded] = useState(false);
     // 禁止输入空格
     const [spaceValue, setSpaceValue] = useState('')
 
@@ -48,8 +49,12 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
     }, [selectedRow, form])
 
     const handleCreate = async (data) => {
+        const params = {
+            ...data,
+            grafanaFolderId: Number(data.grafanaFolderId),
+        }
         try {
-            await createDashboardFolder(data)
+            await createDashboardFolder(params)
             handleList()
             form.resetFields();
         } catch (error) {
@@ -59,8 +64,12 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
 
     const handleUpdate = async (data) => {
         try {
-            data.id = selectedRow.id
-            await updateDashboardFolder(data)
+            const params = {
+                ...data,
+                id: selectedRow.id,
+                grafanaFolderId: Number(data.grafanaFolderId),
+            }
+            await updateDashboardFolder(params)
             handleList()
             form.resetFields();
         } catch (error) {
@@ -82,8 +91,12 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
         onClose()
     }
 
+    const toggleFolderHelp = () => {
+        setFolderHelpExpanded(!folderHelpExpanded);
+    };
+
     return (
-        <Modal visible={visible} onCancel={onClose} footer={null}>
+        <Drawer title={"创建 Grafana 仪表盘链接"} open={visible} onClose={onClose} footer={null} size={"large"}>
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                 <MyFormItem name="name" label="名称" rules={[{required: true}]}>
                     <Input
@@ -106,7 +119,7 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
                 </MyFormItem>
 
                 <MyFormItem name="grafanaFolderId" label="Grafana FolderId"  rules={[{required: true}]}>
-                    <InputNumber style={{width:'100%'}} placeholder="Grafana目录Id" min={1}/>
+                    <Input type={"number"} style={{width:'100%'}} placeholder="Grafana目录Id" min={1}/>
                 </MyFormItem>
 
                 <MyFormItem name="theme" label="背景颜色">
@@ -130,8 +143,42 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
                         创建
                     </Button>
                 </div>
+                <div style={{marginTop: 24}}>
+                    <div
+                        onClick={toggleFolderHelp}
+                        style={{
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            padding: '8px 0',
+                            userSelect: 'none'
+                        }}
+                    >
+                        {folderHelpExpanded ? <DownOutlined/> : <RightOutlined/>}
+                        <h4 style={{margin: 0}}>获取 FolderId 的方法</h4>
+                    </div>
+
+                    {folderHelpExpanded && (
+                        <div style={{
+                            marginLeft: 12,
+                            padding: 12,
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: 4
+                        }}>
+                            <ul style={{margin: 0, paddingLeft: 16}}>
+                                <li>打开 Grafana 平台 / 仪表盘(Dashboards)，再打开 F12；</li>
+                                <li>点击 网络(Network)，再点击下 Grafana 文件夹，会出现一个 Search 接口的请求；</li>
+                                <li>
+                                    点开请求，点击 Payload 查看请求参数，其中有 <code>folderIds</code>，
+                                    这个 ID 即可应用到 WatchAlert。
+                                </li>
+                            </ul>
+                        </div>
+                    )}
+                </div>
             </Form>
-        </Modal>
+        </Drawer>
     )
 }
 

@@ -1,5 +1,5 @@
-import { Modal, Form, Input, Button, Switch, InputNumber, Divider,Tabs } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { Modal, Form, Input, Button, Divider } from 'antd'
+import React, { useEffect } from 'react'
 import { createTenant, updateTenant } from '../../api/tenant'
 
 const MyFormItemContext = React.createContext([])

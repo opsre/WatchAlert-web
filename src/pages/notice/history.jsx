@@ -7,9 +7,7 @@ import { ReactComponent as DingdingIcon } from './img/dingding.svg'
 import { ReactComponent as EmailIcon } from './img/Email.svg'
 import { ReactComponent as WeChatIcon } from './img/qywechat.svg'
 import { ReactComponent as CustomHookIcon } from './img/customhook.svg'
-import { ReactComponent as P0 } from "../alert/event/img/P0.svg"
-import { ReactComponent as P1 } from "../alert/event/img/P1.svg"
-import { ReactComponent as P2 } from "../alert/event/img/P2.svg"
+import Editor from "@monaco-editor/react";
 
 export const NoticeRecords = () => {
     const { TextArea,Search } = Input;
@@ -21,6 +19,11 @@ export const NoticeRecords = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [severiry,setSeverity] = useState()
     const [pushStatus,setPushStatus] = useState()
+    const severityColors = {
+        'P0': 'red',
+        'P1': 'orange',
+        'P2': 'yellow',
+    };
     const columns = [
         {
             title: '规则名称',
@@ -31,22 +34,20 @@ export const NoticeRecords = () => {
             title: '告警等级',
             dataIndex: 'severity',
             key: 'severity',
-            render: (text) => {
-                return (
-                    <div style={{display: 'flex'}}>
-                        {text === "P0" && (
-                            <P0 style={{ height: "25px", width: "25px" }} />
-                        )}
-                        {text === "P1" && (
-                            <P1 style={{ height: "25px", width: "25px" }} />
-                        )}
-                        {text === "P2" && (
-                            <P2 style={{ height: "25px", width: "25px" }} />
-                        )}
-                        <div style={{marginLeft: "5px", marginTop: '3px',fontSize :'12px'}}>{text}</div>
-                    </div>
-                )
-            },
+            render: (text) => (
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                    <div
+                        style={{
+                            width: '8px',
+                            height: '8px',
+                            backgroundColor: severityColors[text],
+                            borderRadius: '50%',
+                            marginRight: '8px',
+                        }}
+                    />
+                    {text}
+                </div>
+            )
         },
         {
             title: '通知类型',
@@ -248,6 +249,26 @@ export const NoticeRecords = () => {
         }
     }
 
+    // 公共编辑器组件
+    const VSCodeEditor = ({ value, onChange, language = 'json' }) => (
+        <Editor
+            height="250px"
+            defaultLanguage={language}
+            defaultValue={value}
+            onChange={onChange}
+            options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                roundedSelection: false,
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                formatOnType: true,
+                formatOnPaste: true,
+            }}
+        />
+    );
+
     return (
         <>
             <div style={{
@@ -306,25 +327,13 @@ export const NoticeRecords = () => {
                 onClose={onCloseDrawer}
                 open={drawerOpen}
             >
-                <div>告警消息体</div>
-                <TextArea
-                    value={alarmMsg}
-                    style={{
-                        height: 200,
-                        resize: 'none',
-                    }}
-                />
+                <span style={{fontSize: '15px', fontWeight: 'bold'}}>告警消息体</span>
+                <VSCodeEditor value={alarmMsg} />
 
                 <Divider/>
 
-                <div>错误消息体</div>
-                <TextArea
-                    value={errMsg}
-                    style={{
-                        height: 200,
-                        resize: 'none',
-                    }}
-                />
+                <span style={{fontSize: '15px', fontWeight: 'bold'}}>错误消息体</span>
+                <VSCodeEditor value={errMsg} />
 
             </Drawer>
 

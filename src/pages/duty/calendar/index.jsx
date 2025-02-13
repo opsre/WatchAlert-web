@@ -127,7 +127,13 @@ export const CalendarApp = ({ tenantId }) => {
         }}>
             <div style={{position: 'relative',overflowY: "auto",height: '830px'}}>
                 <div style={{position: 'absolute', width: '100%',marginTop:'3px'}}>
-                    <Button onClick={() => setCreateCalendarModal(true)}>
+                    <Button
+                        type="primary"
+                        style={{
+                            backgroundColor: '#000000'
+                        }}
+                        onClick={() => setCreateCalendarModal(true)}
+                    >
                         发布日程
                     </Button>
                     <div style={{textAlign: 'center',marginTop:'-45px'}}>

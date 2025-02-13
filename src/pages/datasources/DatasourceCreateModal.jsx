@@ -1,5 +1,5 @@
 import {createDatasource, DatasourcePing, updateDatasource} from '../../api/datasource'
-import {Modal, Form, Input, Button, Switch, Select, InputNumber, Alert, Drawer, Space} from 'antd'
+import {Form, Input, Button, Switch, Select, Alert, Drawer} from 'antd'
 import React, { useState, useEffect } from 'react'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 const { TextArea } = Input
@@ -104,20 +104,21 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             return acc;
         }, {});
 
+        const params = {
+            ...values,
+            labels: formattedLabels,
+            http: {
+                url: values.http.url,
+                timeout: Number(values.http.timeout),
+            },
+        }
+
         if (type === 'create') {
-            const params = {
-                ...values,
-                labels: formattedLabels,
-            }
             await handleCreate(params)
         }
 
         if (type === 'update') {
-            const params = {
-                ...values,
-                labels: formattedLabels,
-                id: selectedRow.id
-            }
+            params.id = selectedRow.id
             await handleUpdate(params)
         }
 
@@ -160,7 +161,30 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
     };
 
     return (
-        <Drawer title="创建数据源" open={visible} onClose={onClose} size='large'>
+        <Drawer
+            title="创建数据源"
+            open={visible}
+            onClose={onClose}
+            size='large'
+            footer={
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <Button type="default" onClick={handleTestConnection}>
+                        连接测试
+                    </Button>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={submitLoading}
+                        onClick={handleSubmit}
+                        style={{
+                            backgroundColor: '#000000'
+                        }}
+                    >
+                        提交
+                    </Button>
+                </div>
+            }
+        >
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                 <MyFormItem
                     name="name"
@@ -314,7 +338,8 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                             required: true,
                                         },
                                     ]}>
-                            <InputNumber
+                            <Input
+                                type={"number"}
                                 style={{width: '100%'}}
                                 addonAfter={<span>秒</span>}
                                 placeholder="10"
@@ -434,23 +459,6 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 >
                     <Switch checked={enabled} onChange={setEnabled}/>
                 </MyFormItem>
-
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <Button type="default" onClick={handleTestConnection}>
-                        连接测试
-                    </Button>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={submitLoading}
-                        onClick={handleSubmit}
-                        style={{
-                            backgroundColor: '#000000'
-                        }}
-                    >
-                        提交
-                    </Button>
-                </div>
             </Form>
         </Drawer>
     )

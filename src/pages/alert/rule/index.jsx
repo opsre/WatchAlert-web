@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Input, Table, Radio, Popconfirm, Tag, message } from 'antd'
+import { Button, Input, Table, Radio, Popconfirm, Tag } from 'antd'
 import { Link } from 'react-router-dom'
 import { useParams } from 'react-router-dom'
-import { AlertRuleCreateModal } from './AlertRuleCreateModal'
 import { deleteRule, getRuleList } from '../../../api/rule'
 import { ReactComponent as PrometheusImg } from "./img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "./img/alicloud.svg"
@@ -299,36 +298,6 @@ export const AlertRuleList = () => {
                             }}
                         > 创 建 </Button>
                     </Link>
-                </div>
-            </div>
-
-            <div style={{display: 'flex'}}>
-                <AlertRuleCreateModal
-                    visible={visible}
-                    onClose={handleModalClose}
-                    type="create"
-                    handleList={handleList}
-                    ruleGroupId={id}
-                />
-
-                <AlertRuleCreateModal
-                    visible={updateVisible}
-                    onClose={handleUpdateModalClose}
-                    selectedRow={selectedRow}
-                    type="update"
-                    handleList={handleList}
-                    ruleGroupId={id}
-                />
-
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '10px',
-                        width: '1000px',
-                    }}
-                >
                 </div>
             </div>
 

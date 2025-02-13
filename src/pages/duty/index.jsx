@@ -8,11 +8,7 @@ import { deleteDutyManager, getDutyManagerList } from '../../api/duty';
 import {Link} from "react-router-dom";
 
 export const DutyManage = () => {
-    const [tenantId, setTenantId] = useState('')
-    const [calendarDutyId, setCalendarDutyId] = useState('');
-    const [calendarName, setCalendarName] = useState('');
     const [calendarVisible, setCalendarVisible] = useState(false);
-    const [selectedId, setSelectedId] = useState(null);
     const [visible, setVisible] = useState(false);
     const [updateVisible, setUpdateVisible] = useState(false);
     const [list, setList] = useState([]);

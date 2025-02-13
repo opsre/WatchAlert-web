@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Form, Modal, InputNumber, DatePicker, Select, Button, List, Avatar, Space, Drawer, Input} from 'antd'
+import {Form, Modal, DatePicker, Select, Button, List, Avatar, Space, Drawer, Input, InputNumber} from 'antd'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { PlusOutlined, DeleteOutlined, MenuOutlined } from '@ant-design/icons'
 import { getAllUsers } from '../../../api/other.jsx'
@@ -199,10 +199,6 @@ export const CreateCalendarModal = ({ visible, onClose, dutyId }) => {
 
     const generateCalendar = () => {
         if (selectedMonth && dutyPeriod && selectedUsers.length > 0) {
-            const startDate = new Date(selectedMonth)
-            const endDate = new Date(startDate)
-            endDate.setDate(endDate.getDate() + (dutyPeriod * selectedUsers.length) - 1)
-
             const calendarData = {
                 dutyId: dutyId,
                 month: selectedMonth,

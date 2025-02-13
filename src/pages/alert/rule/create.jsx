@@ -19,7 +19,7 @@ import {createRule, searchRuleInfo, updateRule} from '../../../api/rule'
 import {getDatasource, searchDatasource} from '../../../api/datasource'
 import { getNoticeList } from '../../../api/notice'
 import {getJaegerService, queryPromMetrics} from '../../../api/other'
-import { useParams } from 'react-router-dom'
+import {Link, useParams} from 'react-router-dom'
 import moment from 'moment';
 import dayjs from 'dayjs';
 import './index.css'
@@ -43,6 +43,7 @@ import {PrometheusPromQL} from "../../promethues";
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
 import { useRule } from '../../../context/RuleContext';
 import TextArea from "antd/es/input/TextArea";
+import {FaultCenterList} from "../../../api/faultCenter";
 
 const format = 'HH:mm';
 const MyFormItemContext = React.createContext([])
@@ -141,6 +142,8 @@ export const AlertRule = ({ type }) => {
     const [kubeReasonListOptions,setKubeReasonListOptions]=useState({})
     const [filterTags,setFilterTags] = useState([])
     const [esfilter, setEsfilter] = useState([{}])
+    const [faultCenters, setFaultCenters] = useState([])
+    const [selectedFaultCenter, setSelectedFaultCenter] = useState(null)
 
     useEffect(() => {
         if (ruleTemplate) {
@@ -202,9 +205,6 @@ export const AlertRule = ({ type }) => {
             evalInterval: selectedRow.evalInterval,
             forDuration: selectedRow.forDuration,
             labels: labels,
-            noticeGroup: selectedRow.noticeGroup,
-            noticeId: selectedRow.noticeId,
-            repeatNoticeInterval: selectedRow.repeatNoticeInterval,
             ruleId: selectedRow.ruleId,
             ruleName: selectedRow.ruleName,
             alicloudSLSConfig: selectedRow.alicloudSLSConfig,
@@ -224,7 +224,7 @@ export const AlertRule = ({ type }) => {
             cloudwatchConfig: selectedRow.cloudwatchConfig,
             kubernetesConfig: selectedRow.kubernetesConfig,
             elasticSearchConfig: selectedRow.elasticSearchConfig,
-            recoverNotify:selectedRow.recoverNotify,
+            faultCenterId: selectedRow.faultCenterId,
         })
         setPromQL(selectedRow.prometheusConfig.promQL)
         setSelectedItems(selectedRow.datasourceId)
@@ -232,8 +232,7 @@ export const AlertRule = ({ type }) => {
         setStartTime(selectedRow.effectiveTime.startTime)
         setEndTime(selectedRow.effectiveTime.endTime)
         setEnabled(selectedRow.enabled)
-        setAlarmAggregation(selectedRow.alarmAggregation)
-        setRecoverNotify(selectedRow.recoverNotify)
+        setSelectedFaultCenter(selectedRow.faultCenterId)
 
         let t = 0;
         if (selectedRow.datasourceType === "Prometheus"){
@@ -288,6 +287,7 @@ export const AlertRule = ({ type }) => {
         handleGetMetricTypes()
         handleGetStatistics()
         handleGetKubernetesEventTypes()
+        handleGetFaultCenterList()
     }, [])
 
     useEffect(() => {
@@ -473,6 +473,20 @@ export const AlertRule = ({ type }) => {
 
             // 将数据设置为选项对象数组
             setDatasourceOptions(newData)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const handleGetFaultCenterList = async () => {
+        try {
+            const res = await FaultCenterList()
+            const newData = res.data?.map((item) => ({
+                label: item.name,
+                value: item.id,
+            }))
+
+            setFaultCenters(newData)
         } catch (error) {
             console.error(error)
         }
@@ -784,10 +798,11 @@ export const AlertRule = ({ type }) => {
 
     const handleQueryMetrics = async () =>{
         let t = getSelectedTypeName(selectedType)
+        const encodedPromQL = encodeURIComponent(promQL);
         const params={
             datasourceType: t,
             url: selectDatasourceURL,
-            query: promQL
+            query: encodedPromQL
         }
         const res = await queryPromMetrics(params)
         if (res.code === 200 && res.data && res.data.data && res.data.data.result) {
@@ -971,7 +986,7 @@ export const AlertRule = ({ type }) => {
                                         />
                                     </MyFormItem>
 
-                                    <MyFormItem name="" label="* 表达式" rules={[{required: !exprRule}]}>
+                                    <MyFormItem name="" label="表达式" rules={[{required: !exprRule}]}>
                                         {exprRule?.map((label, index) => (
                                             <div className="rule-item" key={index} style={{gap: '10px'}}>
                                                 <MyFormItem
@@ -1708,154 +1723,39 @@ export const AlertRule = ({ type }) => {
                             {"> 默认情况下规则随时生效。如需指定生效时间，请选择具体的时间。"}
                         </Typography.Text>
                     </MyFormItem>
-
                 </div>
 
                 <Divider/>
 
-                <div>
-                    <strong style={{fontSize: '20px'}}>通知配置</strong>
+                <MyFormItem
+                    name="faultCenterId"
+                    label="事件推送给 WatchAlert 故障中心"
+                    rules={[{ required: true }]}
+                >
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <Select
+                            placeholder="选择故障中心"
+                            value={selectedFaultCenter}
+                            onChange={setSelectedFaultCenter}
+                            style={{ width: '93%' }}
+                            onClick={handleGetFaultCenterList}
+                            options={faultCenters}
+                        />
 
-                    <div style={{display: 'flex'}}>
-                        <MyFormItem
-                            name="noticeId"
-                            label="通知对象"
-                            tooltip="默认通知对象"
+                        <a
+                            href="/faultCenter"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             style={{
-                                marginRight: '10px',
-                                width: '50%',
+                                alignSelf: 'center',  // 垂直居中
+                                textDecoration: 'none', // 移除下划线
+                                transition: 'color 0.3s',
                             }}
-                            rules={[
-                                {
-                                    required: true,
-                                },
-                            ]}
                         >
-                            <Select
-                                style={{
-                                    width: '100%',
-                                }}
-                                allowClear
-                                placeholder="选择通知对象"
-                                options={noticeOptions}
-                                onChange={handleSelectChange} // 使用onChange事件处理函数来捕获选择的值
-                            />
-                        </MyFormItem>
-
-                        <MyFormItem
-                            name="repeatNoticeInterval"
-                            label="重复通知"
-                            style={{
-                                width: '50%',
-                            }}
-                            rules={[
-                                {
-                                    required: true,
-                                },
-                            ]}
-                        >
-                            <InputNumber
-                                style={{width: '100%'}}
-                                addonAfter={<span>分钟</span>}
-                                placeholder="60"
-                                min={1}
-                            />
-                        </MyFormItem>
+                            前往创建
+                        </a>
                     </div>
-
-                    <div style={{display: 'flex', marginTop: '10px', alignItems: 'center'}}>
-                        <MyFormItem style={{marginBottom: '0', marginRight: '10px'}}>
-                            <span>分组通知</span>
-                            <Tooltip title="根据 Metric 标签进行分组通知">
-                                <QuestionCircleOutlined style={{color: '#1890ff', marginLeft: '4px'}}/>
-                            </Tooltip>
-                        </MyFormItem>
-                        <Button onClick={addLabel} style={{marginTop: '0'}}>
-                            +
-                        </Button>
-                    </div>
-                </div>
-
-                <div style={{marginTop: '20px'}}>
-                    <MyFormItemGroup prefix={['noticeGroup']}>
-                        {noticeLabels.length >= 1 ? (<div style={{display: 'flex',}}>
-                            <label style={{marginRight: '29%'}}>* Key</label>
-                            <label style={{marginRight: '28%'}}>* Value</label>
-                            <label style={{marginRight: '27%'}}>* 通知对象</label>
-                            <label>操作</label>
-                        </div>) : null}
-                        {noticeLabels?.map((label, index) => (
-                            <div style={{display: 'flex', alignItems: 'center', marginTop: '10px'}}>
-                                <Input
-                                    name={`[${index}].key`}
-                                    placeholder="Key"
-                                    style={{
-                                        marginRight: '10px',
-                                        width: 'calc((100% / 3) - 20px)',
-                                        height: '32px'
-                                    }} // 减去marginRight和padding
-                                    value={label.key}
-                                    onChange={(e) => updateLabel(index, 'key', e.target.value)}
-                                />
-
-                                <Input
-                                    name={`[${index}].value`}
-                                    placeholder="Value"
-                                    style={{
-                                        marginRight: '10px',
-                                        width: 'calc((100% / 3) - 20px)',
-                                        height: '32px'
-                                    }} // 减去marginRight和padding
-                                    value={label.value}
-                                    onChange={(e) => updateLabel(index, 'value', e.target.value)}
-                                />
-
-                                <Select
-                                    name={`[${index}].noticeId`}
-                                    placeholder="选择通知对象"
-                                    style={{width: 'calc((100% / 3) - 20px)', height: '32px'}} // 减去marginRight和padding
-                                    allowClear
-                                    options={noticeOptions}
-                                    value={label.noticeId ? [label.noticeId] : undefined}
-                                    onChange={(e) => updateLabel(index, 'noticeId', e)}
-                                />
-
-                                <Button onClick={() => removeLabel(index)} style={{marginLeft: '10px'}}>
-                                    -
-                                </Button>
-                            </div>
-                        ))}
-                    </MyFormItemGroup>
-                </div>
-
-                <div style={{display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px'}}>
-                    <MyFormItem
-                        style={{marginBottom: 0}}
-                        name="recoverNotify"
-                    >
-                        <div style={{display: 'flex', alignItems: 'center'}}>
-                            <span style={{marginRight: 8}}>启用恢复通知</span>
-                            <Switch
-                                value={recoverNotify}
-                                checked={recoverNotify}
-                                onChange={setRecoverNotify}
-                            />
-                        </div>
-                    </MyFormItem>
-                    <MyFormItem
-                        style={{marginBottom: 0}}
-                        name="alarmAggregation"
-                    >
-                        <div style={{display: 'flex', alignItems: 'center'}}>
-                            <span style={{marginRight: 8}}>启用告警聚合</span>
-                            <Switch
-                                value={alarmAggregation}
-                                checked={alarmAggregation}
-                                onChange={setAlarmAggregation}
-                            />
-                        </div>
-                    </MyFormItem>
-                </div>
+                </MyFormItem>
 
                 <div style={{marginTop: '20px'}}>
                     <MyFormItem

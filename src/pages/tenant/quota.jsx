@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
-import {Button, Form, InputNumber, Popconfirm, Switch} from "antd";
+import React, { useEffect } from 'react'
+import {Button, Form, Input, Popconfirm} from "antd";
 import { updateTenant } from '../../api/tenant'
-import {updateRuleGroup} from "../../api/rule";
 const MyFormItemContext = React.createContext([])
 
 function toArr(str) {
@@ -22,10 +21,10 @@ export const TenantQuota = ({tenantInfo})=>{
         console.log(tenantInfo)
         if (tenantInfo) {
             form.setFieldsValue({
-                userNumber: tenantInfo.userNumber,
-                ruleNumber: tenantInfo.ruleNumber,
-                dutyNumber: tenantInfo.dutyNumber,
-                noticeNumber: tenantInfo.noticeNumber,
+                userNumber: Number(tenantInfo.userNumber),
+                ruleNumber: Number(tenantInfo.ruleNumber),
+                dutyNumber: Number(tenantInfo.dutyNumber),
+                noticeNumber: Number(tenantInfo.noticeNumber),
             })
         }
     }, [tenantInfo, form])
@@ -34,10 +33,10 @@ export const TenantQuota = ({tenantInfo})=>{
         try {
             const params = {
                 ...tenantInfo,
-                userNumber: values.userNumber,
-                ruleNumber: values.ruleNumber,
-                dutyNumber: values.dutyNumber,
-                noticeNumber: values.noticeNumber,
+                userNumber: Number(values.userNumber),
+                ruleNumber: Number(values.ruleNumber),
+                dutyNumber: Number(values.dutyNumber),
+                noticeNumber: Number(values.noticeNumber),
             }
 
             await updateTenant(params)
@@ -56,7 +55,8 @@ export const TenantQuota = ({tenantInfo})=>{
                         marginRight: '20px',
                     }}
                 >
-                    <InputNumber
+                    <Input
+                        type={"number"}
                         addonAfter={'个'}
                         placeholder="10"
                         min={1}
@@ -69,7 +69,8 @@ export const TenantQuota = ({tenantInfo})=>{
                         marginRight: '20px',
                     }}
                 >
-                    <InputNumber
+                    <Input
+                        type={"number"}
                         addonAfter={'个'}
                         placeholder="10"
                         min={1}
@@ -85,7 +86,8 @@ export const TenantQuota = ({tenantInfo})=>{
                        marginRight: '20px',
                    }}
                >
-                   <InputNumber
+                   <Input
+                       type={"number"}
                        addonAfter={'个'}
                        placeholder="10"
                        min={1}
@@ -98,7 +100,8 @@ export const TenantQuota = ({tenantInfo})=>{
                        marginRight: '20px',
                    }}
                >
-                   <InputNumber
+                   <Input
+                       type={"number"}
                        addonAfter={'个'}
                        placeholder="10"
                        min={1}

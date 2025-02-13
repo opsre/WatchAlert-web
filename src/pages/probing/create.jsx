@@ -235,10 +235,6 @@ export const CreateProbingRule = ({ type, handleList }) => {
     const tcpPattern = /^(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3}):\d+$/; // TCP: IP/域名:port
     const domainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/; // 仅域名校验（SSL）
 
-    const handleSubmit = async () => {
-        // setSubmitLoading(true)
-    }
-
     const optionsMap = {
         HTTP: httpOptions,
         ICMP: icmpOptions,
@@ -250,7 +246,6 @@ export const CreateProbingRule = ({ type, handleList }) => {
     return (
         <div style={{textAlign:'left',
             width: '100%',
-            // flex: 1,
             alignItems: 'flex-start',
             marginTop: '-20px',
             maxHeight: 'calc((-145px + 100vh) - 65px - 40px)',
@@ -588,7 +583,6 @@ export const CreateProbingRule = ({ type, handleList }) => {
                         type="primary"
                         htmlType="submit"
                         loading={submitLoading}
-                        onClick={handleSubmit}
                         style={{
                             backgroundColor: '#000000'
                         }}

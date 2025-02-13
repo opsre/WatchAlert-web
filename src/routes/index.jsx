@@ -1,5 +1,3 @@
-import { AlertCurEvent } from "../pages/alert/event/AlertCurEvent";
-import { AlertHisEvent } from "../pages/alert/event/AlertHisEvent";
 import { AlertRuleList } from "../pages/alert/rule";
 import { AlertRuleGroup } from "../pages/alert/ruleGroup";
 import { RuleTemplate } from "../pages/alert/tmpl";
@@ -32,6 +30,8 @@ import {Probing} from "../pages/probing";
 import {CreateProbingRule} from "../pages/probing/create";
 import {OnceProbing} from "../pages/probing/once";
 import Profile from "../pages/profile";
+import {FaultCenter} from "../pages/faultCenter";
+import {FaultCenterDetail} from "../pages/faultCenter/detail";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default [
@@ -66,14 +66,6 @@ export default [
     {
         path: '/events',
         element: <ComponentsContent name="告警事件" c={<AlertEvent />} />
-    },
-    {
-        path: '/alertCurEvent',
-        element: <ComponentsContent name="当前告警" c={<AlertCurEvent />} />
-    },
-    {
-        path: '/alertHisEvent',
-        element: <ComponentsContent name="历史告警" c={<AlertHisEvent />} />
     },
     {
         path: '/tmplType/:tmplType/group',
@@ -133,7 +125,7 @@ export default [
     },
     {
         path: 'dashboard/f/:fid/g/:did/info',
-        element: <ComponentsContent name="仪表盘" c={<GrafanaDashboardComponent />} />
+        element: <ComponentsContent name="仪表盘详情" c={<GrafanaDashboardComponent />} />
     },
     {
         path: '/auditLog',
@@ -170,6 +162,14 @@ export default [
     {
         path: '/profile',
         element: <ComponentsContent name="个人信息" c={<Profile />} />
+    },
+    {
+        path: '/faultCenter',
+        element: <ComponentsContent name="故障中心" c={<FaultCenter />} />
+    },
+    {
+        path: '/faultCenter/detail/:id',
+        element: <ComponentsContent name="故障中心详情" c={<FaultCenterDetail />} />
     },
     {
         path: '/*',

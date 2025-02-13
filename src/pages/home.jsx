@@ -1,15 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Card, List, Row, Col, Statistic } from 'antd';
+import {Card, List, Row, Col, Statistic, Select} from 'antd';
 import { getDashboardInfo } from '../api/other';
+import {FaultCenterList} from "../api/faultCenter";
+
+const { Option } = Select;
 
 export const Home = () => {
-    const [dashboardInfo, setDashboardInfo] = useState([]);
     const contentMaxHeight = 'calc((-145px + 100vh) - 65px - 10px)';
+    const [dashboardInfo, setDashboardInfo] = useState({});
+    const [faultCenters, setFaultCenters] = useState([]); // 故障中心列表
+    const [selectedFaultCenter, setSelectedFaultCenter] = useState(null); // 选中的故障中心
 
-    const fetchDashboardInfo = async () => {
+    // 获取故障中心列表
+    const fetchFaultCenters = async () => {
         try {
-            const res = await getDashboardInfo();
+            const res = await FaultCenterList();
+            setFaultCenters(res.data);
+            // 默认选择第一个
+            if (res.data.length > 0) {
+
+                setSelectedFaultCenter(res.data[res.data.length-1].id);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // 获取仪表盘数据
+    const fetchDashboardInfo = async (faultCenterId) => {
+        try {
+            const params = { faultCenterId: faultCenterId };
+            const res = await getDashboardInfo(params);
             setDashboardInfo(res.data);
         } catch (error) {
             console.error(error);
@@ -17,8 +39,12 @@ export const Home = () => {
     };
 
     useEffect(() => {
-        fetchDashboardInfo();
+        fetchFaultCenters();
     }, []);
+
+    useEffect(() => {
+        fetchDashboardInfo(selectedFaultCenter);
+    }, [selectedFaultCenter]);
 
     const alarmDistributionOption = {
         xAxis: { type: 'category', data: ['P0', 'P1', 'P2'] },
@@ -35,29 +61,34 @@ export const Home = () => {
         ],
     };
 
-    const lineChartConfig = {
-        data: dashboardInfo?.serviceResource ?? [],
-        xField: 'time',
-        yField: 'value',
-        seriesField: 'label',
-        xAxis: {
-            type: 'time',
-            labels: {
-                formatter: (value) => {
-                    const date = new Date(value);
-                    return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
-                },
-            },
-        },
-        tooltip: {
-            dateTimeLabelFormats: {
-                minute: '%H:%M:%S',
-                hour: '%H:%M:%S',
-                day: '%H:%M:%S',
-            },
-        },
-        interval: 60,
-    };
+    // 渲染卡片标题（带选择器）
+    const renderCardTitle = (title) => (
+        <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0 8px'
+        }}>
+            <span style={{ fontWeight: 'bold' }}>{title}</span>
+            <Select
+                style={{ width: 200 }}
+                placeholder="选择故障中心"
+                value={selectedFaultCenter}
+                onChange={setSelectedFaultCenter}
+                showSearch
+                optionFilterProp="children"
+            >
+                {faultCenters.length === 0 && (
+                    <Option disabled>暂无可用故障中心</Option>
+                )}
+                {faultCenters.map(center => (
+                    <Option key={center.id} value={center.id}>
+                        {center.name}
+                    </Option>
+                ))}
+            </Select>
+        </div>
+    );
 
     return (
         <div style={{
@@ -87,10 +118,10 @@ export const Home = () => {
                         style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
                     >
                         <Statistic
-                            value={dashboardInfo?.curAlerts || 0}
+                            value={dashboardInfo?.faultCenterNumber || 0}
                             valueStyle={{ fontSize: '32px', fontWeight: 'bold', color: '#ff4d4f' }}
                         />
-                        <div style={{ color: '#999', marginTop: '8px' }}>当前告警总数</div>
+                        <div style={{ color: '#999', marginTop: '8px' }}>故障中心总数</div>
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} md={8}>
@@ -99,31 +130,19 @@ export const Home = () => {
                         style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
                     >
                         <Statistic
-                            value={dashboardInfo?.curMutes || 0}
+                            value={dashboardInfo?.userNumber || 0}
                             valueStyle={{ fontSize: '32px', fontWeight: 'bold', color: '#b1b1b1' }}
                         />
-                        <div style={{ color: '#999', marginTop: '8px' }}>运行静默总数</div>
+                        <div style={{ color: '#999', marginTop: '8px' }}>系统用户总数</div>
                     </Card>
                 </Col>
-                {/*<Col xs={24} md={8}>*/}
-                {/*    <Card*/}
-                {/*        title="服务资源使用率"*/}
-                {/*        bordered={false}*/}
-                {/*        style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}*/}
-                {/*    >*/}
-                {/*        <Line*/}
-                {/*            style={{ height: '200px', width: '100%' }}*/}
-                {/*            {...lineChartConfig}*/}
-                {/*        />*/}
-                {/*    </Card>*/}
-                {/*</Col>*/}
             </Row>
 
             {/* 第二行：最近告警列表、告警分布 */}
             <Row gutter={[16, 16]}>
                 <Col xs={24} md={12}>
                     <Card
-                        title="最近告警列表"
+                        title={renderCardTitle('最近告警列表')}
                         bordered={false}
                         style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
                     >
@@ -139,9 +158,10 @@ export const Home = () => {
                         />
                     </Card>
                 </Col>
+
                 <Col xs={24} md={12}>
                     <Card
-                        title="告警分布"
+                        title={renderCardTitle('告警分布')}
                         bordered={false}
                         style={{
                             borderRadius: '8px',

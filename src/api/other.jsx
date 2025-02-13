@@ -14,9 +14,9 @@ async function getAllUsers(params) {
     }
 }
 
-async function getDashboardInfo() {
+async function getDashboardInfo(params) {
     try {
-        const res = await http('get', '/api/system/getDashboardInfo');
+        const res = await http('get', '/api/system/getDashboardInfo', params);
         return res;
     } catch (error) {
         message.open({

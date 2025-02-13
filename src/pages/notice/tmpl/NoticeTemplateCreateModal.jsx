@@ -1,4 +1,5 @@
 import {Modal, Form, Input, Button, Card, Tooltip, Checkbox, Drawer} from 'antd'
+import Editor from '@monaco-editor/react';
 import React, { useEffect, useState } from 'react'
 import { createNoticeTmpl, updateNoticeTmpl } from '../../../api/noticeTmpl'
 import FeiShuImg from "../img/feishu.svg";
@@ -8,7 +9,6 @@ import WeChatImg from "../img/qywechat.svg"
 import {QuestionCircleOutlined} from "@ant-design/icons";
 
 const MyFormItemContext = React.createContext([])
-const { TextArea } = Input
 
 function toArr(str) {
     return Array.isArray(str) ? str : [str]
@@ -160,8 +160,48 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
         setSelectedNotifyCard(index);
     };
 
+    // 公共编辑器组件
+    const VSCodeEditor = ({ value, onChange, language = 'json' }) => (
+        <Editor
+            theme={"vs-dark"}
+            height="400px"
+            defaultLanguage={language}
+            defaultValue={value}
+            onChange={onChange}
+            options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                roundedSelection: false,
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                formatOnType: true,
+                formatOnPaste: true,
+            }}
+        />
+    );
+
+
+
     return (
-        <Drawer title="创建通知模版" open={visible} onClose={onClose} size='large'>
+        <Drawer
+            title="创建通知模版"
+            open={visible}
+            onClose={onClose}
+            size='large'
+            footer={
+            <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+                <Button
+                    type="primary"
+                    htmlType="submit"
+                    style={{
+                        backgroundColor: '#000',
+                    }}
+                >
+                    提交
+                </Button>
+            </div>}
+        >
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
 
                 <div style={{display: 'flex'}}>
@@ -193,53 +233,53 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
 
                 <div style={{display: 'flex'}}>
                     <MyFormItem name="" label="模版类型">
-                            <div style={{display: 'flex', gap: '10px'}}>
-                                {cards.map((card, index) => (
-                                    <Card
-                                        key={index}
-                                        style={{
-                                            height: 100,
-                                            width: 120,
-                                            position: 'relative',
-                                            cursor: type === 'update' ? 'not-allowed' : 'pointer',
-                                            border: selectedNotifyCard === index ? '2px solid #1890ff' : '1px solid #d9d9d9',
-                                            pointerEvents: type === 'update' ? 'none' : 'auto',
-                                        }}
-                                        onClick={() => handleCardClick(index)}
-                                    >
-                                        <div style={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            height: '100%',
-                                            marginTop: '-10px'
-                                        }}>
-                                            <img src={card.imgSrc}
-                                                 style={{height: '50px', width: '100px', objectFit: 'contain'}}
-                                                 alt={card.text}/>
-                                            <p style={{
-                                                fontSize: '12px',
-                                                textAlign: 'center',
-                                                marginTop: '5px'
-                                            }}>{card.text}</p>
-                                        </div>
-                                    </Card>
-                                ))}
-                            </div>
-                        </MyFormItem>
+                        <div style={{display: 'flex', gap: '10px'}}>
+                            {cards.map((card, index) => (
+                                <Card
+                                    key={index}
+                                    style={{
+                                        height: 100,
+                                        width: 120,
+                                        position: 'relative',
+                                        cursor: type === 'update' ? 'not-allowed' : 'pointer',
+                                        border: selectedNotifyCard === index ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                                        pointerEvents: type === 'update' ? 'none' : 'auto',
+                                    }}
+                                    onClick={() => handleCardClick(index)}
+                                >
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        height: '100%',
+                                        marginTop: '-10px'
+                                    }}>
+                                        <img src={card.imgSrc}
+                                             style={{height: '50px', width: '100px', objectFit: 'contain'}}
+                                             alt={card.text}/>
+                                        <p style={{
+                                            fontSize: '12px',
+                                            textAlign: 'center',
+                                            marginTop: '5px'
+                                        }}>{card.text}</p>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    </MyFormItem>
                 </div>
 
                 {selectedNotifyCard === 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <MyFormItem style={{ marginBottom: '0', marginRight: '10px' }}>
+                    <div style={{display: 'flex', alignItems: 'center'}}>
+                        <MyFormItem style={{marginBottom: '0', marginRight: '10px'}}>
                             <span>应用飞书高级消息卡片</span>
                             <Tooltip title="需要则输入 飞书消息卡片搭建工具的Json Code">
-                                <QuestionCircleOutlined style={{ color: '#1890ff', marginLeft: '4px' }} />
+                                <QuestionCircleOutlined style={{color: '#1890ff', marginLeft: '4px'}}/>
                             </Tooltip>
                         </MyFormItem>
                         <Checkbox
-                            style={{ marginTop: '0', marginRight: '10px' }}
+                            style={{marginTop: '0', marginRight: '10px'}}
                             checked={isChecked}
                             onChange={(e) => setIsChecked(e.target.checked)}
                         />
@@ -247,7 +287,7 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
                 )}
 
                 {(!isChecked || notifyType !== "FeiShu") && (
-                    <div style={{ display: 'flex' }}>
+                    <div style={{display: 'flex'}}>
                         <MyFormItem
                             name="template"
                             label="告警模版"
@@ -260,11 +300,11 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
                                     required: true,
                                 },
                             ]}>
-                            <TextArea rows={15} placeholder="输入告警模版" maxLength={10000} />
+                            <VSCodeEditor/>
                         </MyFormItem>
                     </div>
                 ) || (
-                    <div style={{ display: 'flex' }}>
+                    <div style={{display: 'flex'}}>
                         <MyFormItem
                             name="templateFiring"
                             label="告警模版"
@@ -277,7 +317,7 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
                                     required: true,
                                 },
                             ]}>
-                            <TextArea rows={15} placeholder="输入告警模版" maxLength={10000} />
+                            <VSCodeEditor/>
                         </MyFormItem>
                         <MyFormItem
                             name="templateRecover"
@@ -291,22 +331,10 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
                                     required: true,
                                 },
                             ]}>
-                            <TextArea rows={15} placeholder="输入告警模版" maxLength={10000} />
+                            <VSCodeEditor/>
                         </MyFormItem>
                     </div>
                 )}
-
-                <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        style={{
-                            backgroundColor: '#000000'
-                        }}
-                    >
-                        提交
-                    </Button>
-                </div>
             </Form>
         </Drawer>
     )
