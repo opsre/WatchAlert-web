@@ -32,7 +32,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
     const [form] = Form.useForm()
     const [dutyList, setDutyList] = useState([])
     const [selectedDutyItem, setSelectedDutyItem] = useState([])
-
+    const [submitLoading,setSubmitLoading] = useState(false)
     const [subjectValue,setSubjectValue] = useState('')
     const [selectedNoticeCard, setSelectedNoticeCard] = useState(null);
     const [noticeType,setNoticeType] = useState('')
@@ -81,6 +81,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                 noticeType: selectedRow.noticeType,
                 hook: selectedRow.hook,
                 noticeTmplId: selectedRow.noticeTmplId,
+                sign: selectedRow.sign,
                 email: {
                     subject: selectedRow.email.subject,
                     to: selectedRow.email.to,
@@ -162,7 +163,6 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
     }
 
     const handleFormSubmit = async (values) => {
-
         if (type === 'create') {
             await handleCreate(values)
         }
@@ -256,10 +256,30 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         }
     }
 
-    return (
-        <Drawer title="创建通知对象" open={visible} onClose={onClose} size='large'>
-            <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
+    const handleSubmit = async () => {
+        setSubmitLoading(true)
+        const values = form.getFieldsValue();
+        await form.validateFields()
+        await handleFormSubmit(values)
+    }
 
+    return (
+        <Drawer title="创建通知对象" open={visible} onClose={onClose} size='large' footer={
+            <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+                <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={submitLoading}
+                    onClick={handleSubmit}
+                    style={{
+                        backgroundColor: '#000000'
+                    }}
+                >
+                    提交
+                </Button>
+            </div>
+        }>
+            <Form form={form} name="form_item_path" layout="vertical">
                 <div style={{display: 'flex'}}>
                     <MyFormItem
                         name="name"
@@ -411,6 +431,19 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     )}
                 </div>
 
+                {selectedNoticeCard === 0 && (
+                    <MyFormItem
+                        name="sign"
+                        label="签名校验"
+                        tooltip="飞书客户端机器人的签名校验"
+                        style={{
+                            marginRight: '10px',
+                            width: '100%',
+                        }}>
+                        <Input.Password />
+                    </MyFormItem>
+                )}
+
                 {selectedNoticeCard !== 4 && (
                     <div>
                         <MyFormItem
@@ -464,18 +497,6 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                       `}</code>
                     </pre>
                 )}
-                <Divider/>
-                <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        style={{
-                            backgroundColor: '#000000'
-                        }}
-                    >
-                        提交
-                    </Button>
-                </div>
             </Form>
         </Drawer>
     )

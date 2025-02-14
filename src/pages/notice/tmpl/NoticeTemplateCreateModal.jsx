@@ -106,7 +106,6 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
 
     // 提交
     const handleFormSubmit = (values) => {
-
         if (type === 'create') {
             handleCreate(values)
 
@@ -117,7 +116,6 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
 
         // 关闭弹窗
         onClose()
-
     }
 
     const cards = [
@@ -181,7 +179,11 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
         />
     );
 
-
+    const handleSubmit = async () => {
+        const values = form.getFieldsValue();
+        await form.validateFields()
+        await handleFormSubmit(values)
+    }
 
     return (
         <Drawer
@@ -194,6 +196,7 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
                 <Button
                     type="primary"
                     htmlType="submit"
+                    onClick={handleSubmit}
                     style={{
                         backgroundColor: '#000',
                     }}
@@ -202,8 +205,7 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
                 </Button>
             </div>}
         >
-            <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
-
+            <Form form={form} name="form_item_path" layout="vertical">
                 <div style={{display: 'flex'}}>
                     <MyFormItem name="name" label="名称"
                                 style={{
