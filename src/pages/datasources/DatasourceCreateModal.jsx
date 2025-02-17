@@ -27,6 +27,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
     const [enabled, setEnabled] = useState(true) // 设置初始状态为 true
     const [selectedType, setSelectedType] = useState(null) // 数据源类型
     const [submitLoading,setSubmitLoading] = useState(false)
+    const [testLoading,setTestLoading] = useState(false)
 
     // 禁止输入空格
     const [spaceValue, setSpaceValue] = useState('')
@@ -132,9 +133,14 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
 
     const handleSubmit = async () => {
         setSubmitLoading(true)
+        const values = form.getFieldsValue();
+        await form.validateFields()
+        await handleFormSubmit(values)
+        setSubmitLoading(false)
     }
 
     const handleTestConnection = async () => {
+        setTestLoading(true)
         // 获取表单数据
         const values = await form.validateFields().catch((err) => null);
         const formattedLabels = values.labels?.reduce((acc, { key, value }) => {
@@ -161,6 +167,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
         } catch (error) {
             console.error('连接测试失败:', error);
         }
+        setTestLoading(false)
     };
 
     return (
@@ -171,7 +178,11 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             size='large'
             footer={
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <Button type="default" onClick={handleTestConnection}>
+                    <Button
+                        type="default"
+                        onClick={handleTestConnection}
+                        loading={testLoading}
+                    >
                         连接测试
                     </Button>
                     <Button
@@ -188,7 +199,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 </div>
             }
         >
-            <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
+            <Form form={form} name="form_item_path" layout="vertical">
                 <MyFormItem
                     name="name"
                     label="数据源名称"
