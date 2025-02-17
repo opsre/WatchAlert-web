@@ -26,7 +26,6 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
     const [form] = Form.useForm()
     const [enabled, setEnabled] = useState(true) // 设置初始状态为 true
     const [selectedType, setSelectedType] = useState(null) // 数据源类型
-    const [isChecked, setIsChecked] = useState(false)
     const [submitLoading,setSubmitLoading] = useState(false)
 
     // 禁止输入空格
@@ -59,7 +58,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 labels: labelsArray,
                 http: {
                     url: selectedRow.http.url,
-                    timeout: selectedRow.http.timeout
+                    timeout: Number(selectedRow.http.timeout)
                 },
                 alicloudEndpoint: selectedRow.alicloudEndpoint,
                 alicloudAk: selectedRow.alicloudAk,
@@ -152,7 +151,11 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
         try {
             const params = {
                 ...values,
-                labels: formattedLabels
+                labels: formattedLabels,
+                http: {
+                    url: values.http.url,
+                    timeout: Number(values.http.timeout),
+                },
             }
            await DatasourcePing(params)
         } catch (error) {
