@@ -13,14 +13,13 @@ import {
     TimePicker,
     Typography
 } from 'antd'
-import React, { useState, useEffect, useRef } from 'react'
-import { QuestionCircleOutlined } from '@ant-design/icons'
+import React, { useState, useEffect } from 'react'
+import { RedoOutlined } from '@ant-design/icons'
 import {createRule, searchRuleInfo, updateRule} from '../../../api/rule'
 import {getDatasource, searchDatasource} from '../../../api/datasource'
 import { getNoticeList } from '../../../api/notice'
 import {getJaegerService, queryPromMetrics} from '../../../api/other'
 import {Link, useParams} from 'react-router-dom'
-import moment from 'moment';
 import dayjs from 'dayjs';
 import './index.css'
 import {
@@ -73,8 +72,6 @@ export const AlertRule = ({ type }) => {
     const { id,ruleId } = useParams()
     const [selectedRow,setSelectedRow] = useState({})
     const [enabled, setEnabled] = useState(true) // 设置初始状态为 true
-    const [recoverNotify,setRecoverNotify] = useState(true)
-    const [alarmAggregation,setAlarmAggregation] = useState(true)
     const [selectedType, setSelectedType] = useState(0) // 数据源类型
     const [datasourceOptions, setDatasourceOptions] = useState([])  // 数据源列表
     const [selectedItems, setSelectedItems] = useState([])  //选择数据源
@@ -366,8 +363,7 @@ export const AlertRule = ({ type }) => {
                     endTime: endTime,
                 },
                 labels: labelData,
-                recoverNotify: recoverNotify,
-                alarmAggregation: alarmAggregation,
+                faultCenterId: selectedFaultCenter,
                 enabled: enabled
             }
 
@@ -410,8 +406,7 @@ export const AlertRule = ({ type }) => {
                     startTime: startTime,
                     endTime: endTime,
                 },
-                recoverNotify: recoverNotify,
-                alarmAggregation: alarmAggregation,
+                faultCenterId: selectedFaultCenter,
                 enabled: enabled
             }
 
@@ -866,8 +861,8 @@ export const AlertRule = ({ type }) => {
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
 
                 <div>
-                    <strong style={{ fontSize: '20px' }}>基础配置</strong>
-                    <div style={{ display: 'flex' }}>
+                    <strong style={{fontSize: '20px'}}>基础配置</strong>
+                    <div style={{display: 'flex'}}>
                         <MyFormItem
                             name="ruleName"
                             label="规则名称"
@@ -885,7 +880,7 @@ export const AlertRule = ({ type }) => {
                                 value={spaceValue}
                                 onChange={handleInputChange}
                                 onKeyPress={handleKeyPress}
-                                disabled={type === 'update'} />
+                                disabled={type === 'update'}/>
                         </MyFormItem>
 
                         <MyFormItem
@@ -900,11 +895,11 @@ export const AlertRule = ({ type }) => {
                     </div>
 
                     <MyFormItem name="description" label="描述">
-                        <Input />
+                        <Input/>
                     </MyFormItem>
                 </div>
 
-                <Divider />
+                <Divider/>
 
                 <div>
                     <strong style={{fontSize: '20px'}}>规则配置</strong>
@@ -1057,7 +1052,9 @@ export const AlertRule = ({ type }) => {
                                                     required: true,
                                                 },
                                             ]}>
-                                            <TextArea rows={2} placeholder="输入告警事件的详细消息内容，如：服务器: ${instanace}，发生故障请紧急排查!" maxLength={10000} />
+                                            <TextArea rows={2}
+                                                      placeholder="输入告警事件的详细消息内容，如：服务器: ${instanace}，发生故障请紧急排查!"
+                                                      maxLength={10000}/>
                                         </MyFormItem>
                                     </div>
 
@@ -1616,7 +1613,8 @@ export const AlertRule = ({ type }) => {
                                                 rules={[{required: true, message: '请输入字段名'}]}
                                                 style={{width: '50%', gap: '10px'}}
                                             >
-                                                <Input onChange={(e) => updateEsFilter(index, 'field', e.target.value)}/>
+                                                <Input
+                                                    onChange={(e) => updateEsFilter(index, 'field', e.target.value)}/>
                                             </MyFormItem>
 
                                             <MyFormItem
@@ -1635,14 +1633,19 @@ export const AlertRule = ({ type }) => {
                                             </MyFormItem>
 
                                             <Button onClick={() => removeEsFilter(index)}
-                                                style={{marginTop: '30px'}}
+                                                    style={{marginTop: '30px'}}
                                                     disabled={index === 0}>
                                                 -
                                             </Button>
                                         </div>
                                     ))}
                                 </MyFormItem>
-                                <Button type="link" onClick={addEsFilter} style={{ display: 'block', textAlign: 'center', width: '100%',marginTop:'-30px' }}>
+                                <Button type="link" onClick={addEsFilter} style={{
+                                    display: 'block',
+                                    textAlign: 'center',
+                                    width: '100%',
+                                    marginTop: '-30px'
+                                }}>
                                     添加一个新的筛选规则
                                 </Button>
                             </div>
@@ -1719,7 +1722,7 @@ export const AlertRule = ({ type }) => {
                                 value={secondsToDateObj(endTime)}
                             />
                         </div>
-                        <Typography.Text type="secondary" style={{ marginTop: '5px', fontSize: '12px' }}>
+                        <Typography.Text type="secondary" style={{marginTop: '5px', fontSize: '12px'}}>
                             {"> 默认情况下规则随时生效。如需指定生效时间，请选择具体的时间。"}
                         </Typography.Text>
                     </MyFormItem>
@@ -1727,35 +1730,78 @@ export const AlertRule = ({ type }) => {
 
                 <Divider/>
 
-                <MyFormItem
-                    name="faultCenterId"
-                    label="事件推送给 WatchAlert 故障中心"
-                    rules={[{ required: true }]}
-                >
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <Select
-                            placeholder="选择故障中心"
-                            value={selectedFaultCenter}
-                            onChange={setSelectedFaultCenter}
-                            style={{ width: '93%' }}
-                            onClick={handleGetFaultCenterList}
-                            options={faultCenters}
-                        />
+                <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
+                    <MyFormItem
+                        name="faultCenterId"
+                        label="事件推送给 WatchAlert 故障中心"
+                        rules={[{required: selectedFaultCenter === null}]}
+                        style={{marginBottom: 0, flex: 1}}
+                    >
+                        <div style={{display: 'flex', gap: 5, alignItems: 'center'}}>
+                            {/* 选择器 */}
+                            <Select
+                                placeholder="选择故障中心"
+                                style={{width: '90%'}}
+                                options={faultCenters}
+                                showSearch
+                                optionFilterProp="label"
+                                filterOption={(input, option) =>
+                                    option.label.toLowerCase().includes(input.toLowerCase())
+                                }
+                                value={selectedFaultCenter}
+                                onChange={setSelectedFaultCenter}
+                            />
 
-                        <a
-                            href="/faultCenter"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                                alignSelf: 'center',  // 垂直居中
-                                textDecoration: 'none', // 移除下划线
-                                transition: 'color 0.3s',
-                            }}
-                        >
-                            前往创建
-                        </a>
-                    </div>
-                </MyFormItem>
+                            {/* 操作按钮组 */}
+                            <div style={{
+                                display: 'flex',
+                                gap: 8,
+                                alignItems: 'center',
+                                borderLeft: '1px solid #e8e8e8',
+                                paddingLeft: 10,
+                                height: 32
+                            }}>
+                                {/* 刷新按钮 */}
+                                <Tooltip title="刷新列表">
+                                    <RedoOutlined
+                                        onClick={handleGetFaultCenterList}
+                                        style={{
+                                            cursor: 'pointer',
+                                            color: '#1890ff',
+                                            transition: 'all 0.3s',
+                                        }}
+                                    />
+                                </Tooltip>
+
+                                {/* 创建按钮 */}
+                                <Tooltip title="创建新故障中心">
+                                    <a
+                                        href="/faultCenter"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            padding: '4px 8px',
+                                            borderRadius: 4,
+                                            background: '#f5f5f5',
+                                            transition: 'all 0.3s',
+                                            color: '#666',
+                                            '&:hover': {
+                                                background: '#1890ff',
+                                                color: '#fff',
+                                                textDecoration: 'none'
+                                            }
+                                        }}
+                                    >
+                                        前往创建
+                                    </a>
+                                </Tooltip>
+                            </div>
+                        </div>
+                    </MyFormItem>
+                </div>
+
 
                 <div style={{marginTop: '20px'}}>
                     <MyFormItem
