@@ -63,6 +63,8 @@ export const ComponentsContent = (props) => {
                 fetchTenantList(res.data.userid)
             }
         } catch (error) {
+            window.localStorage.removeItem('Authorization');
+            navigate('/login');
             console.error(error)
         }
     }

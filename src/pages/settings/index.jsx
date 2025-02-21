@@ -32,11 +32,6 @@ export const SystemSettings = () => {
         try {
             const res = await getSystemSetting();
             form.setFieldsValue({
-                alarmConfig: {
-                    groupWait: res.data.alarmConfig.groupWait,
-                    groupInterval: res.data.alarmConfig.groupInterval,
-                    recoverWait: res.data.alarmConfig.recoverWait,
-                },
                 emailConfig: {
                     serverAddress: res.data.emailConfig.serverAddress,
                     port: res.data.emailConfig.port,

@@ -219,6 +219,11 @@ export const FaultCenter = () => {
                                 </div>
                                 <div>
                                     <span
+                                        style={styles.value( 'orange')}>{item.currentRecoverNumber ? item.currentRecoverNumber : 0} </span>
+                                    <span style={styles.label}> 待恢复</span>
+                                </div>
+                                <div>
+                                    <span
                                         style={styles.value('#878383')}>{item.currentMuteNumber ? item.currentMuteNumber : 0} </span>
                                     <span style={styles.label}> 静默中</span>
                                 </div>

@@ -2,6 +2,7 @@
  * 网络请求配置
  */
 import axios from 'axios';
+import {message} from "antd";
 const protocol = window.location.protocol;
 const curUrl = window.location.hostname
 const port = window.location.port;
@@ -42,11 +43,16 @@ axios.interceptors.response.use(
         return response;
     },
     (error) => {
-        if (error?.response?.status === 401) {
-            window.localStorage.removeItem('Authorization');
-            window.history.replaceState(null, '', '/login');
-            window.location.reload();
+        switch (error?.response?.status){
+            case 401:
+                window.localStorage.removeItem('Authorization');
+                window.history.replaceState(null, '', '/login');
+                // window.location.reload();
+            case 403:
+                message.error("无权限访问!")
+                window.history.replaceState(null, '', '/');
         }
+
         return Promise.reject(error);
     }
 );
