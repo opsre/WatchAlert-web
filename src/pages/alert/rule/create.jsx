@@ -1037,7 +1037,7 @@ export const AlertRule = ({ type }) => {
                                             <InputNumber
                                                 addonAfter="秒"
                                                 placeholder="60"
-                                                min={1}
+                                                min={0}
                                             />
                                         </MyFormItem>
                                     </div>
