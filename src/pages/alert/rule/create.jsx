@@ -141,6 +141,7 @@ export const AlertRule = ({ type }) => {
     const [esfilter, setEsfilter] = useState([{}])
     const [faultCenters, setFaultCenters] = useState([])
     const [selectedFaultCenter, setSelectedFaultCenter] = useState(null)
+    const [evalTimeType,setEvalTimeType] = useState('second')
 
     useEffect(() => {
         if (ruleTemplate) {
@@ -230,6 +231,7 @@ export const AlertRule = ({ type }) => {
         setEndTime(selectedRow.effectiveTime.endTime)
         setEnabled(selectedRow.enabled)
         setSelectedFaultCenter(selectedRow.faultCenterId)
+        setEvalTimeType(selectedRow.evalTimeType)
 
         let t = 0;
         if (selectedRow.datasourceType === "Prometheus"){
@@ -363,6 +365,7 @@ export const AlertRule = ({ type }) => {
                     endTime: endTime,
                 },
                 labels: labelData,
+                evalTimeType: evalTimeType,
                 faultCenterId: selectedFaultCenter,
                 enabled: enabled
             }
@@ -401,6 +404,7 @@ export const AlertRule = ({ type }) => {
                 ruleGroupId: id,
                 noticeGroup: noticeLabels,
                 labels: labelData,
+                evalTimeType: evalTimeType,
                 effectiveTime: {
                     week: week,
                     startTime: startTime,
@@ -1683,7 +1687,24 @@ export const AlertRule = ({ type }) => {
                         >
                             <InputNumber
                                 style={{width: '100%'}}
-                                addonAfter={<span>秒</span>}
+                                addonAfter={
+                                    <Select
+                                        style={{width: '70px'}}
+                                        value={evalTimeType}
+                                        defaultValue={'second'}
+                                        onChange={setEvalTimeType}
+                                        options={[
+                                            {
+                                                label: '秒',
+                                                value: 'second'
+                                            },
+                                            {
+                                                label: '毫秒',
+                                                value: 'millisecond'
+                                            }
+                                        ]}
+                                    />
+                                }
                                 placeholder="10"
                                 min={1}
                             />
