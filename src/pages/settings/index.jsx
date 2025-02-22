@@ -46,7 +46,6 @@ export const SystemSettings = () => {
     };
 
     const saveSettings = async (values) => {
-        values.alarmConfig.recoverWait = Number(values.alarmConfig.recoverWait)
         values.emailConfig.port = Number(values.emailConfig.port)
         try {
             await saveSystemSetting(values);
