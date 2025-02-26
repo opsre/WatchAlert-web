@@ -108,8 +108,8 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             ...values,
             labels: formattedLabels,
             http: {
-                url: values.http.url,
-                timeout: Number(values.http.timeout),
+                url: values?.http?.url,
+                timeout: Number(values?.http?.timeout),
             },
         }
 
@@ -159,8 +159,8 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 ...values,
                 labels: formattedLabels,
                 http: {
-                    url: values.http.url,
-                    timeout: Number(values.http.timeout),
+                    url: values?.http?.url,
+                    timeout: Number(values?.http?.timeout),
                 },
             }
            await DatasourcePing(params)

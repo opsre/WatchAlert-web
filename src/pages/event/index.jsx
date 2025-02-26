@@ -266,7 +266,7 @@ export const AlertEvent = () => {
             return Object.entries(record.metric).map(([key, value]) => {
                 // 截取value的前20个字符，并添加省略号如果value长度超过20
                 const truncatedKey = key.length > 20 ? key.substring(0, 20) + '...' : key;
-                const truncatedValue = value.length > 20 ? value.substring(0, 20) + '...' : value;
+                const truncatedValue = value ? (value.length > 20 ? value.substring(0, 20) + '...' : value) : "null";
                 return (
                     <Tag color="processing" key={key}>{`${truncatedKey}: ${truncatedValue}`}</Tag>
                 );
@@ -280,7 +280,7 @@ export const AlertEvent = () => {
                 ...visibleTags.map(([key, value]) => {
                     // 截取value的前20个字符，并添加省略号如果value长度超过20
                     const truncatedKey = key.length > 20 ? key.substring(0, 20) + '...' : key;
-                    const truncatedValue = value.length > 20 ? value.substring(0, 20) + '...' : value;
+                    const truncatedValue = value ? (value.length > 20 ? value.substring(0, 20) + '...' : value) : "null";
                     return (
                         <Tag color="processing" key={key}>{`${truncatedKey}: ${truncatedValue}`}</Tag>
                     );

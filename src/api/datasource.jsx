@@ -116,6 +116,23 @@ async function DatasourcePing(params) {
     }
 }
 
+async function ElasticSearchData(params) {
+    try {
+        const res = await http('post', `/api/w8t/datasource/esSearch`, params);
+        message.open({
+            type: 'success',
+            content: '查询ES内容成功',
+        });
+        return res;
+    } catch (error) {
+        message.open({
+            type: 'error',
+            content: '查询ES内容失败',
+        });
+        return error
+    }
+}
+
 export {
     getDatasourceList,
     searchDatasource,
@@ -123,5 +140,6 @@ export {
     updateDatasource,
     deleteDatasource,
     getDatasource,
-    DatasourcePing
+    DatasourcePing,
+    ElasticSearchData
 }

@@ -11,15 +11,14 @@ import {
     InputNumber,
     Card,
     TimePicker,
-    Typography
+    Typography, Tabs, Modal
 } from 'antd'
 import React, { useState, useEffect } from 'react'
 import { RedoOutlined } from '@ant-design/icons'
 import {createRule, searchRuleInfo, updateRule} from '../../../api/rule'
-import {getDatasource, searchDatasource} from '../../../api/datasource'
-import { getNoticeList } from '../../../api/notice'
+import {ElasticSearchData, getDatasource, searchDatasource} from '../../../api/datasource'
 import {getJaegerService, queryPromMetrics} from '../../../api/other'
-import {Link, useParams} from 'react-router-dom'
+import {useParams} from 'react-router-dom'
 import dayjs from 'dayjs';
 import './index.css'
 import {
@@ -43,6 +42,9 @@ import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/k
 import { useRule } from '../../../context/RuleContext';
 import TextArea from "antd/es/input/TextArea";
 import {FaultCenterList} from "../../../api/faultCenter";
+import VSCodeEditor from "../../../utils/VSCodeEditor";
+import JsonToTable from "../../../utils/JsonTable";
+import JsonTable from "../../../utils/JsonTable";
 
 const format = 'HH:mm';
 const MyFormItemContext = React.createContext([])
@@ -75,14 +77,10 @@ export const AlertRule = ({ type }) => {
     const [selectedType, setSelectedType] = useState(0) // 数据源类型
     const [datasourceOptions, setDatasourceOptions] = useState([])  // 数据源列表
     const [selectedItems, setSelectedItems] = useState([])  //选择数据源
-    const [noticeLabels, setNoticeLabels] = useState([]) // noAice Lable
-    const [noticeOptions, setNoticeOptions] = useState([])  // 通知对象列表
     // 禁止输入空格
     const [spaceValue, setSpaceValue] = useState('')
-
     // 告警等级
     const [severityValue, setSeverityValue] = useState(1)
-
     const [jaegerServiceList, setJaegerServiceList] = useState([])
     const [selectedCard, setSelectedCard] = useState(0);
     const [exprRule, setExprRule] = useState([{}])
@@ -120,7 +118,6 @@ export const AlertRule = ({ type }) => {
             value:'Sunday',
         },
     ];
-
     const [metricTypeOptions,setMetricTypeOptions] = useState([])
     const [selectMetricType,setSelectMetricType] = useState('')
     const [metricNameOptions,setMetricNameOptions] = useState([])
@@ -129,7 +126,6 @@ export const AlertRule = ({ type }) => {
     const [dimensionOptions,setDimensionOptions] = useState([])
     const [selectDimension,setSelectDimension] = useState('')
     const [endpointOptions,setEndpointOptions] = useState([])
-    const [inputLabelsValue, setInputLabelsValue] = useState("");
     const [promQL,setPromQL] = useState()
     const [selectDatasourceURL,setSelectDatasourceURL] = useState()
     const [queryModel,setQueryModel] = useState(0)
@@ -142,6 +138,12 @@ export const AlertRule = ({ type }) => {
     const [faultCenters, setFaultCenters] = useState([])
     const [selectedFaultCenter, setSelectedFaultCenter] = useState(null)
     const [evalTimeType,setEvalTimeType] = useState('second')
+    const [esFilterType,setEsFilterType] = useState('RawJson')
+    const [esRawJson, setEsRawJson] = useState('')
+    const [filterCondition,setFilterCondition] = useState('') // 匹配关系
+    const [queryWildcard,setQueryWildcard] = useState(0) // 匹配模式
+    const [openJsonToTable,setOpenJsonToTable] = useState(false)
+    const [jsonToTableData,setJsonToTableData] = useState([])
 
     useEffect(() => {
         if (ruleTemplate) {
@@ -173,8 +175,8 @@ export const AlertRule = ({ type }) => {
                         ruleId: ruleId
                     };
                     const res = await searchRuleInfo(params);
-                    setSelectedRow(res.data); // 更新状态
-                    initBasicInfo(res.data)
+                    setSelectedRow(res?.data); // 更新状态
+                    initBasicInfo(res?.data)
                 } catch (error) {
                     console.error('Error fetching rule info:', error);
                 } finally {
@@ -189,11 +191,6 @@ export const AlertRule = ({ type }) => {
     }, [])
 
     const initBasicInfo =(selectedRow)=>{
-        let labels = ""
-        if (selectedRow.labels !== null) {
-            labels = jsonToQueryString(selectedRow.labels)
-        }
-
         form.setFieldsValue({
             annotations: selectedRow.annotations,
             datasourceId: selectedRow.datasourceId,
@@ -202,7 +199,6 @@ export const AlertRule = ({ type }) => {
             enabled: selectedRow.enabled,
             evalInterval: selectedRow.evalInterval,
             forDuration: selectedRow.forDuration,
-            labels: labels,
             ruleId: selectedRow.ruleId,
             ruleName: selectedRow.ruleName,
             alicloudSLSConfig: selectedRow.alicloudSLSConfig,
@@ -222,6 +218,7 @@ export const AlertRule = ({ type }) => {
             cloudwatchConfig: selectedRow.cloudwatchConfig,
             kubernetesConfig: selectedRow.kubernetesConfig,
             elasticSearchConfig: selectedRow.elasticSearchConfig,
+            logEvalCondition: selectedRow.logEvalCondition,
             faultCenterId: selectedRow.faultCenterId,
         })
         setPromQL(selectedRow.prometheusConfig.promQL)
@@ -232,6 +229,10 @@ export const AlertRule = ({ type }) => {
         setEnabled(selectedRow.enabled)
         setSelectedFaultCenter(selectedRow.faultCenterId)
         setEvalTimeType(selectedRow.evalTimeType)
+        setEsFilterType(selectedRow.elasticSearchConfig.queryType)
+        setEsRawJson(selectedRow.elasticSearchConfig.rawJson)
+        setFilterCondition(selectedRow.elasticSearchConfig.filterCondition)
+        setQueryWildcard(selectedRow.elasticSearchConfig.queryWildcard)
 
         let t = 0;
         if (selectedRow.datasourceType === "Prometheus"){
@@ -254,7 +255,6 @@ export const AlertRule = ({ type }) => {
 
         setSelectedType(t)
         setSelectedCard(t)
-        setNoticeLabels(selectedRow.noticeGroup)
         setExprRule(selectedRow.prometheusConfig.rules)
         setSelectedKubeResource(selectedRow.kubernetesConfig.resource)
         setFilterTags(selectedRow.kubernetesConfig.filter)
@@ -262,10 +262,6 @@ export const AlertRule = ({ type }) => {
 
         handleGetDatasourceInfo(selectedRow.datasourceId)
     }
-
-    const handleInputLabelsChange = (e) => {
-        setInputLabelsValue(e.target.value);
-    };
 
     const handleCardClick = (index) => {
         setSelectedType(index)
@@ -281,8 +277,6 @@ export const AlertRule = ({ type }) => {
             setSelectedCard(0)
             setSelectedType(0)
         }
-        handleGetNoticeData()
-        handleGetNoticeData()
         handleGetMetricTypes()
         handleGetStatistics()
         handleGetKubernetesEventTypes()
@@ -316,12 +310,6 @@ export const AlertRule = ({ type }) => {
 
     }, [selectDimension]);
 
-    const jsonToQueryString = (json) => {
-        return Object.entries(json)
-            .map(([key, value]) => `${key}=${value}`)
-            .join(",");
-    };
-
     const handleGetKubeReasonList = async (resource)=> {
         const params = {
             resource: resource
@@ -346,25 +334,10 @@ export const AlertRule = ({ type }) => {
         try {
             let t = getSelectedTypeName(selectedType)
 
-            const keyValuePairs = inputLabelsValue.split(",");
-            const labelData = {};
-
-            keyValuePairs.forEach((pair) => {
-                const [key, value] = pair.split("=");
-                labelData[key] = value;
-            });
-
             const params = {
                 ...values,
                 datasourceType: t,
-                noticeGroup: noticeLabels,
                 ruleGroupId: id,
-                effectiveTime: {
-                    week: week,
-                    startTime: startTime,
-                    endTime: endTime,
-                },
-                labels: labelData,
                 evalTimeType: evalTimeType,
                 faultCenterId: selectedFaultCenter,
                 enabled: enabled
@@ -388,28 +361,13 @@ export const AlertRule = ({ type }) => {
         try {
             let t = getSelectedTypeName(selectedType);
 
-            const keyValuePairs = inputLabelsValue.split(",");
-            const labelData = {};
-
-            keyValuePairs.forEach((pair) => {
-                const [key, value] = pair.split("=");
-                labelData[key] = value;
-            });
-
             const params = {
                 ...values,
                 datasourceType: t,
                 tenantId: selectedRow.tenantId,
                 ruleId: selectedRow.ruleId,
                 ruleGroupId: id,
-                noticeGroup: noticeLabels,
-                labels: labelData,
                 evalTimeType: evalTimeType,
-                effectiveTime: {
-                    week: week,
-                    startTime: startTime,
-                    endTime: endTime,
-                },
                 faultCenterId: selectedFaultCenter,
                 enabled: enabled
             }
@@ -493,25 +451,33 @@ export const AlertRule = ({ type }) => {
 
     // 创建
     const handleFormSubmit = async (values) => {
+        const newEsConfig = {
+            index: values?.elasticSearchConfig?.index,
+            scope: values?.elasticSearchConfig?.scope,
+            queryType: esFilterType,
+            rawJson: esRawJson,
+            filter: esfilter,
+            queryWildcard: queryWildcard,
+            filterCondition: filterCondition,
+        }
+
+        const newValues= {
+            ...values,
+            elasticSearchConfig: newEsConfig,
+            effectiveTime: {
+                week: week,
+                startTime: startTime,
+                endTime: endTime,
+            },
+        }
         if (type === 'add') {
-            handleCreateRule(values)
+            handleCreateRule(newValues)
         }
         if (type === 'edit') {
-            handleUpdateRule(values)
+            handleUpdateRule(newValues)
         }
 
         window.history.back()
-    }
-
-    // 获取通知对象
-    const handleGetNoticeData = async () => {
-        const res = await getNoticeList()
-        const newData = res.data?.map((item) => ({
-            label: item.name,
-            value: item.uuid
-        }))
-        // 将数据设置为选项对象数组
-        setNoticeOptions(newData)
     }
 
     const handleGetJaegerService = async () => {
@@ -527,38 +493,10 @@ export const AlertRule = ({ type }) => {
         setJaegerServiceList(newData)
     }
 
-    // 数据源单/多选标签
-    const addLabel = () => {
-        setNoticeLabels([...noticeLabels, { key: '', value: '', noticeId: '' }])
-    }
-
-    const updateLabel = (index, field, value) => {
-        const updatedLabels = [...noticeLabels]
-        updatedLabels[index][field] = value
-        setNoticeLabels(updatedLabels)
-    }
-
-    const removeLabel = (index) => {
-        const updatedLabels = [...noticeLabels]
-        updatedLabels.splice(index, 1)
-        setNoticeLabels(updatedLabels)
-    }
-
-    // 在onChange事件处理函数中更新选择的通知对象值
-    const handleSelectChange = (value) => {
-    }
-
     const handleInputChange = (e) => {
         // 移除输入值中的空格
         const newValue = e.target.value.replace(/\s/g, '')
         setSpaceValue(newValue)
-    }
-
-    const handleKeyPress = (e) => {
-        // 阻止空格键的默认行为
-        if (e.key === ' ') {
-            e.preventDefault()
-        }
     }
 
     const cards = [
@@ -849,12 +787,48 @@ export const AlertRule = ({ type }) => {
         setEsfilter(updatedEsFilter)
     }
 
+    const handleQueryWildcardChange = async (e) => {
+        setQueryWildcard(e.target.value)
+    };
+
+    const handleKeyPress = (e) => {
+        if (!/[0-9+\-*/><=\s]/.test(e.key)) {
+            e.preventDefault(); // 阻止非法字符输入
+        }
+    };
+
+    // Base64 编码工具函数
+    const encodeBase64 = (str) => {
+        try {
+            return btoa(unescape(encodeURIComponent(str))); // 支持中文
+        } catch (error) {
+            console.error('Base64 编码失败:', error);
+            throw new Error('Base64 编码失败');
+        }
+    };
+
+    const handleEsSearchData = async() =>{
+        const params = {
+            datasourceId: selectedItems[0],
+            index: form.getFieldValue(['elasticSearchConfig', 'index']),
+            query: encodeBase64(esRawJson)
+        }
+        const res = await ElasticSearchData(params)
+        setOpenJsonToTable(true)
+        setJsonToTableData(JSON.parse(res.data))
+    }
+
+    const cancelEsSearchModel = () =>{
+        setOpenJsonToTable(false)
+    }
+
     if (loading && type === "edit") {
         return <div>Loading...</div>;
     }
 
     return (
-        <div style={{textAlign:'left',
+        <div style={{
+            textAlign: 'left',
             width: '100%',
             // flex: 1,
             alignItems: 'flex-start',
@@ -863,42 +837,26 @@ export const AlertRule = ({ type }) => {
             overflowY: 'auto',
         }}>
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
-
                 <div>
                     <strong style={{fontSize: '20px'}}>基础配置</strong>
                     <div style={{display: 'flex'}}>
                         <MyFormItem
                             name="ruleName"
                             label="规则名称"
-                            style={{
-                                marginRight: '10px',
-                                width: '50%',
-                            }}
-                            rules={[
-                                {
-                                    required: true,
-                                },
-                            ]}
+                            rules={[{ required: true }]}
+                            style={{width: '100%'}}
                         >
                             <Input
                                 value={spaceValue}
                                 onChange={handleInputChange}
-                                onKeyPress={handleKeyPress}
                                 disabled={type === 'update'}/>
                         </MyFormItem>
-
-                        <MyFormItem
-                            name="labels"
-                            label="附加标签"
-                            style={{
-                                width: '50%',
-                            }}
-                        >
-                            <Input value={inputLabelsValue} onChange={handleInputLabelsChange}/>
-                        </MyFormItem>
                     </div>
-
-                    <MyFormItem name="description" label="描述">
+                    <MyFormItem
+                        name="description"
+                        label="描述"
+                        style={{width: '100%'}}
+                    >
                         <Input/>
                     </MyFormItem>
                 </div>
@@ -952,11 +910,7 @@ export const AlertRule = ({ type }) => {
                         <MyFormItem
                             name="datasourceId"
                             label="关联数据源"
-                            rules={[
-                                {
-                                    required: true,
-                                },
-                            ]}
+                            rules={[{required: true,}]}
                         >
                             <Select
                                 mode="multiple"
@@ -1024,7 +978,6 @@ export const AlertRule = ({ type }) => {
                                                 </MyFormItem>
 
                                                 <Button onClick={() => removeExprRule(index)}
-                                                    // style={{marginLeft: '10px'}}
                                                         disabled={index === 0}>
                                                     -
                                                 </Button>
@@ -1051,11 +1004,8 @@ export const AlertRule = ({ type }) => {
                                             name="annotations"
                                             label="告警详情"
                                             tooltip="获取 Label 变量, 示例: ${job}, ${instance}。凡是 Target 中的变量均可通过`${}`获取。"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                },
-                                            ]}>
+                                            rules={[{required: true}]}
+                                        >
                                             <TextArea rows={2}
                                                       placeholder="输入告警事件的详细消息内容，如：服务器: ${instanace}，发生故障请紧急排查!"
                                                       maxLength={10000}/>
@@ -1075,7 +1025,6 @@ export const AlertRule = ({ type }) => {
                                         <List
                                             size="small"
                                             dataSource={dataSource}
-                                            // renderItem={(item) => <List.Item>{item}</List.Item>}
                                             renderItem={(item) => {
                                                 const metricName = item.metric["__name__"];
                                                 const metricDetails = Object.keys(item.metric)
@@ -1094,120 +1043,72 @@ export const AlertRule = ({ type }) => {
                                         />
                                     </div>
                                 )}
-
                             </div>
                         </>
                     }
 
                     {selectedType === 2 &&
                         <MyFormItemGroup prefix={['alicloudSLSConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <div style={{display: 'flex'}}>
+                                    <MyFormItem
+                                        name="project"
+                                        label="Project"
+                                        rules={[{required: true}]}
+                                        style={{
+                                            marginRight: '10px',
+                                            width: '500px',
+                                        }}>
+                                        <Input/>
+                                    </MyFormItem>
+                                    <MyFormItem
+                                        name="logstore"
+                                        label="Logstore"
+                                        rules={[{required: true}]}
+                                        style={{
+                                            width: '500px',
+                                        }}>
+                                        <Input/>
+                                    </MyFormItem>
+                                </div>
 
-                            <div style={{display: 'flex'}}>
                                 <MyFormItem
-                                    name="project"
-                                    label="Project"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
-                                    style={{
-                                        marginRight: '10px',
-                                        width: '500px',
-                                    }}>
+                                    name="logQL"
+                                    label="LogQL"
+                                    rules={[{required: true}]}
+                                >
                                     <Input/>
                                 </MyFormItem>
-                                <MyFormItem
-                                    name="logstore"
-                                    label="Logstore"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
-                                    style={{
-                                        width: '500px',
-                                    }}>
-                                    <Input/>
-                                </MyFormItem>
-                            </div>
 
-                            <MyFormItem
-                                name="logQL"
-                                label="LogQL"
-                                rules={[
-                                    {
-                                        required: true,
-                                    },
-                                ]}>
-                                <Input/>
-                            </MyFormItem>
-
-                            <div style={{display: 'flex'}}>
                                 <MyFormItem
                                     name="logScope"
                                     label="查询区间"
-                                    style={{
-                                        width: '500px',
-                                    }}
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
+                                    rules={[{required: true,}]}
                                 >
                                     <InputNumber
-                                        style={{width: '97%'}}
+                                        style={{
+                                            width: '100%',
+                                        }}
                                         addonAfter={'分钟'}
                                         placeholder="10"
                                         min={1}
                                     />
                                 </MyFormItem>
-
-                                <MyFormItemGroup prefix={['evalCondition']}>
-
-                                    <MyFormItem name="type" label="判断条件">
-                                        <Select showSearch style={{marginRight: 8, width: '127px'}}
-                                                placeholder="数据条数">
-                                            <Option value="count">数据条数</Option>
-                                        </Select>
-                                    </MyFormItem>
-
-                                    <MyFormItem name="operator" label=" ">
-                                        <Select showSearch style={{marginRight: 8, width: '127px'}} placeholder=">">
-                                            <Option value=">">{'>'}</Option>
-                                            <Option value=">=">{'>='}</Option>
-                                            <Option value="<">{'<'}</Option>
-                                            <Option value="<=">{'<='}</Option>
-                                            <Option value="==">{'=='}</Option>
-                                            <Option value="!=">{'!='}</Option>
-                                        </Select>
-                                    </MyFormItem>
-
-                                    <MyFormItem name='value' label=" ">
-                                        <InputNumber style={{width: '100px'}} min={1} placeholder="0"/>
-                                    </MyFormItem>
-
-                                </MyFormItemGroup>
-
                             </div>
-
                         </MyFormItemGroup>
                     }
 
                     {selectedType === 3 &&
                         <MyFormItemGroup prefix={['jaegerConfig']}>
-                            <div style={{display: 'flex'}}>
-                                <MyFormItem name='service' label="应用服务"
-                                            style={{
-                                                marginRight: '10px',
-                                                width: '500px',
-                                            }}
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                },
-                                            ]}
+                            <div style={{display: 'flex', gap: '10px'}}>
+                                <MyFormItem
+                                    name='service'
+                                    label="应用服务"
+                                    style={{
+                                        width: '50%',
+                                    }}
+                                    rules={[{required: true}]}
                                 >
                                     <Select
                                         allowClear
@@ -1221,15 +1122,13 @@ export const AlertRule = ({ type }) => {
                                     />
                                 </MyFormItem>
 
-                                <MyFormItem name='tags' label="判断条件"
-                                            style={{
-                                                width: '500px',
-                                            }}
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                },
-                                            ]}
+                                <MyFormItem
+                                    name='tags'
+                                    label="判断条件"
+                                    style={{
+                                        width: '50%',
+                                    }}
+                                    rules={[{required: true}]}
                                 >
                                     <Select showSearch style={{width: '100%'}} placeholder="StatusCode =~ 5xx">
                                         <Option
@@ -1241,17 +1140,10 @@ export const AlertRule = ({ type }) => {
                             <MyFormItem
                                 name="scope"
                                 label="查询区间"
-                                style={{
-                                    width: '380px',
-                                }}
-                                rules={[
-                                    {
-                                        required: true,
-                                    },
-                                ]}
+                                rules={[{ required: true }]}
                             >
                                 <InputNumber
-                                    style={{width: '98%'}}
+                                    style={{width: '100%'}}
                                     addonAfter={'分钟'}
                                     placeholder="10"
                                     min={1}
@@ -1263,67 +1155,28 @@ export const AlertRule = ({ type }) => {
 
                     {selectedType === 1 &&
                         <MyFormItemGroup prefix={['lokiConfig']}>
-
-                            <MyFormItem
-                                name="logQL"
-                                label="LogQL"
-                                rules={[
-                                    {
-                                        required: true,
-                                    },
-                                ]}>
-                                <Input/>
-                            </MyFormItem>
-
-                            <div style={{display: 'flex'}}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <MyFormItem
+                                    name="logQL"
+                                    label="LogQL"
+                                    rules={[{required: true}]}
+                                >
+                                    <Input/>
+                                </MyFormItem>
                                 <MyFormItem
                                     name="logScope"
                                     label="查询区间"
-                                    style={{
-                                        width: '500px',
-                                    }}
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
+                                    rules={[{required: true}]}
                                 >
                                     <InputNumber
-                                        style={{width: '97%'}}
+                                        style={{width: '100%'}}
                                         addonAfter={'分钟'}
                                         placeholder="10"
                                         min={1}
                                     />
                                 </MyFormItem>
-
-                                <MyFormItemGroup prefix={['evalCondition']}>
-
-                                    <MyFormItem name="type" label="判断条件">
-                                        <Select showSearch style={{marginRight: 8, width: '127px'}}
-                                                placeholder="数据条数">
-                                            <Option value="count">数据条数</Option>
-                                        </Select>
-                                    </MyFormItem>
-
-                                    <MyFormItem name="operator" label=" ">
-                                        <Select showSearch style={{marginRight: 8, width: '127px'}} placeholder=">">
-                                            <Option value=">">{'>'}</Option>
-                                            <Option value=">=">{'>='}</Option>
-                                            <Option value="<">{'<'}</Option>
-                                            <Option value="<=">{'<='}</Option>
-                                            <Option value="==">{'=='}</Option>
-                                            <Option value="!=">{'!='}</Option>
-                                        </Select>
-                                    </MyFormItem>
-
-                                    <MyFormItem name='value' label=" ">
-                                        <InputNumber style={{width: '100px'}} min={1} placeholder="0"/>
-                                    </MyFormItem>
-
-                                </MyFormItemGroup>
-
                             </div>
-
                         </MyFormItemGroup>
                     }
 
@@ -1333,11 +1186,7 @@ export const AlertRule = ({ type }) => {
                                 <MyFormItem
                                     name="namespace"
                                     label="指标类型"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
+                                    rules={[{required: true,}]}
                                     style={{
                                         width: '24%',
                                     }}>
@@ -1448,18 +1297,11 @@ export const AlertRule = ({ type }) => {
                             <MyFormItem
                                 name="period"
                                 label="查询区间"
-                                rules={[
-                                    {
-                                        required: true,
-                                    },
-                                ]}
-                                style={{
-                                    width: '50%',
-                                }}
+                                rules={[{required: true}]}
                             >
                                 <InputNumber
-                                    style={{width: '97%'}}
-                                    addonAfter={<span>分</span>}
+                                    style={{width: '100%'}}
+                                    addonAfter={<span>分钟</span>}
                                     placeholder="10"
                                     min={1}
                                 />
@@ -1469,102 +1311,94 @@ export const AlertRule = ({ type }) => {
 
                     {selectedType === 6 &&
                         <MyFormItemGroup prefix={['kubernetesConfig']}>
-                            <div style={{display: 'flex', gap: '10px'}}>
-                                <MyFormItem
-                                    name="resource"
-                                    label="资源类型"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
-                                    style={{
-                                        width: '50%',
-                                    }}>
-                                    <Select
-                                        showSearch
-                                        placeholder="请选择资源类型"
-                                        options={kubeResourceTypeOptions}
-                                        onChange={(e) => setSelectedKubeResource(e)}
-                                    />
-                                </MyFormItem>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <div style={{display: 'flex', gap: '10px'}}>
+                                    <MyFormItem
+                                        name="resource"
+                                        label="资源类型"
+                                        rules={[{required: true}]}
+                                        style={{
+                                            width: '50%',
+                                        }}>
+                                        <Select
+                                            showSearch
+                                            placeholder="请选择资源类型"
+                                            options={kubeResourceTypeOptions}
+                                            onChange={(e) => setSelectedKubeResource(e)}
+                                        />
+                                    </MyFormItem>
 
-                                <MyFormItem
-                                    name="reason"
-                                    label="事件类型"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
-                                    style={{
-                                        width: '50%',
-                                    }}>
-                                    <Select
-                                        showSearch
-                                        placeholder="请选择事件类型"
-                                        options={kubeReasonListOptions}
-                                    />
-                                </MyFormItem>
+                                    <MyFormItem
+                                        name="reason"
+                                        label="事件类型"
+                                        rules={[
+                                            {
+                                                required: true,
+                                            },
+                                        ]}
+                                        style={{
+                                            width: '50%',
+                                        }}>
+                                        <Select
+                                            showSearch
+                                            placeholder="请选择事件类型"
+                                            options={kubeReasonListOptions}
+                                        />
+                                    </MyFormItem>
 
+                                    <MyFormItem
+                                        name="value"
+                                        label="表达式"
+                                        style={{
+                                            width: '45%',
+                                        }}
+                                        rules={[
+                                            {
+                                                required: true,
+                                            },
+                                        ]}>
+                                        <InputNumber placeholder="输入阈值" addonBefore={
+                                            "当事件条数 >="
+                                        } addonAfter={"条时告警"}/>
+                                    </MyFormItem>
+                                </div>
+                                <div style={{display: 'flex', gap: '10px'}}>
+                                    <MyFormItem
+                                        name="filter"
+                                        label="过滤"
+                                        tooltip={"过滤掉事件中某些 Reason, 例如：事件中存在 'nginx' 的 Pod 需要过滤, 那么输入 'nginx' 即可, 可以输入 Pod 全名称, 'nginx-xxx-xxx'"}
+                                        style={{
+                                            width: '100%',
+                                        }}>
+                                        <Select
+                                            mode="tags"
+                                            style={{width: '100%'}}
+                                            placeholder="按 'Enter' 添加标签"
+                                            value={filterTags}
+                                            onChange={handleChangeFilterTags}
+                                        >
+                                            {filterTags?.map((tag) => (
+                                                <Option key={tag} value={tag}>
+                                                    {tag}
+                                                </Option>
+                                            ))}
+                                        </Select>
+                                    </MyFormItem>
+                                </div>
                                 <MyFormItem
-                                    name="value"
-                                    label="表达式"
-                                    style={{
-                                        width: '45%',
-                                    }}
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}>
-                                    <InputNumber placeholder="输入阈值" addonBefore={
-                                        "当事件条数 >="
-                                    } addonAfter={"条时告警"}/>
-                                </MyFormItem>
-                            </div>
-                            <div style={{display: 'flex', gap: '10px'}}>
-                                <MyFormItem
-                                    name="filter"
-                                    label="过滤"
-                                    tooltip={"过滤掉事件中某些 Reason, 例如：事件中存在 'nginx' 的 Pod 需要过滤, 那么输入 'nginx' 即可, 可以输入 Pod 全名称, 'nginx-xxx-xxx'"}
-                                    style={{
-                                        width: '100%',
-                                    }}>
-                                    <Select
-                                        mode="tags"
+                                    name="scope"
+                                    label="查询区间"
+                                    rules={[{required: true}]}
+                                >
+                                    <InputNumber
                                         style={{width: '100%'}}
-                                        placeholder="按 'Enter' 添加标签"
-                                        value={filterTags}
-                                        onChange={handleChangeFilterTags}
-                                    >
-                                        {filterTags?.map((tag) => (
-                                            <Option key={tag} value={tag}>
-                                                {tag}
-                                            </Option>
-                                        ))}
-                                    </Select>
+                                        addonAfter={<span>分钟</span>}
+                                        placeholder="10"
+                                        min={1}
+                                    />
                                 </MyFormItem>
                             </div>
-                            <MyFormItem
-                                name="scope"
-                                label="查询区间"
-                                rules={[
-                                    {
-                                        required: true,
-                                    },
-                                ]}
-                                style={{
-                                    width: '100%',
-                                }}
-                            >
-                                <InputNumber
-                                    style={{width: '100%'}}
-                                    addonAfter={<span>分</span>}
-                                    placeholder="10"
-                                    min={1}
-                                />
-                            </MyFormItem>
                         </MyFormItemGroup>
                     }
 
@@ -1574,11 +1408,8 @@ export const AlertRule = ({ type }) => {
                                 <MyFormItem
                                     name="index"
                                     label="索引名称"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
+                                    tooltip="🔔：支持固定索引名称；支持按时间自动轮转，例如：索引名称为 test.YYYY-MM-dd，今日日期2025.02.23，那么索引名字会轮转为test.2025-02-23"
+                                    rules={[{required: true,}]}
                                     style={{
                                         width: '50%',
                                     }}>
@@ -1588,73 +1419,222 @@ export const AlertRule = ({ type }) => {
                                 <MyFormItem
                                     name="scope"
                                     label="查询区间"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
+                                    rules={[{required: true}]}
                                     style={{
                                         width: '50%',
                                     }}
                                 >
                                     <InputNumber
                                         style={{width: '100%'}}
-                                        addonAfter={<span>分</span>}
+                                        addonAfter={<span>分钟</span>}
                                         placeholder="10"
                                         min={1}
                                     />
                                 </MyFormItem>
                             </div>
 
-                            <span>筛选</span>
-                            <div className="es-rule-config-container">
-                                <MyFormItem name="" label="" rules={[{required: !esfilter}]}>
-                                    {esfilter?.map((label, index) => (
-                                        <div className="rule-item" key={index} style={{gap: '10px'}}>
-                                            <MyFormItem
-                                                name={['filter', index, 'field']}
-                                                label="字段名"
-                                                rules={[{required: true, message: '请输入字段名'}]}
-                                                style={{width: '50%', gap: '10px'}}
-                                            >
-                                                <Input
-                                                    onChange={(e) => updateEsFilter(index, 'field', e.target.value)}/>
-                                            </MyFormItem>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <Tabs
+                                    activeKey={esFilterType}
+                                    onChange={setEsFilterType}
+                                    items={[
+                                        {
+                                            label: '查询语句',
+                                            key: 'RawJson',
+                                        },
+                                        {
+                                            label: '字段匹配',
+                                            key: 'Field',
+                                        }
+                                    ]}
+                                />
 
-                                            <MyFormItem
-                                                name={['filter', index, 'value']}
-                                                label="字段值"
-                                                rules={[{required: true, message: '请输入字段值'}]}
-                                                validateStatus={errors[index] ? 'error' : ''}
-                                                help={errors[index]}
-                                                style={{width: '50%'}}
-                                            >
-                                                <Input
-                                                    value={label.expr}
-                                                    style={{width: '100%'}}
-                                                    onChange={(e) => updateEsFilter(index, 'value', e.target.value)}
-                                                />
-                                            </MyFormItem>
+                                {esFilterType === "Field" &&
+                                    <>
+                                        <MyFormItem
+                                            name="filterCondition"
+                                            label="匹配关系"
+                                            rules={[{
+                                                required: true,
+                                            }]}>
+                                            <Select
+                                                placeholder="请选择匹配关系"
+                                                style={{
+                                                    flex: 1,
+                                                }}
+                                                value={filterCondition}
+                                                onChange={setFilterCondition}
+                                                options={[
+                                                    {
+                                                        label: 'And（表示"与"，所有子查询都必须匹配）',
+                                                        value: 'And',
+                                                    },
+                                                    {
+                                                        label: 'Or（表示"或"，至少有一个子查询需要匹配）',
+                                                        value: 'Or'
+                                                    },
+                                                    {
+                                                        label: 'Not（表示"非"，所有子查询都不能匹配）',
+                                                        value: 'Not'
+                                                    }
+                                                ]}
+                                            />
+                                        </MyFormItem>
 
-                                            <Button onClick={() => removeEsFilter(index)}
-                                                    style={{marginTop: '30px'}}
-                                                    disabled={index === 0}>
-                                                -
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </MyFormItem>
-                                <Button type="link" onClick={addEsFilter} style={{
-                                    display: 'block',
-                                    textAlign: 'center',
-                                    width: '100%',
-                                    marginTop: '-30px'
-                                }}>
-                                    添加一个新的筛选规则
-                                </Button>
+                                        <MyFormItem
+                                            name="queryWildcard"
+                                            label="匹配模式"
+                                            rules={[{
+                                                required: true,
+                                            }]}>
+                                            <Radio.Group
+                                                block
+                                                options={[
+                                                    {
+                                                        label: '模糊匹配',
+                                                        value: 1,
+                                                    },
+                                                    {
+                                                        label: '精准匹配',
+                                                        value: 0,
+                                                    },
+                                                ]}
+                                                defaultValue={false}
+                                                value={1}
+                                                onChange={handleQueryWildcardChange}
+                                            />
+                                        </MyFormItem>
+
+                                        <MyFormItem name="" label="" rules={[{required: !esfilter}]}>
+                                            {esfilter?.map((label, index) => (
+                                                <div className="rule-item" key={index} style={{gap: '10px'}}>
+                                                    <MyFormItem
+                                                        name={['filter', index, 'field']}
+                                                        label="字段名"
+                                                        rules={[{required: true, message: '请输入字段名'}]}
+                                                        style={{width: '50%', gap: '10px'}}
+                                                    >
+                                                        <Input
+                                                            onChange={(e) => updateEsFilter(index, 'field', e.target.value)}/>
+                                                    </MyFormItem>
+
+                                                    <MyFormItem
+                                                        name={['filter', index, 'value']}
+                                                        label="字段值"
+                                                        rules={[{required: true, message: '请输入字段值'}]}
+                                                        validateStatus={errors[index] ? 'error' : ''}
+                                                        help={errors[index]}
+                                                        style={{width: '50%'}}
+                                                    >
+                                                        <Input
+                                                            value={label.expr}
+                                                            style={{width: '100%'}}
+                                                            onChange={(e) => updateEsFilter(index, 'value', e.target.value)}
+                                                        />
+                                                    </MyFormItem>
+
+                                                    <Button onClick={() => removeEsFilter(index)}
+                                                            style={{marginTop: '35px'}}
+                                                            disabled={index === 0}>
+                                                        -
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </MyFormItem>
+                                        <Button type="link" onClick={addEsFilter} style={{
+                                            display: 'block',
+                                            textAlign: 'center',
+                                            width: '100%',
+                                            marginTop: '-30px'
+                                        }}>
+                                            添加一个新的筛选规则
+                                        </Button>
+                                    </>
+                                }
+                                {esFilterType === "RawJson" && (
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                        <MyFormItem
+                                            rules={[{required: true}]}
+                                            style={{width: '100%', height: '100%'}}
+                                        >
+                                            <VSCodeEditor onChange={setEsRawJson} value={esRawJson}/>
+                                        </MyFormItem>
+                                        <Button
+                                            type="primary"
+                                            style={{backgroundColor: '#000', borderColor: '#000', marginTop: '-25px'}}
+                                            onClick={handleEsSearchData}
+                                        >
+                                            查询
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </MyFormItemGroup>
                     }
+
+                    <Modal
+                        visible={openJsonToTable}
+                        onCancel={cancelEsSearchModel}
+                        footer={null}
+                        width={800}
+                        bodyStyle={{
+                            padding: '16px',
+                            overflow: 'hidden',
+                            maxHeight: '80vh',
+                        }}
+                    >
+                        <div
+                            style={{
+                                overflow: 'auto',
+                                maxHeight: 'calc(80vh - 32px)',
+                                width: '100%',
+                                scrollBehavior: 'smooth',
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: '#888 transparent'
+                            }}
+                            onWheel={(e) => {
+                                // 增强型滚轮处理
+                                const container = e.currentTarget;
+                                const isVerticalScroll = container.scrollHeight > container.clientHeight;
+                                const delta = e.deltaMode === 0 ? e.deltaY * 0.5 : e.deltaY * 4;
+
+                                if (!isVerticalScroll || e.shiftKey) {
+                                    // 当垂直滚动不可用或按住shift时，转换为横向滚动
+                                    container.scrollLeft += delta;
+                                    e.preventDefault();
+                                }
+                            }}
+                        >
+                            <JsonTable
+                                data={jsonToTableData}
+                                style={{
+                                    border: '1px solid #e0e0e0',
+                                    borderRadius: '8px',
+                                    minWidth: '100%',
+                                    pointerEvents: 'auto',
+                                    userSelect: 'none'  // 防止拖动选中干扰滚动
+                                }}
+                            />
+                        </div>
+                    </Modal>
+
+                    {(selectedType === 1 || selectedType === 2 || selectedType === 7) && (
+                        <MyFormItem
+                            name="logEvalCondition"
+                            label="表达式"
+                            rules={[{ required: true, message: '请输入表达式' }]}
+                            style={{ width: '100%' }}
+                        >
+                            <Input
+                                addonBefore="当日志条数"
+                                addonAfter="时触发告警"
+                                placeholder="请输入有效的表达式，例如：> 2"
+                                onKeyPress={handleKeyPress} // 监听按键事件
+                                style={{ width: '100%' }}
+                            />
+                        </MyFormItem>
+                    )}
 
                     {selectedType !== 0 &&
                         <MyFormItem
