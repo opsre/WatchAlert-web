@@ -121,7 +121,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                 enabled: selectedRow.enabled,
                 evalInterval: selectedRow.evalInterval,
                 forDuration: selectedRow.forDuration,
-                noticeGroup: selectedRow.noticeGroup,
+                noticeRoutes: selectedRow.noticeRoutes,
                 noticeId: selectedRow.noticeId,
                 repeatNoticeInterval: selectedRow.repeatNoticeInterval,
                 ruleId: selectedRow.ruleId,

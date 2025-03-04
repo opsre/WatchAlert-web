@@ -29,7 +29,7 @@ export const FaultCenterNotify = () => {
     const { id } = useParams();
     const [form] = Form.useForm();
     const [detail, setDetail] = useState({});
-    const [noticeGroup, setNoticeGroup] = useState([]); // 动态更新 noticeGroup
+    const [noticeRoutes, setNoticeRoutes] = useState([]); // 动态更新 noticeRoutes
     const [noticeLabels, setNoticeLabels] = useState([]); // noticeLabel
     const [noticeOptions, setNoticeOptions] = useState([]); // 通知对象列表
     const [editable, setEditable] = useState(false); // 编辑状态
@@ -55,32 +55,32 @@ export const FaultCenterNotify = () => {
                 recoverWaitTime: res.data.recoverWaitTime,
             });
 
-            // 将 noticeGroup 映射到 noticeLabels
-            if (res.data.noticeGroup && res.data.noticeGroup.length > 0) {
-                const labels = res.data.noticeGroup.map((group) => ({
+            // 将 noticeRoutes 映射到 noticeLabels
+            if (res.data.noticeRoutes && res.data.noticeRoutes.length > 0) {
+                const labels = res.data.noticeRoutes.map((group) => ({
                     key: group.key,
                     value: group.value,
                     noticeId: group.noticeId,
                 }));
                 setNoticeLabels(labels);
-                setNoticeGroup(labels); // 同步更新 noticeGroup
+                setNoticeRoutes(labels); // 同步更新 noticeRoutes
             } else {
-                setNoticeLabels([]); // 如果没有 noticeGroup，清空 noticeLabels
-                setNoticeGroup([]);
+                setNoticeLabels([]); // 如果没有 sNoticeRoutes，清空 noticeLabels
+                setNoticeRoutes([]);
             }
         } catch (error) {
             console.error(error);
         }
     };
 
-    // 动态更新 noticeGroup
+    // 动态更新 setNoticeRoutes
     useEffect(() => {
-        const updatedNoticeGroup = noticeLabels.map((label) => ({
+        const updatedNoticeRoutes = noticeLabels.map((label) => ({
             key: label.key,
             value: label.value,
             noticeId: label.noticeId,
         }));
-        setNoticeGroup(updatedNoticeGroup);
+        setNoticeRoutes(updatedNoticeRoutes);
     }, [noticeLabels]);
 
     // 添加标签
@@ -113,7 +113,7 @@ export const FaultCenterNotify = () => {
         const params = {
             ...detail,
             ...values,
-            noticeGroup: noticeGroup, // 使用动态更新的 noticeGroup
+            noticeRoutes: noticeRoutes, // 使用动态更新的 noticeRoutes
             repeatNoticeInterval: Number(values.repeatNoticeInterval),
             recoverWaitTime: Number(values.recoverWaitTime),
         };
@@ -261,8 +261,8 @@ export const FaultCenterNotify = () => {
 
                 <div style={{display: 'flex', marginTop: '10px', alignItems: 'center'}}>
                     <MyFormItem style={{marginBottom: '0', marginRight: '10px'}}>
-                        <span>分组通知</span>
-                        <Tooltip title="根据 Metric 标签进行分组通知">
+                        <span>告警路由</span>
+                        <Tooltip title="根据 Metric 标签路由到相应的通知对象">
                             <QuestionCircleOutlined style={{color: '#1890ff', marginLeft: '4px'}}/>
                         </Tooltip>
                     </MyFormItem>
@@ -272,7 +272,7 @@ export const FaultCenterNotify = () => {
                 </div>
 
                 <div style={{marginTop: '20px'}}>
-                    <MyFormItemGroup prefix={['noticeGroup']}>
+                    <MyFormItemGroup prefix={['noticeRoutes']}>
                         {noticeLabels.length >= 1 ? (
                             <div style={{display: 'flex'}}>
                                 <label style={{marginRight: '29%'}}>* Key</label>
