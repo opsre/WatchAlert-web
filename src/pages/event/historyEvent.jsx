@@ -85,6 +85,7 @@ export const AlertHistoryEvent = (props) => {
         {
             title: "操作",
             key: "action",
+            width: '50px',
             render: (_, record) => <Button onClick={() => showDrawer(record)}>详情</Button>,
         },
     ]
