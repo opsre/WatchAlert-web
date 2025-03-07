@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react"
-import { Table, Button, Drawer, Tag, Select, Space, Input } from "antd"
+import {Table, Button, Drawer, Tag, Select, Space, Input, Modal, Descriptions, Divider, Spin} from "antd"
 import { getCurEventList } from "../../api/event"
 import TextArea from "antd/es/input/TextArea";
+import {ReqAiAnalyze} from "../../api/ai";
+import MarkdownRenderer from "../../utils/MarkdownRenderer";
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -18,6 +20,9 @@ export const AlertCurrentEvent = (props) => {
         pageTotal: 0,
     })
     const [loading, setLoading] = useState(true)
+    const [aiAnalyze, setAiAnalyze] = useState(false)
+    const [aiAnalyzeContent, setAiAnalyzeContent] = useState({})
+    const [analyzeLoading, setAnalyzeLoading] = useState(false)
 
     const columns = [
         {
@@ -96,7 +101,20 @@ export const AlertCurrentEvent = (props) => {
         {
             title: "操作",
             key: "action",
-            render: (_, record) => <Button onClick={() => showDrawer(record)}>详情</Button>,
+            width: '100px',
+            render: (_, record) => {
+                return (
+                    <div style={{display:'flex', gap: '10px'}}>
+                        <Button onClick={() => showDrawer(record)}>详情</Button>
+                        <Button
+                            onClick={() => openAiAnalyze(record)}
+                            disabled={analyzeLoading}
+                        >
+                            {analyzeLoading ? 'Ai 分析中' : 'Ai 分析'}
+                        </Button>
+                    </div>
+                )
+            },
         },
     ]
 
@@ -181,10 +199,139 @@ export const AlertCurrentEvent = (props) => {
         handleCurrentEventList(page.current, page.pageSize)
     }
 
+    const handleCloseAiAnalyze = () =>{
+        setAiAnalyze(false)
+    }
+
+    const openAiAnalyze = async(record) =>{
+        setAiAnalyze(true)
+        setAnalyzeLoading(true)
+
+        // 创建 FormData 对象
+        const formData = new FormData();
+
+        // 添加表单字段
+        formData.append('rule_name', record.rule_name);
+        formData.append('rule_id', record.rule_id);
+        formData.append('content', record.annotations);
+        formData.append('search_ql', record.searchQL);
+        formData.append('deep', "false")
+
+        const params = {
+            ruleId: record.rule_id,
+            ruleName: record.rule_name,
+            datasourceType: record.datasource_type,
+            searchQL: record.searchQL,
+            fingerprint: record.fingerprint,
+            annotations: record.annotations
+        }
+        setAiAnalyzeContent(params)
+
+        const res = await ReqAiAnalyze(formData)
+        setAiAnalyzeContent({
+            ...params,
+            content: res.data,
+        })
+        setAnalyzeLoading(false)
+    }
+
+    const AiDeepAnalyze = async  (params) => {
+        const formData = new FormData();
+        formData.append('rule_name', params.ruleName);
+        formData.append('rule_id', params.ruleId);
+        formData.append('content', params.annotations);
+        formData.append('search_ql', params.searchQL);
+        formData.append('deep', "true")
+
+        setAiAnalyzeContent({
+            ...params,
+            content: "",
+        })
+
+        setAnalyzeLoading(true)
+        const res = await ReqAiAnalyze(formData)
+        setAiAnalyzeContent({
+            ...params,
+            content: res.data,
+        })
+        setAnalyzeLoading(false)
+    }
+
+    const handleAiDeepAnalyze = ()=>{
+        AiDeepAnalyze(aiAnalyzeContent)
+    }
+
+    const [percent, setPercent] = React.useState(-50);
+    const timerRef = React.useRef(null);
+    React.useEffect(() => {
+        timerRef.current = setTimeout(() => {
+            setPercent((v) => {
+                const nextPercent = v + 5;
+                return nextPercent > 150 ? -50 : nextPercent;
+            });
+        }, 100);
+        return () => clearTimeout(timerRef.current);
+    }, [percent]);
+
     return (
         <div>
-            <Space style={{ marginBottom: 16 }}>
-                <Search allowClear placeholder="输入搜索关键字" onSearch={handleSearch} style={{ width: 200 }} />
+            <Modal
+                centered
+                open={aiAnalyze}
+                onCancel={handleCloseAiAnalyze}
+                width={1000}
+                footer={null} // 不显示底部按钮
+                styles={{
+                    body: {
+                        height: '700px', // 固定高度
+                        overflowY: 'auto', // 支持垂直滚动
+                        padding: '20px',
+                        backgroundColor: '#f9f9f9', // 灰色背景
+                        borderRadius: '8px', // 圆角
+                    },
+                }}
+            >
+                <div style={{marginTop: '10px'}}>
+                    <Descriptions items={[
+                        {
+                            key: '1',
+                            label: '规则名称',
+                            children: aiAnalyzeContent.ruleName,
+                        },
+                        {
+                            key: '2',
+                            label: '规则类型',
+                            children: aiAnalyzeContent.datasourceType,
+                        },
+                        {
+                            key: '3',
+                            label: '告警指纹',
+                            children: aiAnalyzeContent.fingerprint,
+                        },
+                    ]}/>
+                    <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+                        <Button type="link" onClick={handleAiDeepAnalyze}>
+                            深度分析
+                        </Button>
+                    </div>
+                </div>
+                <Divider/>
+                {analyzeLoading ? (
+                        <div style={{alignItems: 'center', marginTop: '100px'}}>
+                            <Spin tip="Ai 分析中..." percent={percent}>
+                                <br/>
+                            </Spin>
+                        </div>
+                    ):
+                    <MarkdownRenderer
+                        data={aiAnalyzeContent.content}
+                    />
+                }
+
+            </Modal>
+
+            <Space style={{marginBottom: 16}}>
+                <Search allowClear placeholder="输入搜索关键字" onSearch={handleSearch} style={{width: 200 }} />
                 <Select
                     placeholder="选择类型"
                     style={{ width: 150 }}

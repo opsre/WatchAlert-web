@@ -1,0 +1,30 @@
+/* 标题层级系统 */
+.h1 { font-size: 2.4rem; color: #2c3e50; margin: 2rem 0; border-bottom: 3px solid #ecf0f1; }
+.h2 { font-size: 2rem; color: #34495e; margin: 1.8rem 0; }
+.h3 { font-size: 1.7rem; color: #16a085; margin: 1.6rem 0; }
+.h4 { font-size: 1.5rem; color: #8e44ad; margin: 1.4rem 0; }
+.h5 { font-size: 1.3rem; color: #c0392b; margin: 1.2rem 0; }
+.h6 { font-size: 1.1rem; color: #7f8c8d; margin: 1rem 0; }
+
+/* 精确换行处理 */
+.markdown-p {
+    white-space: pre-wrap; /* 保留换行符 */
+    line-height: 1.8;
+    margin: 1.2em 0;
+}
+
+/* 代码块换行保留 */
+pre {
+    code {
+        white-space: pre-wrap !important;
+        word-break: break-word;
+    }
+}
+
+/* 列表项换行 */
+li {
+    p {
+        margin: 0.5em 0;
+        white-space: pre-wrap;
+    }
+}

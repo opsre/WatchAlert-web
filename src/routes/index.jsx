@@ -25,7 +25,6 @@ import {Subscribe} from "../pages/subscribe";
 import {CreateSubscribeModel} from "../pages/subscribe/create";
 import {NoticeRecords} from "../pages/notice/history";
 import {CalendarApp} from "../pages/duty/calendar";
-import {AlertEvent} from "../pages/event";
 import {Probing} from "../pages/probing";
 import {CreateProbingRule} from "../pages/probing/create";
 import {OnceProbing} from "../pages/probing/once";
@@ -62,10 +61,6 @@ export default [
     {
         path: '/silenceRules',
         element: <ComponentsContent name="静默规则" c={<Silences />} />
-    },
-    {
-        path: '/events',
-        element: <ComponentsContent name="告警事件" c={<AlertEvent />} />
     },
     {
         path: '/tmplType/:tmplType/group',
