@@ -38,7 +38,7 @@
 
 
 .scroll-container {
-    max-height: 200px; /* 根据需要调整 */
+    max-height: 460px; /* 根据需要调整 */
     overflow-y: auto;
     overflow-x: auto; /* 添加横向滚动 */
     border: 1px solid #ddd;
