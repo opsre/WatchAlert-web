@@ -46,7 +46,7 @@ async function getJaegerService(params) {
 
 async function queryPromMetrics(params) {
     try {
-        const res = await http('get', `/api/w8t/datasource/promQuery?datasourceType=${params.datasourceType}&addr=${params.url}&query=${params.query}`);
+        const res = await http('get', `/api/w8t/datasource/promQuery`, params);
         return res;
     } catch (error) {
         message.open({

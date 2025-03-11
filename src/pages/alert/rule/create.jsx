@@ -11,7 +11,7 @@ import {
     InputNumber,
     Card,
     TimePicker,
-    Typography, Tabs, Modal
+    Typography, Tabs, Modal, Empty, Spin, Descriptions
 } from 'antd'
 import React, { useState, useEffect } from 'react'
 import { RedoOutlined } from '@ant-design/icons'
@@ -45,6 +45,7 @@ import {FaultCenterList} from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
 import JsonToTable from "../../../utils/JsonTable";
 import JsonTable from "../../../utils/JsonTable";
+import MarkdownRenderer from "../../../utils/MarkdownRenderer";
 
 const format = 'HH:mm';
 const MyFormItemContext = React.createContext([])
@@ -127,8 +128,8 @@ export const AlertRule = ({ type }) => {
     const [selectDimension,setSelectDimension] = useState('')
     const [endpointOptions,setEndpointOptions] = useState([])
     const [promQL,setPromQL] = useState()
-    const [selectDatasourceURL,setSelectDatasourceURL] = useState()
-    const [queryModel,setQueryModel] = useState(0)
+    const [openMetricQueryModel, setOpenMetricQueryModel] = useState(false)
+    const [openMetricQueryModelLoading, setOpenMetricQueryModelLoading] = useState(false)
     const [loading, setLoading] = useState(true);
     const [kubeResourceTypeOptions,setKubeResourceTypeOptions]=useState([])
     const [selectedKubeResource,setSelectedKubeResource]=useState('')
@@ -260,7 +261,7 @@ export const AlertRule = ({ type }) => {
         setFilterTags(selectedRow.kubernetesConfig.filter)
         setEsfilter(selectedRow.elasticSearchConfig.filter)
 
-        handleGetDatasourceInfo(selectedRow.datasourceId)
+        // handleGetDatasourceInfo(selectedRow.datasourceId)
     }
 
     const handleCardClick = (index) => {
@@ -322,13 +323,16 @@ export const AlertRule = ({ type }) => {
         setKubeReasonListOptions(options)
     }
 
-    const handleGetDatasourceInfo = async (id ) =>{
-        const params = {
-            id: id,
-        }
-        const res = await getDatasource(params)
-        setSelectDatasourceURL(res?.data?.http?.url)
-    }
+    // const handleGetDatasourceInfo = async (id ) =>{
+    //     const params = {
+    //         id: id,
+    //     }
+    //     const res = await getDatasource(params)
+    //     setSelectDatasourceIds([
+    //         ...selectDatasourceIds,
+    //         res?.data?.id
+    //     ])
+    // }
 
     const handleCreateRule = async (values) => {
         try {
@@ -726,31 +730,59 @@ export const AlertRule = ({ type }) => {
         form.setFieldsValue({ prometheusConfig: { promQL: promQL } });
     }, [promQL])
 
-    const handleSelectedDsItem = (ids,info) =>{
+    const handleSelectedDsItem = (ids) =>{
         setSelectedItems(ids)
-        setSelectDatasourceURL(info[0].url)
     }
 
     const [dataSource, setDataSource] = useState([]);
 
-    const handleQueryMetrics = async () =>{
-        let t = getSelectedTypeName(selectedType)
-        const encodedPromQL = encodeURIComponent(promQL);
-        const params={
-            datasourceType: t,
-            url: selectDatasourceURL,
-            query: encodedPromQL
-        }
-        const res = await queryPromMetrics(params)
-        if (res.code === 200 && res.data && res.data.data && res.data.data.result) {
-            const formattedData = res.data.data.result?.map(item => ({
+    const handleQueryMetrics = async () => {
+        try {
+            setOpenMetricQueryModel(true)
+            // 编码 PromQL 查询
+            const encodedPromQL = encodeURIComponent(promQL);
+
+            // 构造请求参数
+            const params = {
+                datasourceIds: selectedItems.join(","),
+                query: encodedPromQL,
+            };
+
+            // 发起请求
+            setDataSource("")
+            setOpenMetricQueryModelLoading(true)
+            const res = await queryPromMetrics(params);
+
+            setOpenMetricQueryModelLoading(false)
+            // 检查响应是否有效
+            if (res.code !== 200 || !res.data) {
+                console.error("Invalid response format or empty data");
+                return;
+            }
+
+            // 提取所有 result 数据
+            const allResults = res.data
+                .filter(item => item.status === "success" && item.data?.result?.length > 0) // 过滤有效数据
+                .flatMap(item => item.data.result); // 将多个 result 数组合并为一个
+
+            // 如果没有有效数据，直接返回
+            if (allResults.length === 0) {
+                console.warn("No valid results found");
+                return;
+            }
+
+            // 格式化数据
+            const formattedData = allResults.map(item => ({
                 metric: item.metric,
-                value: item.value
+                value: item.value,
             }));
+
+            // 更新状态
             setDataSource(formattedData);
-            setQueryModel(1)
+        } catch (error) {
+            console.error("Failed to query metrics:", error);
         }
-    }
+    };
 
     const handleGetKubernetesEventTypes = async() =>{
         try{
@@ -820,6 +852,10 @@ export const AlertRule = ({ type }) => {
 
     const cancelEsSearchModel = () =>{
         setOpenJsonToTable(false)
+    }
+
+    const handleCloseMetricModel = () =>{
+        setOpenMetricQueryModel(false)
     }
 
     if (loading && type === "edit") {
@@ -933,7 +969,7 @@ export const AlertRule = ({ type }) => {
                                 <MyFormItemGroup prefix={['prometheusConfig']}>
                                     <MyFormItem name="promQL" label="PromQL" rules={[{required: true}]}>
                                         <PrometheusPromQL
-                                            addr={selectDatasourceURL}
+                                            // addr={selectDatasourceURL}
                                             value={handleGetPromQL}
                                             setPromQL={setPromQL}
                                         />
@@ -1020,29 +1056,63 @@ export const AlertRule = ({ type }) => {
                                     </div>
                                 </MyFormItemGroup>
 
-                                {queryModel === 1 && (
-                                    <div className="scroll-container">
-                                        <List
-                                            size="small"
-                                            dataSource={dataSource}
-                                            renderItem={(item) => {
-                                                const metricName = item.metric["__name__"];
-                                                const metricDetails = Object.keys(item.metric)
-                                                    .filter(key => key !== "__name__")
-                                                    .map(key => `${key}:${item.metric[key]}`)
-                                                    .join(", ");
-                                                return (
-                                                    <List.Item>
-                                                        <div className="list-item-content">
-                                                            {`${metricName}{${metricDetails}}`}
-                                                            <div className="value">{`${item.value[1]}`}</div>
-                                                        </div>
-                                                    </List.Item>
-                                                );
-                                            }}
-                                        />
-                                    </div>
-                                )}
+                                <Modal
+                                    centered
+                                    open={openMetricQueryModel}
+                                    onCancel={handleCloseMetricModel}
+                                    width={1000}
+                                    footer={null} // 不显示底部按钮
+                                    styles={{
+                                        body: {
+                                            height: '500px', // 固定高度
+                                            overflowY: 'auto', // 支持垂直滚动
+                                            padding: '20px',
+                                            backgroundColor: '#f9f9f9', // 灰色背景
+                                            borderRadius: '8px', // 圆角
+                                        },
+                                    }}
+                                >
+                                    { openMetricQueryModelLoading && (
+                                        <div style={{alignItems: 'center', marginTop: '100px'}}>
+                                            <Spin tip="数据查询中..." >
+                                                <br/>
+                                            </Spin>
+                                        </div>
+                                    )}
+
+                                    {dataSource.length > 0 && (
+                                        <div className="scroll-container">
+                                            <List
+                                                size="small"
+                                                dataSource={dataSource}
+                                                renderItem={(item) => {
+                                                    const metricName = item.metric["__name__"];
+                                                    const metricDetails = Object.keys(item.metric)
+                                                        .filter(key => key !== "__name__")
+                                                        .map(key => `${key}:${item.metric[key]}`)
+                                                        .join(", ");
+                                                    return (
+                                                        <List.Item>
+                                                            <div className="list-item-content">
+                                                                {`${metricName}{${metricDetails}}`}
+                                                                <div className="value">{`${item.value[1]}`}</div>
+                                                            </div>
+                                                        </List.Item>
+                                                    );
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {
+                                        // 数据查询完成但无数据
+                                         !openMetricQueryModelLoading && dataSource.length === 0 && (
+                                            <div className="empty-container">
+                                                <Empty description="暂无数据" />
+                                            </div>
+                                        )
+                                    }
+                                < /Modal>
                             </div>
                         </>
                     }
