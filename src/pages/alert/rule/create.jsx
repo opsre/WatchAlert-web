@@ -145,6 +145,7 @@ export const AlertRule = ({ type }) => {
     const [queryWildcard,setQueryWildcard] = useState(0) // 匹配模式
     const [openJsonToTable,setOpenJsonToTable] = useState(false)
     const [jsonToTableData,setJsonToTableData] = useState([])
+    const [metricAddress,setMetricAddress] = useState("")
 
     useEffect(() => {
         if (ruleTemplate) {
@@ -234,6 +235,8 @@ export const AlertRule = ({ type }) => {
         setEsRawJson(selectedRow.elasticSearchConfig.rawJson)
         setFilterCondition(selectedRow.elasticSearchConfig.filterCondition)
         setQueryWildcard(selectedRow.elasticSearchConfig.queryWildcard)
+
+        handleSelectedDsItem(selectedRow.datasourceId)
 
         let t = 0;
         if (selectedRow.datasourceType === "Prometheus"){
@@ -730,8 +733,30 @@ export const AlertRule = ({ type }) => {
         form.setFieldsValue({ prometheusConfig: { promQL: promQL } });
     }, [promQL])
 
-    const handleSelectedDsItem = (ids) =>{
-        setSelectedItems(ids)
+    const handleSelectedDsItem = async (ids) => {
+        // 获取数据源信息
+        const url = await handleGetDatasourceInfo(ids[0]);
+
+        setSelectedItems(ids);
+
+        // 更新metricAddress
+        setMetricAddress(url);
+    };
+
+    const handleGetDatasourceInfo = async (id)  => {
+        try {
+            const params = {
+                id: id,
+            }
+            const res = await getDatasource(params)
+
+            if (res?.data?.http?.url) {
+                return res?.data?.http?.url
+            }
+            return ""
+        } catch (error) {
+            console.error(`Error fetching datasource for ID ${id}:`, error)
+        }
     }
 
     const [dataSource, setDataSource] = useState([]);
@@ -740,12 +765,11 @@ export const AlertRule = ({ type }) => {
         try {
             setOpenMetricQueryModel(true)
             // 编码 PromQL 查询
-            const encodedPromQL = encodeURIComponent(promQL);
-
+            // const promQL = encodeURIComponent(promQL);
             // 构造请求参数
             const params = {
                 datasourceIds: selectedItems.join(","),
-                query: encodedPromQL,
+                query: promQL,
             };
 
             // 发起请求
@@ -952,11 +976,11 @@ export const AlertRule = ({ type }) => {
                                 mode="multiple"
                                 placeholder="选择数据源"
                                 value={selectedItems}
-                                onChange={handleSelectedDsItem}
+                                onChange={(value)=>{handleSelectedDsItem(value)}}
                                 style={{
                                     width: '100%',
                                 }}
-                                tokenSeparators={[',']}
+                                // tokenSeparators={[',']}
                                 options={datasourceOptions}
                             />
                         </MyFormItem>
@@ -969,7 +993,7 @@ export const AlertRule = ({ type }) => {
                                 <MyFormItemGroup prefix={['prometheusConfig']}>
                                     <MyFormItem name="promQL" label="PromQL" rules={[{required: true}]}>
                                         <PrometheusPromQL
-                                            // addr={selectDatasourceURL}
+                                            addr={metricAddress}
                                             value={handleGetPromQL}
                                             setPromQL={setPromQL}
                                         />
@@ -1086,7 +1110,6 @@ export const AlertRule = ({ type }) => {
                                                 size="small"
                                                 dataSource={dataSource}
                                                 renderItem={(item) => {
-                                                    const metricName = item.metric["__name__"];
                                                     const metricDetails = Object.keys(item.metric)
                                                         .filter(key => key !== "__name__")
                                                         .map(key => `${key}:${item.metric[key]}`)
@@ -1094,7 +1117,7 @@ export const AlertRule = ({ type }) => {
                                                     return (
                                                         <List.Item>
                                                             <div className="list-item-content">
-                                                                {`${metricName}{${metricDetails}}`}
+                                                                {`{${metricDetails}}`}
                                                                 <div className="value">{`${item.value[1]}`}</div>
                                                             </div>
                                                         </List.Item>
