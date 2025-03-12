@@ -81,6 +81,7 @@ export const SystemSettings = () => {
 
 
     const saveSettings = async (values) => {
+        await form.validateFields()
         values.emailConfig.port = Number(values.emailConfig.port)
         values.aiConfig.timeout = Number(values.aiConfig.timeout)
         values.aiConfig.maxTokens = Number(values.aiConfig.maxTokens)
@@ -157,7 +158,11 @@ export const SystemSettings = () => {
                             {
                                 enableAi === true && (
                                     <>
-                                        <MyFormItem name="type" label="服务商">
+                                        <MyFormItem
+                                            name="type"
+                                            label="服务商"
+                                            rules={[{required: true}]}
+                                        >
                                             <Select
                                                 style={{ width: '100%' }}
                                                 placeholder="选择 Ai 服务商"
@@ -175,23 +180,43 @@ export const SystemSettings = () => {
                                         >
                                             <Input placeholder="Ai 接口地址, 必须包含 http(s)://"/>
                                         </MyFormItem>
-                                        <MyFormItem name="appKey" label="密钥">
+                                        <MyFormItem
+                                            name="appKey"
+                                            label="密钥"
+                                            rules={[{required: true}]}
+                                        >
                                             <Input.Password placeholder="请求密钥"/>
                                         </MyFormItem>
-                                        <MyFormItem name="model" label="模型">
+                                        <MyFormItem
+                                            name="model"
+                                            label="模型"
+                                            rules={[{required: true}]}
+                                        >
                                             <Select
                                                 style={{ width: '100%' }}
                                                 placeholder="选择 Ai 模型"
                                                 options={serviceProvider === 'OpenAi' ? openaiModels : deepseekModels}
                                             />
                                         </MyFormItem>
-                                        <MyFormItem name="timeout" label="超时时间">
+                                        <MyFormItem
+                                            name="timeout"
+                                            label="超时时间"
+                                            rules={[{required: true}]}
+                                        >
                                             <Input type={'Number'} placeholder="请输入超时时间"/>
                                         </MyFormItem>
-                                        <MyFormItem name="maxTokens" label="最大 Token 数">
+                                        <MyFormItem
+                                            name="maxTokens"
+                                            label="最大 Token 数"
+                                            rules={[{required: true}]}
+                                        >
                                             <Input type={'Number'}  placeholder="请输入最大 Token 数"/>
                                         </MyFormItem>
-                                        <MyFormItem name="prompt" label="自定义提示词">
+                                        <MyFormItem
+                                            name="prompt"
+                                            label="自定义提示词"
+                                            rules={[{required: true}]}
+                                        >
                                             <TextArea rows={15} placeholder="请输入自定义提示词" />
                                         </MyFormItem>
                                     </>
