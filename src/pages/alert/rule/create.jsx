@@ -167,7 +167,7 @@ export const AlertRule = ({ type }) => {
         5: "VictoriaMetrics",
         6: "KubernetesEvent",
         7: "ElasticSearch",
-    };
+    }
 
     useEffect(() => {
         if (ruleTemplate) {
