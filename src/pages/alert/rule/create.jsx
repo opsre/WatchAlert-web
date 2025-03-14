@@ -70,6 +70,7 @@ const MyFormItem = ({ name, ...props }) => {
 }
 
 export const AlertRule = ({ type }) => {
+    const searchParams = new URLSearchParams(window.location.search);
     const { ruleTemplate } = useRule();
     const [form] = Form.useForm()
     const { id,ruleId } = useParams()
@@ -146,6 +147,27 @@ export const AlertRule = ({ type }) => {
     const [openJsonToTable,setOpenJsonToTable] = useState(false)
     const [jsonToTableData,setJsonToTableData] = useState([])
     const [metricAddress,setMetricAddress] = useState("")
+    // 处理数据源类型
+    const datasourceTypeMap = {
+        Prometheus: 0,
+        Loki: 1,
+        AliCloudSLS: 2,
+        Jaeger: 3,
+        CloudWatch: 4,
+        VictoriaMetrics: 5,
+        KubernetesEvent: 6,
+        ElasticSearch: 7,
+    };
+    const datasourceCardMap = {
+        0: "Prometheus",
+        1: "Loki",
+        2: "AliCloudSLS",
+        3: "Jaeger",
+        4: "CloudWatch",
+        5: "VictoriaMetrics",
+        6: "KubernetesEvent",
+        7: "ElasticSearch",
+    }
 
     useEffect(() => {
         if (ruleTemplate) {
@@ -153,18 +175,6 @@ export const AlertRule = ({ type }) => {
             form.setFieldsValue(ruleTemplate);
             setPromQL(ruleTemplate.prometheusConfig.promQL);
             setExprRule(ruleTemplate.prometheusConfig.rules);
-
-            const datasourceTypeMap = {
-                "Prometheus": 0,
-                "Loki": 1,
-                "AliCloudSLS": 2,
-                "Jaeger": 3,
-                "CloudWatch": 4,
-                "VictoriaMetrics": 5,
-                "KubernetesEvent": 6,
-                "ElasticSearch": 7
-            };
-
             const t = datasourceTypeMap[ruleTemplate.datasourceType] || 0;
             setSelectedType(t);
             setSelectedCard(t);
@@ -189,83 +199,121 @@ export const AlertRule = ({ type }) => {
             if (type === "edit"){
                 handleSearchRuleInfo()
             }
+            if (searchParams.get("isClone") === "1"){
+                initBasicInfo(JSON.parse(localStorage.getItem("RuleDataCopy")))
+            }
         }
     }, [])
 
-    const initBasicInfo =(selectedRow)=>{
+    const initBasicInfo = (selectedRow) => {
+        // 设置表单字段
         form.setFieldsValue({
-            annotations: selectedRow.annotations,
-            datasourceId: selectedRow.datasourceId,
-            datasourceType: selectedRow.datasourceType,
-            description: selectedRow.description,
-            enabled: selectedRow.enabled,
-            evalInterval: selectedRow.evalInterval,
-            forDuration: selectedRow.forDuration,
-            ruleId: selectedRow.ruleId,
-            ruleName: selectedRow.ruleName,
-            alicloudSLSConfig: selectedRow.alicloudSLSConfig,
-            lokiConfig: selectedRow.lokiConfig,
-            prometheusConfig: selectedRow.prometheusConfig,
-            severity: selectedRow.severity,
-            jaegerConfig: {
-                service: selectedRow.jaegerConfig.service,
-                tags: selectedRow.jaegerConfig.tags,
-                scope: selectedRow.jaegerConfig.scope,
-            },
+            tenantId: selectedRow?.tenantId,
+            ruleId: selectedRow?.ruleId,
+            ruleGroupId: selectedRow?.ruleGroupId,
+            datasourceType: selectedRow?.datasourceType,
+            datasourceId: selectedRow?.datasourceId,
+            ruleName: selectedRow?.ruleName,
+            evalInterval: selectedRow?.evalInterval,
+            evalTimeType: selectedRow?.evalTimeType,
+            repeatNoticeInterval: selectedRow?.repeatNoticeInterval,
+            description: selectedRow?.description,
+            severity: selectedRow?.severity,
+            faultCenterId: selectedRow?.faultCenterId,
+            enabled: selectedRow?.enabled,
+            logEvalCondition: selectedRow?.logEvalCondition,
+
+            // 嵌套对象
             effectiveTime: {
-                week: selectedRow.effectiveTime.week,
-                startTime: selectedRow.effectiveTime.startTime,
-                endTime: selectedRow.effectiveTime.endTime,
+                week: selectedRow?.effectiveTime?.week,
+                startTime: selectedRow?.effectiveTime?.startTime,
+                endTime: selectedRow?.effectiveTime?.endTime,
             },
-            cloudwatchConfig: selectedRow.cloudwatchConfig,
-            kubernetesConfig: selectedRow.kubernetesConfig,
-            elasticSearchConfig: selectedRow.elasticSearchConfig,
-            logEvalCondition: selectedRow.logEvalCondition,
-            faultCenterId: selectedRow.faultCenterId,
-        })
-        setPromQL(selectedRow.prometheusConfig.promQL)
-        setSelectedItems(selectedRow.datasourceId)
-        setWeek(selectedRow.effectiveTime.week)
-        setStartTime(selectedRow.effectiveTime.startTime)
-        setEndTime(selectedRow.effectiveTime.endTime)
-        setEnabled(selectedRow.enabled)
-        setSelectedFaultCenter(selectedRow.faultCenterId)
-        setEvalTimeType(selectedRow.evalTimeType)
-        setEsFilterType(selectedRow.elasticSearchConfig.queryType)
-        setEsRawJson(selectedRow.elasticSearchConfig.rawJson)
-        setFilterCondition(selectedRow.elasticSearchConfig.filterCondition)
-        setQueryWildcard(selectedRow.elasticSearchConfig.queryWildcard)
+            prometheusConfig: {
+                promQL: selectedRow?.prometheusConfig?.promQL,
+                annotations: selectedRow?.prometheusConfig?.annotations,
+                forDuration: selectedRow?.prometheusConfig?.forDuration,
+                rules: selectedRow?.prometheusConfig?.rules,
+            },
+            alicloudSLSConfig: {
+                project: selectedRow?.alicloudSLSConfig?.project,
+                logstore: selectedRow?.alicloudSLSConfig?.logstore,
+                logQL: selectedRow?.alicloudSLSConfig?.logQL,
+                logScope: selectedRow?.alicloudSLSConfig?.logScope,
+            },
+            lokiConfig: {
+                logQL: selectedRow?.lokiConfig?.logQL,
+                logScope: selectedRow?.lokiConfig?.logScope,
+            },
+            jaegerConfig: {
+                service: selectedRow?.jaegerConfig?.service,
+                scope: selectedRow?.jaegerConfig?.scope,
+                tags: selectedRow?.jaegerConfig?.tags,
+            },
+            cloudwatchConfig: {
+                namespace: selectedRow?.cloudwatchConfig?.namespace,
+                metricName: selectedRow?.cloudwatchConfig?.metricName,
+                statistic: selectedRow?.cloudwatchConfig?.statistic,
+                period: selectedRow?.cloudwatchConfig?.period,
+                expr: selectedRow?.cloudwatchConfig?.expr,
+                threshold: selectedRow?.cloudwatchConfig?.threshold,
+                dimension: selectedRow?.cloudwatchConfig?.dimension,
+                endpoints: selectedRow?.cloudwatchConfig?.endpoints,
+            },
+            kubernetesConfig: {
+                resource: selectedRow?.kubernetesConfig?.resource,
+                reason: selectedRow?.kubernetesConfig?.reason,
+                value: selectedRow?.kubernetesConfig?.value,
+                filter: selectedRow?.kubernetesConfig?.filter,
+                scope: selectedRow?.kubernetesConfig?.scope,
+            },
+            elasticSearchConfig: {
+                index: selectedRow?.elasticSearchConfig?.index,
+                scope: selectedRow?.elasticSearchConfig?.scope,
+                filter: selectedRow?.elasticSearchConfig?.filter,
+                filterCondition: selectedRow?.elasticSearchConfig?.filterCondition,
+                queryType: selectedRow?.elasticSearchConfig?.queryType,
+                queryWildcard: selectedRow?.elasticSearchConfig?.queryWildcard,
+                rawJson: selectedRow?.elasticSearchConfig?.rawJson,
+            },
+        });
 
-        handleSelectedDsItem(selectedRow.datasourceId)
+        // 设置状态值
+        const {
+            prometheusConfig,
+            datasourceId,
+            effectiveTime,
+            enabled,
+            faultCenterId,
+            elasticSearchConfig,
+            kubernetesConfig,
+            datasourceType,
+        } = selectedRow || {};
 
-        let t = 0;
-        if (selectedRow.datasourceType === "Prometheus"){
-            t = 0
-        } else if (selectedRow.datasourceType === "Loki"){
-            t = 1
-        } else if (selectedRow.datasourceType === "AliCloudSLS"){
-            t = 2
-        } else if (selectedRow.datasourceType === "Jaeger"){
-            t = 3
-        } else if (selectedRow.datasourceType === "CloudWatch"){
-            t = 4
-        } else if (selectedRow.datasourceType === "VictoriaMetrics"){
-            t = 5
-        } else if (selectedRow.datasourceType === "KubernetesEvent"){
-            t = 6
-        } else if (selectedRow.datasourceType === "ElasticSearch"){
-            t = 7
-        }
+        setPromQL(prometheusConfig?.promQL);
+        setSelectedItems(datasourceId);
+        setWeek(effectiveTime?.week);
+        setStartTime(effectiveTime?.startTime);
+        setEndTime(effectiveTime?.endTime);
+        setEnabled(enabled);
+        setSelectedFaultCenter(faultCenterId);
+        setEvalTimeType(selectedRow?.evalTimeType);
+        setEsFilterType(elasticSearchConfig?.queryType);
+        setEsRawJson(elasticSearchConfig?.rawJson);
+        setFilterCondition(elasticSearchConfig?.filterCondition);
+        setQueryWildcard(elasticSearchConfig?.queryWildcard);
+        setSelectedKubeResource(kubernetesConfig?.resource);
+        setFilterTags(kubernetesConfig?.filter);
+        setEsfilter(elasticSearchConfig?.filter);
 
-        setSelectedType(t)
-        setSelectedCard(t)
-        setExprRule(selectedRow.prometheusConfig.rules)
-        setSelectedKubeResource(selectedRow.kubernetesConfig.resource)
-        setFilterTags(selectedRow.kubernetesConfig.filter)
-        setEsfilter(selectedRow.elasticSearchConfig.filter)
+        const selectedType = datasourceTypeMap[datasourceType] ?? -1; // 默认值 -1 表示未知类型
+        setSelectedType(selectedType);
+        setSelectedCard(selectedType);
 
-        // handleGetDatasourceInfo(selectedRow.datasourceId)
-    }
+        // 其他逻辑
+        setExprRule(prometheusConfig?.rules);
+        handleSelectedDsItem(datasourceId);
+    };
 
     const handleCardClick = (index) => {
         setSelectedType(index)
@@ -326,17 +374,6 @@ export const AlertRule = ({ type }) => {
         setKubeReasonListOptions(options)
     }
 
-    // const handleGetDatasourceInfo = async (id ) =>{
-    //     const params = {
-    //         id: id,
-    //     }
-    //     const res = await getDatasource(params)
-    //     setSelectDatasourceIds([
-    //         ...selectDatasourceIds,
-    //         res?.data?.id
-    //     ])
-    // }
-
     const handleCreateRule = async (values) => {
         try {
             let t = getSelectedTypeName(selectedType)
@@ -394,26 +431,7 @@ export const AlertRule = ({ type }) => {
     }
 
     const getSelectedTypeName = (selectedType) =>{
-        let t = ""
-        if (selectedType === 0){
-            t = "Prometheus"
-        } else if (selectedType === 1){
-            t = "Loki"
-        } else if (selectedType === 2){
-            t = "AliCloudSLS"
-        } else if (selectedType === 3){
-            t = "Jaeger"
-        } else if (selectedType === 4){
-            t = "CloudWatch"
-        } else if (selectedType === 5){
-            t = "VictoriaMetrics"
-        } else if (selectedType === 6){
-            t = "KubernetesEvent"
-        } else if (selectedType === 7){
-            t = "ElasticSearch"
-        }
-
-        return t
+        return datasourceCardMap[selectedType] || "Prometheus";
     }
 
     const handleGetDatasourceList = async (selectedType) => {
@@ -484,6 +502,7 @@ export const AlertRule = ({ type }) => {
             handleUpdateRule(newValues)
         }
 
+        localStorage.removeItem("RuleDataCopy")
         window.history.back()
     }
 

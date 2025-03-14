@@ -19,7 +19,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "@monaco-editor/react": "^4.6.0",
+    "@monaco-editor/react": "^4.7.0",
     "@pansy/react-charts": "^1.0.0",
     "@quiet-front-end/json-schema-editor-antd": "^0.3.0",
     "@shadcn/ui": "^0.0.4",

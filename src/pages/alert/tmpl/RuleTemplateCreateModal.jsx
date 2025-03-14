@@ -8,9 +8,6 @@ import {
     InputNumber,
     Divider,
     Card,
-    List,
-    TimePicker,
-    Typography,
     Tabs
 } from 'antd'
 import React, { useState, useEffect } from 'react'
@@ -26,7 +23,6 @@ import K8sImg from "../rule/img/Kubernetes.svg";
 import ESImg from "../rule/img/ElasticSearch.svg";
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
-import {ElasticSearchData} from "../../../api/datasource";
 
 const MyFormItemContext = React.createContext([])
 const { Option } = Select;
@@ -97,6 +93,25 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
     const [esRawJson, setEsRawJson] = useState('')
     const [filterCondition,setFilterCondition] = useState('') // 匹配关系
     const [queryWildcard,setQueryWildcard] = useState(0) // 匹配模式
+    const datasourceTypeMap = {
+        Prometheus: 0,
+        Loki: 1,
+        AliCloudSLS: 2,
+        Jaeger: 3,
+        VictoriaMetrics: 4,
+        KubernetesEvent: 5,
+        ElasticSearch: 6,
+    };
+
+    const datasourceCardMap = {
+        0: "Prometheus",
+        1: "Loki",
+        2: "AliCloudSLS",
+        3: "Jaeger",
+        4: "VictoriaMetrics",
+        5: "KubernetesEvent",
+        6: "ElasticSearch",
+    };
 
     const handleInputChange = (e) => {
         // 移除输入值中的空格
@@ -146,23 +161,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                 recoverNotify:selectedRow.recoverNotify,
             })
 
-            let t = 0;
-            if (selectedRow.datasourceType === "Prometheus"){
-                t = 0
-            } else if (selectedRow.datasourceType === "Loki"){
-                t = 1
-            } else if (selectedRow.datasourceType === "AliCloudSLS"){
-                t = 2
-            } else if (selectedRow.datasourceType === "Jaeger"){
-                t = 3
-            } else if (selectedRow.datasourceType === "VictoriaMetrics"){
-                t = 4
-            } else if (selectedRow.datasourceType === "KubernetesEvent"){
-                t = 5
-            } else if (selectedRow.datasourceType === "ElasticSearch"){
-                t = 6
-            }
-
+            const t = datasourceTypeMap[selectedRow.datasourceType] || 0;
             setSelectedType(t)
             setSelectedCard(t)
             setExprRule(selectedRow.prometheusConfig.rules)
@@ -253,24 +252,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
     }
 
     const getSelectedTypeName = (selectedType) =>{
-        let t = ""
-        if (selectedType === 0){
-            t = "Prometheus"
-        } else if (selectedType === 1){
-            t = "Loki"
-        } else if (selectedType === 2){
-            t = "AliCloudSLS"
-        } else if (selectedType === 3){
-            t = "Jaeger"
-        } else if (selectedType === 4){
-            t = "VictoriaMetrics"
-        } else if (selectedType === 5){
-            t = "KubernetesEvent"
-        } else if (selectedType === 6){
-            t = "ElasticSearch"
-        }
-
-        return t
+        return datasourceCardMap[selectedType] || "Prometheus";
     }
 
     const handleCardClick = (index) => {
