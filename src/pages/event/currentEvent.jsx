@@ -89,13 +89,13 @@ export const AlertCurrentEvent = (props) => {
             key: "status",
             render: (text) => {
                 const statusMap = {
-                    0: { color: 'black', text: '未知'},
+                    0: { color: '#ffe465', text: '预告警'},
                     1: { color: 'red', text: '告警中' },
                     2: { color: 'grey', text: '静默中' },
                     3: { color: 'orange', text: '待恢复' },
                 };
                 const status = statusMap[text];
-                return status ? <Tag color={status.color}>{status.text}</Tag> : '-';
+                return status ? <Tag color={status.color}>{status.text}</Tag> : '未知';
             },
         },
         {
@@ -404,14 +404,16 @@ export const AlertCurrentEvent = (props) => {
                         <p>{
                             <Tag
                                 color={
-                                    selectedEvent.status === 1 ? 'red' :
-                                        selectedEvent.status === 2 ? 'gray' :
-                                            selectedEvent.status === 3 ? 'orange' : 'black'
+                                    selectedEvent.status === 0 ? '#ffe465' :
+                                        selectedEvent.status === 1 ? 'red' :
+                                            selectedEvent.status === 2 ? 'gray' :
+                                                selectedEvent.status === 3 ? 'orange' : 'black'
                                 }>
                                 {
-                                    selectedEvent.status === 1 ? '告警中' :
-                                        selectedEvent.status === 2 ? '静默中' :
-                                            selectedEvent.status === 3 ? '待恢复' : '未知'
+                                    selectedEvent.status === 0 ? '预告警' :
+                                        selectedEvent.status === 1 ? '告警中' :
+                                            selectedEvent.status === 2 ? '静默中' :
+                                                selectedEvent.status === 3 ? '待恢复' : '未知'
                                 }
                             </Tag>
                         }

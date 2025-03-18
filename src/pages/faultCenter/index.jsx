@@ -211,21 +211,38 @@ export const FaultCenter = () => {
                                     </Dropdown>
                                 </div>
 
-                                {/* 待处理 */}
-                                <div>
-                                    <span
-                                        style={styles.value(item.currentAlertNumber > 0 ? '#ff7373' : '#93fa8f')}>{item.currentAlertNumber ? item.currentAlertNumber : 0} </span>
-                                    <span style={styles.label}> 待处理</span>
-                                </div>
-                                <div>
-                                    <span
-                                        style={styles.value( 'orange')}>{item.currentRecoverNumber ? item.currentRecoverNumber : 0} </span>
-                                    <span style={styles.label}> 待恢复</span>
-                                </div>
-                                <div>
-                                    <span
-                                        style={styles.value('#878383')}>{item.currentMuteNumber ? item.currentMuteNumber : 0} </span>
-                                    <span style={styles.label}> 静默中</span>
+                                <div style={{display: 'flex', flexWrap: 'wrap', gap: '2px'}}>
+                                    {/* 待处理 */}
+                                    <div style={{flex: '1 1 calc(50% - 8px)'}}>
+                                        <span style={styles.value(item.currentAlertNumber > 0 ? '#ff7373' : '#93fa8f')}>
+                                            {item.currentAlertNumber ? item.currentAlertNumber : 0}
+                                        </span>
+                                        <span style={styles.label}> 待处理</span>
+                                    </div>
+
+                                    {/* 预告警 */}
+                                    <div style={{flex: '1 1 calc(50% - 8px)'}}>
+                                        <span style={styles.value('#ffe465')}>
+                                            {item.currentPreAlertNumber ? item.currentPreAlertNumber : 0}
+                                        </span>
+                                        <span style={styles.label}> 预告警</span>
+                                    </div>
+
+                                    {/* 待恢复 */}
+                                    <div style={{flex: '1 1 calc(50% - 8px)'}}>
+                                        <span style={styles.value('orange')}>
+                                            {item.currentRecoverNumber ? item.currentRecoverNumber : 0}
+                                        </span>
+                                        <span style={styles.label}> 待恢复</span>
+                                    </div>
+
+                                    {/* 静默中 */}
+                                    <div style={{flex: '1 1 calc(50% - 8px)'}}>
+                                        <span style={styles.value('#878383')}>
+                                            {item.currentMuteNumber ? item.currentMuteNumber : 0}
+                                        </span>
+                                        <span style={styles.label}> 静默中</span>
+                                    </div>
                                 </div>
 
                                 <div style={{display: 'flex', justifyContent: 'flex-end'}}>
