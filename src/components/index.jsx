@@ -181,7 +181,7 @@ export const ComponentsContent = (props) => {
                                 </div>
 
                                 <div style={{fontSize: 15, fontWeight: 'bold', marginTop: '-12px'}}>
-                                    <span>监控云平台</span>
+                                    <span>WatchAlert</span>
                                 </div>
                             </div>
 
