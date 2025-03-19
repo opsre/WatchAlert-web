@@ -159,21 +159,6 @@ export const SystemSettings = () => {
                                 enableAi === true && (
                                     <>
                                         <MyFormItem
-                                            name="type"
-                                            label="服务商"
-                                            rules={[{required: true}]}
-                                        >
-                                            <Select
-                                                style={{ width: '100%' }}
-                                                placeholder="选择 Ai 服务商"
-                                                options={[
-                                                    { label: 'DeepSeek', value: 'DeepSeek' },
-                                                    { label: 'OpenAi', value: 'OpenAi' },
-                                                ]}
-                                                onChange={(value) => setServiceProvider(value)}
-                                            />
-                                        </MyFormItem>
-                                        <MyFormItem
                                             name="url"
                                             label="接口地址"
                                             rules={[{required: true}]}
@@ -192,10 +177,9 @@ export const SystemSettings = () => {
                                             label="模型"
                                             rules={[{required: true}]}
                                         >
-                                            <Select
+                                            <Input
                                                 style={{ width: '100%' }}
                                                 placeholder="选择 Ai 模型"
-                                                options={serviceProvider === 'OpenAi' ? openaiModels : deepseekModels}
                                             />
                                         </MyFormItem>
                                         <MyFormItem
