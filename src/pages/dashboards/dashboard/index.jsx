@@ -48,8 +48,9 @@ export const Dashboards = () => {
             const resInfo = await getFolderInfo(fParams)
             const params = {
                 grafanaHost: resInfo.data.grafanaHost,
+                grafanaFolderId: resInfo.data.grafanaFolderId,
+                grafanaVersion: resInfo.data.grafanaVersion,
                 limit: 1000,
-                grafanaFolderId: resInfo.data.grafanaFolderId
             }
             const res = await getGrafanaDashboardList(params)
             const d = res.data.map((item, index) => {

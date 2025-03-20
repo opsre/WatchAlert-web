@@ -1,4 +1,4 @@
-import {Modal, Form, Input, Button, Segmented, Drawer} from 'antd'
+import {Modal, Form, Input, Button, Segmented, Drawer, Radio} from 'antd'
 import React, {useEffect, useState} from 'react'
 import {createDashboardFolder, updateDashboardFolder} from '../../../api/dashboard';
 import {DownOutlined, RightOutlined} from "@ant-design/icons";
@@ -19,6 +19,7 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
     const [form] = Form.useForm()
     const [theme,setTheme] = useState('light')
     const [folderHelpExpanded, setFolderHelpExpanded] = useState(false);
+    const [grafanaVersion, setGrafanaVersion] = useState('v10')
     // 禁止输入空格
     const [spaceValue, setSpaceValue] = useState('')
 
@@ -40,6 +41,7 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
             form.setFieldsValue({
                 id: selectedRow.id,
                 name: selectedRow.name,
+                grafanaVersion: selectedRow.grafanaVersion,
                 grafanaHost: selectedRow.grafanaHost,
                 grafanaFolderId: selectedRow.grafanaFolderId,
                 theme: selectedRow.theme,
@@ -51,7 +53,7 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
     const handleCreate = async (data) => {
         const params = {
             ...data,
-            grafanaFolderId: Number(data.grafanaFolderId),
+            grafanaFolderId: data.grafanaFolderId,
         }
         try {
             await createDashboardFolder(params)
@@ -67,7 +69,7 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
             const params = {
                 ...data,
                 id: selectedRow.id,
-                grafanaFolderId: Number(data.grafanaFolderId),
+                grafanaFolderId: data.grafanaFolderId,
             }
             await updateDashboardFolder(params)
             handleList()
@@ -95,6 +97,17 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
         setFolderHelpExpanded(!folderHelpExpanded);
     };
 
+    const radioOptions = [
+        {
+            label: 'v11及以上',
+            value: 'v11',
+        },
+        {
+            label: 'v10及以下',
+            value: 'v10',
+        },
+    ];
+
     return (
         <Drawer title={"创建 Grafana 仪表盘链接"} open={visible} onClose={onClose} footer={null} size={"large"}>
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
@@ -104,6 +117,15 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
                         value={spaceValue}
                         onChange={handleInputChange}
                         onKeyPress={handleKeyPress} />
+                </MyFormItem>
+
+                <MyFormItem name="grafanaVersion" label="Grafana 版本">
+                    <Radio.Group
+                        block
+                        options={radioOptions}
+                        defaultValue={grafanaVersion}
+                        onChange={(e)=>{setGrafanaVersion(e?.target?.value)}}
+                    />
                 </MyFormItem>
 
                 <MyFormItem name="grafanaHost" label="Grafana Host" rules={[
@@ -119,7 +141,7 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
                 </MyFormItem>
 
                 <MyFormItem name="grafanaFolderId" label="Grafana FolderId"  rules={[{required: true}]}>
-                    <Input type={"number"} style={{width:'100%'}} placeholder="Grafana目录Id" min={1}/>
+                    <Input style={{width:'100%'}} placeholder="Grafana目录Id" min={1}/>
                 </MyFormItem>
 
                 <MyFormItem name="theme" label="背景颜色">
@@ -170,7 +192,7 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
                                 <li>打开 Grafana 平台 / 仪表盘(Dashboards)，再打开 F12；</li>
                                 <li>点击 网络(Network)，再点击下 Grafana 文件夹，会出现一个 Search 接口的请求；</li>
                                 <li>
-                                    点开请求，点击 Payload 查看请求参数，其中有 <code>folderIds</code>，
+                                    点开请求，点击 Payload 查看请求参数，其中有 <code>folderIds</code> 或 <code>folderUids</code> ，
                                     这个 ID 即可应用到 WatchAlert。
                                 </li>
                             </ul>
