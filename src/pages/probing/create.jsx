@@ -33,7 +33,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
     // 禁止输入空格
     const [spaceValue, setSpaceValue] = useState('')
     const [loading, setLoading] = useState(true);
-    const [protocolType, setProtocolType] = useState('') // 协议类型
+    const [protocolType, setProtocolType] = useState('HTTP') // 协议类型
     const [methodType, setMethodType] = useState('GET') // 方法类型
     const [calculate,setCalculate] = useState(">")
     const [submitLoading,setSubmitLoading] = useState(false)
@@ -79,6 +79,18 @@ export const CreateProbingRule = ({ type, handleList }) => {
     ]
 
     useEffect(() => {
+        form.setFieldsValue({
+            ruleType: 'HTTP',
+            repeatNoticeInterval: 60,
+            probingEndpointConfig: {
+                strategy: {
+                    evalInterval: 10,
+                    timeout: 10,
+                    failure: 3,
+                }
+            }
+        })
+
         const handleSearchRuleInfo = async ()=>{
             try {
                 const params = {
@@ -170,6 +182,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
     const handleFormSubmit = async (values) => {
         const params = {
             ...values,
+            ruleName: protocolType+" 拨测任务",
             enabled: enabled,
             recoverNotify: recoverNotify,
             probingEndpointConfig:{
@@ -230,7 +243,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
         return <div>Loading...</div>;
     }
 
-    const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9.-]+)(:\d+)?(\/.*)?$/; // HTTP(S) URL 校验
+    const urlPattern = /^(https?:\/\/)[a-zA-Z0-9.-]+(?::\d+)?(?:\/[^\s]*)?$/; // HTTP(S) URL 校验
     const domainIpPattern = /^(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3})$/; // 域名或IP校验
     const tcpPattern = /^(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3}):\d+$/; // TCP: IP/域名:port
     const domainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/; // 仅域名校验（SSL）
@@ -269,6 +282,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                 { value: 'TCP', label: 'TCP' },
                                 { value: 'SSL', label: 'SSL' },
                             ]}
+                            defaultValue={protocolType}
                             value={protocolType}
                             onChange={(value) => setProtocolType(value)}
                         />
@@ -290,19 +304,19 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                             case "HTTP":
                                                 return urlPattern.test(value)
                                                     ? Promise.resolve()
-                                                    : Promise.reject('请输入有效的URL');
+                                                    : Promise.reject('请输入有效的完整URL, 例如: http(s)://github.com');
                                             case "ICMP":
                                                 return domainIpPattern.test(value)
                                                     ? Promise.resolve()
-                                                    : Promise.reject('请输入有效的域名或IP地址');
+                                                    : Promise.reject('请输入有效的域名或IP地址, 例如: github.com / 1.1.1.1');
                                             case "TCP":
                                                 return tcpPattern.test(value)
                                                     ? Promise.resolve()
-                                                    : Promise.reject('请输入有效的 IP/域名:端口');
+                                                    : Promise.reject('请输入有效的 IP/域名:端口, 例如: 1.1.1.1:80');
                                             case "SSL":
                                                 return domainPattern.test(value)
                                                     ? Promise.resolve()
-                                                    : Promise.reject('请输入有效的域名');
+                                                    : Promise.reject('请输入有效的域名, 例如: github.com');
                                             default:
                                                 return Promise.resolve();
                                         }
@@ -391,7 +405,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                                 required: true,
                                             },
                                         ]}>
-                                <InputNumber type={"number"} min={1} placeholder="1" style={{width: '100%'}}/>
+                                <InputNumber type={"number"} min={1} style={{width: '100%'}}/>
                             </MyFormItem>
                             <MyFormItem name="timeout" label="超时时间(s)"
                                         style={{
@@ -402,7 +416,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                                 required: true,
                                             },
                                         ]}>
-                                <InputNumber type={"number"} min={1} placeholder="1" style={{width: '100%'}}/>
+                                <InputNumber type={"number"} min={1} style={{width: '100%'}}/>
                             </MyFormItem>
                         </div>
                         <MyFormItem name="failure" label="失败次数"
@@ -437,7 +451,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
 
                                 <MyFormItem
                                     name="expectedValue"
-                                    label="计算"
+                                    label="表达式"
                                     style={{width: '50%'}}
                                     rules={[{required: true}]}
                                 >
@@ -540,7 +554,6 @@ export const CreateProbingRule = ({ type, handleList }) => {
                         <InputNumber
                             style={{width: '100%'}}
                             addonAfter={<span>分钟</span>}
-                            placeholder="60"
                             min={1}
                         />
                     </MyFormItem>

@@ -43,15 +43,14 @@ export const ComponentsContent = (props) => {
     } = theme.useToken()
 
     const content = (
-        <>
-            <Button type="text">
-                <Link to={`/profile`}>个人信息</Link>
-            </Button>
-
-            <Button type="text" onClick={handleLogout}>
-                <span style={{color: 'red'}}>退出登录</span>
-            </Button>
-        </>
+        <Menu mode="vertical">
+            <Menu.Item key="profile">
+                <Link to="/profile">个人信息</Link>
+            </Menu.Item>
+            <Menu.Item key="logout" onClick={handleLogout} danger>
+                退出登录
+            </Menu.Item>
+        </Menu>
     )
 
     const run = async () => {
@@ -193,10 +192,10 @@ export const ComponentsContent = (props) => {
                                 bottom: '10px'
                             }}>
                                 <div style={{marginRight: '20px', marginTop: '5px'}}>
-                                    <Dropdown overlay={menu} trigger={['click']} overlayStyle={{marginRight: '100px'}}>
+                                    <Dropdown overlay={menu} overlayStyle={{marginRight: '100px'}}>
                                         <Typography.Link style={{fontSize: 13, color: '#404142'}}>
                                             <Space>
-                                                {<TeamOutlined/>}切换租户
+                                                {<TeamOutlined/>}当前租户: {localStorage.getItem("TenantName")}
                                                 <DownOutlined/>
                                             </Space>
                                         </Typography.Link>

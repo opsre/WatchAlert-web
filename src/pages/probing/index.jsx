@@ -71,19 +71,19 @@ export const Probing = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 150,
+            width: 120,
             render: (_, record) =>
                 httpMonList.length >= 1 ? (
                     <div>
+                        <Link to={`/probing/${record.ruleId}/edit`}>
+                            <Button type="link"> 更新 </Button>
+                        </Link>
                         <Popconfirm
                             title="Sure to delete?"
                             onConfirm={() => handleDelete(record)}
                         >
                             <a>删除</a>
                         </Popconfirm>
-                        <Link to={`/probing/${record.ruleId}/edit`}>
-                            <Button type="link"> 更新 </Button>
-                        </Link>
                     </div>
                 ) : null,
         },
@@ -166,20 +166,19 @@ export const Probing = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 150,
+            width: 120,
             render: (_, record) =>
                 icmpMonList.length >= 1 ? (
                     <div>
+                        <Link to={`/probing/${record.ruleId}/edit`}>
+                            <Button type="link"> 更新 </Button>
+                        </Link>
                         <Popconfirm
                             title="Sure to delete?"
                             onConfirm={() => handleDelete(record)}
                         >
                             <a>删除</a>
                         </Popconfirm>
-
-                        <Link to={`/probing/${record.ruleId}/edit`}>
-                            <Button type="link"> 更新 </Button>
-                        </Link>
                     </div>
                 ) : null,
         },
@@ -239,20 +238,19 @@ export const Probing = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 150,
+            width: 120,
             render: (_, record) =>
                 tcpMonList.length >= 1 ? (
                     <div>
+                        <Link to={`/probing/${record.ruleId}/edit`}>
+                            <Button type="link"> 更新 </Button>
+                        </Link>
                         <Popconfirm
                             title="Sure to delete?"
                             onConfirm={() => handleDelete(record)}
                         >
                             <a>删除</a>
                         </Popconfirm>
-
-                        <Link to={`/probing/${record.ruleId}/edit`}>
-                            <Button type="link"> 更新 </Button>
-                        </Link>
                     </div>
                 ) : null,
         },
@@ -347,20 +345,19 @@ export const Probing = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 150,
+            width: 120,
             render: (_, record) =>
                 sslMonList.length >= 1 ? (
                     <div>
+                        <Link to={`/probing/${record.ruleId}/edit`}>
+                            <Button type="link"> 更新 </Button>
+                        </Link>
                         <Popconfirm
                             title="Sure to delete?"
                             onConfirm={() => handleDelete(record)}
                         >
                             <a>删除</a>
                         </Popconfirm>
-
-                        <Link to={`/probing/${record.ruleId}/edit`}>
-                            <Button type="link"> 更新 </Button>
-                        </Link>
                     </div>
                 ) : null,
         },

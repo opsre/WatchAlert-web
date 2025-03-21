@@ -19,8 +19,7 @@ export const Home = () => {
             setFaultCenters(res.data);
             // 默认选择第一个
             if (res.data.length > 0) {
-
-                setSelectedFaultCenter(res.data[res.data.length-1].id);
+                setSelectedFaultCenter(res.data[0].id);
             }
         } catch (error) {
             console.error(error);

@@ -261,6 +261,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         const values = form.getFieldsValue();
         await form.validateFields()
         await handleFormSubmit(values)
+        setSubmitLoading(false)
     }
 
     return (
@@ -304,7 +305,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                         name="dutyId"
                         label="值班表"
                         style={{
-                            marginRight: '10px',
+                            marginTop: '5px',
                             width: '500px',
                         }}>
                         <Select

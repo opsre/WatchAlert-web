@@ -838,8 +838,11 @@ export const AlertHistoryEvent = (props) => {
                             ))}
                         </div>
 
-                        <h4>触发时值:</h4>
+                        <h4>告警时值:</h4>
                         <p>{selectedEvent.metric["value"]}</p>
+
+                        <h4>恢复时值:</h4>
+                        <p>{selectedEvent.metric["recover_value"]}</p>
 
                         <h4>事件详情:</h4>
                         <TextArea

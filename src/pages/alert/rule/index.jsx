@@ -36,6 +36,7 @@ export const AlertRuleList = () => {
     const [importModalVisible, setImportModalVisible] = useState(false)
     const [importedRules, setImportedRules] = useState([])
     const [selectedDatasource, setSelectedDatasource] = useState(null)
+    const [selectedDatasourceType, setSelectedDatasourceType] = useState('Prometheus')
     const [selectedFaultCenter, setSelectedFaultCenter] = useState(null)
     const [faultCenterList, setFaultCenterList] = useState([])
     const [yamlContent, setYamlContent] = useState("")
@@ -357,7 +358,7 @@ export const AlertRuleList = () => {
             // 将Prometheus规则转换为WatchAlert格式
             const converted = parsedRules.map((rule, index) => ({
                 ruleGroupId: id,
-                datasourceType: "Prometheus",
+                datasourceType: selectedDatasourceType,
                 datasourceId: Array.isArray(selectedDatasource) ? selectedDatasource : [selectedDatasource],
                 ruleName: rule.alert || `未命名规则-${index}`,
                 evalInterval: 10,
@@ -478,12 +479,12 @@ export const AlertRuleList = () => {
         }
     }
 
-    const handleJsonContentChange = (e) => {
-        setJsonContent(e.target.value)
+    const handleJsonContentChange = (value) => {
+        setJsonContent(value)
     }
 
-    const handleYamlContentChange = (e) => {
-        setYamlContent(e.target.value)
+    const handleYamlContentChange = (value) => {
+        setYamlContent(value)
     }
 
     // 处理JSON内容解析
@@ -503,7 +504,7 @@ export const AlertRuleList = () => {
             // 确保所有规则都有正确的ruleGroupId
             const rulesWithGroupId = rules.map((rule) => ({
                 ...rule,
-                ruleGroupId: rule.ruleGroupId || id, // 如果没有ruleGroupId，使用当前的组ID
+                ruleGroupId: id, // 使用当前的组ID
             }))
 
             setImportedRules(rulesWithGroupId)
@@ -728,7 +729,7 @@ export const AlertRuleList = () => {
 
                 {importType === "prometheus" && (
                     <div>
-                        <div style={{ marginBottom: 16 }}>
+                        <div style={{marginBottom: 16}}>
                             <Editor
                                 height="55vh"
                                 defaultLanguage="yaml"
@@ -748,15 +749,33 @@ export const AlertRuleList = () => {
                                 onChange={handleYamlContentChange}
                             />
                         </div>
+                        <div style={{marginBottom: 16}}>
+                            <div style={{marginBottom: 8}}>选择数据源类型：</div>
+                            <Select
+                                placeholder="请选择数据源类型"
+                                style={{width: "100%"}}
+                                onChange={(value) => setSelectedDatasourceType(value)}
+                                options={[
+                                    {
+                                        label: "Prometheus",
+                                        value: "Prometheus",
+                                    },
+                                    {
+                                        label: "VictoriaMetrics",
+                                        value: "VictoriaMetrics",
+                                    }
+                                ]}
+                            />
+                        </div>
 
-                        <div style={{ marginBottom: 16 }}>
-                            <div style={{ marginBottom: 8 }}>选择数据源：</div>
+                        <div style={{marginBottom: 16}}>
+                            <div style={{marginBottom: 8}}>选择数据源：</div>
                             <Select
                                 placeholder="请选择数据源"
-                                style={{ width: "100%" }}
+                                style={{width: "100%"}}
                                 onChange={(value) => setSelectedDatasource(value)}
                                 options={datasourceList
-                                    .filter((ds) => ds.type === "Prometheus")
+                                    .filter((ds) => ds.type === selectedDatasourceType)
                                     .map((ds) => ({
                                         label: ds.name,
                                         value: ds.id,
@@ -764,11 +783,11 @@ export const AlertRuleList = () => {
                             />
                         </div>
 
-                        <div style={{ marginBottom: 16 }}>
-                            <div style={{ marginBottom: 8 }}>选择故障中心：</div>
+                        <div style={{marginBottom: 16}}>
+                            <div style={{marginBottom: 8}}>选择故障中心：</div>
                             <Select
                                 placeholder="请选择故障中心"
-                                style={{ width: "100%" }}
+                                style={{width: "100%"}}
                                 onChange={(value) => setSelectedFaultCenter(value)}
                                 options={faultCenterList}
                             />

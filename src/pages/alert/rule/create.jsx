@@ -1018,6 +1018,13 @@ export const AlertRule = ({ type }) => {
                                         />
                                     </MyFormItem>
 
+                                    <div className="action-buttons">
+                                        <Button type="link" onClick={handleQueryMetrics}>数据预览</Button>
+                                        <Button type="link" onClick={addExprRule} disabled={exprRule?.length === 3}>
+                                            + 添加规则条件
+                                        </Button>
+                                    </div>
+
                                     <MyFormItem name="" label="表达式" rules={[{required: !exprRule}]}>
                                         {exprRule?.map((label, index) => (
                                             <div className="rule-item" key={index} style={{gap: '10px'}}>
@@ -1030,14 +1037,14 @@ export const AlertRule = ({ type }) => {
                                                         showSearch
                                                         value={label.severity}
                                                         onChange={(e) => updateExprRule(index, 'severity', e)}
-                                                        placeholder="普通"
+                                                        placeholder="P2"
                                                     >
                                                         <Option value="P0"
-                                                                disabled={disableSeverity('P0')}>紧急</Option>
+                                                                disabled={disableSeverity('P0')}>P0</Option>
                                                         <Option value="P1"
-                                                                disabled={disableSeverity('P1')}>告警</Option>
+                                                                disabled={disableSeverity('P1')}>P1</Option>
                                                         <Option value="P2"
-                                                                disabled={disableSeverity('P2')}>普通</Option>
+                                                                disabled={disableSeverity('P2')}>P2</Option>
                                                     </Select>
                                                 </MyFormItem>
 
@@ -1089,13 +1096,6 @@ export const AlertRule = ({ type }) => {
                                                       placeholder="输入告警事件的详细消息内容，如：服务器: ${instanace}，发生故障请紧急排查!"
                                                       maxLength={10000}/>
                                         </MyFormItem>
-                                    </div>
-
-                                    <div className="action-buttons">
-                                        <Button type="link" onClick={handleQueryMetrics}>数据预览</Button>
-                                        <Button type="link" onClick={addExprRule} disabled={exprRule?.length === 3}>
-                                            + 添加规则条件
-                                        </Button>
                                     </div>
                                 </MyFormItemGroup>
 
@@ -1748,7 +1748,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItem>
                     )}
 
-                    {selectedType !== 0 &&
+                    {(selectedType !== 0 && selectedType !== 5 ) &&
                         <MyFormItem
                             name="severity" label="告警等级"
                             rules={[

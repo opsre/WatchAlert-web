@@ -21,6 +21,12 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
 
     useEffect(() => {
         handleGetNoticeData();
+
+        form.setFieldsValue({
+            repeatNoticeInterval: 60,
+            recoverWaitTime: 1,
+
+        })
     }, []);
 
     // 禁止输入空格
@@ -138,6 +144,33 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
                         style={{ width: '100%' }}
                         addonAfter="分钟"
                         placeholder="60"
+                        min={1}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (value !== '' && !/^\d+$/.test(value)) {
+                                e.target.value = value.replace(/\D/g, ''); // 移除非数字字符
+                            }
+                        }}
+                    />
+                </MyFormItem>
+
+                <MyFormItem
+                    name="recoverWaitTime"
+                    label="恢复等待"
+                    tooltip={"告警恢复等待时间间隔（为了防止在告警触发恢复后紧接着再次触发告警条件，单位分钟默认1m）"}
+                    style={{ width: '100%' }}
+                    rules={[
+                        {
+                            required: true,
+                            message: '请输入恢复等待时间',
+                        }
+                    ]}
+                >
+                    <Input
+                        type="number"
+                        style={{ width: '100%' }}
+                        addonAfter="分钟"
+                        placeholder="1"
                         min={1}
                         onChange={(e) => {
                             const value = e.target.value;
