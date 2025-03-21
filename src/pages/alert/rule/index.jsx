@@ -376,7 +376,7 @@ export const AlertRuleList = () => {
                     rules: [
                         {
                             severity: "P0", // 默认严重级别
-                            expr: ">=0", // 默认表达式
+                            expr: "> 0", // 默认表达式
                         },
                     ],
                 },
