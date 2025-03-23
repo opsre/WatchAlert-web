@@ -67,8 +67,8 @@ const datasourceTypes = [
         description: "高性能时间序列数据库",
     },
     {
-        value: "Victoria",
-        label: "Victoria",
+        value: "VictoriaLogs",
+        label: "VictoriaLogs",
         icon: <DatabaseOutlined />,
         description: "高性能时间序列数据库",
     },
@@ -383,7 +383,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 {(selectedType === "Prometheus" ||
                     selectedType === "Loki" ||
                     selectedType === "VictoriaMetrics" ||
-                    selectedType === "Victoria" ||
+                    selectedType === "VictoriaLogs" ||
                     selectedType === "Jaeger" ||
                     selectedType === "ElasticSearch") && (
                     <>

@@ -35,6 +35,7 @@ import JaegerImg from "./img/jaeger.svg"
 import AwsImg from "./img/AWSlogo.svg"
 import LokiImg from "./img/L.svg"
 import VMImg from "./img/victoriametrics.svg"
+import VLogsImg from "./img/victorialogs.svg"
 import K8sImg from "./img/Kubernetes.svg"
 import ESImg from "./img/ElasticSearch.svg"
 import {PrometheusPromQL} from "../../promethues";
@@ -155,8 +156,9 @@ export const AlertRule = ({ type }) => {
         Jaeger: 3,
         CloudWatch: 4,
         VictoriaMetrics: 5,
-        KubernetesEvent: 6,
-        ElasticSearch: 7,
+        VictoriaLogs: 6,
+        KubernetesEvent: 7,
+        ElasticSearch: 8,
     };
     const datasourceCardMap = {
         0: "Prometheus",
@@ -165,8 +167,9 @@ export const AlertRule = ({ type }) => {
         3: "Jaeger",
         4: "CloudWatch",
         5: "VictoriaMetrics",
-        6: "KubernetesEvent",
-        7: "ElasticSearch",
+        6: "VictoriaLogs",
+        7: "KubernetesEvent",
+        8: "ElasticSearch",
     }
 
     useEffect(() => {
@@ -549,6 +552,10 @@ export const AlertRule = ({ type }) => {
         {
             imgSrc: VMImg,
             text: 'VictoriaMetrics',
+        },
+        {
+          imgSrc: VLogsImg,
+          text: 'VictoriaLogs',
         },
         {
             imgSrc: K8sImg,
@@ -1005,7 +1012,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItem>
                     </div>
 
-                    {(selectedType === 0 || selectedType === 5) &&
+                    {(selectedType === 0 || selectedType === 5 || selectedType === 6) &&
                         <>
                             <span>规则配置</span>
                             <div className="rule-config-container">
@@ -1421,7 +1428,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 6 &&
+                    {selectedType === 7 &&
                         <MyFormItemGroup prefix={['kubernetesConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -1514,7 +1521,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 7 &&
+                    {selectedType === 8 &&
                         <MyFormItemGroup prefix={['elasticSearchConfig']}>
                             <div style={{display: 'flex', gap: '10px'}}>
                                 <MyFormItem
