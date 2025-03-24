@@ -65,16 +65,15 @@ export const AlertRuleGroup = ({ }) => {
             render: (_, record) =>
                 list.length >= 1 ? (
                     <div>
+                        <Button
+                            type="link" onClick={() => handleUpdateModalOpen(record)} >
+                            更新
+                        </Button>
                         <Popconfirm
                             title="Sure to delete?"
                             onConfirm={() => handleDelete(_, record)}>
                             <a>删除</a>
                         </Popconfirm>
-
-                        <Button
-                            type="link" onClick={() => handleUpdateModalOpen(record)} >
-                            更新
-                        </Button>
                     </div>
                 ) : null,
         },

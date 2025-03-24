@@ -59,6 +59,24 @@ export const AlertRuleList = () => {
             width: "auto",
         },
         {
+            title: "告警等级",
+            dataIndex: "severity",
+            key: "severity",
+            width: "150px",
+            render: (text, record) => {
+                const severities = GetSeverity(record); // 获取 severity 数组
+                return (
+                    <span>
+                      {severities.map((severity, index) => (
+                          <Tag color={severity === "P0" ? "red" : severity === "P1" ? "gold" : severity === "P2" ? "cyan" : "purple"} key={index}>
+                              {severity}
+                          </Tag>
+                      ))}
+                    </span>
+                );
+            }
+        },
+        {
             title: "数据源类型",
             dataIndex: "datasourceType",
             key: "datasourceType",
@@ -86,14 +104,14 @@ export const AlertRuleList = () => {
             width: "auto",
             render: (text, record) => (
                 <span>
-          {getDatasourceNamesByIds(record.datasourceId)
-              .split(", ")
-              .map((name, index) => (
-                  <Tag color="processing" key={index}>
-                      {name}
-                  </Tag>
-              ))}
-        </span>
+                  {getDatasourceNamesByIds(record.datasourceId)
+                      .split(", ")
+                      .map((name, index) => (
+                          <Tag color="processing" key={index}>
+                              {name}
+                          </Tag>
+                      ))}
+                </span>
             ),
         },
         {
@@ -172,6 +190,20 @@ export const AlertRuleList = () => {
             console.error(error)
         }
     }
+
+    const GetSeverity = (data) => {
+        // 判断是否为 Prometheus 或 VictoriaMetrics 类型
+        const isPrometheusType = data.datasourceType === 'Prometheus' || data.datasourceType === 'VictoriaMetrics';
+
+        // 获取 severity 值
+        if (isPrometheusType && data.prometheusConfig?.rules) {
+            // 从 prometheusConfig.rules 中提取所有 severity
+            return data.prometheusConfig.rules.map((rule) => rule.severity);
+        } else {
+            // 直接返回 severity 的数组（如果为空则返回空数组）
+            return data.severity ? [data.severity] : [];
+        }
+    };
 
     const getDatasourceNamesByIds = (datasourceIdList) => {
         if (!Array.isArray(datasourceIdList)) return "Unknown"

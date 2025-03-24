@@ -94,7 +94,6 @@ const UserCreateModal = ({ visible, onClose, selectedRow, type, handleList }) =>
                 ...values,
                 joinDuty: values.joinDuty ? "true" : "false",
                 userid: selectedRow.userid,
-                password: selectedRow.password,
             }
 
             handleUpdate(newValues)
