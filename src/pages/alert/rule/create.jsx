@@ -1012,7 +1012,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItem>
                     </div>
 
-                    {(selectedType === 0 || selectedType === 5 || selectedType === 6) &&
+                    {(selectedType === 0 || selectedType === 5 ) &&
                         <>
                             <span>规则配置</span>
                             <div className="rule-config-container">
@@ -1272,7 +1272,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 1 &&
+                    {selectedType === 1 || selectedType === 6 &&
                         <MyFormItemGroup prefix={['lokiConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">

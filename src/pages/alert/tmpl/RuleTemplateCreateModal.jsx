@@ -19,6 +19,7 @@ import LokiImg from "../rule/img/L.svg";
 import AlicloudImg from "../rule/img/alicloud.svg";
 import JaegerImg from "../rule/img/jaeger.svg";
 import VMImg from "../rule/img/victoriametrics.svg";
+import VLogsImg from "../rule/img/victorialogs.svg";
 import K8sImg from "../rule/img/Kubernetes.svg";
 import ESImg from "../rule/img/ElasticSearch.svg";
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
@@ -70,6 +71,10 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
             text: 'VictoriaMetrics',
         },
         {
+            imgSrc: VLogsImg,
+            text: 'VictoriaLogs',
+        },
+        {
             imgSrc: K8sImg,
             text: 'KubernetesEvent',
         },
@@ -98,9 +103,11 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         Loki: 1,
         AliCloudSLS: 2,
         Jaeger: 3,
-        VictoriaMetrics: 4,
-        KubernetesEvent: 5,
-        ElasticSearch: 6,
+        CloudWatch: 4,
+        VictoriaMetrics: 5,
+        VictoriaLogs: 6,
+        KubernetesEvent: 7,
+        ElasticSearch: 8,
     };
 
     const datasourceCardMap = {
@@ -108,9 +115,11 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         1: "Loki",
         2: "AliCloudSLS",
         3: "Jaeger",
-        4: "VictoriaMetrics",
-        5: "KubernetesEvent",
-        6: "ElasticSearch",
+        4: "CloudWatch",
+        5: "VictoriaMetrics",
+        6: "VictoriaLogs",
+        7: "KubernetesEvent",
+        8: "ElasticSearch",
     };
 
     const handleInputChange = (e) => {
@@ -576,7 +585,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 1 &&
+                    {selectedType === 1 || selectedType === 5 &&
                         <MyFormItemGroup prefix={['lokiConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -603,7 +612,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 3 &&
+                    {selectedType === 2 &&
                         <MyFormItemGroup prefix={['jaegerConfig']}>
                             <div style={{display: 'flex', gap: '10px'}}>
                                 <MyFormItem
@@ -637,7 +646,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 5 &&
+                    {selectedType === 6 &&
                         <MyFormItemGroup prefix={['kubernetesConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -730,7 +739,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 6 &&
+                    {selectedType === 7 &&
                         <MyFormItemGroup prefix={['elasticSearchConfig']}>
                             <div style={{display: 'flex', gap: '10px'}}>
                                 <MyFormItem
