@@ -10,6 +10,7 @@ import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
 import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
+import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import './index.css'
 
 export const Datasources = () => {
@@ -54,6 +55,9 @@ export const Datasources = () => {
                         )}
                         {text === "ElasticSearch" && (
                             <ESImg style={{height: "25px", width: "25px"}}/>
+                        )}
+                        {text === "VictoriaLogs" && (
+                            <VLogImg style={{height: "25px", width: "25px"}}/>
                         )}
                         <div style={{marginLeft: "5px", marginTop: '3px', fontSize: '12px'}}>{text}</div>
                     </div>

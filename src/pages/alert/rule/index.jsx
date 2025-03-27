@@ -13,6 +13,7 @@ import { ReactComponent as LokiImg } from "./img/L.svg"
 import { ReactComponent as VMImg } from "./img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "./img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "./img/ElasticSearch.svg"
+import { ReactComponent as VLogImg } from "./img/victorialogs.svg"
 import { getDatasourceList } from "../../../api/datasource"
 import { DeleteOutlined, ExportOutlined, DownOutlined, ImportOutlined } from "@ant-design/icons"
 import {FaultCenterList} from "../../../api/faultCenter";
@@ -90,6 +91,7 @@ export const AlertRuleList = () => {
                         {text === "Jaeger" && <JaegerImg style={{ height: "25px", width: "25px" }} />}
                         {text === "AliCloudSLS" && <AlicloudImg style={{ height: "25px", width: "25px" }} />}
                         {text === "VictoriaMetrics" && <VMImg style={{ height: "25px", width: "25px" }} />}
+                        {text === "VictoriaLogs" && <VLogImg style={{ height: "25px", width: "25px" }} />}
                         {text === "KubernetesEvent" && <K8sImg style={{ height: "25px", width: "25px" }} />}
                         {text === "ElasticSearch" && <ESImg style={{ height: "25px", width: "25px" }} />}
                         <div style={{ marginLeft: "5px", marginTop: "3px", fontSize: "12px" }}>{text}</div>

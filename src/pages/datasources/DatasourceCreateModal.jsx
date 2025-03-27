@@ -78,6 +78,12 @@ const datasourceTypes = [
         icon: <DatabaseOutlined />,
         description: "分布式搜索和分析引擎",
     },
+    {
+        value: "VictoriaLogs",
+        label: "VictoriaLogs",
+        icon: <DatabaseOutlined />,
+        description: "轻量级日志分析系统",
+    },
 ]
 
 export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, handleList }) => {
@@ -376,6 +382,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
 
                 {(selectedType === "Prometheus" ||
                     selectedType === "Loki" ||
+                    selectedType === "VictoriaLogs" ||
                     selectedType === "VictoriaMetrics" ||
                     selectedType === "Jaeger" ||
                     selectedType === "ElasticSearch") && (

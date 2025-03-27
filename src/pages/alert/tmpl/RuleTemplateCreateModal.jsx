@@ -21,6 +21,7 @@ import JaegerImg from "../rule/img/jaeger.svg";
 import VMImg from "../rule/img/victoriametrics.svg";
 import K8sImg from "../rule/img/Kubernetes.svg";
 import ESImg from "../rule/img/ElasticSearch.svg";
+import VLogImg from "../rule/img/victorialogs.svg"
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
 
@@ -76,6 +77,10 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         {
             imgSrc: ESImg,
             text: 'ElasticSearch',
+        },
+        {
+            imgSrc: VLogImg,
+            text: 'VictoriaLogs',
         }
     ];
     const [selectedCard, setSelectedCard] = useState(0);
@@ -101,6 +106,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         VictoriaMetrics: 4,
         KubernetesEvent: 5,
         ElasticSearch: 6,
+        VictoriaLogs: 7
     };
 
     const datasourceCardMap = {
@@ -111,6 +117,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         4: "VictoriaMetrics",
         5: "KubernetesEvent",
         6: "ElasticSearch",
+        7: "VictoriaLogs",
     };
 
     const handleInputChange = (e) => {
@@ -158,6 +165,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                 cloudwatchConfig: selectedRow.cloudwatchConfig,
                 kubernetesConfig: selectedRow.kubernetesConfig,
                 elasticSearchConfig: selectedRow.elasticSearchConfig,
+                victoriaLogsConfig: selectedRow.victoriaLogsConfig,
                 recoverNotify:selectedRow.recoverNotify,
             })
 
@@ -389,7 +397,12 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                     <div style={{display: 'flex'}}>
                         <div>
                             <p>数据源类型</p>
-                            <div style={{display: 'flex', gap: '10px'}}>
+                            <div style={{
+                                display: 'flex',
+                                gap: '10px',
+                                flexWrap: 'wrap',  // 添加这行使卡片自动换行
+                                maxWidth: '100%',  // 可选：限制容器最大宽度
+                            }}>
                                 {cards?.map((card, index) => (
                                     <Card
                                         key={index}
@@ -400,6 +413,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                             cursor: type === 'edit' ? 'not-allowed' : 'pointer',
                                             border: selectedCard === index ? '2px solid #1890ff' : '1px solid #d9d9d9',
                                             pointerEvents: type === 'edit' ? 'none' : 'auto',
+                                            flexShrink: 0,  // 防止卡片被压缩
                                         }}
                                         onClick={() => handleCardClick(index)}
                                     >
@@ -431,7 +445,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                     {(selectedType === 0 || selectedType === 4) &&
                         <>
                             <div className="rule-config-container">
-                                <MyFormItemGroup prefix={['prometheusConfig']}>
+                            <MyFormItemGroup prefix={['prometheusConfig']}>
                                     <MyFormItem name="promQL" label="PromQL" rules={[{required: true}]}>
                                         <PrometheusPromQL
                                             value={handleGetPromQL}
@@ -890,6 +904,33 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                         </MyFormItem>
                                     </div>
                                 )}
+                            </div>
+                        </MyFormItemGroup>
+                    }
+
+                    {selectedType === 7 &&
+                        <MyFormItemGroup prefix={['victoriaLogsConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <MyFormItem
+                                    name="logQL"
+                                    label="LogQL"
+                                    rules={[{required: true}]}
+                                >
+                                    <Input/>
+                                </MyFormItem>
+                                <MyFormItem
+                                    name="logScope"
+                                    label="查询区间"
+                                    rules={[{required: true}]}
+                                >
+                                    <InputNumber
+                                        style={{width: '100%'}}
+                                        addonAfter={'分钟'}
+                                        placeholder="10"
+                                        min={1}
+                                    />
+                                </MyFormItem>
                             </div>
                         </MyFormItemGroup>
                     }

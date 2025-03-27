@@ -10,10 +10,10 @@ import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
 import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
+import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 
 export const Subscribe = () => {
     const { Search } = Input
-    const [selectedRow, setSelectedRow] = useState(null);
     const [createModalVisible, setCreateModalVisible] = useState(false);
     const [list, setList] = useState([]); // 初始化list为空数组
     const [columns] = useState([
@@ -53,6 +53,9 @@ export const Subscribe = () => {
                         {text === "ElasticSearch" && (
                             <ESImg style={{ height: "25px", width: "25px" }} />
                         )}
+                        {text === "VictoriaLogs" && (
+                            <VLogImg style={{ height: "25px", width: "25px" }} />
+                        )}
                         <div style={{marginLeft: "5px", marginTop: '3px',fontSize :'12px'}}>{text}</div>
                     </div>
                 )
@@ -65,7 +68,9 @@ export const Subscribe = () => {
             render: (text) => (
                 <span>
                     {text.map((item, index) => (
-                        <Tag color="processing" key={index}>{item}</Tag>
+                        <Tag color={item === "P0" ? "red" : item === "P1" ? "gold" : item === "P2" ? "cyan" : "purple"} key={index}>
+                            {item}
+                        </Tag>
                     ))}
 
                 </span>

@@ -10,6 +10,7 @@ import AwsImg from "../alert/rule/img/AWSlogo.svg";
 import VMImg from "../alert/rule/img/victoriametrics.svg";
 import K8sImg from "../alert/rule/img/Kubernetes.svg";
 import ESImg from "../alert/rule/img/ElasticSearch.svg";
+import VLogImg from "../alert/rule/img/victorialogs.svg"
 import {searchNoticeTmpl} from "../../api/noticeTmpl";
 import {createSubscribe} from "../../api/subscribe";
 
@@ -70,7 +71,11 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
         {
             imgSrc: ESImg,
             text: 'ElasticSearch',
-        }
+        },
+        {
+            imgSrc: VLogImg,
+            text: 'VictoriaLogs',
+        },
     ];
     const [selectedItems, setSelectedItems] = useState([])
     const [filterTags,setFilterTags] = useState([])
@@ -130,6 +135,8 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
             t = "KubernetesEvent"
         } else if (index === 7){
             t = "ElasticSearch"
+        } else if (index === 8){
+            t = "VictoriaLogs"
         }
         setSelectedType(t)
         setSelectedCard(index);
@@ -192,7 +199,12 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
             <br/>
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                 <MyFormItem name="sRuleType" label="订阅类型" >
-                    <div style={{display: 'flex', gap: '10px'}}>
+                    <div style={{
+                        display: 'flex',
+                        gap: '10px',
+                        flexWrap: 'wrap',  // 添加这行使卡片自动换行
+                        maxWidth: '100%',  // 可选：限制容器最大宽度
+                    }}>
                         {cards.map((card, index) => (
                             <Card
                                 key={index}
@@ -203,6 +215,7 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
                                     cursor: type === 'edit' ? 'not-allowed' : 'pointer',
                                     border: selectedCard === index ? '2px solid #1890ff' : '1px solid #d9d9d9',
                                     pointerEvents: type === 'edit' ? 'none' : 'auto',
+                                    flexShrink: 0,  // 防止卡片被压缩
                                 }}
                                 onClick={() => handleCardClick(index)}
                             >
@@ -294,7 +307,11 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
                     />
                 </MyFormItem>
 
-                <MyFormItem name="sFilter" label="过滤事件">
+                <MyFormItem
+                    name="sFilter"
+                    label="过滤事件"
+                    tooltip={"仅接收匹配如下关键字的告警, 例如 metric labels 和 规则事件详情中, 包含添加的<关键字 Tag>, 则会推送到订阅邮箱中。"}
+                >
                     <Select
                         mode="tags"
                         style={{width: '100%'}}

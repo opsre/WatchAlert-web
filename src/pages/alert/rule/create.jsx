@@ -37,6 +37,7 @@ import LokiImg from "./img/L.svg"
 import VMImg from "./img/victoriametrics.svg"
 import K8sImg from "./img/Kubernetes.svg"
 import ESImg from "./img/ElasticSearch.svg"
+import VLogImg from "./img/victorialogs.svg"
 import {PrometheusPromQL} from "../../promethues";
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
 import { useRule } from '../../../context/RuleContext';
@@ -157,6 +158,7 @@ export const AlertRule = ({ type }) => {
         VictoriaMetrics: 5,
         KubernetesEvent: 6,
         ElasticSearch: 7,
+        VictoriaLogs: 8,
     };
     const datasourceCardMap = {
         0: "Prometheus",
@@ -167,6 +169,7 @@ export const AlertRule = ({ type }) => {
         5: "VictoriaMetrics",
         6: "KubernetesEvent",
         7: "ElasticSearch",
+        8: "VictoriaLogs",
     }
 
     useEffect(() => {
@@ -276,6 +279,7 @@ export const AlertRule = ({ type }) => {
                 queryWildcard: selectedRow?.elasticSearchConfig?.queryWildcard,
                 rawJson: selectedRow?.elasticSearchConfig?.rawJson,
             },
+            victoriaLogsConfig: selectedRow.victoriaLogsConfig,
         });
 
         // 设置状态值
@@ -557,6 +561,10 @@ export const AlertRule = ({ type }) => {
         {
             imgSrc: ESImg,
             text: 'ElasticSearch',
+        },
+        {
+            imgSrc: VLogImg,
+            text: 'VictoriaLogs',
         }
     ];
 
@@ -948,7 +956,12 @@ export const AlertRule = ({ type }) => {
                     <div style={{display: 'flex'}}>
                         <div>
                             <p>数据源类型</p>
-                            <div style={{display: 'flex', gap: '10px'}}>
+                            <div style={{
+                                display: 'flex',
+                                gap: '10px',
+                                flexWrap: 'wrap',  // 添加这行使卡片自动换行
+                                maxWidth: '100%',  // 可选：限制容器最大宽度
+                            }}>
                                 {cards?.map((card, index) => (
                                     <Card
                                         key={index}
@@ -959,6 +972,7 @@ export const AlertRule = ({ type }) => {
                                             cursor: (type !== 'add') ? 'not-allowed' : 'pointer',
                                             border: selectedCard === index ? '2px solid #1890ff' : '1px solid #d9d9d9',
                                             pointerEvents: (type !== 'add') ? 'none' : 'auto',
+                                            flexShrink: 0,  // 防止卡片被压缩
                                         }}
                                         onClick={() => handleCardClick(index)}
                                     >
@@ -1685,6 +1699,33 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
+                    {selectedType === 8 &&
+                        <MyFormItemGroup prefix={['victoriaLogsConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <MyFormItem
+                                    name="logQL"
+                                    label="LogQL"
+                                    rules={[{required: true}]}
+                                >
+                                    <Input/>
+                                </MyFormItem>
+                                <MyFormItem
+                                    name="logScope"
+                                    label="查询区间"
+                                    rules={[{required: true}]}
+                                >
+                                    <InputNumber
+                                        style={{width: '100%'}}
+                                        addonAfter={'分钟'}
+                                        placeholder="10"
+                                        min={1}
+                                    />
+                                </MyFormItem>
+                            </div>
+                        </MyFormItemGroup>
+                    }
+
                     <Modal
                         visible={openJsonToTable}
                         onCancel={cancelEsSearchModel}
@@ -1731,7 +1772,7 @@ export const AlertRule = ({ type }) => {
                         </div>
                     </Modal>
 
-                    {(selectedType === 1 || selectedType === 2 || selectedType === 7) && (
+                    {(selectedType === 1 || selectedType === 2 || selectedType === 7 || selectedType === 8) && (
                         <MyFormItem
                             name="logEvalCondition"
                             label="表达式"

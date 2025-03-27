@@ -344,6 +344,8 @@ export const AlertCurrentEvent = (props) => {
                         { value: "AliCloudSLS", label: "AliCloudSLS" },
                         { value: "Jaeger", label: "Jaeger" },
                         { value: "Loki", label: "Loki" },
+                        { value: "ElasticSearch", label: "ElasticSearch" },
+                        { value: "VictoriaLogs", label: "VictoriaLogs" },
                     ]}
                 />
                 <Select
