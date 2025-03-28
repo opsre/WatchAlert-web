@@ -46,13 +46,15 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
                 grafanaFolderId: selectedRow.grafanaFolderId,
                 theme: selectedRow.theme,
             })
-        }
 
+            setGrafanaVersion(selectedRow.grafanaVersion)
+        }
     }, [selectedRow, form])
 
     const handleCreate = async (data) => {
         const params = {
             ...data,
+            grafanaVersion: grafanaVersion,
             grafanaFolderId: data.grafanaFolderId,
         }
         try {
@@ -69,6 +71,7 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
             const params = {
                 ...data,
                 id: selectedRow.id,
+                grafanaVersion: grafanaVersion,
                 grafanaFolderId: data.grafanaFolderId,
             }
             await updateDashboardFolder(params)

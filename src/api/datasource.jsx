@@ -133,6 +133,19 @@ async function ElasticSearchData(params) {
     }
 }
 
+async function SearchViewLogsContent(params) {
+    try {
+        const res = await http('post', `/api/w8t/datasource/searchViewLogsContent`, params);
+        return res;
+    } catch (error) {
+        message.open({
+            type: 'error',
+            content: '数据预览内容查询失败',
+        });
+        return error
+    }
+}
+
 export {
     getDatasourceList,
     searchDatasource,
@@ -141,5 +154,6 @@ export {
     deleteDatasource,
     getDatasource,
     DatasourcePing,
-    ElasticSearchData
+    ElasticSearchData,
+    SearchViewLogsContent
 }

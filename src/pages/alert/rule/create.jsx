@@ -44,9 +44,7 @@ import { useRule } from '../../../context/RuleContext';
 import TextArea from "antd/es/input/TextArea";
 import {FaultCenterList} from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
-import JsonToTable from "../../../utils/JsonTable";
-import JsonTable from "../../../utils/JsonTable";
-import MarkdownRenderer from "../../../utils/MarkdownRenderer";
+import {SearchViewLogs} from "../preview/searchViewLogs";
 
 const format = 'HH:mm';
 const MyFormItemContext = React.createContext([])
@@ -145,9 +143,9 @@ export const AlertRule = ({ type }) => {
     const [esRawJson, setEsRawJson] = useState('')
     const [filterCondition,setFilterCondition] = useState('') // 匹配关系
     const [queryWildcard,setQueryWildcard] = useState(0) // 匹配模式
-    const [openJsonToTable,setOpenJsonToTable] = useState(false)
-    const [jsonToTableData,setJsonToTableData] = useState([])
     const [metricAddress,setMetricAddress] = useState("")
+    const [modalKey, setModalKey] = useState(0);
+    const [openSearchContentModal, setOpenSearchContentModal] = useState(false)
     // 处理数据源类型
     const datasourceTypeMap = {
         Prometheus: 0,
@@ -890,21 +888,6 @@ export const AlertRule = ({ type }) => {
         }
     };
 
-    const handleEsSearchData = async() =>{
-        const params = {
-            datasourceId: selectedItems[0],
-            index: form.getFieldValue(['elasticSearchConfig', 'index']),
-            query: encodeBase64(esRawJson)
-        }
-        const res = await ElasticSearchData(params)
-        setOpenJsonToTable(true)
-        setJsonToTableData(JSON.parse(res.data))
-    }
-
-    const cancelEsSearchModel = () =>{
-        setOpenJsonToTable(false)
-    }
-
     const handleCloseMetricModel = () =>{
         setOpenMetricQueryModel(false)
     }
@@ -1024,18 +1007,25 @@ export const AlertRule = ({ type }) => {
                             <span>规则配置</span>
                             <div className="rule-config-container">
                                 <MyFormItemGroup prefix={['prometheusConfig']}>
-                                    <MyFormItem name="promQL" label="PromQL" rules={[{required: true}]}>
-                                        <PrometheusPromQL
-                                            addr={metricAddress}
-                                            value={handleGetPromQL}
-                                            setPromQL={setPromQL}
-                                        />
-                                    </MyFormItem>
-
-                                    <div className="action-buttons">
-                                        <Button type="link" onClick={handleQueryMetrics}>数据预览</Button>
-                                        <Button type="link" onClick={addExprRule} disabled={exprRule?.length === 3}>
-                                            + 添加规则条件
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                        <MyFormItem
+                                            name="promQL"
+                                            label="PromQL"
+                                            rules={[{required: true}]}
+                                            style={{width: '100%', height: '100%'}}
+                                        >
+                                            <PrometheusPromQL
+                                                addr={metricAddress}
+                                                value={handleGetPromQL}
+                                                setPromQL={setPromQL}
+                                            />
+                                        </MyFormItem>
+                                        <Button
+                                            type="primary"
+                                            style={{backgroundColor: '#000', borderColor: '#000', marginTop: '10px'}}
+                                            onClick={handleQueryMetrics}
+                                        >
+                                            数据预览
                                         </Button>
                                     </div>
 
@@ -1084,6 +1074,12 @@ export const AlertRule = ({ type }) => {
                                             </div>
                                         ))}
                                     </MyFormItem>
+
+                                    <div className="action-buttons" style={{marginTop: '-30px'}}>
+                                        <Button type="link" onClick={addExprRule} disabled={exprRule?.length === 3}>
+                                            + 添加规则条件
+                                        </Button>
+                                    </div>
 
                                     <div className="duration-input">
                                         <MyFormItem
@@ -1688,10 +1684,10 @@ export const AlertRule = ({ type }) => {
                                         </MyFormItem>
                                         <Button
                                             type="primary"
-                                            style={{backgroundColor: '#000', borderColor: '#000', marginTop: '-25px'}}
-                                            onClick={handleEsSearchData}
+                                            style={{backgroundColor: '#000', borderColor: '#000', marginTop: '10px'}}
+                                            onClick={()=>{setOpenSearchContentModal(true)}}
                                         >
-                                            查询
+                                            数据预览
                                         </Button>
                                     </div>
                                 )}
@@ -1703,32 +1699,46 @@ export const AlertRule = ({ type }) => {
                         <MyFormItemGroup prefix={['victoriaLogsConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
-                                <MyFormItem
-                                    name="logQL"
-                                    label="LogQL"
-                                    rules={[{required: true}]}
-                                >
-                                    <Input/>
-                                </MyFormItem>
-                                <MyFormItem
-                                    name="logScope"
-                                    label="查询区间"
-                                    rules={[{required: true}]}
-                                >
-                                    <InputNumber
-                                        style={{width: '100%'}}
-                                        addonAfter={'分钟'}
-                                        placeholder="10"
-                                        min={1}
-                                    />
-                                </MyFormItem>
-                            </div>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                    <MyFormItem
+                                        name="logQL"
+                                        label="LogQL"
+                                        style={{width: '100%', height: '100%'}}
+                                        rules={[{required: true}]}
+                                    >
+                                        <Input/>
+                                    </MyFormItem>
+                                    <Button
+                                        type="primary"
+                                        style={{backgroundColor: '#000', borderColor: '#000', marginTop: '10px'}}
+                                        onClick={()=>{setOpenSearchContentModal(true)}}
+                                    >
+                                        数据预览
+                                    </Button>
+                                </div>
+                                    <MyFormItem
+                                        name="logScope"
+                                        label="查询区间"
+                                        rules={[{required: true}]}
+                                    >
+                                        <InputNumber
+                                            style={{width: '100%'}}
+                                            addonAfter={'分钟'}
+                                            placeholder="10"
+                                            min={1}
+                                        />
+                                    </MyFormItem>
+                                </div>
                         </MyFormItemGroup>
                     }
 
                     <Modal
-                        visible={openJsonToTable}
-                        onCancel={cancelEsSearchModel}
+                        key={modalKey}
+                        open={openSearchContentModal}
+                        onCancel={() => {
+                            setOpenSearchContentModal(false);
+                            setModalKey(prev => prev + 1); // Change key to force remount
+                        }}
                         footer={null}
                         width={800}
                         bodyStyle={{
@@ -1737,39 +1747,19 @@ export const AlertRule = ({ type }) => {
                             maxHeight: '80vh',
                         }}
                     >
-                        <div
-                            style={{
-                                overflow: 'auto',
-                                maxHeight: 'calc(80vh - 32px)',
-                                width: '100%',
-                                scrollBehavior: 'smooth',
-                                scrollbarWidth: 'thin',
-                                scrollbarColor: '#888 transparent'
-                            }}
-                            onWheel={(e) => {
-                                // 增强型滚轮处理
-                                const container = e.currentTarget;
-                                const isVerticalScroll = container.scrollHeight > container.clientHeight;
-                                const delta = e.deltaMode === 0 ? e.deltaY * 0.5 : e.deltaY * 4;
+                        <SearchViewLogs
+                            key={`search-view-${modalKey}`}
+                            type={getSelectedTypeName(selectedType)}
+                            datasourceId={selectedItems[0]}
+                            index={form.getFieldValue(["elasticSearchConfig","index"])}
+                            query={encodeBase64(
+                                (
+                                    getSelectedTypeName(selectedType) === "VictoriaLogs" ?
+                                        form.getFieldValue(["victoriaLogsConfig","logQL"]):
+                                            getSelectedTypeName(selectedType) === "ElasticSearch" ? esRawJson : "-"
+                                )
 
-                                if (!isVerticalScroll || e.shiftKey) {
-                                    // 当垂直滚动不可用或按住shift时，转换为横向滚动
-                                    container.scrollLeft += delta;
-                                    e.preventDefault();
-                                }
-                            }}
-                        >
-                            <JsonTable
-                                data={jsonToTableData}
-                                style={{
-                                    border: '1px solid #e0e0e0',
-                                    borderRadius: '8px',
-                                    minWidth: '100%',
-                                    pointerEvents: 'auto',
-                                    userSelect: 'none'  // 防止拖动选中干扰滚动
-                                }}
-                            />
-                        </div>
+                            )} />
                     </Modal>
 
                     {(selectedType === 1 || selectedType === 2 || selectedType === 7 || selectedType === 8) && (
