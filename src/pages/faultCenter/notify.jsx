@@ -48,7 +48,7 @@ export const FaultCenterNotify = () => {
 
             // 回显数据
             form.setFieldsValue({
-                noticeId: res.data.noticeId,
+                noticeIds: res.data.noticeIds,
                 repeatNoticeInterval: res.data.repeatNoticeInterval,
                 recoverNotify: res.data.recoverNotify,
                 alarmAggregation: res.data.alarmAggregation,
@@ -60,7 +60,7 @@ export const FaultCenterNotify = () => {
                 const labels = res.data.noticeRoutes.map((group) => ({
                     key: group.key,
                     value: group.value,
-                    noticeId: group.noticeId,
+                    noticeIds: group.noticeIds,
                 }));
                 setNoticeLabels(labels);
                 setNoticeRoutes(labels); // 同步更新 noticeRoutes
@@ -78,14 +78,14 @@ export const FaultCenterNotify = () => {
         const updatedNoticeRoutes = noticeLabels.map((label) => ({
             key: label.key,
             value: label.value,
-            noticeId: label.noticeId,
+            noticeIds: label.noticeIds,
         }));
         setNoticeRoutes(updatedNoticeRoutes);
     }, [noticeLabels]);
 
     // 添加标签
     const addLabel = () => {
-        setNoticeLabels([...noticeLabels, { key: '', value: '', noticeId: '' }]);
+        setNoticeLabels([...noticeLabels, { key: '', value: '', noticeIds: [] }]);
     };
 
     // 更新标签
@@ -180,7 +180,7 @@ export const FaultCenterNotify = () => {
                 overflowY: 'auto',
             }}>
                 <MyFormItem
-                    name="noticeId"
+                    name="noticeIds"
                     label="通知对象"
                     tooltip="默认通知对象"
                     style={{
@@ -194,6 +194,7 @@ export const FaultCenterNotify = () => {
                     ]}
                 >
                     <Select
+                        mode={"multiple"}
                         style={{
                             width: '100%',
                         }}
@@ -310,13 +311,14 @@ export const FaultCenterNotify = () => {
                                 />
 
                                 <Select
-                                    name={`[${index}].noticeId`}
+                                    mode={"multiple"}
+                                    name={`[${index}].noticeIds`}
                                     placeholder="选择通知对象"
                                     style={{width: 'calc((100% / 3) - 20px)', height: '32px'}}
                                     allowClear
                                     options={noticeOptions}
-                                    value={label.noticeId} // 回显 noticeId
-                                    onChange={(value) => updateLabel(index, 'noticeId', value)}
+                                    value={label.noticeIds} // 回显 noticeIds
+                                    onChange={(value) => updateLabel(index, 'noticeIds', value)}
                                     disabled={!editable}
                                 />
 
