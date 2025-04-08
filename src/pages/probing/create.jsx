@@ -123,7 +123,6 @@ export const CreateProbingRule = ({ type, handleList }) => {
                 ruleName: selectedRow.ruleName,
                 ruleType: selectedRow.ruleType,
                 repeatNoticeInterval: selectedRow.repeatNoticeInterval,
-                severity: selectedRow.severity,
                 probingEndpointConfig: {
                     endpoint: selectedRow.probingEndpointConfig.endpoint,
                     icmp: {
@@ -496,20 +495,6 @@ export const CreateProbingRule = ({ type, handleList }) => {
                 </MyFormItemGroup>
 
                 <Divider orientation="left">通知配置</Divider>
-
-                <MyFormItem
-                    name="severity" label="告警等级"
-                    rules={[
-                        {
-                            required: true,
-                        },
-                    ]}>
-                    <Radio.Group>
-                        <Radio value={'P0'}>P0级告警</Radio>
-                        <Radio value={'P1'}>P1级告警</Radio>
-                        <Radio value={'P2'}>P2级告警</Radio>
-                    </Radio.Group>
-                </MyFormItem>
 
                 <div>
                     <MyFormItem

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Table, Popconfirm, message, Input } from 'antd';
+import {Button, Table, Popconfirm, message, Input, Tag} from 'antd';
 import { CreateNoticeObjectModal } from './NoticeObjectCreateModal';
 import { deleteNotice, getNoticeList, searchNotice } from '../../api/notice';
 import { ReactComponent as FeiShuIcon } from './img/feishu.svg'
@@ -7,6 +7,7 @@ import { ReactComponent as DingdingIcon } from './img/dingding.svg'
 import { ReactComponent as EmailIcon } from './img/Email.svg'
 import { ReactComponent as WeChatIcon } from './img/qywechat.svg'
 import { ReactComponent as CustomHookIcon } from './img/customhook.svg'
+import {getDutyManagerList} from "../../api/duty";
 
 export const NoticeObjects = () => {
     const { Search } = Input
@@ -71,12 +72,17 @@ export const NoticeObjects = () => {
             dataIndex: 'dutyId',
             key: 'dutyId',
             width: 'auto',
-            render: (text, record, index) => {
-                if (!text) {
-                    return '-';
-                }
-                return text;
-            },
+            render: (text, record) => (
+                <span>
+                  {getDutyNameById(record.dutyId)
+                      .split(", ")
+                      .map((name, index) => (
+                          <Tag color="processing" key={index}>
+                              {name}
+                          </Tag>
+                      ))}
+                </span>
+            ),
         },
         {
             title: '操作',
@@ -100,6 +106,7 @@ export const NoticeObjects = () => {
                 ) : null,
         },
     ]
+    const [dutyList, setDutyList] = useState([])
 
     const [height, setHeight] = useState(window.innerHeight);
 
@@ -123,6 +130,8 @@ export const NoticeObjects = () => {
     }, []);
 
     const handleList = async () => {
+        handleDutyManagerList()
+
         try {
             const res = await getNoticeList()
             setList(res.data);
@@ -130,6 +139,20 @@ export const NoticeObjects = () => {
             message.error(error);
         }
     };
+
+    const handleDutyManagerList = async () => {
+        try {
+            const res = await getDutyManagerList()
+            setDutyList(res.data);
+        } catch (error) {
+            message.error(error);
+        }
+    };
+
+    const getDutyNameById = (id) =>{
+        const datasource = dutyList.find((d) => d.id === id)
+        return datasource ? datasource.name : "-"
+    }
 
     const handleUpdateModalClose = () => {
         setUpdateVisible(false);
