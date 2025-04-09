@@ -806,8 +806,12 @@ export const AlertHistoryEvent = (props) => {
                     showTotal: handleShowTotal,
                 }}
                 onChange={handleHistoryPageChange}
-                bordered
-                style={{ backgroundColor: "#fff" }}
+                style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                }}
+                rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                 rowKey={(record) => record.id}
                 scroll={{
                     y: height - 550,

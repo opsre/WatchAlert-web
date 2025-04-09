@@ -36,7 +36,7 @@ import {FaultCenterDetail} from "../pages/faultCenter/detail";
 export default [
     {
         path: '/',
-        element: <ComponentsContent name="监控分析" c={<Home />} />,
+        element: <ComponentsContent name="off" c={<Home />} />,
     },
     {
         path: '/login',

@@ -187,9 +187,9 @@ export const AlertCurrentEvent = (props) => {
     }
 
     const severityColors = {
-        P0: "red",
-        P1: "orange",
-        P2: "yellow",
+        P0: '#ff4d4f',
+        P1: '#faad14',
+        P2: '#b0e1fb'
     }
 
     const handleShowTotal = (total, range) => `第 ${range[0]} - ${range[1]} 条 共 ${total} 条`
@@ -376,8 +376,12 @@ export const AlertCurrentEvent = (props) => {
                     showTotal: handleShowTotal,
                 }}
                 onChange={handleCurrentPageChange}
-                bordered
-                style={{ backgroundColor: "#fff" }}
+                style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                }}
+                rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                 rowKey={(record) => record.id}
                 scroll={{
                     y: height - 550,

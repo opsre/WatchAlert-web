@@ -105,7 +105,7 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
 
                 <strong style={{fontSize: '16px'}}>通知策略</strong>
                 <MyFormItem
-                    name="noticeId"
+                    name="noticeIds"
                     label="通知对象"
                     tooltip="默认通知对象"
                     style={{

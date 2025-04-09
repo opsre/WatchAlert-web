@@ -458,9 +458,13 @@ export const RuleTemplate = () => {
                         y: height - 400, // 动态设置滚动高度
                         x: "max-content", // 水平滚动
                     }}
-                    bordered // 添加表格边框
-                    style={{ backgroundColor: "#fff" }} // 设置表格背景色
+                    style={{
+                        backgroundColor: "#fff",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                    }}
                     rowKey={(record) => `${record.ruleGroupName}-${record.ruleName}`} // 使用组合键作为唯一标识
+                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                 />
             </div>
         </>

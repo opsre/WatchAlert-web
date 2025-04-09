@@ -1,24 +1,46 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
-import { Table, message, Tag, Button, Drawer, Divider, Input, Select, Space } from "antd"
-import { noticeRecordList, noticeRecordMetric } from "../../api/notice"
-import * as echarts from "echarts"
+import { useState, useEffect, useMemo } from "react"
+import {
+    Table,
+    message,
+    Tag,
+    Button,
+    Drawer,
+    Divider,
+    Input,
+    Select,
+    Space,
+    Typography,
+    Card,
+    Tooltip,
+    Empty,
+    Skeleton,
+} from "antd"
+import { noticeRecordList } from "../../api/notice"
 import Editor from "@monaco-editor/react"
 import { NotificationTypeIcon } from "./notification-type-icon"
+import { SearchIcon, FilterIcon, AlertTriangle, CheckCircle, XCircle, Clock, FileText, RefreshCw } from "lucide-react"
+
+const { Title, Text } = Typography
+const { Search } = Input
 
 // Constants
 const SEVERITY_COLORS = {
-    P0: "red",
-    P1: "orange",
-    P2: "yellow",
+    P0: '#ff4d4f',
+    P1: '#faad14',
+    P2: '#b0e1fb'
+}
+
+const SEVERITY_LABELS = {
+    P0: "P0",
+    P1: "P1",
+    P2: "P2",
 }
 
 const ITEMS_PER_PAGE = 10
 
 export const NoticeRecords = () => {
-    const { Search } = Input
-    const chartRef = useRef(null)
     const [height, setHeight] = useState(window.innerHeight)
     const [loading, setLoading] = useState(false)
     const [list, setList] = useState([])
@@ -42,57 +64,131 @@ export const NoticeRecords = () => {
                 title: "规则名称",
                 dataIndex: "ruleName",
                 key: "ruleName",
+                ellipsis: true,
+                render: (text) => (
+                    <Tooltip title={text}>
+                        <span>{text}</span>
+                    </Tooltip>
+                ),
             },
             {
                 title: "告警等级",
                 dataIndex: "severity",
                 key: "severity",
+                width: 120,
                 render: (text) => (
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                        <div
-                            style={{
-                                width: "8px",
-                                height: "8px",
-                                backgroundColor: SEVERITY_COLORS[text],
-                                borderRadius: "50%",
-                                marginRight: "8px",
-                            }}
-                        />
-                        {text}
-                    </div>
+                    <Tag
+                        color={SEVERITY_COLORS[text]}
+                        style={{
+                            borderRadius: "12px",
+                            padding: "0 10px",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                        }}
+                    >
+                        <AlertTriangle size={12} />
+                        {SEVERITY_LABELS[text] || text}
+                    </Tag>
                 ),
             },
             {
                 title: "通知类型",
                 dataIndex: "nType",
                 key: "nType",
-                render: (type) => <NotificationTypeIcon type={type} />,
+                width: 120,
+                render: (type) => (
+                    <div style={{ display: "flex" }}>
+                        <NotificationTypeIcon type={type} />
+                    </div>
+                ),
             },
             {
                 title: "通知对象",
                 dataIndex: "nObj",
                 key: "nObj",
+                ellipsis: true,
+                render: (text) => (
+                    <Tooltip title={text}>
+                        <span>{text}</span>
+                    </Tooltip>
+                ),
             },
             {
                 title: "状态",
                 dataIndex: "status",
                 key: "status",
-                render: (status) => (status === 0 ? <Tag color="success">发送成功</Tag> : <Tag color="error">发送失败</Tag>),
+                width: 120,
+                render: (status) =>
+                    status === 0 ? (
+                        <Tag
+                            icon={<CheckCircle size={12} />}
+                            color="success"
+                            style={{
+                                borderRadius: "12px",
+                                padding: "0 10px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                            }}
+                        >
+                            发送成功
+                        </Tag>
+                    ) : (
+                        <Tag
+                            icon={<XCircle size={12} />}
+                            color="error"
+                            style={{
+                                borderRadius: "12px",
+                                padding: "0 10px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                            }}
+                        >
+                            发送失败
+                        </Tag>
+                    ),
             },
             {
                 title: "通知时间",
                 dataIndex: "createAt",
                 key: "createAt",
+                width: 180,
                 render: (text) => {
                     const date = new Date(text * 1000)
-                    return date.toLocaleString()
+                    return (
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <Clock size={14} />
+                            <span>{date.toLocaleString()}</span>
+                        </div>
+                    )
                 },
             },
             {
                 title: "内容详情",
-                width: 120,
+                width: 100,
                 render: (_, record) => (
-                    <Button type="link" onClick={() => showDrawer(record)}>
+                    <Button
+                        type="primary"
+                        size="small"
+                        onClick={() => showDrawer(record)}
+                        style={{
+                            borderRadius: "6px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            padding: "0 12px",
+                            height: "28px",
+                        }}
+                    >
+                        <FileText size={14} />
                         详情
                     </Button>
                 ),
@@ -103,29 +199,16 @@ export const NoticeRecords = () => {
 
     // Initialize chart and fetch data
     useEffect(() => {
-        let myChart = null
-
-        const initChart = () => {
-            const chartDom = chartRef.current
-            if (!chartDom) return
-
-            myChart = echarts.init(chartDom)
-            fetchMetricData(myChart)
-        }
-
         const handleResize = () => {
             setHeight(window.innerHeight)
-            myChart?.resize()
         }
 
-        initChart()
         fetchRecords(pagination.pageIndex, pagination.pageSize)
 
         window.addEventListener("resize", handleResize)
 
         return () => {
             window.removeEventListener("resize", handleResize)
-            myChart?.dispose()
         }
     }, [])
 
@@ -133,49 +216,6 @@ export const NoticeRecords = () => {
     useEffect(() => {
         fetchRecords(1, pagination.pageSize)
     }, [filters])
-
-    // Fetch metric data for the chart
-    const fetchMetricData = async (chart) => {
-        try {
-            const res = await noticeRecordMetric()
-            const { date, series } = res.data
-
-            const option = {
-                grid: {
-                    left: "10px",
-                    right: "10px",
-                    top: "25px",
-                    bottom: "10px",
-                    containLabel: true,
-                },
-                tooltip: {
-                    trigger: "axis",
-                    axisPointer: { type: "cross" },
-                },
-                legend: {
-                    data: ["P0", "P1", "P2"],
-                    left: 35,
-                },
-                xAxis: {
-                    type: "category",
-                    data: date,
-                },
-                yAxis: {
-                    type: "value",
-                },
-                series: [
-                    { name: "P0", data: series.p0, type: "line", itemStyle: { color: SEVERITY_COLORS.P0 } },
-                    { name: "P1", data: series.p1, type: "line", itemStyle: { color: SEVERITY_COLORS.P1 } },
-                    { name: "P2", data: series.p2, type: "line", itemStyle: { color: SEVERITY_COLORS.P2 } },
-                ],
-            }
-
-            chart.setOption(option)
-        } catch (error) {
-            message.error("加载图表数据失败")
-            console.error("Failed to load metric data:", error)
-        }
-    }
 
     // Fetch notification records
     const fetchRecords = async (pageIndex, pageSize) => {
@@ -199,6 +239,7 @@ export const NoticeRecords = () => {
             })
         } catch (error) {
             console.error("Failed to load records:", error)
+            message.error("加载通知记录失败，请稍后重试")
         } finally {
             setLoading(false)
         }
@@ -232,123 +273,204 @@ export const NoticeRecords = () => {
         }))
     }
 
+    // Handle refresh
+    const handleRefresh = () => {
+        fetchRecords(pagination.pageIndex, pagination.pageSize)
+    }
+
     // Monaco editor component
     const CodeEditor = ({ value, language = "json" }) => (
-        <Editor
-            height="250px"
-            defaultLanguage={language}
-            value={value || "null"}
-            options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                lineNumbers: "on",
-                roundedSelection: false,
-                scrollBeyondLastLine: false,
-                automaticLayout: true,
-                readOnly: true,
-                formatOnType: true,
-                formatOnPaste: true,
-            }}
-        />
+        <div style={{ border: "1px solid #f0f0f0", borderRadius: "8px", overflow: "hidden" }}>
+            <Editor
+                height="250px"
+                defaultLanguage={language}
+                value={value || "null"}
+                theme="vs-light"
+                options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: "on",
+                    roundedSelection: false,
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    readOnly: true,
+                    formatOnType: true,
+                    formatOnPaste: true,
+                    padding: { top: 16, bottom: 16 },
+                }}
+            />
+        </div>
     )
 
     return (
-        <>
+        <div style={{ minHeight: "100vh" }}>
             {/* Filters */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                borderRadius: '8px',
-                gap: '10px'}}>
-                    <Space style={{ marginBottom: 16 }} wrap>
-                        <Select
-                            placeholder="告警等级"
-                            allowClear
-                            style={{ width: 120 }}
-                            value={filters.severity}
-                            onChange={(value) => handleFilterChange("severity", value)}
-                            options={[
-                                { value: "P0", label: "P0级告警" },
-                                { value: "P1", label: "P1级告警" },
-                                { value: "P2", label: "P2级告警" },
-                            ]}
-                        />
-
-                        <Select
-                            placeholder="发送状态"
-                            allowClear
-                            style={{ width: 120 }}
-                            value={filters.status}
-                            onChange={(value) => handleFilterChange("status", value)}
-                            options={[
-                                { value: "0", label: "发送成功" },
-                                { value: "1", label: "发送失败" },
-                            ]}
-                        />
-
-                        <Search
-                            allowClear
-                            placeholder="输入搜索关键字"
-                            value={filters.query}
-                            onChange={(e) => handleFilterChange("query", e.target.value)}
-                            onSearch={() => fetchRecords(1, pagination.pageSize)}
-                            style={{ width: 250 }}
-                        />
-                    </Space>
-            </div>
-
-            {/* Chart */}
             <div
-                ref={chartRef}
                 style={{
-                    marginTop: "5px",
-                    width: "100%",
-                    height: "200px",
-                    border: "1px solid #eee",
-                    borderRadius: "8px",
-                    padding: "0",
+                    marginTop: '-20px',
+                    display: "flex",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                    marginBottom: "20px",
                 }}
-            />
+            >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <FilterIcon size={16} />
+                    <Text strong>筛选：</Text>
+                </div>
+
+                <Select
+                    placeholder="告警等级"
+                    allowClear
+                    style={{ width: 140 }}
+                    value={filters.severity}
+                    onChange={(value) => handleFilterChange("severity", value)}
+                    options={[
+                        { value: "P0", label: "P0级告警" },
+                        { value: "P1", label: "P1级告警" },
+                        { value: "P2", label: "P2级告警" },
+                    ]}
+                    suffixIcon={<AlertTriangle size={14} />}
+                />
+
+                <Select
+                    placeholder="发送状态"
+                    allowClear
+                    style={{ width: 140 }}
+                    value={filters.status}
+                    onChange={(value) => handleFilterChange("status", value)}
+                    options={[
+                        { value: "0", label: "发送成功" },
+                        { value: "1", label: "发送失败" },
+                    ]}
+                />
+
+                <Search
+                    allowClear
+                    placeholder="输入搜索关键字"
+                    value={filters.query}
+                    onChange={(e) => handleFilterChange("query", e.target.value)}
+                    onSearch={() => fetchRecords(1, pagination.pageSize)}
+                    style={{ width: 300 }}
+                    prefix={<SearchIcon size={14} />}
+                />
+
+                <Button type="default" icon={<RefreshCw size={14} />} onClick={handleRefresh} loading={loading}>
+                    刷新
+                </Button>
+            </div>
 
             {/* Records Table */}
-            <div style={{ marginTop: "16px" }}>
-                <Table
-                    columns={columns}
-                    dataSource={list}
-                    loading={loading}
-                    scroll={{
-                        y: height - 600,
-                        x: "max-content",
-                    }}
-                    pagination={{
-                        current: pagination.pageIndex,
-                        pageSize: pagination.pageSize,
-                        total: pagination.pageTotal,
-                        showTotal: handleShowTotal,
-                        showSizeChanger: true,
-                    }}
-                    onChange={handlePageChange}
-                    bordered
-                    style={{ backgroundColor: "#fff" }}
-                    rowKey={(record) => record.id}
-                />
-            </div>
+            <Table
+                columns={columns}
+                dataSource={list}
+                loading={loading}
+                scroll={{
+                    y: height - 390,
+                    x: "max-content",
+                }}
+                pagination={{
+                    current: pagination.pageIndex,
+                    pageSize: pagination.pageSize,
+                    total: pagination.pageTotal,
+                    showTotal: handleShowTotal,
+                    showSizeChanger: true,
+                    pageSizeOptions: ["10", "20", "50", "100"],
+                    style: { marginTop: "16px" },
+                }}
+                onChange={handlePageChange}
+                style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                }}
+                rowKey={(record) => record.id}
+                locale={{
+                    emptyText: <Empty description="暂无通知记录" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
+                }}
+                rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
+            />
 
             {/* Detail Drawer */}
-            <Drawer title="事件详情" size="large" onClose={() => setDrawerOpen(false)} open={drawerOpen}>
-                {selectedRecord && (
+            <Drawer
+                title={
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <FileText size={18} />
+                        <span>通知详情</span>
+                    </div>
+                }
+                size="large"
+                onClose={() => setDrawerOpen(false)}
+                open={drawerOpen}
+                styles={{
+                    header: { borderBottom: "1px solid #f0f0f0", padding: "16px 24px" },
+                    body: { padding: "24px" },
+                }}
+                extra={
+                    selectedRecord && (
+                        <Space>
+                            <Tag
+                                color={SEVERITY_COLORS[selectedRecord.severity]}
+                                style={{
+                                    borderRadius: "12px",
+                                    padding: "0 10px",
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                }}
+                            >
+                                {selectedRecord.severity}
+                            </Tag>
+                            {selectedRecord.status === 0 ? (
+                                <Tag color="success" style={{ borderRadius: "12px" }}>
+                                    发送成功
+                                </Tag>
+                            ) : (
+                                <Tag color="error" style={{ borderRadius: "12px" }}>
+                                    发送失败
+                                </Tag>
+                            )}
+                        </Space>
+                    )
+                }
+            >
+                {selectedRecord ? (
                     <>
-                        <h3>告警消息体</h3>
+                        <div style={{ marginBottom: "24px" }}>
+                            <Title level={5}>基本信息</Title>
+                            <div
+                                style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "120px 1fr",
+                                    gap: "12px",
+                                    backgroundColor: "#f9f9f9",
+                                    padding: "16px",
+                                    borderRadius: "8px",
+                                }}
+                            >
+                                <Text type="secondary">规则名称：</Text>
+                                <Text strong>{selectedRecord.ruleName}</Text>
+
+                                <Text type="secondary">通知对象：</Text>
+                                <Text>{selectedRecord.nObj}</Text>
+
+                                <Text type="secondary">通知时间：</Text>
+                                <Text>{new Date(selectedRecord.createAt * 1000).toLocaleString()}</Text>
+                            </div>
+                        </div>
+
+                        <Title level={5}>告警消息体</Title>
                         <CodeEditor value={selectedRecord.alarmMsg} />
 
-                        <Divider />
+                        <Divider style={{ margin: "24px 0" }} />
 
-                        <h3>错误消息体</h3>
+                        <Title level={5}>错误消息体</Title>
                         <CodeEditor value={selectedRecord.errMsg || "null"} />
                     </>
+                ) : (
+                    <Skeleton active paragraph={{ rows: 10 }} />
                 )}
             </Drawer>
-        </>
+        </div>
     )
 }
-

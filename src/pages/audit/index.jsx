@@ -3,6 +3,7 @@ import { Table, message, Button, Drawer, Select, Input, Tag } from "antd"
 import { listAuditLog, searchAuditLog } from "../../api/auditLog"
 import moment from "moment"
 import JsonViewer from "react-json-view"
+import {FileText} from "lucide-react";
 
 export const AuditLog = () => {
     const { Search } = Input
@@ -70,11 +71,21 @@ export const AuditLog = () => {
                 <span>
           {record.body && (
               <Button
-                  type="link"
+                  type="primary"
+                  size="small"
                   onClick={() => {
                       showDrawer(record.body)
                   }}
+                  style={{
+                      borderRadius: "6px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: "0 12px",
+                      height: "28px",
+                  }}
               >
+                  <FileText size={14} />
                   详情
               </Button>
           )}
@@ -249,9 +260,13 @@ export const AuditLog = () => {
                         y: height - 400, // 动态设置滚动高度
                         x: "max-content", // 水平滚动
                     }}
-                    bordered // 添加表格边框
-                    style={{ backgroundColor: "#fff" }} // 设置表格背景色
+                    style={{
+                        backgroundColor: "#fff",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                    }}
                     rowKey={(record) => record.id} // 设置行唯一键
+                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                 />
             </div>
         </div>

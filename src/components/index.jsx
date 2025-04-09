@@ -245,21 +245,25 @@ export const ComponentsContent = (props) => {
                                 borderRadius: borderRadiusLG,
                             }}
                         >
-                            <div style={{
-                                fontSize: 15,
-                                fontWeight: 'bold',
-                                marginLeft: '1%',
-                                justifyContent: 'center',
-                                marginTop: '20px'
-                            }}>
-                                <Button type="text" shape="circle" icon={<LeftOutlined/>} onClick={goBackPage}/>
-                                {name}
-                            </div>
+                            {name !== "off" && (
+                                <div style={{
+                                    fontSize: 15,
+                                    fontWeight: 'bold',
+                                    marginLeft: '1%',
+                                    justifyContent: 'center',
+                                    marginTop: '20px'
+                                }}>
+                                    <Button type="text" shape="circle" icon={<LeftOutlined/>} onClick={goBackPage}/>
+                                    {name}
+                                </div>
+                            )}
                             <div
                                 className="site-layout-background"
                                 style={{padding: 24, textAlign: 'center'}}
                             >
-                                <Divider style={{marginTop: '-10px', marginBottom: '40px'}}/>
+                                {name !== "off" && (
+                                    <Divider style={{marginTop: '-10px', marginBottom: '40px'}}/>
+                                )}
                                 {c}
                             </div>
                         </Content>
