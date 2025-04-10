@@ -1,118 +1,171 @@
-import {Button, Input, Table, Popconfirm, Divider, Layout, Menu} from 'antd';
-import React, { useState, useEffect } from 'react';
-import RuleTemplateGroupCreateModal from './RuleTemplateGroupCreateModal';
-import {Link, useParams} from 'react-router-dom';
-import { deleteRuleTmplGroup, getRuleTmplGroupList } from '../../../api/ruleTmpl';
-import { ReactComponent as Metric } from "../assets/metric.svg";
-import { ReactComponent as Log } from "../assets/log.svg";
-import { ReactComponent as Trace } from "../assets/trace.svg";
-import { ReactComponent as Event } from "../assets/event.svg";
+"use client"
 
-const { Search } = Input;
+import { Button, Input, Table, Popconfirm, Divider, Menu, Typography, Card, Badge, Tooltip, Space, Empty } from "antd"
+import { useState, useEffect } from "react"
+import RuleTemplateGroupCreateModal from "./RuleTemplateGroupCreateModal"
+import { Link, useParams } from "react-router-dom"
+import { deleteRuleTmplGroup, getRuleTmplGroupList } from "../../../api/ruleTmpl"
+import { ReactComponent as Metric } from "../assets/metric.svg"
+import { ReactComponent as Log } from "../assets/log.svg"
+import { ReactComponent as Trace } from "../assets/trace.svg"
+import { ReactComponent as Event } from "../assets/event.svg"
+import { SearchOutlined, PlusOutlined, DeleteOutlined, EditOutlined, FileTextOutlined } from "@ant-design/icons"
+
+const { Search } = Input
 
 export const RuleTemplateGroup = () => {
     const { tmplType } = useParams()
     const [selectedType, setSelectedType] = useState(tmplType)
-    const [selectedRow, setSelectedRow] = useState(null);
-    const [updateVisible, setUpdateVisible] = useState(false);
-    const [visible, setVisible] = useState(false);
-    const [list, setList] = useState([]);
+    const [selectedRow, setSelectedRow] = useState(null)
+    const [updateVisible, setUpdateVisible] = useState(false)
+    const [visible, setVisible] = useState(false)
+    const [list, setList] = useState([])
+    const [loading, setLoading] = useState(false)
     const [pagination, setPagination] = useState({
         index: 1,
         size: 10,
         total: 0,
-    });
+    })
 
-    // 表头
+    // Table columns
     const columns = [
         {
-            title: '模版组名称',
-            dataIndex: 'name',
-            key: 'name',
+            title: "模版组名称",
+            dataIndex: "name",
+            key: "name",
             render: (text, record) => (
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Link to={`/tmplType/${record.type}/${record.name}/templates`}>{text}</Link>
-                    </div>
-                </div>
+                <Link
+                    to={`/tmplType/${record.type}/${record.name}/templates`}
+                    style={{
+                        color: "#1677ff",
+                        fontWeight: "500",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                    }}
+                >
+                    <FileTextOutlined />
+                    {text}
+                </Link>
             ),
         },
         {
-            title: '模版数',
-            dataIndex: 'number',
-            key: 'number',
+            title: "模版数",
+            dataIndex: "number",
+            key: "number",
+            width: 120,
+            render: (count) => (
+                <Badge
+                    count={count}
+                    showZero
+                    style={{
+                        backgroundColor: count > 0 ? "#1677ff" : "#d9d9d9",
+                        fontWeight: "normal",
+                        fontSize: "14px",
+                    }}
+                />
+            ),
         },
         {
-            title: '描述',
-            dataIndex: 'description',
-            key: 'description',
-            render: (text) => (!text ? '-' : text),
+            title: "描述",
+            dataIndex: "description",
+            key: "description",
+            ellipsis: {
+                showTitle: false,
+            },
+            render: (text) => (
+                <Tooltip placement="topLeft" title={text || "-"}>
+                    <span>{text || "-"}</span>
+                </Tooltip>
+            ),
         },
         {
-            title: '操作',
-            dataIndex: 'operation',
+            title: "操作",
+            dataIndex: "operation",
             width: 120,
             render: (_, record) =>
                 list.length >= 1 ? (
-                    <div>
-                        <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record)}>
-                            <a>删除</a>
-                        </Popconfirm>
-
-                        <Button
-                            type="link" onClick={() => handleUpdateModalOpen(record)} >
-                            更新
-                        </Button>
-                    </div>
+                    <Space size="middle">
+                        <Tooltip title="更新">
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                onClick={() => handleUpdateModalOpen(record)}
+                                style={{ color: "#1677ff" }}
+                            />
+                        </Tooltip>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 ) : null,
         },
-    ];
+    ]
 
-    const [height, setHeight] = useState(window.innerHeight);
+    const [height, setHeight] = useState(window.innerHeight)
 
     useEffect(() => {
         setSelectedType(tmplType)
 
-        // 定义一个处理窗口大小变化的函数
+        // Handle window resize
         const handleResize = () => {
-            setHeight(window.innerHeight);
-        };
+            setHeight(window.innerHeight)
+        }
 
-        // 监听窗口的resize事件
-        window.addEventListener('resize', handleResize);
+        window.addEventListener("resize", handleResize)
 
-        // 在组件卸载时移除监听器
         return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []);
+            window.removeEventListener("resize", handleResize)
+        }
+    }, [])
 
     const handleList = async () => {
-        const params = {
-            type: selectedType,
+        try {
+            setLoading(true)
+            const params = {
+                type: selectedType,
+            }
+            const res = await getRuleTmplGroupList(params)
+            setList(res.data)
+        } catch (error) {
+            console.error("Failed to fetch template groups:", error)
+        } finally {
+            setLoading(false)
         }
-        const res = await getRuleTmplGroupList(params);
-        setList(res.data);
-    };
+    }
 
     const handleDelete = async (record) => {
-        const params = {
-            name: record.name,
-        };
-        await deleteRuleTmplGroup(params);
-        handleList();
-    };
+        try {
+            setLoading(true)
+            const params = {
+                name: record.name,
+            }
+            await deleteRuleTmplGroup(params)
+            handleList()
+        } catch (error) {
+            console.error("Failed to delete template group:", error)
+        }
+    }
 
     useEffect(() => {
-        handleList();
-    }, [pagination.index, pagination.size, selectedType]);
+        handleList()
+    }, [pagination.index, pagination.size, selectedType])
 
-    const handleModalClose = () => setVisible(false);
+    const handleModalClose = () => setVisible(false)
 
-    const handleUpdateModalClose = () => setUpdateVisible(false);
+    const handleUpdateModalClose = () => setUpdateVisible(false)
 
     const onSearch = async (value) => {
         try {
+            setLoading(true)
             const params = {
                 type: selectedType,
                 index: pagination.index,
@@ -126,11 +179,13 @@ export const RuleTemplateGroup = () => {
                 index: res.data.index,
                 size: res.data.size,
                 total: res.data.total,
-            });
+            })
 
-            setList(res.data);
+            setList(res.data)
         } catch (error) {
             console.error(error)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -155,126 +210,119 @@ export const RuleTemplateGroup = () => {
             label: "Events",
             icon: <Event style={{ height: "20px", width: "20px" }} />,
         },
-    ];
+    ]
 
-    // 处理菜单点击事件
+    // Handle menu click
     const handleClick = (e) => {
-        const type = e.key; // 获取点击的类型
+        const type = e.key
         setSelectedType(type)
-        const pathname = `/tmplType/${type}/group`;
-        window.history.pushState({}, "", pathname);
-    };
+        const pathname = `/tmplType/${type}/group`
+        window.history.pushState({}, "", pathname)
+    }
 
     const handleUpdateModalOpen = (record) => {
         setUpdateVisible(true)
         setSelectedRow(record)
-        console.log(record)
+    }
+
+    // Get the current type label
+    const getCurrentTypeLabel = () => {
+        const currentItem = menuItems.find((item) => item.key === selectedType)
+        return currentItem ? currentItem.label : "模版组"
     }
 
     return (
-        <div style={{display: 'flex'}}>
-            <div style={{
-                width: '200px' // 调整此处宽度以适应您的需求
-            }}>
-                <Layout.Sider
-                    style={{
-                        background: "white",
-                        borderRadius: "8px",
-                        marginLeft: "-10px",
-                        marginTop: "-5px",
-                    }}
+        <div style={{ display: "flex", borderRadius: "8px" }}>
+            {/* Sidebar */}
+            <div style={{ width: "200px" }}>
+                <Menu
+                    onClick={handleClick}
+                    mode="vertical"
+                    style={{ border: "none", width: "100%" }}
+                    selectedKeys={[selectedType]}
                 >
-                    <Menu
-                        onClick={handleClick}
-                        mode="vertical"
-                        style={{ border: "none", width: "180px" }}
-                    >
-                        {menuItems.map((item) => (
-                            <Menu.Item key={item.key}>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px", // 间距调整
-                                        fontSize: "14px", // 字体大小调整
-                                    }}
-                                >
-                                    {item.icon}
-                                    {item.label}
-                                </div>
-                            </Menu.Item>
-                        ))}
-                    </Menu>
-                </Layout.Sider>
+                    {menuItems.map((item) => (
+                        <Menu.Item key={item.key}>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                    fontSize: "14px",
+                                }}
+                            >
+                                {item.icon}
+                                {item.label}
+                            </div>
+                        </Menu.Item>
+                    ))}
+                </Menu>
             </div>
 
-            <div>
-                <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                    {/* 树形分割线 */}
-                    <Divider type="vertical" style={{
-                        position: 'absolute',
-                        marginTop: '160px',
-                        marginLeft: '-13px',
-                        height: '75%',
-                    }}/>
-                </div>
+            {/* Vertical divider */}
+            <Divider type="vertical" style={{ height: "auto", margin: "0 16px" }} />
 
-                <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                    <div>
-                        <Search
-                            allowClear
-                            placeholder="输入搜索关键字"
-                            onSearch={onSearch}
-                            style={{width: 300}}
-                        />
-                    </div>
-                    <div>
-                        <Button
-                            type="primary"
-                            onClick={() => setVisible(true)}
-                            style={{
-                                backgroundColor: '#000000'
-                            }}
-                        >
-                            创建
-                        </Button>
-                    </div>
-                </div>
-
-                <div>
-                    <RuleTemplateGroupCreateModal
-                        visible={visible}
-                        onClose={handleModalClose}
-                        openType="create"
-                        tmplType={selectedType}
-                        handleList={handleList}/>
-                    <RuleTemplateGroupCreateModal
-                        visible={updateVisible}
-                        onClose={handleUpdateModalClose}
-                        tmplType={selectedType}
-                        selectedRow={selectedRow}
-                        openType="update"
-                        handleList={handleList}/>
-                </div>
-
-                <div style={{ overflowX: 'auto', marginTop: 10 }}>
-                    <Table
-                        columns={columns}
-                        dataSource={list}
-                        scroll={{
-                            y: height - 400, // 动态设置滚动高度
-                            x: 'max-content', // 水平滚动
-                        }}
-                        style={{
-                            backgroundColor: "#fff",
-                            borderRadius: "8px",
-                            overflow: "hidden",
-                        }}
-                        rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
-                        rowKey={(record) => record.id} // 设置行唯一键
+            {/* Main content */}
+            <div style={{ flex: 1 }}>
+                {/* Search bar */}
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <Search
+                        allowClear
+                        placeholder="输入搜索关键字"
+                        onSearch={onSearch}
+                        style={{ width: 300 }}
+                        prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
                     />
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => setVisible(true)}
+                        style={{
+                            backgroundColor: "#000000",
+                        }}
+                    >
+                        创建
+                    </Button>
                 </div>
+
+                {/* Table */}
+                <Table
+                    columns={columns}
+                    dataSource={list}
+                    loading={loading}
+                    scroll={{
+                        y: height - 400,
+                    }}
+                    style={{
+                        marginTop: "10px",
+                        backgroundColor: "#fff",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                    }}
+                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
+                    rowKey={(record) => record.id || record.name}
+                    locale={{
+                        emptyText: <Empty description="暂无模版组" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
+                    }}
+                />
+
+                {/* Modals */}
+                <RuleTemplateGroupCreateModal
+                    visible={visible}
+                    onClose={handleModalClose}
+                    openType="create"
+                    tmplType={selectedType}
+                    handleList={handleList}
+                />
+                <RuleTemplateGroupCreateModal
+                    visible={updateVisible}
+                    onClose={handleUpdateModalClose}
+                    tmplType={selectedType}
+                    selectedRow={selectedRow}
+                    openType="update"
+                    handleList={handleList}
+                />
             </div>
         </div>
-    );
-};
+    )
+}

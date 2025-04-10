@@ -6,6 +6,7 @@ import { DownloadOutlined } from "@ant-design/icons"
 import dayjs from "dayjs"
 import { getHisEventList } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
+import {AlertTriangle} from "lucide-react";
 
 export const AlertHistoryEvent = (props) => {
     const { id } = props
@@ -43,6 +44,18 @@ export const AlertHistoryEvent = (props) => {
         filterOptions: [], // ruleName, ruleType, alertLevel
         itemsPerPage: 10, // 导出HTML的每页项目数
     })
+    // Constants
+    const SEVERITY_COLORS = {
+        P0: '#ff4d4f',
+        P1: '#faad14',
+        P2: '#b0e1fb'
+    }
+
+    const SEVERITY_LABELS = {
+        P0: "P0",
+        P1: "P1",
+        P2: "P2",
+    }
 
     // 表格列定义
     const columns = [
@@ -57,18 +70,21 @@ export const AlertHistoryEvent = (props) => {
             key: "severity",
             width: "100px",
             render: (text) => (
-                <div style={{ display: "flex", alignItems: "center" }}>
-                    <div
-                        style={{
-                            width: "8px",
-                            height: "8px",
-                            backgroundColor: severityColors[text],
-                            borderRadius: "50%",
-                            marginRight: "8px",
-                        }}
-                    />
-                    {text}
-                </div>
+                <Tag
+                    color={SEVERITY_COLORS[text]}
+                    style={{
+                        borderRadius: "12px",
+                        padding: "0 10px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                    }}
+                >
+                    <AlertTriangle size={12} />
+                    {SEVERITY_LABELS[text] || text}
+                </Tag>
             ),
         },
         {
@@ -103,13 +119,6 @@ export const AlertHistoryEvent = (props) => {
             render: (_, record) => <Button onClick={() => showDrawer(record)}>详情</Button>,
         },
     ]
-
-    // 常量定义
-    const severityColors = {
-        P0: "red",
-        P1: "orange",
-        P2: "yellow",
-    }
 
     const rangePresets = [
         {
@@ -320,7 +329,7 @@ export const AlertHistoryEvent = (props) => {
             const recoverTime = new Date(item.recover_time * 1000).toLocaleString()
 
             // 根据告警等级设置颜色
-            const severityColor = severityColors[item.severity] || "gray"
+            const severityColor = SEVERITY_COLORS[item.severity] || "gray"
 
             return {
                 index: index + 1,

@@ -1,9 +1,9 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Popconfirm, message } from 'antd';
+import {Table, Button, Popconfirm, message, Space, Tooltip} from 'antd';
 import { CreateDutyModal } from './DutyManageCreateModal';
 import { CalendarApp } from './calendar';
-import { CopyOutlined } from '@ant-design/icons';
+import {CopyOutlined, DeleteOutlined, EditOutlined} from '@ant-design/icons';
 import { deleteDutyManager, getDutyManagerList } from '../../api/duty';
 import {Link} from "react-router-dom";
 
@@ -88,21 +88,27 @@ export const DutyManage = () => {
             fixed: 'right',
             width: 120,
             render: (_, record) =>
-                <>
-                    <div>
-                        <Popconfirm
-                            title="Sure to delete?"
-                            onConfirm={() => handleDelete(record)}
-                            disabled={record.role === 'admin'}>
-                            <a style={{ cursor: record.role === 'admin' ? 'not-allowed' : 'pointer' }}>删除</a>
-                        </Popconfirm>
+                <Space size="middle">
+                    <Tooltip title="更新">
                         <Button
-                            type="link"
-                            onClick={() => handleUpdateModalOpen(record)}>
-                            更新
-                        </Button>
-                    </div>
-                </>
+                            type="text"
+                            icon={<EditOutlined />}
+                            onClick={() => handleUpdateModalOpen(record)}
+                            style={{ color: "#1677ff" }}
+                        />
+                    </Tooltip>
+                    <Tooltip title="删除">
+                        <Popconfirm
+                            title="确定要删除此模版组吗?"
+                            onConfirm={() => handleDelete(record)}
+                            okText="确定"
+                            cancelText="取消"
+                            placement="left"
+                        >
+                            <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                        </Popconfirm>
+                    </Tooltip>
+                </Space>
         },
     ]);
     const [height, setHeight] = useState(window.innerHeight);

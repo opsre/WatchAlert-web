@@ -902,7 +902,7 @@ export const AlertRule = ({ type }) => {
             width: '100%',
             // flex: 1,
             alignItems: 'flex-start',
-            marginTop: '-20px',
+            marginTop: '-10px',
             maxHeight: 'calc((-145px + 100vh) - 65px - 40px)',
             overflowY: 'auto',
         }}>

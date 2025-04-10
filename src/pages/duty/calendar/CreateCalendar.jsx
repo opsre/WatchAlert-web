@@ -96,40 +96,6 @@ export const CreateCalendarModal = ({ visible, onClose, dutyId }) => {
         setSelectedUsers(newUsers)
     }
 
-    const SelectUserModal = () => (
-        <Modal
-            title="选择值班人员"
-            visible={searchVisible}
-            onCancel={() => setSearchVisible(false)}
-            footer={null}
-            styles={{ body: { maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' } }}
-        >
-            <Search
-                placeholder="搜索值班人员"
-                onSearch={onSearchDutyUser}
-            />
-            <List
-                dataSource={filteredOptions.filter(
-                    option => !selectedUsers.find(user => user.userid === option.userid)
-                )}
-                renderItem={item => (
-                    <List.Item
-                        onClick={() => {
-                            setSelectedUsers([...selectedUsers, item])
-                            setSearchVisible(false)
-                        }}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <List.Item.Meta
-                            avatar={<Avatar>{item.username[0]}</Avatar>}
-                            title={item.username}
-                        />
-                    </List.Item>
-                )}
-            />
-        </Modal>
-    )
-
     const DutyUserList = () => (
         <Form.Item
             name="dutyUser"
@@ -268,7 +234,39 @@ export const CreateCalendarModal = ({ visible, onClose, dutyId }) => {
                     提交
                 </Button>
             </div>
-            <SelectUserModal/>
+
+            <Modal
+                title="选择值班人员"
+                visible={searchVisible}
+                onCancel={() => setSearchVisible(false)}
+                footer={null}
+                styles={{ body: { maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' } }}
+            >
+                <Search
+                    placeholder="搜索值班人员"
+                    onSearch={onSearchDutyUser}
+                />
+                <List
+                    dataSource={filteredOptions.filter(
+                        option => !selectedUsers.find(user => user.userid === option.userid)
+                    )}
+                    renderItem={item => (
+                        <List.Item
+                            onClick={() => {
+                                setSelectedUsers([...selectedUsers, item])
+                                setSearchVisible(false)
+                            }}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <List.Item.Meta
+                                avatar={<Avatar>{item.username[0]}</Avatar>}
+                                title={item.username}
+                            />
+                        </List.Item>
+                    )}
+                />
+            </Modal>
+
         </Drawer>
     )
 }

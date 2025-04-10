@@ -119,6 +119,7 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
                     ]}
                 >
                     <Select
+                        mode={"multiple"}
                         style={{
                             width: '100%',
                         }}

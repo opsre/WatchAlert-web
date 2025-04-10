@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {Form, Table, Space, Button, Modal, Transfer, Popconfirm, Select} from 'antd';
-import { PlusCircleOutlined } from '@ant-design/icons';
+import {Form, Table, Space, Button, Modal, Transfer, Popconfirm, Select, Tooltip} from 'antd';
+import {DeleteOutlined, EditOutlined, PlusCircleOutlined} from '@ant-design/icons';
 import { getUserList } from '../../api/user';
 import {addUsersToTenant, changeTenantUserRole, delUsersOfTenant, getUsersForTenant,} from "../../api/tenant";
 import './index.css'
@@ -76,17 +76,24 @@ export const TenantUsers = ({ tenantInfo }) => {
             fixed: 'right',
             width: '10px',
             render: (_, record) =>
-                <div>
-                    <Popconfirm
-                        title="Sure to delete?"
-                        disabled={record.userName === 'admin'}
-                        onConfirm={() => handleDelete(_, record)}>
-                        <a style={{
-                            cursor: record.userName === 'admin' ? 'not-allowed' : 'pointer',
-                            color: record.userName === 'admin' ? '#b2b2b2' : '#1677ff'
-                        }}>删除</a>
-                    </Popconfirm>
-                </div>
+                <Space size="middle">
+                    <Tooltip title="删除">
+                        <Popconfirm
+                            title="确定要删除此模版组吗?"
+                            onConfirm={() => handleDelete(_, record)}
+                            okText="确定"
+                            cancelText="取消"
+                            placement="left"
+                        >
+                            <a style={{
+                                cursor: record.userName === 'admin' ? 'not-allowed' : 'pointer',
+                                color: record.userName === 'admin' ? '#b2b2b2' : '#1677ff'
+                            }}>
+                                <Button type="text" icon={<DeleteOutlined/>} style={{color: "#ff4d4f"}}/>
+                            </a>
+                        </Popconfirm>
+                    </Tooltip>
+                </Space>
         },
     ];
 

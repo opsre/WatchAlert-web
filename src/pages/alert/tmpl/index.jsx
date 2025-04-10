@@ -1,13 +1,13 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
-import { Button, Input, Table, message, Modal, Select, Form, Dropdown } from "antd"
+import {Button, Input, Table, message, Modal, Select, Form, Dropdown, Tooltip, Popconfirm, Space} from "antd"
 import RuleTemplateCreateModal from "./RuleTemplateCreateModal"
 import { useParams, useNavigate } from "react-router-dom"
 import { deleteRuleTmpl, getRuleTmplList, createRuleTmpl, updateRuleTmpl } from "../../../api/ruleTmpl"
 import { getRuleGroupList } from "../../../api/rule"
 import { useRule } from "../../../context/RuleContext"
-import { DeleteOutlined, ExportOutlined, DownOutlined, ImportOutlined } from "@ant-design/icons"
+import {DeleteOutlined, ExportOutlined, DownOutlined, ImportOutlined, EditOutlined} from "@ant-design/icons"
 
 const MyFormItemContext = React.createContext([])
 const { Search } = Input
@@ -80,15 +80,24 @@ export const RuleTemplate = () => {
                 fixed: "right",
                 render: (_, record) =>
                     list.length >= 1 ? (
-                        <div>
-                            <Button type="link" onClick={() => handleUpdateTmpl(record)}>
-                                编辑
-                            </Button>
-
-                            <Button type="link" onClick={() => handleOpenSelectedRuleGroup(record)} style={{ padding: "0px" }}>
-                                应用
-                            </Button>
-                        </div>
+                        <Space size="middle">
+                            <Tooltip title="更新">
+                                <Button
+                                    type="text"
+                                    icon={<EditOutlined />}
+                                    onClick={() => handleUpdateTmpl(record)}
+                                    style={{ color: "#1677ff" }}
+                                />
+                            </Tooltip>
+                            <Tooltip title="应用">
+                                <Button
+                                    type="text"
+                                    icon={<ImportOutlined />}
+                                    onClick={() => handleOpenSelectedRuleGroup(record)}
+                                    style={{ color: "#059136" }}
+                                />
+                            </Tooltip>
+                        </Space>
                     ) : null,
             },
         ],

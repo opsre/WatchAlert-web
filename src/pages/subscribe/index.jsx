@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Button, Input, Table, Tag, Popconfirm, message, Radio, Card} from 'antd';
+import {Button, Input, Table, Tag, Popconfirm, message, Radio, Card, Tooltip, Space} from 'antd';
 import {deleteSubscribe, listSubscribe} from "../../api/subscribe";
 import {Link} from "react-router-dom";
 import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
@@ -11,6 +11,7 @@ import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
 export const Subscribe = () => {
     const { Search } = Input
@@ -91,13 +92,19 @@ export const Subscribe = () => {
             fixed: 'right',
             width: 120,
             render: (_, record) =>
-                <div>
-                    <Popconfirm
-                        title="Sure to delete?"
-                        onConfirm={() => handleDelete(_, record)}>
-                        <a>删除</a>
-                    </Popconfirm>
-                </div>
+                <Space size="middle">
+                    <Tooltip title="删除">
+                        <Popconfirm
+                            title="确定要删除此模版组吗?"
+                            onConfirm={() => handleDelete(_, record)}
+                            okText="确定"
+                            cancelText="取消"
+                            placement="left"
+                        >
+                            <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                        </Popconfirm>
+                    </Tooltip>
+                </Space>
         },
     ]);
     const [height, setHeight] = useState(window.innerHeight);
@@ -203,9 +210,13 @@ export const Subscribe = () => {
                         y: height - 400, // 动态设置滚动高度
                         x: 'max-content', // 水平滚动
                     }}
-                    bordered // 添加表格边框
-                    style={{ backgroundColor: '#fff' }} // 设置表格背景色
+                    style={{
+                        backgroundColor: "#fff",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                    }}
                     rowKey={(record) => record.id} // 设置行唯一键
+                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                 />
             </div>
         </>

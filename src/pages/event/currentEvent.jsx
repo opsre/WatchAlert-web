@@ -4,6 +4,7 @@ import { getCurEventList } from "../../api/event"
 import TextArea from "antd/es/input/TextArea";
 import {ReqAiAnalyze} from "../../api/ai";
 import MarkdownRenderer from "../../utils/MarkdownRenderer";
+import {AlertTriangle} from "lucide-react";
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -23,6 +24,18 @@ export const AlertCurrentEvent = (props) => {
     const [aiAnalyze, setAiAnalyze] = useState(false)
     const [aiAnalyzeContent, setAiAnalyzeContent] = useState({})
     const [analyzeLoading, setAnalyzeLoading] = useState(false)
+    // Constants
+    const SEVERITY_COLORS = {
+        P0: '#ff4d4f',
+        P1: '#faad14',
+        P2: '#b0e1fb'
+    }
+
+    const SEVERITY_LABELS = {
+        P0: "P0",
+        P1: "P1",
+        P2: "P2",
+    }
 
     const columns = [
         {
@@ -36,18 +49,21 @@ export const AlertCurrentEvent = (props) => {
             key: "severity",
             width: '100px',
             render: (text) => (
-                <div style={{ display: "flex", alignItems: "center" }}>
-                    <div
-                        style={{
-                            width: "8px",
-                            height: "8px",
-                            backgroundColor: severityColors[text],
-                            borderRadius: "50%",
-                            marginRight: "8px",
-                        }}
-                    />
-                    {text}
-                </div>
+                <Tag
+                    color={SEVERITY_COLORS[text]}
+                    style={{
+                        borderRadius: "12px",
+                        padding: "0 10px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                    }}
+                >
+                    <AlertTriangle size={12} />
+                    {SEVERITY_LABELS[text] || text}
+                </Tag>
             ),
         },
         {

@@ -1,7 +1,8 @@
-import { Input, Table, Button, Popconfirm } from 'antd';
+import {Input, Table, Button, Popconfirm, Tooltip, Space} from 'antd';
 import React, { useState, useEffect } from 'react';
 import UserRoleCreateModal from './UserRoleCreateModal';
 import { deleteRole, getRoleList } from '../../../api/role';
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
 const { Search } = Input;
 
@@ -43,29 +44,27 @@ export const UserRole = () => {
             width: 120,
             render: (_, record) =>
                 list.length >= 1 ? (
-                    <div>
-                        <Popconfirm
-                            title="Sure to delete?"
-                            onConfirm={() => handleDelete(record)}
-                            disabled={record.name === 'admin'}
-                        >
-                            <a
-                                style={{
-                                    cursor: record.name === 'admin' ? 'not-allowed' : 'pointer',
-                                    color: record.name === 'admin' ? 'rgba(0, 0, 0, 0.25)' : '#1677ff',
-                                }}
+                    <Space size="middle">
+                        <Tooltip title="更新">
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                onClick={() => handleUpdateModalOpen(record)}
+                                style={{ color: "#1677ff" }}
+                            />
+                        </Tooltip>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
                             >
-                                删除
-                            </a>
-                        </Popconfirm>
-                        <Button
-                            disabled={record.name === 'admin'}
-                            type="link"
-                            onClick={() => handleUpdateModalOpen(record)}
-                        >
-                            更新
-                        </Button>
-                    </div>
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 ) : null,
         },
     ];

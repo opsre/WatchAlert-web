@@ -1,4 +1,4 @@
-import { Button, Input, Table, Popconfirm } from 'antd';
+import {Button, Input, Table, Popconfirm, Space, Tooltip} from 'antd';
 import React, { useState, useEffect } from 'react';
 import NoticeTemplateCreateModal from './NoticeTemplateCreateModal';
 import { getNoticeTmplList, deleteNoticeTmpl, searchNoticeTmpl } from '../../../api/noticeTmpl';
@@ -6,6 +6,7 @@ import { ReactComponent as FeiShuIcon } from '../img/feishu.svg';
 import { ReactComponent as DingdingIcon } from '../img/dingding.svg';
 import { ReactComponent as EmailIcon } from '../img/Email.svg';
 import { ReactComponent as WeChatIcon } from '../img/qywechat.svg'
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
 const { Search } = Input;
 
@@ -75,15 +76,27 @@ export const NoticeTemplate = () => {
             fixed: 'right',
             render: (_, record) =>
                 list.length >= 1 ? (
-                    <div>
-                        <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record)}>
-                            <a>删除</a>
-                        </Popconfirm>
-
-                        <Button type="link" onClick={() => handleUpdateModalOpen(record)}>
-                            更新
-                        </Button>
-                    </div>
+                    <Space size="middle">
+                        <Tooltip title="更新">
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                onClick={() => handleUpdateModalOpen(record)}
+                                style={{ color: "#1677ff" }}
+                            />
+                        </Tooltip>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 ) : null,
         },
     ];

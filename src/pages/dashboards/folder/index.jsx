@@ -1,4 +1,4 @@
-import { Button, Table, Popconfirm, Input } from 'antd'
+import {Button, Table, Popconfirm, Input, Tooltip, Space} from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { deleteRuleGroup } from '../../../api/rule'
@@ -10,6 +10,7 @@ import {
     searchDashboard
 } from '../../../api/dashboard';
 import CreateFolderModal from './create';
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
 export const DashboardFolder = () => {
     const { Search } = Input
@@ -37,18 +38,27 @@ export const DashboardFolder = () => {
             fixed: 'right',
             render: (_, record) =>
                 list.length >= 1 ? (
-                    <div>
-                        <Popconfirm
-                            title="Sure to delete?"
-                            onConfirm={() => handleDelete(_, record)}>
-                            <a>删除</a>
-                        </Popconfirm>
-
-                        <Button
-                            type="link" onClick={() => handleUpdateModalOpen(record)} >
-                            更新
-                        </Button>
-                    </div>
+                    <Space size="middle">
+                        <Tooltip title="更新">
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                onClick={() => handleUpdateModalOpen(record)}
+                                style={{ color: "#1677ff" }}
+                            />
+                        </Tooltip>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 ) : null,
         },
     ]

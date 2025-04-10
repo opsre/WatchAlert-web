@@ -191,11 +191,11 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
         <div style={{textAlign:'left',
             width: '100%',
             alignItems: 'flex-start',
-            marginTop: '-20px',
+            marginTop: '-10px',
             maxHeight: 'calc((-145px + 100vh) - 65px - 40px)',
             overflowY: 'auto',
         }}>
-            <Alert message="订阅的告警只为当前用户生效, 其通过邮件的方式发送订阅消息。" type="info" showIcon />
+            <Alert message="订阅的告警只为当前用户生效, 其通过邮件的方式发送订阅消息；⚠️ 只允许订阅已启用的规则。" type="info" showIcon />
             <br/>
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                 <MyFormItem name="sRuleType" label="订阅类型" >

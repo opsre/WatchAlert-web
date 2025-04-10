@@ -5,3 +5,7 @@
 .ant-card:active {
     transform: scale(0.98); /* 轻微缩小卡片 */
   }
+
+.ant-menu-light.ant-menu-root.ant-menu-inline {
+    border-inline-end: none;
+}

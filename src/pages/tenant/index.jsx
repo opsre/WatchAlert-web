@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import {Button, Table, Popconfirm, message} from 'antd';
+import {Button, Table, Popconfirm, message, Tooltip, Space} from 'antd';
 import { deleteTenant, getTenantList } from '../../api/tenant';
 import { CreateTenant } from './CreateTenant';
 import {Link} from "react-router-dom";
 import {getUserInfo} from "../../api/user";
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
 export const Tenants = () => {
     const [selectedRow, setSelectedRow] = useState(null);
@@ -50,19 +51,27 @@ export const Tenants = () => {
             width: 120,
             render: (_, record) =>
                 <div>
-                    <Popconfirm
-                        title="Sure to delete?"
-                        disabled={record.id === 'default'}
-                        onConfirm={() => handleDelete(_, record)}>
-                        <a style={{
-                            cursor: record.id === 'default' ? 'not-allowed' : 'pointer',
-                            color: record.id === 'default' ? 'rgba(0, 0, 0, 0.25)' : '#1677ff'
-                        }}>删除</a>
-                    </Popconfirm>
-                    <Button type="link"
-                        onClick={() => handleUpdateModalOpen(record)}>
-                        更新
-                    </Button>
+                    <Space size="middle">
+                        <Tooltip title="更新">
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                onClick={() => handleUpdateModalOpen(record)}
+                                style={{ color: "#1677ff" }}
+                            />
+                        </Tooltip>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 </div>
         },
     ]);

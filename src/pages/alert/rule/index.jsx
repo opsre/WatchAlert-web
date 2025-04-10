@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Button, Input, Table, Radio, Tag, Dropdown, message, Modal, Drawer, Select } from "antd"
+import React, { useEffect, useState } from "react"
+import {Button, Input, Table, Radio, Tag, Dropdown, message, Modal, Drawer, Select, Tooltip, Space} from "antd"
 import { Link } from "react-router-dom"
 import { useParams } from "react-router-dom"
 import {createRule, deleteRule, getRuleList} from "../../../api/rule"
@@ -15,7 +15,14 @@ import { ReactComponent as K8sImg } from "./img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "./img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "./img/victorialogs.svg"
 import { getDatasourceList } from "../../../api/datasource"
-import { DeleteOutlined, ExportOutlined, DownOutlined, ImportOutlined } from "@ant-design/icons"
+import {
+    DeleteOutlined,
+    ExportOutlined,
+    DownOutlined,
+    ImportOutlined,
+    EditOutlined,
+    CopyOutlined
+} from "@ant-design/icons"
 import {FaultCenterList} from "../../../api/faultCenter";
 import Editor from '@monaco-editor/react';
 
@@ -146,15 +153,25 @@ export const AlertRuleList = () => {
             fixed: "right", // 设置操作列固定
             width: 120,
             render: (_, record) => (
-                <div>
-                    <Link to={`/ruleGroup/${record.ruleGroupId}/rule/${record.ruleId}/edit`}>
-                        <Button type="link">编辑</Button>
-                    </Link>
-
-                    <Button type="link" onClick={() => handleClone(record)} style={{ marginLeft: "-20px" }}>
-                        克隆
-                    </Button>
-                </div>
+                <Space size="middle">
+                    <Tooltip title="更新">
+                        <Link to={`/ruleGroup/${record.ruleGroupId}/rule/${record.ruleId}/edit`}>
+                            <Button
+                                type="link"
+                                icon={<EditOutlined />}
+                                style={{ color: "#1677ff" }}
+                            />
+                        </Link>
+                    </Tooltip>
+                    <Tooltip title="克隆">
+                        <Button
+                            type="text"
+                            icon={<CopyOutlined />}
+                            onClick={() => handleClone(record)}
+                            style={{ color: "#615454" }}
+                        />
+                    </Tooltip>
+                </Space>
             ),
         },
     ]

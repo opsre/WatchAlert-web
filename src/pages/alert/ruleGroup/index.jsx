@@ -1,8 +1,8 @@
-import { Button, Input, Table, Popconfirm, message } from 'antd'
+import {Button, Input, Table, Popconfirm, message, Space, Tooltip, Badge} from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertRuleGroupCreateModal } from './AlertRuleGroupCreateModal'
-import { CopyOutlined } from '@ant-design/icons';
+import {CopyOutlined, DeleteOutlined, EditOutlined} from '@ant-design/icons';
 import { deleteRuleGroup, getRuleGroupList } from '../../../api/rule'
 
 export const AlertRuleGroup = ({ }) => {
@@ -45,6 +45,17 @@ export const AlertRuleGroup = ({ }) => {
             dataIndex: 'number',
             key: 'number',
             width: 'auto',
+            render: (count) => (
+                <Badge
+                    count={count}
+                    showZero
+                    style={{
+                        backgroundColor: count > 0 ? "#1677ff" : "#d9d9d9",
+                        fontWeight: "normal",
+                        fontSize: "14px",
+                    }}
+                />
+            ),
         },
         {
             title: '描述',
@@ -64,17 +75,27 @@ export const AlertRuleGroup = ({ }) => {
             fixed: 'right',
             render: (_, record) =>
                 list.length >= 1 ? (
-                    <div>
-                        <Button
-                            type="link" onClick={() => handleUpdateModalOpen(record)} >
-                            更新
-                        </Button>
-                        <Popconfirm
-                            title="Sure to delete?"
-                            onConfirm={() => handleDelete(_, record)}>
-                            <a>删除</a>
-                        </Popconfirm>
-                    </div>
+                    <Space size="middle">
+                        <Tooltip title="更新">
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                onClick={() => handleUpdateModalOpen(record)}
+                                style={{ color: "#1677ff" }}
+                            />
+                        </Tooltip>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(_, record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 ) : null,
         },
     ]

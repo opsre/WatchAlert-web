@@ -336,7 +336,7 @@ export const Home = () => {
                 maxHeight: contentMaxHeight,
                 overflowY: "auto",
                 padding: "5px",
-                paddingTop: "5px",
+                paddingTop: "15px",
             }}
         >
             {/* First row: Statistics */}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {Table, Button, Tag, Input, Popconfirm, Radio, message, Progress, Tooltip} from 'antd';
+import {Table, Button, Tag, Input, Popconfirm, Radio, message, Progress, Tooltip, Space} from 'antd';
 import {ProbingDelete, ProbingList, ProbingSearch} from "../../api/probing";
 import {Link} from "react-router-dom";
 import moment from 'moment';
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
 
 export const Probing = () => {
@@ -74,17 +75,26 @@ export const Probing = () => {
             width: 120,
             render: (_, record) =>
                 httpMonList.length >= 1 ? (
-                    <div>
+                    <Space size="middle">
                         <Link to={`/probing/${record.ruleId}/edit`}>
-                            <Button type="link"> 更新 </Button>
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                style={{ color: "#1677ff" }}
+                            />
                         </Link>
-                        <Popconfirm
-                            title="Sure to delete?"
-                            onConfirm={() => handleDelete(record)}
-                        >
-                            <a>删除</a>
-                        </Popconfirm>
-                    </div>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 ) : null,
         },
     ]
@@ -169,17 +179,26 @@ export const Probing = () => {
             width: 120,
             render: (_, record) =>
                 icmpMonList.length >= 1 ? (
-                    <div>
+                    <Space size="middle">
                         <Link to={`/probing/${record.ruleId}/edit`}>
-                            <Button type="link"> 更新 </Button>
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                style={{ color: "#1677ff" }}
+                            />
                         </Link>
-                        <Popconfirm
-                            title="Sure to delete?"
-                            onConfirm={() => handleDelete(record)}
-                        >
-                            <a>删除</a>
-                        </Popconfirm>
-                    </div>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 ) : null,
         },
     ]
@@ -241,17 +260,26 @@ export const Probing = () => {
             width: 120,
             render: (_, record) =>
                 tcpMonList.length >= 1 ? (
-                    <div>
+                    <Space size="middle">
                         <Link to={`/probing/${record.ruleId}/edit`}>
-                            <Button type="link"> 更新 </Button>
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                style={{ color: "#1677ff" }}
+                            />
                         </Link>
-                        <Popconfirm
-                            title="Sure to delete?"
-                            onConfirm={() => handleDelete(record)}
-                        >
-                            <a>删除</a>
-                        </Popconfirm>
-                    </div>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 ) : null,
         },
     ]
@@ -348,17 +376,26 @@ export const Probing = () => {
             width: 120,
             render: (_, record) =>
                 sslMonList.length >= 1 ? (
-                    <div>
+                    <Space size="middle">
                         <Link to={`/probing/${record.ruleId}/edit`}>
-                            <Button type="link"> 更新 </Button>
+                            <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                style={{ color: "#1677ff" }}
+                            />
                         </Link>
-                        <Popconfirm
-                            title="Sure to delete?"
-                            onConfirm={() => handleDelete(record)}
-                        >
-                            <a>删除</a>
-                        </Popconfirm>
-                    </div>
+                        <Tooltip title="删除">
+                            <Popconfirm
+                                title="确定要删除此模版组吗?"
+                                onConfirm={() => handleDelete(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                            </Popconfirm>
+                        </Tooltip>
+                    </Space>
                 ) : null,
         },
     ]

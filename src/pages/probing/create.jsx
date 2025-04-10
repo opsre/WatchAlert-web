@@ -284,6 +284,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                             defaultValue={protocolType}
                             value={protocolType}
                             onChange={(value) => setProtocolType(value)}
+                            disabled={ type==="edit" }
                         />
                     </MyFormItem>
                 </div>

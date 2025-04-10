@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Input, Table, Tag, Popconfirm } from 'antd';
+import {Button, Input, Table, Tag, Popconfirm, Tooltip, Space} from 'antd';
 import { CreateDatasourceModal } from './DatasourceCreateModal';
 import { deleteDatasource, getDatasourceList, searchDatasource } from '../../api/datasource';
 import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
@@ -12,6 +12,7 @@ import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import './index.css'
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
 export const Datasources = () => {
     const { Search } = Input
@@ -94,19 +95,27 @@ export const Datasources = () => {
             fixed: 'right', // 设置操作列固定
             width: 120,
             render: (_, record) => (
-                <div>
-                    <Popconfirm
-                        title="Sure to delete?"
-                        onConfirm={() => handleDelete(_, record)}>
-                        <a>删除</a>
-                    </Popconfirm>
-
-                    <Button
-                        type="link"
-                        onClick={() => handleUpdateModalOpen(record)}>
-                        更新
-                    </Button>
-                </div>
+                <Space size="middle">
+                    <Tooltip title="更新">
+                        <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            onClick={() => handleUpdateModalOpen(record)}
+                            style={{ color: "#1677ff" }}
+                        />
+                    </Tooltip>
+                    <Tooltip title="删除">
+                        <Popconfirm
+                            title="确定要删除此模版组吗?"
+                            onConfirm={() => handleDelete(record)}
+                            okText="确定"
+                            cancelText="取消"
+                            placement="left"
+                        >
+                            <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                        </Popconfirm>
+                    </Tooltip>
+                </Space>
             ),
         },
     ]);

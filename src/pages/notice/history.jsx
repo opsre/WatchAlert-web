@@ -307,7 +307,7 @@ export const NoticeRecords = () => {
             {/* Filters */}
             <div
                 style={{
-                    marginTop: '-20px',
+                    marginTop: '-10px',
                     display: "flex",
                     alignItems: "center",
                     flexWrap: "wrap",

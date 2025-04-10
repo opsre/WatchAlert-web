@@ -1,8 +1,9 @@
-import { Input, Table, Button, Popconfirm } from 'antd';
+import {Input, Table, Button, Popconfirm, Tooltip, Space} from 'antd';
 import React, { useState, useEffect } from 'react';
 import UserCreateModal from './UserCreateModal';
 import UserChangePass from './UserChangePass';
 import { deleteUser, getUserList, searchUser } from '../../../api/user';
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
 const { Search } = Input;
 
@@ -20,40 +21,35 @@ export const User = () => {
             title: '用户名',
             dataIndex: 'username',
             key: 'username',
-            width: 30,
         },
         {
             title: '邮箱',
             dataIndex: 'email',
             key: 'email',
-            width: 40,
             render: (text) => text || '-',
         },
         {
             title: '手机号',
             dataIndex: 'phone',
             key: 'phone',
-            width: 40,
             render: (text) => text || '-',
         },
         {
             title: '创建人',
             dataIndex: 'create_by',
             key: 'create_by',
-            width: 40,
         },
         {
             title: '创建时间',
             dataIndex: 'create_at',
             key: 'create_at',
-            width: 50,
             render: (text) => new Date(text * 1000).toLocaleString(),
         },
         {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 30,
+            width: 200,
             render: (_, record) => (
                 list.length >= 1 && (
                     <div>
@@ -64,23 +60,27 @@ export const User = () => {
                         >
                             重置密码
                         </Button>
-                        <Popconfirm
-                            title="确定删除此用户？"
-                            onConfirm={() => handleDelete(record)}
-                            disabled={record.username === 'admin'}
-                        >
-                            <a
-                                style={{
-                                    cursor: record.username === 'admin' ? 'not-allowed' : 'pointer',
-                                    color: record.username === 'admin' ? 'rgba(0, 0, 0, 0.25)' : '#1677ff',
-                                }}
-                            >
-                                删除
-                            </a>
-                        </Popconfirm>
-                        <Button type="link" onClick={() => handleUpdateModalOpen(record)}>
-                            更新
-                        </Button>
+                        <Space size="middle">
+                            <Tooltip title="更新">
+                                <Button
+                                    type="text"
+                                    icon={<EditOutlined />}
+                                    onClick={() => handleUpdateModalOpen(record)}
+                                    style={{ color: "#1677ff" }}
+                                />
+                            </Tooltip>
+                            <Tooltip title="删除">
+                                <Popconfirm
+                                    title="确定要删除此模版组吗?"
+                                    onConfirm={() => handleDelete(record)}
+                                    okText="确定"
+                                    cancelText="取消"
+                                    placement="left"
+                                >
+                                    <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                                </Popconfirm>
+                            </Tooltip>
+                        </Space>
                     </div>
                 )
             ),
