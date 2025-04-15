@@ -1,68 +1,92 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Layout, theme, Button, Typography, Spin, Result } from "antd"
+import {Layout, theme, Button, Typography, Spin, Result, message} from "antd"
 import { LeftOutlined, LoadingOutlined } from "@ant-design/icons"
 import "./index.css"
 import { ComponentSider } from "./sider"
 import Auth from "../utils/Auth"
+import {getTenantList} from "../api/tenant";
 
 const Components = (props) => {
     const { name, c } = props
     const { Content } = Layout
     const [loading, setLoading] = useState(true)
+    const [authorization, setAuthorization] = useState(null)
     const [tenantId, setTenantId] = useState(null)
     const [error, setError] = useState(false)
-    const [isRendered, setIsRendered] = useState(false) // 新增状态，表示页面是否完全渲染
+    const [isRendered, setIsRendered] = useState(false)
     const contentRef = useRef(null)
 
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken()
 
-    // 检查租户ID
+    // 统一检查认证和租户信息
     useEffect(() => {
-        const checkTenantId = () => {
-            try {
-                const storedTenantId = localStorage.getItem("TenantID")
+        fetchTenantList()
 
-                if (storedTenantId) {
-                    setTenantId(storedTenantId)
-                    setLoading(false)
-                } else {
-                    const retryTimeout = setTimeout(() => {
-                        const retryTenantId = localStorage.getItem("TenantID")
-                        if (retryTenantId) {
-                            setTenantId(retryTenantId)
+        let isMounted = true
+        let retryTimeout
+
+        const checkAuthAndTenant = async () => {
+            try {
+                // 第一次检查
+                const auth = localStorage.getItem("Authorization")
+                const tenant = localStorage.getItem("TenantID")
+
+                if (auth && tenant) {
+                    if (isMounted) {
+                        setAuthorization(auth)
+                        setTenantId(tenant)
+                        setLoading(false)
+                    }
+                    return
+                }
+
+                // 如果没有找到，延迟后再次检查
+                retryTimeout = setTimeout(() => {
+                    const retryAuth = localStorage.getItem("Authorization")
+                    const retryTenant = localStorage.getItem("TenantID")
+
+                    if (isMounted) {
+                        if (retryAuth && retryTenant) {
+                            setAuthorization(retryAuth)
+                            setTenantId(retryTenant)
                             setLoading(false)
                         } else {
+                            console.log("出错啦,",retryAuth,retryTenant)
                             setError(true)
                             setLoading(false)
                         }
-                    }, 2000)
-
-                    return () => clearTimeout(retryTimeout)
-                }
+                    }
+                }, 1000)
             } catch (error) {
                 console.error("Error accessing localStorage:", error)
-                setError(true)
-                setLoading(false)
+                if (isMounted) {
+                    setError(true)
+                    setLoading(false)
+                }
             }
         }
 
-        checkTenantId()
+        checkAuthAndTenant()
+
+        return () => {
+            isMounted = false
+            clearTimeout(retryTimeout)
+        }
     }, [])
 
-    // 使用MutationObserver监听DOM变化，确认内容完全渲染
+    // 监听渲染完成
     useEffect(() => {
-        if (loading || error || !tenantId) return
+        if (loading || error || !authorization || !tenantId) return
 
-        const observer = new MutationObserver((mutations) => {
-            // 当检测到内容变化时，延迟一小段时间确认渲染完成
+        const observer = new MutationObserver(() => {
             const timer = setTimeout(() => {
                 setIsRendered(true)
                 observer.disconnect()
-            }, 300) // 适当延迟确保渲染完成
+            }, 300)
 
             return () => clearTimeout(timer)
         })
@@ -76,20 +100,54 @@ const Components = (props) => {
             })
         }
 
-        // 设置最大等待时间，防止Observer失效
         const maxWaitTimer = setTimeout(() => {
             setIsRendered(true)
             observer.disconnect()
-        }, 3000)
+        }, 1500)
 
         return () => {
             observer.disconnect()
             clearTimeout(maxWaitTimer)
         }
-    }, [loading, error, tenantId])
+    }, [loading, error, authorization, tenantId])
 
     const goBackPage = () => {
         window.history.back()
+    }
+
+    const fetchTenantList = async (userid) => {
+        try {
+            const params = {
+                userId: userid,
+            }
+            const res = await getTenantList(params)
+
+            if (res.data === null || res.data.length === 0) {
+                message.error("该用户没有可用租户")
+                return
+            }
+
+            const opts = res.data.map((key, index) => ({
+                label: key.name,
+                value: key.id,
+                index: index,
+            }))
+
+            if (getTenantName() === null && opts.length > 0) {
+                localStorage.setItem("TenantName", opts[0].label)
+                localStorage.setItem("TenantID", opts[0].value)
+                localStorage.setItem("TenantIndex", opts[0].index)
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch tenant list:", error)
+            localStorage.clear()
+            message.error("获取租户错误, 退出登录")
+        }
+    }
+
+    const getTenantName = () => {
+        return localStorage.getItem("TenantName")
     }
 
     // 全屏加载组件
@@ -112,7 +170,7 @@ const Components = (props) => {
         >
             <Spin indicator={<LoadingOutlined style={{ fontSize: 40 }} spin />} size="large" />
             <Typography.Text type="secondary" style={{ marginTop: 16 }}>
-                {!loading ? "页面渲染中，马上就好..." : "正在获取租户信息..."}
+                {!loading ? "页面准备中..." : "正在验证用户信息..."}
             </Typography.Text>
         </div>
     )
@@ -130,8 +188,8 @@ const Components = (props) => {
         >
             <Result
                 status="error"
-                title="无法获取租户信息"
-                subTitle="请确保您已登录并选择了有效的租户"
+                title="无法获取认证信息"
+                subTitle={!authorization ? "请先登录系统" : "请选择有效的租户"}
                 extra={[
                     <Button
                         type="primary"
@@ -148,12 +206,12 @@ const Components = (props) => {
         </div>
     )
 
-    // 如果还在加载或有错误，显示对应状态
+    // 状态检查优先级：加载中 > 错误/认证失败 > 渲染内容
     if (loading) {
         return <FullScreenLoading />
     }
 
-    if (error || !tenantId) {
+    if (error || authorization === "" || tenantId === "") {
         return <ErrorScreen />
     }
 
