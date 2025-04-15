@@ -291,7 +291,7 @@ export const RuleTemplateGroup = () => {
                     dataSource={list}
                     loading={loading}
                     scroll={{
-                        y: height - 400,
+                        y: height - 350,
                     }}
                     style={{
                         marginTop: "10px",

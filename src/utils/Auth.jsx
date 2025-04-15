@@ -1,59 +1,66 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { message } from 'antd';
-import axios from 'axios';
+"use client"
 
-const Auth = () => {
-    const navigate = useNavigate();
-    const [errorCount, setErrorCount] = useState(0);
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { message } from "antd"
+import axios from "axios"
 
-    // 检查用户是否已经登录
-    useEffect(() => {
-        const checkUser = async () => {
-            const token = localStorage.getItem('Authorization');
-            if (!token) {
-                navigate('/login'); // 未登录，跳转到登录页面
-            }
-        };
+// Create a Higher-Order Component (HOC) instead of a hook
+const Auth = (WrappedComponent) => {
+    // Return a new component
+    return function WithAuthComponent(props) {
+        const navigate = useNavigate()
+        const [errorCount, setErrorCount] = useState(0)
 
-        checkUser();
-    }, [navigate]);
-
-    // 设置全局请求头
-    useEffect(() => {
-        const token = localStorage.getItem('Authorization');
-        if (token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        }
-    }, []);
-
-    // 响应拦截器
-    useEffect(() => {
-        const interceptor = axios.interceptors.response.use(
-            response => response,
-            error => {
-                if (error.response?.status === 401) {
-                    setErrorCount(prevCount => prevCount + 1);
+        // Check if user is logged in
+        useEffect(() => {
+            const checkUser = async () => {
+                const token = localStorage.getItem("Authorization")
+                if (!token) {
+                    navigate("/login") // Redirect to login page if not logged in
                 }
-                return Promise.reject(error);
             }
-        );
 
-        return () => {
-            axios.interceptors.response.eject(interceptor); // 清理拦截器
-        };
-    }, []);
+            checkUser()
+        }, [navigate])
 
-    // 检查错误次数并显示提示消息
-    useEffect(() => {
-        if (errorCount > 0) {
-            localStorage.clear()
-            navigate('/login'); // 跳转到登录页面
-            message.error('登录已过期，请重新登录');
-        }
-    }, [errorCount, navigate]);
+        // Set global request headers
+        useEffect(() => {
+            const token = localStorage.getItem("Authorization")
+            if (token) {
+                axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
+            }
+        }, [])
 
-    return null;
-};
+        // Response interceptor
+        useEffect(() => {
+            const interceptor = axios.interceptors.response.use(
+                (response) => response,
+                (error) => {
+                    if (error.response?.status === 401) {
+                        setErrorCount((prevCount) => prevCount + 1)
+                    }
+                    return Promise.reject(error)
+                }
+            )
 
-export default Auth;
+            return () => {
+                axios.interceptors.response.eject(interceptor) // Clean up interceptor
+            }
+        }, [])
+
+        // Check error count and show message
+        useEffect(() => {
+            if (errorCount > 0) {
+                localStorage.clear()
+                navigate("/login") // Redirect to login page
+                message.error("登录已过期，请重新登录")
+            }
+        }, [errorCount, navigate])
+
+        // Render the wrapped component with all props
+        return <WrappedComponent {...props} />
+    }
+}
+
+export default Auth

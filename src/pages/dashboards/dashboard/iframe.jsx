@@ -38,7 +38,7 @@ export const GrafanaDashboardComponent = () => {
                     style={{
                         margin: '0',
                         width: 'calc(100% + 25px)',
-                        height: 'calc(95vh - 60px - 80px)',
+                        height: 'calc(95vh)',
                         overflow: 'auto',
                     }}
                 />

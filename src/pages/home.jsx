@@ -13,7 +13,7 @@ const { Option } = Select
 const { Title, Text } = Typography
 
 export const Home = () => {
-    const contentMaxHeight = "calc(100vh - 70px - 80px)"
+    const contentMaxHeight = "calc(100vh)"
     const [dashboardInfo, setDashboardInfo] = useState({})
     const [faultCenters, setFaultCenters] = useState([])
     const [selectedFaultCenter, setSelectedFaultCenter] = useState(null)

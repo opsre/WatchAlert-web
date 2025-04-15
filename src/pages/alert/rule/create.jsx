@@ -903,7 +903,7 @@ export const AlertRule = ({ type }) => {
             // flex: 1,
             alignItems: 'flex-start',
             marginTop: '-10px',
-            maxHeight: 'calc((-145px + 100vh) - 65px - 40px)',
+            maxHeight: 'calc((-120px + 100vh))',
             overflowY: 'auto',
         }}>
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>

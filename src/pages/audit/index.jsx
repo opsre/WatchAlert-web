@@ -257,7 +257,7 @@ export const AuditLog = () => {
                         onChange: handlePageChange,
                     }}
                     scroll={{
-                        y: height - 400, // 动态设置滚动高度
+                        y: height - 350, // 动态设置滚动高度
                         x: "max-content", // 水平滚动
                     }}
                     style={{

@@ -1,298 +1,253 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Layout, theme, Avatar, Button, Popover, Spin, Menu, Typography, Dropdown, Space, message } from "antd"
-import { TeamOutlined, DownOutlined, LeftOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons"
-import logoIcon from "../img/logo.jpeg"
-import { getUserInfo } from "../api/user"
-import Auth from "../utils/Auth"
-import { getTenantList } from "../api/tenant"
+import { useState, useEffect, useRef } from "react"
+import { Layout, theme, Button, Typography, Spin, Result } from "antd"
+import { LeftOutlined, LoadingOutlined } from "@ant-design/icons"
 import "./index.css"
 import { ComponentSider } from "./sider"
-import { Link, useNavigate } from "react-router-dom"
+import Auth from "../utils/Auth"
 
-export const ComponentsContent = (props) => {
+const Components = (props) => {
     const { name, c } = props
-    const navigate = useNavigate()
-    const { Header, Content } = Layout
-    const [userInfo, setUserInfo] = useState(null)
+    const { Content } = Layout
     const [loading, setLoading] = useState(true)
-    const [tenantList, setTenantList] = useState([])
-    const [getTenantStatus, setTenantStatus] = useState(null)
-
-    Auth()
+    const [tenantId, setTenantId] = useState(null)
+    const [error, setError] = useState(false)
+    const [isRendered, setIsRendered] = useState(false) // 新增状态，表示页面是否完全渲染
+    const contentRef = useRef(null)
 
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken()
 
-    const handleLogout = () => {
-        localStorage.clear()
-        navigate("/login")
-    }
-
-    const userMenu = (
-        <Menu mode="vertical">
-            <Menu.Item key="profile" icon={<UserOutlined />}>
-                <Link to="/profile">个人信息</Link>
-            </Menu.Item>
-            <Menu.Divider />
-            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout} danger>
-                退出登录
-            </Menu.Item>
-        </Menu>
-    )
-
-    const fetchUserInfo = async () => {
-        try {
-            const res = await getUserInfo()
-            setUserInfo(res.data)
-
-            if (res.data.userid) {
-                await fetchTenantList(res.data.userid)
-            }
-
-            setLoading(false)
-        } catch (error) {
-            console.error("Failed to fetch user info:", error)
-            window.localStorage.removeItem("Authorization")
-            navigate("/login")
-        }
-    }
-
-    const getTenantName = () => {
-        return localStorage.getItem("TenantName")
-    }
-
-    const getTenantIndex = () => {
-        return localStorage.getItem("TenantIndex")
-    }
-
-    const fetchTenantList = async (userid) => {
-        try {
-            const params = {
-                userId: userid,
-            }
-            const res = await getTenantList(params)
-
-            if (res.data === null || res.data.length === 0) {
-                message.error("该用户没有可用租户")
-                return
-            }
-
-            const opts = res.data.map((key, index) => ({
-                label: key.name,
-                value: key.id,
-                index: index,
-            }))
-
-            setTenantList(opts)
-
-            if (getTenantName() === null && opts.length > 0) {
-                localStorage.setItem("TenantName", opts[0].label)
-                localStorage.setItem("TenantID", opts[0].value)
-                localStorage.setItem("TenantIndex", opts[0].index)
-            }
-
-            setTenantStatus(true)
-        } catch (error) {
-            console.error("Failed to fetch tenant list:", error)
-            localStorage.clear()
-            message.error("获取租户错误, 退出登录")
-        }
-    }
-
+    // 检查租户ID
     useEffect(() => {
-        fetchUserInfo()
+        const checkTenantId = () => {
+            try {
+                const storedTenantId = localStorage.getItem("TenantID")
+
+                if (storedTenantId) {
+                    setTenantId(storedTenantId)
+                    setLoading(false)
+                } else {
+                    const retryTimeout = setTimeout(() => {
+                        const retryTenantId = localStorage.getItem("TenantID")
+                        if (retryTenantId) {
+                            setTenantId(retryTenantId)
+                            setLoading(false)
+                        } else {
+                            setError(true)
+                            setLoading(false)
+                        }
+                    }, 2000)
+
+                    return () => clearTimeout(retryTimeout)
+                }
+            } catch (error) {
+                console.error("Error accessing localStorage:", error)
+                setError(true)
+                setLoading(false)
+            }
+        }
+
+        checkTenantId()
     }, [])
 
-    if (loading || !getTenantStatus) {
-        return (
-            <div
-                style={{
-                    height: "100vh",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    background: colorBgContainer,
-                }}
-            >
-                <Spin tip="加载中..." size="large" />
-            </div>
-        )
-    }
+    // 使用MutationObserver监听DOM变化，确认内容完全渲染
+    useEffect(() => {
+        if (loading || error || !tenantId) return
+
+        const observer = new MutationObserver((mutations) => {
+            // 当检测到内容变化时，延迟一小段时间确认渲染完成
+            const timer = setTimeout(() => {
+                setIsRendered(true)
+                observer.disconnect()
+            }, 300) // 适当延迟确保渲染完成
+
+            return () => clearTimeout(timer)
+        })
+
+        if (contentRef.current) {
+            observer.observe(contentRef.current, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                characterData: true
+            })
+        }
+
+        // 设置最大等待时间，防止Observer失效
+        const maxWaitTimer = setTimeout(() => {
+            setIsRendered(true)
+            observer.disconnect()
+        }, 3000)
+
+        return () => {
+            observer.disconnect()
+            clearTimeout(maxWaitTimer)
+        }
+    }, [loading, error, tenantId])
 
     const goBackPage = () => {
         window.history.back()
     }
 
-    const changeTenant = (c) => {
-        localStorage.setItem("TenantIndex", c.key)
-        if (c.item.props.name) {
-            localStorage.setItem("TenantName", c.item.props.name)
-        }
-        if (c.item.props.value) {
-            localStorage.setItem("TenantID", c.item.props.value)
-        }
-        window.location.reload()
+    // 全屏加载组件
+    const FullScreenLoading = () => (
+        <div
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column',
+                backgroundColor: 'white',
+                zIndex: 9999,
+                transition: 'opacity 0.3s ease-out'
+            }}
+        >
+            <Spin indicator={<LoadingOutlined style={{ fontSize: 40 }} spin />} size="large" />
+            <Typography.Text type="secondary" style={{ marginTop: 16 }}>
+                {!loading ? "页面渲染中，马上就好..." : "正在获取租户信息..."}
+            </Typography.Text>
+        </div>
+    )
+
+    // 错误组件
+    const ErrorScreen = () => (
+        <div
+            style={{
+                height: "100vh",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                background: "#f0f2f5",
+            }}
+        >
+            <Result
+                status="error"
+                title="无法获取租户信息"
+                subTitle="请确保您已登录并选择了有效的租户"
+                extra={[
+                    <Button
+                        type="primary"
+                        key="login"
+                        onClick={() => {
+                            localStorage.clear()
+                            window.location.href = "/login"
+                        }}
+                    >
+                        返回登录
+                    </Button>,
+                ]}
+            />
+        </div>
+    )
+
+    // 如果还在加载或有错误，显示对应状态
+    if (loading) {
+        return <FullScreenLoading />
     }
 
-    const tenantMenu = (
-        <Menu selectable defaultSelectedKeys={[getTenantIndex()]} onSelect={changeTenant}>
-            {tenantList.map((item) => (
-                <Menu.Item key={item.index} name={item.label} value={item.value}>
-                    {item.label}
-                </Menu.Item>
-            ))}
-        </Menu>
-    )
+    if (error || !tenantId) {
+        return <ErrorScreen />
+    }
 
+    // 主内容区域
     return (
-        <Layout style={{ height: "100vh", overflow: "hidden", background: "#f0f2f5" }}>
-            {/* Header */}
-            <Header
+        <>
+            {/* 只有当内容完全渲染后才隐藏加载界面 */}
+            {!isRendered && <FullScreenLoading />}
+
+            <Layout
                 style={{
-                    margin: "16px 16px 0",
-                    padding: "0 24px",
-                    background: colorBgContainer,
-                    borderRadius: borderRadiusLG,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    height: "64px",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+                    height: "100vh",
+                    overflow: "hidden",
+                    background: "#f0f2f5",
+                    opacity: isRendered ? 1 : 0, // 添加淡入效果
+                    transition: 'opacity 0.3s ease-in'
                 }}
+                ref={contentRef}
             >
-                {/* Logo and Brand */}
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div style={{ marginTop: "25px" }}>
-                        <img
-                            src={logoIcon || "/placeholder.svg"}
-                            alt="WatchAlert Logo"
-                            style={{ width: "36px", height: "36px", borderRadius: "8px" }}
-                        />
-                    </div>
-                    <Typography.Title level={4} style={{ margin: 0, fontSize: "18px" }}>
-                        WatchAlert
-                    </Typography.Title>
-                </div>
-
-                {/* User and Tenant Info */}
-                <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-                    {/* Tenant Selector */}
-                    <Dropdown overlay={tenantMenu} trigger={["click"]}>
-                        <Typography.Link style={{ fontSize: "14px", color: "#404142" }}>
-                            <Space>
-                                <TeamOutlined />
-                                <span>当前租户: {getTenantName()}</span>
-                                <DownOutlined style={{ fontSize: "12px" }} />
-                            </Space>
-                        </Typography.Link>
-                    </Dropdown>
-
-                    {/* Divider */}
+                <Layout style={{ background: "transparent", marginTop: "16px" }}>
+                    {/* 侧边栏 */}
                     <div
                         style={{
-                            width: "1px",
-                            height: "24px",
-                            backgroundColor: "#e0e0e0",
-                        }}
-                    />
-
-                    {/* User Avatar */}
-                    {userInfo && (
-                        <Popover content={userMenu} trigger="click" placement="bottomRight">
-                            <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-                                <Avatar
-                                    style={{
-                                        backgroundColor: "#7265e6",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                    }}
-                                    size="default"
-                                >
-                                    {userInfo.username ? userInfo.username.charAt(0).toUpperCase() : ""}
-                                </Avatar>
-                            </div>
-                        </Popover>
-                    )}
-                </div>
-            </Header>
-
-            {/* Main Layout */}
-            <Layout style={{ background: "transparent", marginTop: "16px" }}>
-                {/* Sidebar with margin and rounded corners */}
-                <div
-                    style={{
-                        margin: "0 0 0 16px",
-                        width: "220px",
-                        background: colorBgContainer,
-                        borderRadius: borderRadiusLG,
-                        overflow: "hidden",
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
-                        height: "calc(100vh - 112px)",
-                    }}
-                >
-                    <div style={{ height: "100%", overflow: "auto", padding: "16px 0", marginLeft: "10px" }}>
-                        <ComponentSider userInfo={userInfo} />
-                    </div>
-                </div>
-
-                {/* Content Area */}
-                <Layout style={{ background: "transparent", padding: "0 16px 0px 16px" }}>
-                    <Content
-                        style={{
-                            background: colorBgContainer,
+                            margin: "0 0 0 16px",
+                            width: "220px",
                             borderRadius: borderRadiusLG,
-                            padding: "0",
-                            height: "calc(100vh - 112px)",
                             overflow: "hidden",
                             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+                            height: "calc(100vh - 32px)",
+                            background: "#000000",
                         }}
                     >
-                        {/* Page Header with Back Button */}
-                        {name !== "off" && (
-                            <div
-                                style={{
-                                    padding: "16px 24px",
-                                    borderBottom: "1px solid #f0f0f0",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                }}
-                            >
-                                <Button type="text" icon={<LeftOutlined />} onClick={goBackPage} style={{ padding: "4px" }} />
-                                <Typography.Title level={4} style={{ margin: 0, fontSize: "16px" }}>
-                                    {name}
-                                </Typography.Title>
-                            </div>
-                        )}
+                        <div style={{ height: "100%", overflow: "auto", padding: "16px 0", marginLeft: "10px" }}>
+                            <ComponentSider />
+                        </div>
+                    </div>
 
-                        {/* Main Content */}
-                        <div
+                    {/* 内容区域 */}
+                    <Layout style={{ background: "transparent", padding: "0 16px 0px 16px" }}>
+                        <Content
                             style={{
-                                padding: name !== "off" ? "24px" : "0",
-                                height: name !== "off" ? "calc(100% - 53px)" : "100%",
-                                overflow: "auto",
+                                background: colorBgContainer,
+                                borderRadius: borderRadiusLG,
+                                padding: "0",
+                                height: "calc(100vh - 32px)",
+                                overflow: "hidden",
+                                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
                             }}
                         >
-                            {c}
-                        </div>
-                    </Content>
+                            {/* 页面头部 */}
+                            {name !== "off" && (
+                                <div
+                                    style={{
+                                        padding: "16px 24px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                    }}
+                                >
+                                    <Button type="text" icon={<LeftOutlined />} onClick={goBackPage} style={{ padding: "4px" }} />
+                                    <Typography.Title level={4} style={{ margin: 0, fontSize: "16px" }}>
+                                        {name}
+                                    </Typography.Title>
+                                </div>
+                            )}
 
-                    {/* Footer */}
-                    <div
-                        style={{
-                            textAlign: "center",
-                            color: "#B1B1B1",
-                            fontSize: "12px",
-                        }}
-                    >
-                        WatchAlert 提供轻量级一站式监控报警服务!
-                    </div>
+                            {/* 主内容 */}
+                            <div
+                                style={{
+                                    padding: name !== "off" ? "24px" : "0",
+                                    height: name !== "off" ? "calc(100% - 53px)" : "100%",
+                                    overflow: "auto",
+                                }}
+                            >
+                                {c}
+                            </div>
+                        </Content>
+
+                        {/* 页脚 */}
+                        <div
+                            style={{
+                                textAlign: "center",
+                                color: "#B1B1B1",
+                                fontSize: "12px",
+                            }}
+                        >
+                            WatchAlert 提供轻量级一站式监控报警服务!
+                        </div>
+                    </Layout>
                 </Layout>
             </Layout>
-        </Layout>
+        </>
     )
 }
+
+export const ComponentsContent = Auth(Components)

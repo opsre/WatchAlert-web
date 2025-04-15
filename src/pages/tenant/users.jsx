@@ -282,7 +282,7 @@ export const TenantUsers = ({ tenantInfo }) => {
             <Table style={{ overflow: 'hidden' }}  columns={columns} dataSource={userData}
                    scroll={{
                        x: false,
-                       y: 'calc(40vh - 80px - 60px)'
+                       y: 'calc(45vh - 120px)'
                    }}
             />
         </>

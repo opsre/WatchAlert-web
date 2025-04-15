@@ -303,7 +303,7 @@ export const NoticeRecords = () => {
     )
 
     return (
-        <div style={{ minHeight: "100vh" }}>
+        <div style={{ minHeight: "80vh" }}>
             {/* Filters */}
             <div
                 style={{
