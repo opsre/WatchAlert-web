@@ -7,6 +7,7 @@ import "./index.css"
 import { ComponentSider } from "./sider"
 import Auth from "../utils/Auth"
 import {getTenantList} from "../api/tenant";
+import {getUserInfo} from "../api/user";
 
 const Components = (props) => {
     const { name, c } = props
@@ -22,45 +23,42 @@ const Components = (props) => {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken()
 
-    // 统一检查认证和租户信息
+    // 检查认证和租户信息
     useEffect(() => {
-        fetchTenantList()
-
         let isMounted = true
-        let retryTimeout
 
         const checkAuthAndTenant = async () => {
             try {
-                // 第一次检查
                 const auth = localStorage.getItem("Authorization")
                 const tenant = localStorage.getItem("TenantID")
 
-                if (auth && tenant) {
-                    if (isMounted) {
-                        setAuthorization(auth)
-                        setTenantId(tenant)
-                        setLoading(false)
-                    }
+                if (!auth) {
+                    setError(true)
+                    setLoading(false)
                     return
                 }
 
-                // 如果没有找到，延迟后再次检查
-                retryTimeout = setTimeout(() => {
-                    const retryAuth = localStorage.getItem("Authorization")
-                    const retryTenant = localStorage.getItem("TenantID")
-
-                    if (isMounted) {
-                        if (retryAuth && retryTenant) {
-                            setAuthorization(retryAuth)
-                            setTenantId(retryTenant)
-                            setLoading(false)
-                        } else {
-                            console.log("出错啦,",retryAuth,retryTenant)
-                            setError(true)
-                            setLoading(false)
+                // 如果有认证信息但没有租户信息，尝试获取用户信息
+                if (auth && !tenant) {
+                    try {
+                        const userRes = await getUserInfo()
+                        if (userRes.data?.userid) {
+                            await fetchTenantList(userRes.data.userid)
                         }
+                    } catch (err) {
+                        console.error("Failed to fetch user info:", err)
+                        setError(true)
                     }
-                }, 1000)
+                }
+
+                // 再次检查租户信息
+                const updatedTenant = localStorage.getItem("TenantID")
+                if (isMounted) {
+                    setAuthorization(auth)
+                    setTenantId(updatedTenant)
+                    setLoading(false)
+                    setError(!updatedTenant)
+                }
             } catch (error) {
                 console.error("Error accessing localStorage:", error)
                 if (isMounted) {
@@ -74,7 +72,6 @@ const Components = (props) => {
 
         return () => {
             isMounted = false
-            clearTimeout(retryTimeout)
         }
     }, [])
 
@@ -116,38 +113,40 @@ const Components = (props) => {
     }
 
     const fetchTenantList = async (userid) => {
-        try {
-            const params = {
-                userId: userid,
-            }
-            const res = await getTenantList(params)
+        const auth = localStorage.getItem("Authorization")
+        if (!auth) {
+            console.error("Authorization token is missing")
+            setError(true)
+            return
+        }
 
-            if (res.data === null || res.data.length === 0) {
-                message.error("该用户没有可用租户")
+        try {
+            const res = await getTenantList({ userId: userid })
+
+            if (!res?.data || !Array.isArray(res.data) || res.data.length === 0) {
+                console.error("No tenant data available")
+                setError(true)
                 return
             }
 
-            const opts = res.data.map((key, index) => ({
-                label: key.name,
-                value: key.id,
+            const tenantOptions = res.data.map((tenant, index) => ({
+                label: tenant.name,
+                value: tenant.id,
                 index: index,
             }))
 
-            if (getTenantName() === null && opts.length > 0) {
-                localStorage.setItem("TenantName", opts[0].label)
-                localStorage.setItem("TenantID", opts[0].value)
-                localStorage.setItem("TenantIndex", opts[0].index)
-            }
+            // 设置第一个租户为默认
+            const firstTenant = tenantOptions[0]
+            localStorage.setItem("TenantName", firstTenant.label)
+            localStorage.setItem("TenantID", firstTenant.value)
+            localStorage.setItem("TenantIndex", firstTenant.index)
 
+            return tenantOptions
         } catch (error) {
             console.error("Failed to fetch tenant list:", error)
-            localStorage.clear()
-            message.error("获取租户错误, 退出登录")
+            setError(true)
+            throw error
         }
-    }
-
-    const getTenantName = () => {
-        return localStorage.getItem("TenantName")
     }
 
     // 全屏加载组件
@@ -170,7 +169,7 @@ const Components = (props) => {
         >
             <Spin indicator={<LoadingOutlined style={{ fontSize: 40 }} spin />} size="large" />
             <Typography.Text type="secondary" style={{ marginTop: 16 }}>
-                {!loading ? "页面准备中..." : "正在验证用户信息..."}
+                {loading ? "正在验证用户信息..." : "页面准备中..."}
             </Typography.Text>
         </div>
     )
@@ -188,8 +187,8 @@ const Components = (props) => {
         >
             <Result
                 status="error"
-                title="无法获取认证信息"
-                subTitle={!authorization ? "请先登录系统" : "请选择有效的租户"}
+                title={!authorization ? "用户无效" : "租户无效"}
+                subTitle={!authorization ? "请先登录系统" : "未获取到有效的租户"}
                 extra={[
                     <Button
                         type="primary"
@@ -211,7 +210,7 @@ const Components = (props) => {
         return <FullScreenLoading />
     }
 
-    if (error || authorization === "" || tenantId === "") {
+    if (error || !authorization || !tenantId) {
         return <ErrorScreen />
     }
 
