@@ -14,8 +14,8 @@ import {
     ApiOutlined, TeamOutlined, DownOutlined, LogoutOutlined
 } from '@ant-design/icons';
 import {Link, useNavigate} from 'react-router-dom';
-import {Menu, Layout, Typography, Dropdown, Space, message, Spin, theme, Popover, Avatar} from 'antd';
-import logoIcon  from "../../img/logo.jpeg"
+import {Menu, Layout, Typography, Dropdown, Space, message, Spin, theme, Popover, Avatar, Divider} from 'antd';
+import logoIcon from "../../img/logo.jpeg";
 import {getUserInfo} from "../../api/user";
 import {getTenantList} from "../../api/tenant";
 
@@ -294,71 +294,108 @@ export const ComponentSider = () => {
                 background: '#000',
                 borderRadius: '12px',
             }}
-            theme="dark"  // This ensures text/icons are visible against dark background
+            theme="dark"
         >
-            <div style={{ marginLeft: "15px" }}>
-                <div style={{ marginTop: "-20px" }}>
+            {/* 固定在顶部的Logo和租户选择区域 */}
+            <div style={{
+                padding: '16px 16px 0',
+                position: 'sticky',
+                top: 0,
+                zIndex: 1,
+            }}>
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 16,
+                    marginTop: '-40px',
+                }}>
                     <img
                         src={logoIcon || "/placeholder.svg"}
                         alt="WatchAlert Logo"
                         style={{ width: "160px", height: "140px", borderRadius: "8px" }}
                     />
                 </div>
-                <Typography.Title level={4} style={{ margin: 0, fontSize: "18px" }}>
-                    WatchAlert
-                </Typography.Title>
-            </div>
 
-            <div style={{ marginLeft: "25px", marginTop: "-40px" }}>
-                <Dropdown overlay={tenantMenu} trigger={["click"]}>
-                    <Typography.Link style={{ fontSize: "14px", color: "#a6aaaa" }}>
-                        <Space>
-                            <TeamOutlined />
-                            <span>当前租户: {getTenantName()}</span>
-                            <DownOutlined style={{ fontSize: "12px" }} />
-                        </Space>
-                    </Typography.Link>
+                <Dropdown overlay={tenantMenu} trigger={["click"]} placement="bottomLeft">
+                    <div style={{
+                        display: 'flex',
+                        marginTop: '-20px',
+                        alignItems: 'center',
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        marginBottom: '16px',
+                        ':hover': {
+                            background: 'rgba(255, 255, 255, 0.2)',
+                        }
+                    }}>
+                        <TeamOutlined style={{color: '#fff', fontSize: '14px', marginRight: '8px'}}/>
+                        <Typography.Text
+                            style={{color: '#fff', fontSize: '14px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                            {getTenantName()}
+                        </Typography.Text>
+                        <DownOutlined style={{color: '#fff', fontSize: '12px'}}/>
+                    </div>
                 </Dropdown>
             </div>
 
-            <Menu
-                theme="dark"
-                mode="inline"
-                selectedKeys={[selectedMenuKey]}
-                style={{ background: 'transparent', marginTop: "20px" }}
-            >
-                {renderMenuItems(userInfo?.role === 'admin' ? adminMenuItems : userMenuItems)}
-            </Menu>
+            <Divider style={{margin: '0', background: 'rgba(255, 255, 255, 0.1)'}}/>
 
+            {/* 导航菜单 */}
+            <div
+                style={{
+                    textAlign:'left',
+                    alignItems: 'flex-start',
+                    height: '70%',
+                    overflowY: 'auto',
+                }}
+            >
+                <Menu
+                    theme="dark"
+                    mode="inline"
+                    selectedKeys={[selectedMenuKey]}
+                    style={{ background: 'transparent'}}
+                >
+                    {renderMenuItems(userInfo?.role === 'admin' ? adminMenuItems : userMenuItems)}
+                </Menu>
+            </div>
+
+            {/* 固定在底部的用户信息 */}
             <div style={{
-                position: 'fixed',
-                bottom: '20px',
-                left: '20px',
-                zIndex: 1000,
-                background: '#000', // 可选：背景色与导航栏一致
-                padding: '20px',
-                borderRadius: '8px',
+                padding: '10px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
             }}>
-                {userInfo && (
-                    <Popover content={userMenu} trigger="click" placement="topRight">
-                        <div style={{display: "flex", alignItems: "center", cursor: "pointer"}}>
-                            <Avatar
-                                style={{
-                                    backgroundColor: "#7265e6",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                                size="default"
-                            >
-                                {userInfo.username ? userInfo.username.charAt(0).toUpperCase() : ""}
-                            </Avatar>
-                            <span style={{color: "#FFFFFFA6", marginLeft: "10px"}}>
+                <Popover content={userMenu} trigger="click" placement="topRight">
+                    <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        padding: '8px',
+                        borderRadius: '4px',
+                        ':hover': {
+                            background: 'rgba(255, 255, 255, 0.1)',
+                        }
+                    }}>
+                        <Avatar
+                            style={{
+                                backgroundColor: "#7265e6",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                            size="default"
+                        >
+                            {userInfo.username ? userInfo.username.charAt(0).toUpperCase() : ""}
+                        </Avatar>
+                        <div style={{marginLeft: "12px", overflow: 'hidden'}}>
+                            <Typography.Text style={{color: "#FFFFFFA6", display: 'block'}}>
                                 {userInfo.username}
-                            </span>
+                            </Typography.Text>
                         </div>
-                    </Popover>
-                )}
+                    </div>
+                </Popover>
             </div>
         </Sider>
     );

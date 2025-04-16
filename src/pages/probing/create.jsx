@@ -260,7 +260,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
             width: '100%',
             alignItems: 'flex-start',
             marginTop: '-20px',
-            maxHeight: 'calc((-145px + 100vh) - 65px - 40px)',
+            maxHeight: 'calc(-120px + 100vh)',
             overflowY: 'auto',
         }}>
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
