@@ -224,12 +224,12 @@ export const NoticeObjects = () => {
 
             <CreateNoticeObjectModal visible={updateVisible} onClose={handleUpdateModalClose} selectedRow={selectedRow} type='update' handleList={handleList} />
 
-            <div style={{ overflowX: 'auto', marginTop: 10, height: '71vh' }}>
+            <div style={{ overflowX: 'auto', marginTop: 10 }}>
                 <Table
                     columns={columns}
                     dataSource={list}
                     scroll={{
-                        y: height - 350, // 动态设置滚动高度
+                        y: height - 280, // 动态设置滚动高度
                         x: 'max-content', // 水平滚动
                     }}
                     style={{

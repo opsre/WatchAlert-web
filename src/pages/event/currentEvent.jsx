@@ -1,10 +1,29 @@
-import React, { useState, useEffect } from "react"
-import {Table, Button, Drawer, Tag, Select, Space, Input, Modal, Descriptions, Divider, Spin} from "antd"
-import { getCurEventList } from "../../api/event"
-import TextArea from "antd/es/input/TextArea";
-import {ReqAiAnalyze} from "../../api/ai";
-import MarkdownRenderer from "../../utils/MarkdownRenderer";
-import {AlertTriangle} from "lucide-react";
+"use client"
+
+import { useRef } from "react"
+import { useState, useEffect } from "react"
+import {
+    Table,
+    Button,
+    Drawer,
+    Tag,
+    Select,
+    Space,
+    Input,
+    Modal,
+    Descriptions,
+    Divider,
+    Spin,
+    Dropdown,
+    message,
+    Empty,
+} from "antd"
+import {getCurEventList, ProcessAlertEvent} from "../../api/event"
+import TextArea from "antd/es/input/TextArea"
+import { ReqAiAnalyze } from "../../api/ai"
+import MarkdownRenderer from "../../utils/MarkdownRenderer"
+import { AlertTriangle } from "lucide-react"
+import { DownOutlined, ReloadOutlined, SearchOutlined, FilterOutlined } from "@ant-design/icons"
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -24,11 +43,16 @@ export const AlertCurrentEvent = (props) => {
     const [aiAnalyze, setAiAnalyze] = useState(false)
     const [aiAnalyzeContent, setAiAnalyzeContent] = useState({})
     const [analyzeLoading, setAnalyzeLoading] = useState(false)
+    const [selectedRowKeys, setSelectedRowKeys] = useState([])
+    const [batchProcessing, setBatchProcessing] = useState(false)
+    // 添加一个状态来跟踪是否正在进行过滤操作
+    const [isFiltering, setIsFiltering] = useState(false)
+
     // Constants
     const SEVERITY_COLORS = {
-        P0: '#ff4d4f',
-        P1: '#faad14',
-        P2: '#b0e1fb'
+        P0: "#ff4d4f",
+        P1: "#faad14",
+        P2: "#b0e1fb",
     }
 
     const SEVERITY_LABELS = {
@@ -37,17 +61,32 @@ export const AlertCurrentEvent = (props) => {
         P2: "P2",
     }
 
+    const statusMap = {
+        "pre_alert": { color: "#ffe465", text: "预告警" },
+        "alerting": { color: "red", text: "告警中" },
+        "silenced": { color: "grey", text: "静默中" },
+        "pending_recovery": { color: "orange", text: "待恢复" },
+    }
+
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: (selectedKeys) => {
+            setSelectedRowKeys(selectedKeys)
+        },
+    }
+
     const columns = [
         {
             title: "规则名称",
             dataIndex: "rule_name",
             key: "rule_name",
+            ellipsis: true,
         },
         {
             title: "告警等级",
             dataIndex: "severity",
             key: "severity",
-            width: '100px',
+            width: "100px",
             render: (text) => (
                 <Tag
                     color={SEVERITY_COLORS[text]}
@@ -67,19 +106,12 @@ export const AlertCurrentEvent = (props) => {
             ),
         },
         {
-            title: '事件详情',
-            dataIndex: 'annotations',
-            key: 'annotations',
-            width: 'auto',
-            render: (text, record) => (
-                <span>
-                    {record.annotations && (
-                        <span>
-                            {record.annotations.substring(0, 50)}
-                        </span>
-                    )}
-                </span>
-            )
+            title: "事件详情",
+            dataIndex: "annotations",
+            key: "annotations",
+            width: "auto",
+            ellipsis: true,
+            render: (text, record) => <span>{record.annotations && <span>{record.annotations.substring(0, 50)}</span>}</span>,
         },
         {
             title: "初次触发时间",
@@ -100,33 +132,46 @@ export const AlertCurrentEvent = (props) => {
             },
         },
         {
+            title: "认领人",
+            dataIndex: "upgradeState",
+            key: "upgradeState",
+            render: (text) => {
+                return (
+                    <Tag
+                        style={{
+                            borderRadius: "12px",
+                            padding: "0 10px",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                        }}
+                    >
+                        {text.whoAreConfirm || "暂无"}
+                    </Tag>
+                )
+            },
+        },
+        {
             title: "事件状态",
             dataIndex: "status",
             key: "status",
             render: (text) => {
-                const statusMap = {
-                    0: { color: '#ffe465', text: '预告警'},
-                    1: { color: 'red', text: '告警中' },
-                    2: { color: 'grey', text: '静默中' },
-                    3: { color: 'orange', text: '待恢复' },
-                };
-                const status = statusMap[text];
-                return status ? <Tag color={status.color}>{status.text}</Tag> : '未知';
+                const status = statusMap[text]
+                return status ? <Tag color={status.color}>{status.text}</Tag> : "未知"
             },
         },
         {
             title: "操作",
             key: "action",
-            width: '100px',
+            width: "100px",
             render: (_, record) => {
                 return (
-                    <div style={{display:'flex', gap: '10px'}}>
+                    <div style={{ display: "flex", gap: "10px" }}>
                         <Button onClick={() => showDrawer(record)}>详情</Button>
-                        <Button
-                            onClick={() => openAiAnalyze(record)}
-                            disabled={analyzeLoading}
-                        >
-                            {analyzeLoading ? 'Ai 分析中' : 'Ai 分析'}
+                        <Button onClick={() => openAiAnalyze(record)} disabled={analyzeLoading}>
+                            {analyzeLoading ? "Ai 分析中" : "Ai 分析"}
                         </Button>
                     </div>
                 )
@@ -134,26 +179,37 @@ export const AlertCurrentEvent = (props) => {
         },
     ]
 
-    const [height, setHeight] = useState(window.innerHeight);
+    const [height, setHeight] = useState(window.innerHeight)
 
     useEffect(() => {
         // 定义一个处理窗口大小变化的函数
         const handleResize = () => {
-            setHeight(window.innerHeight);
-        };
+            setHeight(window.innerHeight)
+        }
 
         // 监听窗口的resize事件
-        window.addEventListener('resize', handleResize);
+        window.addEventListener("resize", handleResize)
 
         // 在组件卸载时移除监听器
         return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []);
+            window.removeEventListener("resize", handleResize)
+        }
+    }, [])
 
     useEffect(() => {
-        handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
-    }, [selectedDataSource, selectedAlertLevel, searchQuery, currentPagination.pageIndex]) // Added currentPagination.pageIndex to dependencies
+        // 当过滤条件改变时，重置到第一页并获取数据
+        if (isFiltering) {
+            setCurrentPagination((prev) => ({
+                ...prev,
+                pageIndex: 1, // 重置到第一页
+            }))
+            handleCurrentEventList(1, currentPagination.pageSize)
+            setIsFiltering(false) // 重置过滤状态
+        } else {
+            // 正常分页或初始加载
+            handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
+        }
+    }, [id, isFiltering, currentPagination.pageIndex, currentPagination.pageSize])
 
     const showDrawer = (record) => {
         setSelectedEvent(record)
@@ -166,6 +222,7 @@ export const AlertCurrentEvent = (props) => {
 
     const handleCurrentEventList = async (pageIndex, pageSize) => {
         try {
+            setLoading(true)
             const params = {
                 faultCenterId: id,
                 index: pageIndex,
@@ -174,64 +231,77 @@ export const AlertCurrentEvent = (props) => {
                 datasourceType: selectedDataSource || undefined,
                 severity: selectedAlertLevel || undefined,
             }
-            setLoading(true)
             const res = await getCurEventList(params)
-            setLoading(false)
-            const sortedList = res?.data?.list?.sort((a, b) => b.first_trigger_time - a.first_trigger_time) || []
-            setCurrentEventList(sortedList)
-            setCurrentPagination({
-                ...currentPagination,
-                pageIndex: res.data.index,
-                pageTotal: res.data.total,
-            })
+            if (res?.data?.list) {
+                const sortedList = res.data.list.sort((a, b) => b.first_trigger_time - a.first_trigger_time)
+                setCurrentEventList(sortedList)
+
+                // 更新分页信息
+                setCurrentPagination({
+                    ...currentPagination,
+                    pageIndex: res.data.index,
+                    pageTotal: res.data.total,
+                })
+
+                // 检查是否有数据但当前页为空
+                if (res.data.total > 0 && sortedList.length === 0 && pageIndex > 1) {
+                    // 自动跳转到第一页
+                    setCurrentPagination((prev) => ({
+                        ...prev,
+                        pageIndex: 1,
+                    }))
+                    handleCurrentEventList(1, pageSize)
+                }
+            }
         } catch (error) {
-            console.error(error)
+            message.error("获取事件列表失败: " + error.message)
+        } finally {
             setLoading(false)
         }
     }
 
     const handleDataSourceChange = (value) => {
         setSelectedDataSource(value)
+        setIsFiltering(true) // 标记正在过滤
     }
 
     const handleSeverityChange = (value) => {
         setSelectedAlertLevel(value)
+        setIsFiltering(true) // 标记正在过滤
     }
 
     const handleSearch = (value) => {
         setSearchQuery(value)
-    }
-
-    const severityColors = {
-        P0: '#ff4d4f',
-        P1: '#faad14',
-        P2: '#b0e1fb'
+        setIsFiltering(true) // 标记正在过滤
     }
 
     const handleShowTotal = (total, range) => `第 ${range[0]} - ${range[1]} 条 共 ${total} 条`
 
     const handleCurrentPageChange = (page) => {
         setCurrentPagination({ ...currentPagination, pageIndex: page.current, pageSize: page.pageSize })
-        handleCurrentEventList(page.current, page.pageSize)
     }
 
-    const handleCloseAiAnalyze = () =>{
+    const handleRefresh = () => {
+        handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
+    }
+
+    const handleCloseAiAnalyze = () => {
         setAiAnalyze(false)
     }
 
-    const openAiAnalyze = async(record) =>{
+    const openAiAnalyze = async (record) => {
         setAiAnalyze(true)
         setAnalyzeLoading(true)
 
         // 创建 FormData 对象
-        const formData = new FormData();
+        const formData = new FormData()
 
         // 添加表单字段
-        formData.append('rule_name', record.rule_name);
-        formData.append('rule_id', record.rule_id);
-        formData.append('content', record.annotations);
-        formData.append('search_ql', record.searchQL);
-        formData.append('deep', "false")
+        formData.append("rule_name", record.rule_name)
+        formData.append("rule_id", record.rule_id)
+        formData.append("content", record.annotations)
+        formData.append("search_ql", record.searchQL)
+        formData.append("deep", "false")
 
         const params = {
             ruleId: record.rule_id,
@@ -239,25 +309,34 @@ export const AlertCurrentEvent = (props) => {
             datasourceType: record.datasource_type,
             searchQL: record.searchQL,
             fingerprint: record.fingerprint,
-            annotations: record.annotations
+            annotations: record.annotations,
         }
         setAiAnalyzeContent(params)
 
-        const res = await ReqAiAnalyze(formData)
-        setAiAnalyzeContent({
-            ...params,
-            content: res.data,
-        })
-        setAnalyzeLoading(false)
+        try {
+            const res = await ReqAiAnalyze(formData)
+            setAiAnalyzeContent({
+                ...params,
+                content: res.data,
+            })
+        } catch (error) {
+            message.error("AI分析请求失败: " + error.message)
+            setAiAnalyzeContent({
+                ...params,
+                content: "分析失败，请稍后重试。",
+            })
+        } finally {
+            setAnalyzeLoading(false)
+        }
     }
 
-    const AiDeepAnalyze = async  (params) => {
-        const formData = new FormData();
-        formData.append('rule_name', params.ruleName);
-        formData.append('rule_id', params.ruleId);
-        formData.append('content', params.annotations);
-        formData.append('search_ql', params.searchQL);
-        formData.append('deep', "true")
+    const AiDeepAnalyze = async (params) => {
+        const formData = new FormData()
+        formData.append("rule_name", params.ruleName)
+        formData.append("rule_id", params.ruleId)
+        formData.append("content", params.annotations)
+        formData.append("search_ql", params.searchQL)
+        formData.append("deep", "true")
 
         setAiAnalyzeContent({
             ...params,
@@ -265,29 +344,133 @@ export const AlertCurrentEvent = (props) => {
         })
 
         setAnalyzeLoading(true)
-        const res = await ReqAiAnalyze(formData)
-        setAiAnalyzeContent({
-            ...params,
-            content: res.data,
-        })
-        setAnalyzeLoading(false)
+        try {
+            const res = await ReqAiAnalyze(formData)
+            setAiAnalyzeContent({
+                ...params,
+                content: res.data,
+            })
+        } catch (error) {
+            message.error("深度分析请求失败: " + error.message)
+            setAiAnalyzeContent({
+                ...params,
+                content: "深度分析失败，请稍后重试。",
+            })
+        } finally {
+            setAnalyzeLoading(false)
+        }
     }
 
-    const handleAiDeepAnalyze = ()=>{
+    const handleAiDeepAnalyze = () => {
         AiDeepAnalyze(aiAnalyzeContent)
     }
 
-    const [percent, setPercent] = React.useState(-50);
-    const timerRef = React.useRef(null);
-    React.useEffect(() => {
+    const [percent, setPercent] = useState(-50)
+    const timerRef = useRef(null)
+
+    useEffect(() => {
         timerRef.current = setTimeout(() => {
             setPercent((v) => {
-                const nextPercent = v + 5;
-                return nextPercent > 150 ? -50 : nextPercent;
-            });
-        }, 100);
-        return () => clearTimeout(timerRef.current);
-    }, [percent]);
+                const nextPercent = v + 5
+                return nextPercent > 150 ? -50 : nextPercent
+            })
+        }, 100)
+        return () => clearTimeout(timerRef.current)
+    }, [percent])
+
+    // 批量操作菜单
+    const batchOperationMenu = {
+        items: [
+            {
+                key: "batchClaim",
+                label: "批量认领",
+                onClick: () => handleBatchClaim(),
+            },
+            {
+                key: "batchProcess",
+                label: "批量处理",
+                onClick: () => handleBatchProcess(),
+            },
+        ],
+    }
+
+    // 批量操作处理函数
+    const handleBatchClaim = () => {
+        setBatchProcessing(true)
+        if (selectedRowKeys.length === 0) {
+            message.warning("请先选择要认领的事件")
+            setBatchProcessing(false)
+            return
+        }
+
+        Modal.confirm({
+            title: "确认批量认领",
+            content: `确定要认领选中的 ${selectedRowKeys.length} 个事件吗？`,
+            onOk: async () => {
+                try {
+                    const params = {
+                        state: 1,
+                        faultCenterId: id,
+                        fingerprints: selectedRowKeys
+                    }
+                    await ProcessAlertEvent(params)
+                    message.success(`成功认领 ${selectedRowKeys.length} 个事件`)
+                    setSelectedRowKeys([]) // 清空选择
+                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize) // 刷新列表
+                } catch (error) {
+                    message.error("认领失败: " + error.message)
+                } finally {
+                    setBatchProcessing(false)
+                }
+            },
+            onCancel: () => {
+                setBatchProcessing(false)
+            },
+        })
+    }
+
+    const handleBatchProcess = () => {
+        setBatchProcessing(true)
+        if (selectedRowKeys.length === 0) {
+            message.warning("请先选择要处理的事件")
+            setBatchProcessing(false)
+            return
+        }
+
+        Modal.confirm({
+            title: "确认批量处理",
+            content: `确定要处理选中的 ${selectedRowKeys.length} 个事件吗？`,
+            onOk: async () => {
+                try {
+                    const params = {
+                        state: 2,
+                        faultCenterId: id,
+                        fingerprints: selectedRowKeys
+                    }
+                    await ProcessAlertEvent(params)
+
+                    message.success(`成功处理 ${selectedRowKeys.length} 个事件`)
+                    setSelectedRowKeys([]) // 清空选择
+                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize) // 刷新列表
+                } catch (error) {
+                    message.error("处理失败: " + error.message)
+                } finally {
+                    setBatchProcessing(false)
+                }
+            },
+            onCancel: () => {
+                setBatchProcessing(false)
+            },
+        })
+    }
+
+    // 清除所有过滤条件
+    const clearAllFilters = () => {
+        setSearchQuery("")
+        setSelectedDataSource("")
+        setSelectedAlertLevel("")
+        setIsFiltering(true) // 标记正在过滤
+    }
 
     return (
         <div>
@@ -299,97 +482,128 @@ export const AlertCurrentEvent = (props) => {
                 footer={null} // 不显示底部按钮
                 styles={{
                     body: {
-                        height: '700px', // 固定高度
-                        overflowY: 'auto', // 支持垂直滚动
-                        padding: '20px',
-                        backgroundColor: '#f9f9f9', // 灰色背景
-                        borderRadius: '8px', // 圆角
+                        height: "700px", // 固定高度
+                        overflowY: "auto", // 支持垂直滚动
+                        padding: "20px",
+                        backgroundColor: "#f9f9f9", // 灰色背景
+                        borderRadius: "8px", // 圆角
                     },
                 }}
             >
-                <div style={{marginTop: '10px'}}>
-                    <Descriptions items={[
-                        {
-                            key: '1',
-                            label: '规则名称',
-                            children: aiAnalyzeContent.ruleName,
-                        },
-                        {
-                            key: '2',
-                            label: '规则类型',
-                            children: aiAnalyzeContent.datasourceType,
-                        },
-                        {
-                            key: '3',
-                            label: '告警指纹',
-                            children: aiAnalyzeContent.fingerprint,
-                        },
-                    ]}/>
-                    <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                        <Button type="link" onClick={handleAiDeepAnalyze}>
+                <div style={{ marginTop: "10px" }}>
+                    <Descriptions
+                        items={[
+                            {
+                                key: "1",
+                                label: "规则名称",
+                                children: aiAnalyzeContent.ruleName,
+                            },
+                            {
+                                key: "2",
+                                label: "规则类型",
+                                children: aiAnalyzeContent.datasourceType,
+                            },
+                            {
+                                key: "3",
+                                label: "告警指纹",
+                                children: aiAnalyzeContent.fingerprint,
+                            },
+                        ]}
+                    />
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <Button
+                            type="primary"
+                            onClick={handleAiDeepAnalyze}
+                            disabled={analyzeLoading}
+                            style={{ background: "#000" }}
+                        >
                             深度分析
                         </Button>
                     </div>
                 </div>
-                <Divider/>
+                <Divider />
                 {analyzeLoading ? (
-                        <div style={{alignItems: 'center', marginTop: '100px'}}>
-                            <Spin tip="Ai 分析中..." percent={percent}>
-                                <br/>
-                            </Spin>
-                        </div>
-                    ):
-                    <MarkdownRenderer
-                        data={aiAnalyzeContent.content}
-                    />
-                }
-
+                    <div style={{ alignItems: "center", marginTop: "100px", textAlign: "center" }}>
+                        <Spin tip="Ai 分析中..." percent={percent}>
+                            <br />
+                        </Spin>
+                    </div>
+                ) : (
+                    <MarkdownRenderer data={aiAnalyzeContent.content} />
+                )}
             </Modal>
 
-            <Space style={{marginBottom: 16}}>
-                <Search allowClear placeholder="输入搜索关键字" onSearch={handleSearch} style={{width: 200 }} />
-                <Select
-                    placeholder="选择类型"
-                    style={{ width: 150 }}
-                    allowClear
-                    value={selectedDataSource || null}
-                    onChange={handleDataSourceChange}
-                    options={[
-                        { value: "Prometheus", label: "Prometheus" },
-                        { value: "VictoriaMetrics", label: "VictoriaMetrics" },
-                        { value: "AliCloudSLS", label: "AliCloudSLS" },
-                        { value: "Jaeger", label: "Jaeger" },
-                        { value: "Loki", label: "Loki" },
-                        { value: "ElasticSearch", label: "ElasticSearch" },
-                        { value: "VictoriaLogs", label: "VictoriaLogs" },
-                    ]}
-                />
-                <Select
-                    placeholder="选择告警等级"
-                    style={{ width: 150 }}
-                    allowClear
-                    value={selectedAlertLevel || null}
-                    onChange={handleSeverityChange}
-                    options={[
-                        { value: "P0", label: "P0级告警" },
-                        { value: "P1", label: "P1级告警" },
-                        { value: "P2", label: "P2级告警" },
-                    ]}
-                />
-                <Button onClick={() => handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)}>
-                    刷新
-                </Button>
-            </Space>
+            <div style={{ marginBottom: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Space wrap>
+                        <Search
+                            allowClear
+                            placeholder="输入搜索关键字"
+                            onSearch={handleSearch}
+                            style={{ width: 200 }}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            prefix={<SearchOutlined />}
+                        />
+                        <Select
+                            placeholder="选择类型"
+                            style={{ width: 150 }}
+                            allowClear
+                            value={selectedDataSource || null}
+                            onChange={handleDataSourceChange}
+                            options={[
+                                { value: "Prometheus", label: "Prometheus" },
+                                { value: "VictoriaMetrics", label: "VictoriaMetrics" },
+                                { value: "AliCloudSLS", label: "AliCloudSLS" },
+                                { value: "Jaeger", label: "Jaeger" },
+                                { value: "Loki", label: "Loki" },
+                                { value: "ElasticSearch", label: "ElasticSearch" },
+                                { value: "VictoriaLogs", label: "VictoriaLogs" },
+                            ]}
+                        />
+                        <Select
+                            placeholder="选择告警等级"
+                            style={{ width: 150 }}
+                            allowClear
+                            value={selectedAlertLevel || null}
+                            onChange={handleSeverityChange}
+                            options={[
+                                { value: "P0", label: "P0级告警" },
+                                { value: "P1", label: "P1级告警" },
+                                { value: "P2", label: "P2级告警" },
+                            ]}
+                        />
+                        <Button onClick={handleRefresh} icon={<ReloadOutlined />} loading={loading}>
+                            刷新
+                        </Button>
+                        {(searchQuery || selectedDataSource || selectedAlertLevel) && (
+                            <Button onClick={clearAllFilters} icon={<FilterOutlined />}>
+                                清除筛选
+                            </Button>
+                        )}
+                    </Space>
+                    <Space>
+                        <Dropdown menu={batchOperationMenu} disabled={selectedRowKeys.length === 0 || batchProcessing}>
+                            <Button loading={batchProcessing}>
+                                批量操作 <DownOutlined />
+                            </Button>
+                        </Dropdown>
+                    </Space>
+                </div>
+            </div>
 
             <Table
                 columns={columns}
                 dataSource={currentEventList}
                 loading={loading}
+                rowSelection={rowSelection}
                 pagination={{
                     current: currentPagination.pageIndex,
                     pageSize: currentPagination.pageSize,
                     total: currentPagination.pageTotal,
                     showTotal: handleShowTotal,
+                    showSizeChanger: true,
+                    pageSizeOptions: ["10", "20", "50", "100"],
                 }}
                 onChange={handleCurrentPageChange}
                 style={{
@@ -398,64 +612,112 @@ export const AlertCurrentEvent = (props) => {
                     overflow: "hidden",
                 }}
                 rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
-                rowKey={(record) => record.id}
+                rowKey={(record) => record.fingerprint}
                 scroll={{
                     y: height - 480,
-                    x: 'max-content', // 水平滚动
+                    x: "max-content", // 水平滚动
+                }}
+                locale={{
+                    emptyText: <Empty description="暂无告警事件" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
                 }}
             />
 
-            <Drawer title="事件详情" placement="right" onClose={onCloseDrawer} open={drawerOpen} width={520}>
+            <Drawer
+                title="事件详情"
+                placement="right"
+                onClose={onCloseDrawer}
+                open={drawerOpen}
+                width={520}
+                styles={{
+                    body: { padding: "16px" },
+                }}
+            >
                 {selectedEvent && (
                     <div>
-                        <h4>规则名称:</h4>
-                        <p>{selectedEvent.rule_name}</p>
-                        <h4>告警指纹:</h4>
-                        <p>{selectedEvent.fingerprint}</p>
-                        <h4>数据源:</h4>
-                        <p>
-                            {selectedEvent.datasource_type} ({selectedEvent.datasource_id})
-                        </p>
-                        <h4>告警等级:</h4>
-                        <p>{selectedEvent.severity}</p>
-                        <h4>事件标签:</h4>
-                        {Object.entries(selectedEvent.metric).map(([key, value]) => (
-                            <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
-                        ))}
-                        <h4>事件状态:</h4>
-                        <p>{
-                            <Tag
-                                color={
-                                    selectedEvent.status === 0 ? '#ffe465' :
-                                        selectedEvent.status === 1 ? 'red' :
-                                            selectedEvent.status === 2 ? 'gray' :
-                                                selectedEvent.status === 3 ? 'orange' : 'black'
-                                }>
+                        <Descriptions
+                            title="基本信息"
+                            bordered
+                            column={1}
+                            style={{ marginBottom: "24px" }}
+                            items={[
                                 {
-                                    selectedEvent.status === 0 ? '预告警' :
-                                        selectedEvent.status === 1 ? '告警中' :
-                                            selectedEvent.status === 2 ? '静默中' :
-                                                selectedEvent.status === 3 ? '待恢复' : '未知'
-                                }
-                            </Tag>
-                        }
-                        </p>
-                        <h4>触发时值:</h4>
-                        <p>{selectedEvent.metric["value"]}</p>
-                        <h4>事件详情:</h4>
-                        <p>{
+                                    key: "rule_name",
+                                    label: "规则名称",
+                                    children: selectedEvent.rule_name,
+                                },
+                                {
+                                    key: "fingerprint",
+                                    label: "告警指纹",
+                                    children: selectedEvent.fingerprint,
+                                },
+                                {
+                                    key: "datasource",
+                                    label: "数据源",
+                                    children: `${selectedEvent.datasource_type} (${selectedEvent.datasource_id})`,
+                                },
+                                {
+                                    key: "severity",
+                                    label: "告警等级",
+                                    children: <Tag color={SEVERITY_COLORS[selectedEvent.severity]}>{selectedEvent.severity}</Tag>,
+                                },
+                                {
+                                    key: "status",
+                                    label: "事件状态",
+                                    children: (
+                                        <Tag color={statusMap[selectedEvent.status].color}>{statusMap[selectedEvent.status].text}</Tag>
+                                    ),
+                                },
+                                {
+                                    key: "value",
+                                    label: "触发时值",
+                                    children: selectedEvent.metric["value"],
+                                },
+                                {
+                                    key: "confirm",
+                                    label: "认领人",
+                                    children: (
+                                        <Tag
+                                            style={{
+                                                borderRadius: "12px",
+                                                padding: "0 10px",
+                                                fontSize: "12px",
+                                                fontWeight: "500",
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                gap: "4px",
+                                            }}
+                                        >
+                                            {selectedEvent?.upgradeState?.whoAreConfirm || "暂无"}
+                                        </Tag>
+                                    ),
+                                },
+                            ]}
+                        />
+
+                        <div style={{ marginBottom: "16px" }}>
+                            <h4>事件标签:</h4>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                {Object.entries(selectedEvent.metric).map(([key, value]) => (
+                                    <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4>事件详情:</h4>
                             <TextArea
                                 value={selectedEvent.annotations}
                                 style={{
                                     height: 300,
-                                    resize: 'none',
+                                    resize: "none",
+                                    marginTop: "8px",
                                 }}
+                                readOnly
                             />
-                        }</p>
+                        </div>
                     </div>
                 )}
             </Drawer>
         </div>
     )
 }
-

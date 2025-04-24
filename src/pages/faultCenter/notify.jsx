@@ -1,349 +1,548 @@
-import React, { useState, useEffect } from 'react';
-import { Input, Descriptions, Tabs, Button, Select, Tooltip, Switch, Form } from 'antd';
-import { EditOutlined, CheckOutlined, CloseOutlined, QuestionCircleOutlined } from '@ant-design/icons';
-import { FaultCenterReset, FaultCenterSearch, FaultCenterUpdate } from '../../api/faultCenter';
-import { useParams } from 'react-router-dom';
-import { getNoticeList } from '../../api/notice';
+"use client"
 
-const MyFormItemContext = React.createContext([]);
+import { useState, useEffect, createContext, useContext, useMemo } from "react"
+import {
+    Input,
+    Button,
+    Select,
+    Tooltip,
+    Switch,
+    Form,
+    Typography,
+    Space,
+    Row,
+    Col,
+    Empty,
+    message,
+    Spin,
+    Divider
+} from "antd"
+import {
+    EditOutlined,
+    CheckOutlined,
+    CloseOutlined,
+    BellOutlined,
+    PlusOutlined,
+    MinusOutlined,
+    TagOutlined,
+    ClockCircleOutlined,
+    InfoCircleOutlined,
+    TeamOutlined,
+    SettingOutlined,
+} from "@ant-design/icons"
+import { FaultCenterSearch, FaultCenterUpdate } from "../../api/faultCenter"
+import { useParams } from "react-router-dom"
+import { getNoticeList } from "../../api/notice"
+
+const { Title, Text, Paragraph } = Typography
+
+// Form context for nested fields
+const MyFormItemContext = createContext([])
 
 function toArr(str) {
-    return Array.isArray(str) ? str : [str];
+    return Array.isArray(str) ? str : [str]
 }
 
-// 表单组
+// Form group component
 const MyFormItemGroup = ({ prefix, children }) => {
-    const prefixPath = React.useContext(MyFormItemContext);
-    const concatPath = React.useMemo(() => [...prefixPath, ...toArr(prefix)], [prefixPath, prefix]);
-    return <MyFormItemContext.Provider value={concatPath}>{children}</MyFormItemContext.Provider>;
-};
+    const prefixPath = useContext(MyFormItemContext)
+    const concatPath = useMemo(() => [...prefixPath, ...toArr(prefix)], [prefixPath, prefix])
+    return <MyFormItemContext.Provider value={concatPath}>{children}</MyFormItemContext.Provider>
+}
 
-// 表单
+// Form item component
 const MyFormItem = ({ name, ...props }) => {
-    const prefixPath = React.useContext(MyFormItemContext);
-    const concatName = name !== undefined ? [...prefixPath, ...toArr(name)] : undefined;
-    return <Form.Item name={concatName} {...props} />;
-};
+    const prefixPath = useContext(MyFormItemContext)
+    const concatName = name !== undefined ? [...prefixPath, ...toArr(name)] : undefined
+    return <Form.Item name={concatName} {...props} />
+}
 
 export const FaultCenterNotify = () => {
-    const { id } = useParams();
-    const [form] = Form.useForm();
-    const [detail, setDetail] = useState({});
-    const [noticeRoutes, setNoticeRoutes] = useState([]); // 动态更新 noticeRoutes
-    const [noticeLabels, setNoticeLabels] = useState([]); // noticeLabel
-    const [noticeOptions, setNoticeOptions] = useState([]); // 通知对象列表
-    const [editable, setEditable] = useState(false); // 编辑状态
+    const { id } = useParams()
+    const [form] = Form.useForm()
+    const [detail, setDetail] = useState({})
+    const [noticeRoutes, setNoticeRoutes] = useState([])
+    const [noticeLabels, setNoticeLabels] = useState([])
+    const [noticeOptions, setNoticeOptions] = useState([])
+    const [editable, setEditable] = useState(false)
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
 
     useEffect(() => {
-        handleList();
-        handleGetNoticeData();
-    }, []);
+        handleList()
+        handleGetNoticeData()
+    }, [])
 
     const handleList = async () => {
         try {
-            const params = { id };
-            const res = await FaultCenterSearch(params);
-            setDetail(res.data);
-            console.log(res.data);
+            setLoading(true)
+            const params = { id }
+            const res = await FaultCenterSearch(params)
+            setDetail(res.data)
 
-            // 回显数据
+            // Set form values
             form.setFieldsValue({
                 noticeIds: res.data.noticeIds,
                 repeatNoticeInterval: res.data.repeatNoticeInterval,
                 recoverNotify: res.data.recoverNotify,
                 alarmAggregation: res.data.alarmAggregation,
                 recoverWaitTime: res.data.recoverWaitTime,
-            });
+            })
 
-            // 将 noticeRoutes 映射到 noticeLabels
+            // Map noticeRoutes to noticeLabels
             if (res.data.noticeRoutes && res.data.noticeRoutes.length > 0) {
                 const labels = res.data.noticeRoutes.map((group) => ({
                     key: group.key,
                     value: group.value,
                     noticeIds: group.noticeIds,
-                }));
-                setNoticeLabels(labels);
-                setNoticeRoutes(labels); // 同步更新 noticeRoutes
+                }))
+                setNoticeLabels(labels)
+                setNoticeRoutes(labels)
             } else {
-                setNoticeLabels([]); // 如果没有 sNoticeRoutes，清空 noticeLabels
-                setNoticeRoutes([]);
+                setNoticeLabels([])
+                setNoticeRoutes([])
             }
         } catch (error) {
-            console.error(error);
+            console.error("Failed to fetch data:", error)
+            message.error("获取通知配置失败")
+        } finally {
+            setLoading(false)
         }
-    };
+    }
 
-    // 动态更新 setNoticeRoutes
+    // Update noticeRoutes when noticeLabels change
     useEffect(() => {
         const updatedNoticeRoutes = noticeLabels.map((label) => ({
             key: label.key,
             value: label.value,
             noticeIds: label.noticeIds,
-        }));
-        setNoticeRoutes(updatedNoticeRoutes);
-    }, [noticeLabels]);
+        }))
+        setNoticeRoutes(updatedNoticeRoutes)
+    }, [noticeLabels])
 
-    // 添加标签
+    // Add a new label
     const addLabel = () => {
-        setNoticeLabels([...noticeLabels, { key: '', value: '', noticeIds: [] }]);
-    };
+        setNoticeLabels([...noticeLabels, { key: "", value: "", noticeIds: [] }])
+    }
 
-    // 更新标签
+    // Update a label
     const updateLabel = (index, field, value) => {
-        const updatedLabels = [...noticeLabels];
-        updatedLabels[index][field] = value;
-        setNoticeLabels(updatedLabels);
-    };
+        const updatedLabels = [...noticeLabels]
+        updatedLabels[index][field] = value
+        setNoticeLabels(updatedLabels)
+    }
 
-    // 删除标签
+    // Remove a label
     const removeLabel = (index) => {
-        const updatedLabels = [...noticeLabels];
-        updatedLabels.splice(index, 1);
-        setNoticeLabels(updatedLabels);
-    };
+        const updatedLabels = [...noticeLabels]
+        updatedLabels.splice(index, 1)
+        setNoticeLabels(updatedLabels)
+    }
 
-    // 切换编辑状态
+    // Toggle edit mode
     const toggleEdit = () => {
-        setEditable(!editable);
-    };
+        setEditable(!editable)
+    }
 
-    // 保存修改
+    // Save changes
     const handleSave = async () => {
-        const values = form.getFieldsValue();
-        const params = {
-            ...detail,
-            ...values,
-            noticeRoutes: noticeRoutes, // 使用动态更新的 noticeRoutes
-            repeatNoticeInterval: Number(values.repeatNoticeInterval),
-            recoverWaitTime: Number(values.recoverWaitTime),
-        };
-        await FaultCenterUpdate(params);
-        setEditable(false);
-    };
+        try {
+            setSaving(true)
+            await form.validateFields()
+            const values = form.getFieldsValue()
 
-    // 取消编辑
+            // Validate noticeRoutes
+            const hasEmptyFields = noticeRoutes.some(
+                (route) => !route.key || !route.value || !route.noticeIds || route.noticeIds.length === 0,
+            )
+
+            if (noticeRoutes.length > 0 && hasEmptyFields) {
+                message.error("告警路由配置不完整，请检查所有字段")
+                setSaving(false)
+                return
+            }
+
+            const params = {
+                ...detail,
+                ...values,
+                noticeRoutes: noticeRoutes,
+                repeatNoticeInterval: Number(values.repeatNoticeInterval),
+                recoverWaitTime: Number(values.recoverWaitTime),
+            }
+
+            await FaultCenterUpdate(params)
+            setEditable(false)
+        } catch (error) {
+            console.error("Save failed:", error)
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    // Cancel editing
     const handleCancel = () => {
-        setEditable(false);
-        // 重置表单数据
-        handleList();
-    };
+        setEditable(false)
+        handleList()
+    }
 
-    // 获取通知对象列表
+    // Get notification options
     const handleGetNoticeData = async () => {
-        const res = await getNoticeList();
-        const newData = res.data?.map((item) => ({
-            label: item.name,
-            value: item.uuid,
-        }));
-        setNoticeOptions(newData);
-    };
+        try {
+            const res = await getNoticeList()
+            const newData = res.data?.map((item) => ({
+                label: item.name,
+                value: item.uuid,
+            }))
+            setNoticeOptions(newData)
+        } catch (error) {
+            console.error("Failed to fetch notice data:", error)
+        }
+    }
+
+    if (loading) {
+        return (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "400px" }}>
+                <Spin size="large" tip="加载中..." />
+            </div>
+        )
+    }
 
     return (
-        <Form form={form} initialValues={detail}>
-            {/* 按钮组 */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-                {editable ? (
-                    <>
-                        <Button
-                            type="primary"
-                            icon={<CheckOutlined />}
-                            onClick={handleSave}
-                            style={{ marginRight: '8px', backgroundColor: '#000', borderColor: '#000' }}
-                        >
-                            保存
-                        </Button>
-                        <Button
-                            icon={<CloseOutlined />}
-                            onClick={handleCancel}
-                            style={{ backgroundColor: '#fff', borderColor: '#d9d9d9', color: '#000' }}
-                        >
-                            取消
-                        </Button>
-                    </>
-                ) : (
-                    <Button
-                        type="primary"
-                        icon={<EditOutlined />}
-                        onClick={toggleEdit}
-                        style={{ backgroundColor: '#000', borderColor: '#000' }}
-                    >
-                        编辑
-                    </Button>
-                )}
-            </div>
-
-            <div style={{
-                textAlign: 'left', position: 'relative', paddingBottom: '60px',
-                width: '100%',
-                alignItems: 'flex-start',
-                maxHeight: 'calc((-145px + 70vh) - 65px - 40px)',
-                overflowY: 'auto',
-            }}>
-                <MyFormItem
-                    name="noticeIds"
-                    label="通知对象"
-                    tooltip="默认通知对象"
-                    style={{
-                        marginRight: '10px',
-                        width: '100%',
-                    }}
-                    rules={[
-                        {
-                            required: true,
-                        },
-                    ]}
-                >
-                    <Select
-                        mode={"multiple"}
-                        style={{
-                            width: '100%',
-                        }}
-                        allowClear
-                        placeholder="选择通知对象"
-                        options={noticeOptions}
-                        disabled={!editable}
-                    />
-                </MyFormItem>
-
-                <MyFormItem
-                    name="repeatNoticeInterval"
-                    label="重复通知"
-                    style={{ width: '100%' }}
-                    rules={[
-                        {
-                            required: true,
-                            message: '请输入重复通知间隔时间',
-                        }
-                    ]}
-                >
-                    <Input
-                        type="number"
-                        style={{ width: '100%' }}
-                        addonAfter="分钟"
-                        placeholder="60"
-                        min={1}
-                        disabled={!editable}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            if (value !== '' && !/^\d+$/.test(value)) {
-                                e.target.value = value.replace(/\D/g, ''); // 移除非数字字符
-                            }
-                        }}
-                    />
-                </MyFormItem>
-
-                <MyFormItem
-                    name="recoverWaitTime"
-                    label="恢复等待"
-                    tooltip={"告警恢复等待时间间隔（为了防止在告警触发恢复后紧接着再次触发告警条件，单位分钟默认1m）"}
-                    style={{ width: '100%' }}
-                    rules={[
-                        {
-                            required: true,
-                            message: '请输入恢复等待时间',
-                        }
-                    ]}
-                >
-                    <Input
-                        type="number"
-                        style={{ width: '100%' }}
-                        addonAfter="分钟"
-                        placeholder="1"
-                        min={1}
-                        disabled={!editable}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            if (value !== '' && !/^\d+$/.test(value)) {
-                                e.target.value = value.replace(/\D/g, ''); // 移除非数字字符
-                            }
-                        }}
-                    />
-                </MyFormItem>
-
-                <div style={{display: 'flex', marginTop: '10px', alignItems: 'center'}}>
-                    <MyFormItem style={{marginBottom: '0', marginRight: '10px'}}>
-                        <span>告警路由</span>
-                        <Tooltip title="根据 Metric 标签路由到相应的通知对象">
-                            <QuestionCircleOutlined style={{color: '#1890ff', marginLeft: '4px'}}/>
-                        </Tooltip>
-                    </MyFormItem>
-                    <Button onClick={addLabel} style={{marginTop: '0'}} disabled={!editable}>
-                        +
-                    </Button>
-                </div>
-
-                <div style={{marginTop: '20px'}}>
-                    <MyFormItemGroup prefix={['noticeRoutes']}>
-                        {noticeLabels.length >= 1 ? (
-                            <div style={{display: 'flex'}}>
-                                <label style={{marginRight: '29%'}}>* Key</label>
-                                <label style={{marginRight: '28%'}}>* Value</label>
-                                <label style={{marginRight: '27%'}}>* 通知对象</label>
-                                <label>操作</label>
-                            </div>
-                        ) : null}
-                        {noticeLabels?.map((label, index) => (
-                            <div style={{display: 'flex', alignItems: 'center', marginTop: '10px'}}>
-                                <Input
-                                    name={`[${index}].key`}
-                                    placeholder="Key"
-                                    style={{
-                                        marginRight: '10px',
-                                        width: 'calc((100% / 3) - 20px)',
-                                        height: '32px',
-                                    }}
-                                    value={label.key} // 回显 key
-                                    onChange={(e) => updateLabel(index, 'key', e.target.value)}
-                                    disabled={!editable}
-                                />
-
-                                <Input
-                                    name={`[${index}].value`}
-                                    placeholder="Value"
-                                    style={{
-                                        marginRight: '10px',
-                                        width: 'calc((100% / 3) - 20px)',
-                                        height: '32px',
-                                    }}
-                                    value={label.value} // 回显 value
-                                    onChange={(e) => updateLabel(index, 'value', e.target.value)}
-                                    disabled={!editable}
-                                />
-
-                                <Select
-                                    mode={"multiple"}
-                                    name={`[${index}].noticeIds`}
-                                    placeholder="选择通知对象"
-                                    style={{width: 'calc((100% / 3) - 20px)', height: '32px'}}
-                                    allowClear
-                                    options={noticeOptions}
-                                    value={label.noticeIds} // 回显 noticeIds
-                                    onChange={(value) => updateLabel(index, 'noticeIds', value)}
-                                    disabled={!editable}
-                                />
-
-                                <Button onClick={() => removeLabel(index)} style={{marginLeft: '10px'}}
-                                        disabled={!editable}>
-                                    -
+        <div className="notify-config-container" style={{ padding: "24px", background: "#f5f7fa", borderRadius: "8px" }}>
+            <div style={{ marginBottom: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Title level={4} style={{ margin: 0 }}>
+                        <BellOutlined style={{ marginRight: "12px" }} />
+                        通知配置
+                    </Title>
+                    <Space>
+                        {editable ? (
+                            <>
+                                <Button
+                                    type="primary"
+                                    icon={<CheckOutlined />}
+                                    onClick={handleSave}
+                                    loading={saving}
+                                    style={{ backgroundColor: '#000', borderColor: '#000' }}
+                                >
+                                    保存
                                 </Button>
-                            </div>
-                        ))}
-                    </MyFormItemGroup>
+                                <Button
+                                    icon={<CloseOutlined />}
+                                    onClick={handleCancel}
+                                    style={{ backgroundColor: '#fff', borderColor: '#d9d9d9', color: '#000' }}
+                                >
+                                    取消
+                                </Button>
+                            </>
+                        ) : (
+                            <Button
+                                type="primary"
+                                icon={<EditOutlined />}
+                                onClick={toggleEdit}
+                                style={{ backgroundColor: '#000', borderColor: '#000' }}
+                            >
+                                编辑
+                            </Button>
+                        )}
+                    </Space>
                 </div>
-
-                <div style={{marginTop: '10px'}}>
-                    <MyFormItem style={{marginBottom: 0}} name="recoverNotify">
-                        <div style={{display: 'flex', alignItems: 'center'}}>
-                            <span style={{marginRight: 8}}>恢复通知</span>
-                            <Switch
-                                checked={form.getFieldValue('recoverNotify')}
-                                onChange={(checked) => form.setFieldsValue({recoverNotify: checked})}
-                                disabled={!editable}
-                            />
-                        </div>
-                    </MyFormItem>
-                </div>
+                <Text type="secondary">🔔: 配置告警通知规则，确保告警信息能够及时送达相关人员</Text>
             </div>
-        </Form>
-    );
-};
+
+            <Form
+                form={form}
+                initialValues={detail}
+                layout="vertical"
+                requiredMark="optional"
+                className={editable ? "form-editable" : ""}
+            >
+                <Row gutter={24}>
+                    <Col xs={24} lg={12}>
+                        <div
+                            style={{
+                                padding: "24px",
+                                background: "#fff",
+                                borderRadius: "12px",
+                                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
+                                marginBottom: "24px",
+                                border: "1px solid #f0f0f0"
+                            }}
+                        >
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                marginBottom: "16px",
+                                paddingBottom: "16px",
+                                borderBottom: "1px solid #f0f0f0"
+                            }}>
+                                <SettingOutlined style={{ marginRight: "8px", color: "#1677ff" }} />
+                                <Text strong>基本配置</Text>
+                            </div>
+
+                            <MyFormItem
+                                name="noticeIds"
+                                label={
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        <TeamOutlined style={{ marginRight: "8px", color: "#1677ff" }} />
+                                        <span>默认通知对象</span>
+                                    </div>
+                                }
+                                tooltip="默认接收告警通知的对象"
+                                rules={[{ required: true, message: "请选择默认通知对象" }]}
+                            >
+                                <Select
+                                    mode="multiple"
+                                    allowClear
+                                    placeholder="选择通知对象"
+                                    options={noticeOptions}
+                                    disabled={!editable}
+                                    style={{ width: "100%" }}
+                                    optionFilterProp="label"
+                                    showSearch
+                                    tagRender={(props) => (
+                                        <span
+                                            style={{
+                                                display: "inline-block",
+                                                padding: "0 8px",
+                                                backgroundColor: "#e6f4ff",
+                                                borderRadius: "4px",
+                                                marginRight: "4px",
+                                                lineHeight: "22px",
+                                            }}
+                                        >
+                                            {props.label}
+                                        </span>
+                                    )}
+                                />
+                            </MyFormItem>
+
+                            <MyFormItem
+                                name="repeatNoticeInterval"
+                                label={
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        <ClockCircleOutlined style={{ marginRight: "8px", color: "#faad14" }} />
+                                        <span>重复通知间隔</span>
+                                    </div>
+                                }
+                                tooltip="告警持续存在时，重复发送通知的时间间隔"
+                                rules={[{ required: true, message: "请输入重复通知间隔时间" }]}
+                            >
+                                <Input
+                                    type="number"
+                                    addonAfter="分钟"
+                                    placeholder="请输入间隔时间，如 60"
+                                    min={1}
+                                    disabled={!editable}
+                                    style={{ borderRadius: "6px" }}
+                                    onChange={(e) => {
+                                        const value = e.target.value
+                                        if (value !== "" && !/^\d+$/.test(value)) {
+                                            e.target.value = value.replace(/\D/g, "")
+                                        }
+                                    }}
+                                />
+                            </MyFormItem>
+
+                            <MyFormItem
+                                name="recoverWaitTime"
+                                label={
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        <ClockCircleOutlined style={{ marginRight: "8px", color: "#52c41a" }} />
+                                        <span>恢复等待时间</span>
+                                    </div>
+                                }
+                                tooltip="告警恢复后，等待多长时间确认不再触发才发送恢复通知"
+                                rules={[{ required: true, message: "请输入恢复等待时间" }]}
+                            >
+                                <Input
+                                    type="number"
+                                    addonAfter="分钟"
+                                    placeholder="请输入等待时间，如 1"
+                                    min={1}
+                                    disabled={!editable}
+                                    style={{ borderRadius: "6px" }}
+                                    onChange={(e) => {
+                                        const value = e.target.value
+                                        if (value !== "" && !/^\d+$/.test(value)) {
+                                            e.target.value = value.replace(/\D/g, "")
+                                        }
+                                    }}
+                                />
+                            </MyFormItem>
+
+                            <div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
+                                <MyFormItem name="recoverNotify" valuePropName="checked" noStyle>
+                                    <Switch disabled={!editable} />
+                                </MyFormItem>
+                                <Text style={{ marginLeft: "12px" }}>启用恢复通知</Text>
+                                <Tooltip title="当告警恢复时，是否发送恢复通知">
+                                    <InfoCircleOutlined style={{ color: "#8c8c8c", marginLeft: "8px" }} />
+                                </Tooltip>
+                            </div>
+                        </div>
+                    </Col>
+
+                    <Col xs={24} lg={12}>
+                        <div
+                            style={{
+                                padding: "24px",
+                                background: "#fff",
+                                borderRadius: "12px",
+                                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
+                                border: "1px solid #f0f0f0",
+                                minHeight: "300px"
+                            }}
+                        >
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                marginBottom: "16px",
+                                paddingBottom: "16px",
+                                borderBottom: "1px solid #f0f0f0",
+                            }}>
+                                <div style={{ display: "flex", alignItems: "center" }}>
+                                    <TagOutlined style={{ marginRight: "8px", color: "#1677ff" }} />
+                                    <Text strong>告警路由</Text>
+                                    <Tooltip title="根据 Metric 标签路由到相应的通知对象">
+                                        <InfoCircleOutlined style={{ color: "#8c8c8c", marginLeft: "8px" }} />
+                                    </Tooltip>
+                                </div>
+                                {editable && (
+                                    <Button
+                                        type="primary"
+                                        icon={<PlusOutlined />}
+                                        onClick={addLabel}
+                                        size="small"
+                                        style={{ backgroundColor: '#000', borderColor: '#000' }}
+                                    >
+                                        添加路由
+                                    </Button>
+                                )}
+                            </div>
+
+                            <Paragraph style={{ marginBottom: "16px" }}>
+                                <Text type="secondary">
+                                    告警路由可以根据标签将告警发送给特定的通知对象，优先级高于默认通知对象
+                                </Text>
+                            </Paragraph>
+
+                            <MyFormItemGroup prefix={["noticeRoutes"]}>
+                                {noticeLabels.length > 0 ? (
+                                    <div style={{ marginBottom: "16px" }}>
+                                        <Row gutter={16}>
+                                            <Col span={6}>
+                                                <Text >标签 Key</Text>
+                                            </Col>
+                                            <Col span={6}>
+                                                <Text >标签 Value</Text>
+                                            </Col>
+                                            <Col span={9}>
+                                                <Text >通知对象</Text>
+                                            </Col>
+                                            <Col span={3}>
+                                                <Text >操作</Text>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                ) : (
+                                    <Empty
+                                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                        description="暂无告警路由配置"
+                                        style={{ margin: "40px 0" }}
+                                    />
+                                )}
+
+                                {noticeLabels?.map((label, index) => (
+                                    <div key={index} style={{ marginBottom: "16px" }}>
+                                        <Row gutter={16} align="middle">
+                                            <Col span={6}>
+                                                <Input
+                                                    name={`[${index}].key`}
+                                                    placeholder="输入标签 Key"
+                                                    value={label.key}
+                                                    onChange={(e) => updateLabel(index, "key", e.target.value)}
+                                                    disabled={!editable}
+                                                    style={{ borderRadius: "6px" }}
+                                                />
+                                            </Col>
+                                            <Col span={6}>
+                                                <Input
+                                                    name={`[${index}].value`}
+                                                    placeholder="输入标签 Value"
+                                                    value={label.value}
+                                                    onChange={(e) => updateLabel(index, "value", e.target.value)}
+                                                    disabled={!editable}
+                                                    style={{ borderRadius: "6px" }}
+                                                />
+                                            </Col>
+                                            <Col span={9}>
+                                                <Select
+                                                    mode="multiple"
+                                                    name={`[${index}].noticeIds`}
+                                                    placeholder="选择通知对象"
+                                                    allowClear
+                                                    options={noticeOptions}
+                                                    value={label.noticeIds}
+                                                    onChange={(value) => updateLabel(index, "noticeIds", value)}
+                                                    disabled={!editable}
+                                                    style={{ width: "100%", borderRadius: "6px" }}
+                                                    optionFilterProp="label"
+                                                    showSearch
+                                                />
+                                            </Col>
+                                            <Col span={3}>
+                                                {editable && (
+                                                    <Button
+                                                        danger
+                                                        icon={<MinusOutlined />}
+                                                        onClick={() => removeLabel(index)}
+                                                        style={{ borderRadius: "6px" }}
+                                                    />
+                                                )}
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                ))}
+                            </MyFormItemGroup>
+                        </div>
+                    </Col>
+                </Row>
+            </Form>
+
+            <style jsx>{`
+                .notify-config-container .ant-form-item-label > label {
+                    color: #262626;
+                }
+                
+                .notify-config-container .ant-input-number-group-wrapper {
+                    width: 100%;
+                }
+                
+                .notify-config-container .ant-select-selection-item {
+                    border-radius: 4px;
+                }
+                
+                .notify-config-container .form-editable .ant-input,
+                .notify-config-container .form-editable .ant-select-selector {
+                    background-color: #ffffff;
+                    border-color: #d9d9d9;
+                }
+                
+                .notify-config-container .form-editable .ant-input:hover,
+                .notify-config-container .form-editable .ant-select-selector:hover {
+                    border-color: #40a9ff;
+                }
+                
+                .notify-config-container .ant-form-item {
+                    margin-bottom: 24px;
+                }
+                
+                .notify-config-container .ant-form-item:last-child {
+                    margin-bottom: 0;
+                }
+            `}</style>
+        </div>
+    )
+}

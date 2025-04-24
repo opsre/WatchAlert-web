@@ -37,7 +37,12 @@ async function getHisEventList(params) {
     }
 }
 
+async function ProcessAlertEvent(params) {
+    return await http('post', `/api/w8t/event/processAlertEvent`,params);
+}
+
 export {
     getCurEventList,
     getHisEventList,
+    ProcessAlertEvent
 }

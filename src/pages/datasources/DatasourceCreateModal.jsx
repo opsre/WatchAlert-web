@@ -8,6 +8,7 @@ import {
     CloudOutlined,
     ApartmentOutlined, CloseOutlined, CheckOutlined,
 } from "@ant-design/icons"
+import VSCodeEditor from "../../utils/VSCodeEditor";
 const { TextArea } = Input
 const { Title, Text } = Typography
 const MyFormItemContext = React.createContext([])
@@ -555,7 +556,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                 },
                             ]}
                         >
-                            <TextArea rows={15} placeholder="输入 Kubernetes 认证配置" />
+                            <VSCodeEditor height={"500px"} language={"Yaml"}/>
                         </MyFormItem>
                     </div>
                 )}

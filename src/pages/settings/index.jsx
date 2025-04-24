@@ -22,10 +22,9 @@ const MyFormItem = ({ name, ...props }) => {
 
 export const SystemSettings = () => {
     const [form] = Form.useForm();
-    const contentMaxHeight = 'calc((-145px + 100vh) - 65px - 40px)';
+    // const contentMaxHeight = 'calc((-145px + 100vh) - 65px - 40px)';
     const [version, setVersion] = useState('');
     const [enableAi,setEnableAi] = useState(false);
-    const [serviceProvider, setServiceProvider] = useState(null);
 
     useEffect(() => {
         loadSettings();
@@ -37,7 +36,7 @@ export const SystemSettings = () => {
             // 解构时处理可能的 undefined 值，并设置 prompt 默认值
             const aiConfig = {
                 ...(res.data.aiConfig || {}), // 防止 aiConfig 为 undefined
-                prompt: res.data.aiConfig?.prompt || "Revised Prompt: 作为站点可靠性工程 (SRE) 可观测性监控专家，请分析以下警报内容，下面的信息很可能包括（指标、日志、跟踪或 Kubernetes 事件）。\n" +
+                prompt: res.data.aiConfig?.prompt || "请分析以下警报内容，下面的信息很可能包括（指标、日志、跟踪或 Kubernetes 事件）。\n" +
                     "---\n" +
                     "您的分析应包括：\n" +
                     "1. 可能的原因分析：详细解释警报中出现问题的潜在原因，并提供相关示例。\n" +
@@ -54,7 +53,7 @@ export const SystemSettings = () => {
                     "---\n" +
                     "请根据以下三个方面，结构化地回复我，要求简洁明了、通俗易懂：\n" +
                     "1. 分析可能的原因\n" +
-                    "2. 提供具体的排查步骤\n" +
+                    "2. 具体的排查步骤\n" +
                     "3. 如何规避\n" +
                     "---\n" +
                     "请清晰格式化您的回复，并使用适当的标题分隔每个部分。\n"
@@ -71,7 +70,6 @@ export const SystemSettings = () => {
             });
 
             setEnableAi(aiConfig.enable);
-            setServiceProvider(aiConfig.type);
             setVersion(res.data.appVersion);
         } catch (error) {
             console.error("Failed to load settings:", error);
@@ -104,24 +102,9 @@ export const SystemSettings = () => {
         { label: '禁用', value: false },
     ];
 
-    const openaiModels = [
-        { label: 'gpt-3.5-turbo', value: 'gpt-3.5-turbo' },
-        { label: 'gpt-4', value: 'gpt-4' },
-        { label: 'gpt-4o', value: 'gpt-4o' },
-        { label: 'gpt-4o-mini', value: 'gpt-4o-mini' },
-        { label: 'gpt-4-turbo', value: 'gpt-4-turbo' },
-    ]
-
-    const deepseekModels = [
-        { label: 'DeepSeek-R1', value: 'DeepSeek-R1' },
-        { label: 'DeepSeek-R1-Lite', value: 'DeepSeek-R1-Lite' },
-        { label: 'DeepSeek-V2.5', value: 'DeepSeek-V2.5' },
-        { label: 'DeepSeek-V3', value: 'DeepSeek-V3' },
-    ]
-
     return (
         <div style={{ display: 'flex', width: '100%' }}>
-            <div style={{ width: '90%', alignItems: 'flex-start', textAlign: 'start', marginTop: '-20px', maxHeight: contentMaxHeight, overflowY: 'auto' }}>
+            <div style={{ width: '90%', alignItems: 'flex-start', textAlign: 'start', marginTop: '-20px', height: '90%', overflowY: 'auto' }}>
                 <Form form={form} name="form_item_path" layout="vertical" onFinish={handleSave}>
                     <section id="email">
                         <Typography.Title level={5}>邮箱配置</Typography.Title>

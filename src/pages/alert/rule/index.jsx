@@ -24,7 +24,7 @@ import {
     CopyOutlined
 } from "@ant-design/icons"
 import {FaultCenterList} from "../../../api/faultCenter";
-import Editor from '@monaco-editor/react';
+import VSCodeEditor from "../../../utils/VSCodeEditor";
 
 export const AlertRuleList = () => {
     const { Search } = Input
@@ -710,7 +710,7 @@ export const AlertRuleList = () => {
                     }}
                     onChange={handlePageChange}
                     scroll={{
-                        y: height - 350, // 动态设置滚动高度
+                        y: height - 280, // 动态设置滚动高度
                         x: "max-content", // 水平滚动
                     }}
                     style={{
@@ -773,9 +773,9 @@ export const AlertRuleList = () => {
 
                 {importType === "watchalert" && (
                     <div>
-                        <Editor
-                            height="90vh"
-                            defaultLanguage="json"
+                        <VSCodeEditor
+                            height="75vh"
+                            language="Json"
                             value={jsonContent}
                             onChange={handleJsonContentChange}
                         />
@@ -785,9 +785,9 @@ export const AlertRuleList = () => {
                 {importType === "prometheus" && (
                     <div>
                         <div style={{marginBottom: 16}}>
-                            <Editor
-                                height="55vh"
-                                defaultLanguage="yaml"
+                            <VSCodeEditor
+                                height="60vh"
+                                language="Yaml"
                                 value={jsonContent}
                                 defaultValue={`groups:
 - name: NodeStatus

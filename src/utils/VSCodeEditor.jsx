@@ -1,167 +1,288 @@
-import { useState, useRef, useEffect } from 'react';
-import { Editor } from '@monaco-editor/react'; // 假设使用 Monaco Editor
+"use client"
 
-const VSCodeEditor = ({ value, onChange, language = 'json' }) => {
-    const [height, setHeight] = useState('32px'); // 初始高度
-    const editorRef = useRef(null);
-    const containerRef = useRef(null);
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { Editor } from "@monaco-editor/react"
+import { Spin, Alert, Typography } from "antd"
+import { LoadingOutlined } from "@ant-design/icons"
+import { debounce } from "lodash-es"
 
-    // 初始化编辑器
-    const handleEditorDidMount = (editor) => {
-        editorRef.current = editor;
-        updateHeight();
-    };
+const { Text } = Typography
 
-    // 组件卸载时清理
+const VSCodeEditor = ({
+                          value,
+                          onChange,
+                          language = "json",
+                          height = "100px",
+                          options = {},
+                          theme = "vs",
+                          readOnly = false,
+                      }) => {
+    const editorRef = useRef(null)
+    const containerRef = useRef(null)
+    const [isEditorReady, setIsEditorReady] = useState(false)
+    const [hasError, setHasError] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
+    const [isLoading, setIsLoading] = useState(true)
+    const [loadingTimeout, setLoadingTimeout] = useState(false)
+    const [instanceId] = useState(() => Math.random().toString(36).substring(2, 15))
+
+    // Create debounced onChange handler only once
+    const debouncedOnChange = useRef(
+        debounce((newValue) => {
+            onChange?.(newValue)
+        }, 300),
+    ).current
+
+    // Handle editor changes
+    const handleEditorChange = useCallback(
+        (newValue) => {
+            debouncedOnChange(newValue)
+        },
+        [debouncedOnChange],
+    )
+
+    // Handle editor mounting
+    const handleEditorDidMount = useCallback(
+        (editor, monaco) => {
+            editorRef.current = editor
+            setIsEditorReady(true)
+            setIsLoading(false)
+            setLoadingTimeout(false)
+
+            // Set editor options
+            editor.updateOptions({
+                readOnly,
+                ...options,
+            })
+
+            // Initial layout
+            editor.layout()
+        },
+        [options, readOnly],
+    )
+
+    // Sync external value changes with editor
+    useEffect(() => {
+        if (editorRef.current && isEditorReady) {
+            const currentValue = editorRef.current.getValue()
+            // Only update if values are different to prevent cursor jumping
+            if (value !== currentValue) {
+                // Preserve cursor position and selection
+                const position = editorRef.current.getPosition()
+                const selection = editorRef.current.getSelection()
+
+                editorRef.current.setValue(value || "")
+
+                // Restore cursor position and selection
+                if (position) editorRef.current.setPosition(position)
+                if (selection) editorRef.current.setSelection(selection)
+            }
+        }
+    }, [value, isEditorReady])
+
+    // Timeout detection
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (isLoading) {
+                setLoadingTimeout(true)
+            }
+        }, 5000)
+
+        return () => clearTimeout(timeoutId)
+    }, [isLoading])
+
+    // Handle loading error
+    const handleLoadError = useCallback((error) => {
+        console.error("Monaco Editor loading failed:", error)
+        setIsEditorReady(false)
+        setHasError(true)
+        setIsLoading(false)
+        setErrorMessage(error?.message || "Unknown error")
+    }, [])
+
+    // Resize handling
+    useEffect(() => {
+        const handleResize = debounce(() => {
+            if (editorRef.current) {
+                editorRef.current.layout()
+            }
+        }, 100)
+
+        const resizeObserver = new ResizeObserver(handleResize)
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current)
+        }
+
+        window.addEventListener("resize", handleResize)
+
+        return () => {
+            resizeObserver.disconnect()
+            window.removeEventListener("resize", handleResize)
+            handleResize.cancel()
+        }
+    }, [])
+
+    // Cleanup on unmount
     useEffect(() => {
         return () => {
-            if (editorRef.current) {
-                editorRef.current.dispose();
+            debouncedOnChange.cancel()
+            if (editorRef.current?.dispose) {
+                editorRef.current.dispose()
             }
-        };
-    }, []);
-
-    // 精确计算编辑器高度
-    const updateHeight = () => {
-        const editor = editorRef.current;
-        if (!editor) return;
-
-        const lineHeight = editor.getOption(47); // 获取编辑器行高配置
-        const lineCount = editor.getModel().getLineCount();
-        const contentHeight = lineCount * lineHeight;
-
-        // 考虑滚动条和容器的padding
-        const containerStyle = window.getComputedStyle(containerRef.current);
-        const padding = parseFloat(containerStyle.paddingTop) + parseFloat(containerStyle.paddingBottom);
-
-        const newHeight = Math.min(
-            Math.max(contentHeight + padding, 50), // 最小高度
-            300 // 最大高度
-        );
-
-        setHeight(`${newHeight}px`);
-    };
-
-    // 使用ResizeObserver实现自适应
-    useEffect(() => {
-        const resizeObserver = new ResizeObserver(() => {
-            if (editorRef.current) {
-                editorRef.current.layout();
-            }
-        });
-
-        if (containerRef.current) {
-            resizeObserver.observe(containerRef.current);
         }
+    }, [debouncedOnChange])
 
-        return () => resizeObserver.disconnect();
-    }, []);
+    // Merge default options
+    const mergedOptions = useMemo(
+        () => ({
+            minimap: { enabled: false },
+            fontSize: 14,
+            lineNumbers: "on",
+            roundedSelection: false,
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            formatOnType: true,
+            formatOnPaste: true,
+            scrollbar: {
+                vertical: "auto",
+                horizontal: "auto",
+                useShadows: true,
+            },
+            ...options,
+        }),
+        [options],
+    )
 
-    // 防抖处理变化事件
-    const handleEditorChange = (newValue) => {
-        onChange(newValue);
-        requestAnimationFrame(updateHeight);
-    };
+    // Loading indicator
+    const renderLoading = () => (
+        <div
+            style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(255,255,255,0.9)",
+                zIndex: 10,
+            }}
+        >
+            <Spin
+                indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}
+                tip={loadingTimeout ? "Loading is taking longer than expected..." : "Loading editor..."}
+            />
+            {loadingTimeout && (
+                <Text type="secondary" style={{ marginTop: 10, fontSize: "0.8em" }}>
+                    If it doesn't respond, please check your network or refresh the page
+                </Text>
+            )}
+        </div>
+    )
 
+    // Error display
+    const renderError = () => (
+        <div
+            style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px",
+                background: "#fff",
+                zIndex: 10,
+            }}
+        >
+            <Alert
+                message="Editor failed to load"
+                description={
+                    <>
+                        <p>{errorMessage || "Unable to load Monaco editor component"}</p>
+                        <p>Possible reasons:</p>
+                        <ul>
+                            <li>Network connectivity issues</li>
+                            <li>Resource path configuration error</li>
+                            <li>Browser compatibility issues</li>
+                        </ul>
+                        <p>
+                            <a
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    window.location.reload()
+                                }}
+                            >
+                                Click to refresh the page
+                            </a>
+                        </p>
+                    </>
+                }
+                type="error"
+                showIcon
+            />
+        </div>
+    )
 
-    // 添加polyfill检查
-    useEffect(() => {
-        if (typeof window.ResizeObserver === 'undefined') {
-            import('resize-observer-polyfill').then((module) => {
-                window.ResizeObserver = module.default;
-            });
-        }
-    }, []);
-
-
-    // 添加加载状态
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasError, setHasError] = useState(false);
-
-    // 处理加载完成
-    const handleLoad = () => {
-        setIsLoading(false);
-        setHasError(false);
-    };
-
-    // 处理加载错误
-    const handleLoadError = () => {
-        setIsLoading(false);
-        setHasError(true);
-    };
+    // Fallback editor
+    const renderFallbackEditor = () => (
+        <textarea
+            value={value || ""}
+            onChange={(e) => onChange?.(e.target.value)}
+            style={{
+                width: "100%",
+                height: "100%",
+                padding: "8px",
+                fontFamily: "monospace",
+                fontSize: "14px",
+                border: "none",
+                resize: "none",
+            }}
+            readOnly={readOnly}
+        />
+    )
 
     return (
         <div
             ref={containerRef}
             style={{
-                border: '1px solid #ccc',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                minHeight: '50px',
-                maxHeight: '300px',
+                border: "1px solid #d9d9d9",
+                borderRadius: "6px",
+                overflow: "hidden",
                 height: height,
-                position: 'relative'
+                position: "relative",
+                transition: "height 0.2s ease",
             }}
         >
-            {isLoading && (
-                <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: 'rgba(255,255,255,0.8)'
-                }}>
-                    Loading editor...
-                </div>
-            )}
+            {isLoading && renderLoading()}
+            {hasError && renderError()}
 
-            {hasError && (
-                <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: '#ffe6e6'
-                }}>
-                    Editor failed to load
-                </div>
+            {hasError ? (
+                renderFallbackEditor()
+            ) : (
+                <Editor
+                    key={`${instanceId}-${language}-${theme}`}
+                    height={height}
+                    language={language}
+                    value={value || ""}
+                    onChange={handleEditorChange}
+                    onMount={handleEditorDidMount}
+                    onError={handleLoadError}
+                    options={mergedOptions}
+                    loading={null}
+                    theme={theme}
+                    path={`file://model-${instanceId}.${language}`}
+                    keepCurrentModel={false}
+                />
             )}
-
-            <Editor
-                height={height}
-                language={language}
-                value={value}
-                onChange={handleEditorChange}
-                onMount={handleEditorDidMount}
-                beforeMount={handleLoad}
-                onValidate={handleLoad}
-                loading={<div>Loading editor...</div>}
-                options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
-                    roundedSelection: false,
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    formatOnType: true,
-                    formatOnPaste: true,
-                    scrollbar: {
-                        vertical: 'auto',
-                        horizontal: 'auto',
-                        useShadows: true
-                    }
-                }}
-            />
         </div>
-    );
-};
+    )
+}
 
-export default VSCodeEditor;
+export default VSCodeEditor

@@ -560,7 +560,7 @@ export const Probing = () => {
                         dataSource={httpMonList}
                         loading={loading}
                         scroll={{
-                            y: height - 350, // 动态设置滚动高度
+                            y: height - 280, // 动态设置滚动高度
                             x: 'max-content', // 水平滚动
                         }}
                         style={{
@@ -579,7 +579,7 @@ export const Probing = () => {
                         dataSource={icmpMonList}
                         loading={loading}
                         scroll={{
-                            y: height - 350, // 动态设置滚动高度
+                            y: height - 280, // 动态设置滚动高度
                             x: 'max-content', // 水平滚动
                         }}
                         style={{
@@ -598,7 +598,7 @@ export const Probing = () => {
                         dataSource={tcpMonList}
                         loading={loading}
                         scroll={{
-                            y: height - 350, // 动态设置滚动高度
+                            y: height - 280, // 动态设置滚动高度
                             x: 'max-content', // 水平滚动
                         }}
                         style={{
@@ -616,7 +616,7 @@ export const Probing = () => {
                         dataSource={sslMonList}
                         loading={loading}
                         scroll={{
-                            y: height - 350, // 动态设置滚动高度
+                            y: height - 280, // 动态设置滚动高度
                             x: 'max-content', // 水平滚动
                         }}
                         style={{

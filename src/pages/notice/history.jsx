@@ -18,7 +18,7 @@ import {
     Skeleton,
 } from "antd"
 import { noticeRecordList } from "../../api/notice"
-import Editor from "@monaco-editor/react"
+import VSCodeEditor from "../../utils/VSCodeEditor";
 import { NotificationTypeIcon } from "./notification-type-icon"
 import { SearchIcon, FilterIcon, AlertTriangle, CheckCircle, XCircle, Clock, FileText, RefreshCw } from "lucide-react"
 
@@ -278,30 +278,6 @@ export const NoticeRecords = () => {
         fetchRecords(pagination.pageIndex, pagination.pageSize)
     }
 
-    // Monaco editor component
-    const CodeEditor = ({ value, language = "json" }) => (
-        <div style={{ border: "1px solid #f0f0f0", borderRadius: "8px", overflow: "hidden" }}>
-            <Editor
-                height="250px"
-                defaultLanguage={language}
-                value={value || "null"}
-                theme="vs-light"
-                options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: "on",
-                    roundedSelection: false,
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    readOnly: true,
-                    formatOnType: true,
-                    formatOnPaste: true,
-                    padding: { top: 16, bottom: 16 },
-                }}
-            />
-        </div>
-    )
-
     return (
         <div style={{ minHeight: "80vh" }}>
             {/* Filters */}
@@ -367,7 +343,7 @@ export const NoticeRecords = () => {
                 dataSource={list}
                 loading={loading}
                 scroll={{
-                    y: height - 390,
+                    y: height - 280,
                     x: "max-content",
                 }}
                 pagination={{
@@ -460,12 +436,12 @@ export const NoticeRecords = () => {
                         </div>
 
                         <Title level={5}>告警消息体</Title>
-                        <CodeEditor value={selectedRecord.alarmMsg} />
+                        <VSCodeEditor value={selectedRecord.alarmMsg} />
 
                         <Divider style={{ margin: "24px 0" }} />
 
                         <Title level={5}>错误消息体</Title>
-                        <CodeEditor value={selectedRecord.errMsg || "null"} />
+                        <VSCodeEditor value={selectedRecord.errMsg || "null"} />
                     </>
                 ) : (
                     <Skeleton active paragraph={{ rows: 10 }} />

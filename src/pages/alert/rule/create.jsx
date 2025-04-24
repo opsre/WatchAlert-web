@@ -1680,11 +1680,11 @@ export const AlertRule = ({ type }) => {
                                             rules={[{required: true}]}
                                             style={{width: '100%', height: '100%'}}
                                         >
-                                            <VSCodeEditor onChange={setEsRawJson} value={esRawJson}/>
+                                            <VSCodeEditor onChange={setEsRawJson} value={esRawJson} height={"50px"}/>
                                         </MyFormItem>
                                         <Button
                                             type="primary"
-                                            style={{backgroundColor: '#000', borderColor: '#000', marginTop: '10px'}}
+                                            style={{backgroundColor: '#000', borderColor: '#000', marginTop: '-25px'}}
                                             onClick={()=>{setOpenSearchContentModal(true)}}
                                         >
                                             数据预览

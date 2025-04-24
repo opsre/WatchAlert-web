@@ -8,6 +8,7 @@ import { AlertCurrentEvent } from '../event/currentEvent';
 import { AlertHistoryEvent } from '../event/historyEvent';
 import { Silences } from '../silence';
 import {FaultCenterNotify} from "./notify";
+import {AlarmUpgrade} from "./upgrade";
 
 export const FaultCenterDetail = () => {
     const { id } = useParams();
@@ -79,6 +80,11 @@ export const FaultCenterDetail = () => {
             label: '通知配置',
             children: <FaultCenterNotify id={id} />,
         },
+        {
+            key: '5',
+            label: '告警升级',
+            children: <AlarmUpgrade />,
+        }
     ];
 
     const describeItems = [

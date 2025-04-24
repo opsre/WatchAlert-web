@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {Form, Table, Space, Button, Modal, Transfer, Popconfirm, Select, Tooltip} from 'antd';
+import {Form, Table, Space, Button, Modal, Transfer, Popconfirm, Select, Tooltip, message} from 'antd';
 import {DeleteOutlined, EditOutlined, PlusCircleOutlined} from '@ant-design/icons';
 import { getUserList } from '../../api/user';
 import {addUsersToTenant, changeTenantUserRole, delUsersOfTenant, getUsersForTenant,} from "../../api/tenant";
@@ -79,7 +79,7 @@ export const TenantUsers = ({ tenantInfo }) => {
                 <Space size="middle">
                     <Tooltip title="删除">
                         <Popconfirm
-                            title="确定要删除此模版组吗?"
+                            title={`确定要删除用户 ${record.userName} 吗?`}
                             onConfirm={() => handleDelete(_, record)}
                             okText="确定"
                             cancelText="取消"
@@ -105,6 +105,10 @@ export const TenantUsers = ({ tenantInfo }) => {
         }
         await changeTenantUserRole(cturParams)
         getTenantUsers();
+        message.open({
+            type: 'success',
+            content: `用户: ${record.userName}, 角色修改成功`,
+        });
     }
 
     const handleGetUserRole = async () => {

@@ -1,7 +1,21 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Table, Button, Drawer, Tag, Select, Space, DatePicker, Input, message, Modal, Checkbox, Radio } from "antd"
+import {
+    Table,
+    Button,
+    Drawer,
+    Tag,
+    Select,
+    Space,
+    DatePicker,
+    Input,
+    message,
+    Modal,
+    Checkbox,
+    Radio,
+    Descriptions
+} from "antd"
 import { DownloadOutlined } from "@ant-design/icons"
 import dayjs from "dayjs"
 import { getHisEventList } from "../../api/event"
@@ -110,6 +124,73 @@ export const AlertHistoryEvent = (props) => {
             render: (text) => {
                 const date = new Date(text * 1000)
                 return date.toLocaleString()
+            },
+        },
+        {
+            title: "事件状态",
+            dataIndex: "status",
+            key: "status",
+            render: () => {
+                return  <Tag color={"green"}>{"已恢复"}</Tag>
+            },
+        },
+        {
+            title: "处理人",
+            dataIndex: "upgradeState",
+            key: "upgradeState",
+            render: (text) => {
+                return (
+                    <>
+                        {text.whoAreConfirm === text.whoAreHandle && (
+                            <Tag
+                                style={{
+                                    borderRadius: "12px",
+                                    padding: "0 10px",
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                }}
+                            >
+                                {text.whoAreHandle || "无"}
+                            </Tag>
+                        ) || (
+                            <>
+                                {text.whoAreConfirm !== "" && (
+                                    <Tag
+                                        style={{
+                                            borderRadius: "12px",
+                                            padding: "0 10px",
+                                            fontSize: "12px",
+                                            fontWeight: "500",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "4px",
+                                        }}
+                                    >
+                                        {text.whoAreConfirm}
+                                    </Tag>
+                                )}
+                                {text.whoAreHandle !== "" && (
+                                    <Tag
+                                        style={{
+                                            borderRadius: "12px",
+                                            padding: "0 10px",
+                                            fontSize: "12px",
+                                            fontWeight: "500",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "4px",
+                                        }}
+                                    >
+                                        {text.whoAreHandle}
+                                    </Tag>
+                                )}
+                            </>
+                        )}
+                    </>
+                )
             },
         },
         {
@@ -829,45 +910,141 @@ export const AlertHistoryEvent = (props) => {
             />
 
             {/* 详情抽屉 */}
-            <Drawer title="事件详情" placement="right" onClose={onCloseDrawer} open={drawerOpen} width={520}>
+            <Drawer
+                title="事件详情"
+                placement="right"
+                onClose={onCloseDrawer}
+                open={drawerOpen}
+                width={520}
+                styles={{
+                    body: { padding: "16px" },
+                }}
+            >
                 {selectedEvent && (
                     <div>
-                        <h4>规则名称:</h4>
-                        <p>{selectedEvent.rule_name}</p>
+                        <Descriptions
+                            title="基本信息"
+                            bordered
+                            column={1}
+                            style={{ marginBottom: "24px" }}
+                            items={[
+                                {
+                                    key: "rule_name",
+                                    label: "规则名称",
+                                    children: selectedEvent.rule_name,
+                                },
+                                {
+                                    key: "fingerprint",
+                                    label: "告警指纹",
+                                    children: selectedEvent.fingerprint,
+                                },
+                                {
+                                    key: "datasource",
+                                    label: "数据源",
+                                    children: `${selectedEvent.datasource_type} (${selectedEvent.datasource_id})`,
+                                },
+                                {
+                                    key: "severity",
+                                    label: "告警等级",
+                                    children: <Tag color={SEVERITY_COLORS[selectedEvent.severity]}>{selectedEvent.severity}</Tag>,
+                                },
+                                {
+                                    key: "status",
+                                    label: "事件状态",
+                                    children: (
+                                        <Tag color={"green"}>{"已恢复"}</Tag>
+                                    ),
+                                },
+                                {
+                                    key: "value",
+                                    label: "触发时值",
+                                    children: selectedEvent.metric["value"],
+                                },
+                                {
+                                    key: "value",
+                                    label: "恢复时值",
+                                    children: selectedEvent.metric["recover_value"],
+                                },
+                                {
+                                    key: "handle",
+                                    label: "处理人",
+                                    children: (
+                                        <>
+                                            {selectedEvent?.upgradeState?.whoAreConfirm === selectedEvent?.upgradeState?.whoAreHandle && (
+                                                <Tag
+                                                    style={{
+                                                        borderRadius: "12px",
+                                                        padding: "0 10px",
+                                                        fontSize: "12px",
+                                                        fontWeight: "500",
+                                                        display: "inline-flex",
+                                                        alignItems: "center",
+                                                        gap: "4px",
+                                                    }}
+                                                >
+                                                    {selectedEvent?.upgradeState?.whoAreHandle || "无"}
+                                                </Tag>
+                                            ) || (
+                                                <>
+                                                    {selectedEvent?.upgradeState?.whoAreConfirm !== "" && (
+                                                        <Tag
+                                                            style={{
+                                                                borderRadius: "12px",
+                                                                padding: "0 10px",
+                                                                fontSize: "12px",
+                                                                fontWeight: "500",
+                                                                display: "inline-flex",
+                                                                alignItems: "center",
+                                                                gap: "4px",
+                                                            }}
+                                                        >
+                                                            {selectedEvent?.upgradeState?.whoAreConfirm}
+                                                        </Tag>
+                                                    )}
+                                                    {selectedEvent?.upgradeState?.whoAreHandle !== "" && (
+                                                        <Tag
+                                                            style={{
+                                                                borderRadius: "12px",
+                                                                padding: "0 10px",
+                                                                fontSize: "12px",
+                                                                fontWeight: "500",
+                                                                display: "inline-flex",
+                                                                alignItems: "center",
+                                                                gap: "4px",
+                                                            }}
+                                                        >
+                                                            {selectedEvent?.upgradeState?.whoAreHandle}
+                                                        </Tag>
+                                                    )}
+                                                </>
+                                            )}
+                                        </>
+                                    ),
+                                },
+                            ]}
+                        />
 
-                        <h4>告警指纹:</h4>
-                        <p>{selectedEvent.fingerprint}</p>
-
-                        <h4>数据源:</h4>
-                        <p>
-                            {selectedEvent.datasource_type} ({selectedEvent.datasource_id})
-                        </p>
-
-                        <h4>告警等级:</h4>
-                        <p>{selectedEvent.severity}</p>
-
-                        <h4>事件标签:</h4>
-                        <div>
-                            {Object.entries(selectedEvent.metric).map(([key, value]) => (
-                                <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
-                            ))}
+                        <div style={{ marginBottom: "16px" }}>
+                            <h4>事件标签:</h4>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                {Object.entries(selectedEvent.metric).map(([key, value]) => (
+                                    <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
+                                ))}
+                            </div>
                         </div>
 
-                        <h4>告警时值:</h4>
-                        <p>{selectedEvent.metric["value"]}</p>
-
-                        <h4>恢复时值:</h4>
-                        <p>{selectedEvent.metric["recover_value"]}</p>
-
-                        <h4>事件详情:</h4>
-                        <TextArea
-                            value={selectedEvent.annotations}
-                            style={{
-                                height: 300,
-                                resize: "none",
-                            }}
-                            readOnly
-                        />
+                        <div>
+                            <h4>事件详情:</h4>
+                            <TextArea
+                                value={selectedEvent.annotations}
+                                style={{
+                                    height: 300,
+                                    resize: "none",
+                                    marginTop: "8px",
+                                }}
+                                readOnly
+                            />
+                        </div>
                     </div>
                 )}
             </Drawer>

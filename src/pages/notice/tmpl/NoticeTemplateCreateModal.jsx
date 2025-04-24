@@ -1,5 +1,5 @@
 import {Modal, Form, Input, Button, Card, Tooltip, Checkbox, Drawer} from 'antd'
-import Editor from '@monaco-editor/react';
+import VSCodeEditor from "../../../utils/VSCodeEditor";
 import React, { useEffect, useState } from 'react'
 import { createNoticeTmpl, updateNoticeTmpl } from '../../../api/noticeTmpl'
 import FeiShuImg from "../img/feishu.svg";
@@ -158,27 +158,6 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
         setSelectedNotifyCard(index);
     };
 
-    // 公共编辑器组件
-    const VSCodeEditor = ({ value, onChange, language = 'json' }) => (
-        <Editor
-            theme={"vs-dark"}
-            height="400px"
-            defaultLanguage={language}
-            defaultValue={value}
-            onChange={onChange}
-            options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                lineNumbers: 'on',
-                roundedSelection: false,
-                scrollBeyondLastLine: false,
-                automaticLayout: true,
-                formatOnType: true,
-                formatOnPaste: true,
-            }}
-        />
-    );
-
     const handleSubmit = async () => {
         const values = form.getFieldsValue();
         await form.validateFields()
@@ -289,51 +268,39 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
                 )}
 
                 {(!isChecked || notifyType !== "FeiShu") && (
-                    <div style={{display: 'flex'}}>
+                    <div>
                         <MyFormItem
                             name="template"
                             label="告警模版"
-                            style={{
-                                marginRight: '10px',
-                                width: '100vh',
-                            }}
                             rules={[
                                 {
                                     required: true,
                                 },
                             ]}>
-                            <VSCodeEditor/>
+                            <VSCodeEditor height={"500px"}/>
                         </MyFormItem>
                     </div>
                 ) || (
-                    <div style={{display: 'flex'}}>
+                    <div>
                         <MyFormItem
                             name="templateFiring"
                             label="告警模版"
-                            style={{
-                                marginRight: '10px',
-                                width: '100vh',
-                            }}
                             rules={[
                                 {
                                     required: true,
                                 },
                             ]}>
-                            <VSCodeEditor/>
+                            <VSCodeEditor height={"350px"}/>
                         </MyFormItem>
                         <MyFormItem
                             name="templateRecover"
                             label="恢复模版"
-                            style={{
-                                marginRight: '10px',
-                                width: '100vh',
-                            }}
                             rules={[
                                 {
                                     required: true,
                                 },
                             ]}>
-                            <VSCodeEditor/>
+                            <VSCodeEditor height={"350px"}/>
                         </MyFormItem>
                     </div>
                 )}

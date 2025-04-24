@@ -224,7 +224,7 @@ const Components = (props) => {
                 style={{
                     height: "100vh",
                     overflow: "hidden",
-                    background: "#f0f2f5",
+                    background: "#000000",
                     opacity: isRendered ? 1 : 0, // 添加淡入效果
                     transition: 'opacity 0.3s ease-in'
                 }}
@@ -234,16 +234,15 @@ const Components = (props) => {
                     {/* 侧边栏 */}
                     <div
                         style={{
-                            margin: "0 0 0 16px",
                             width: "220px",
                             borderRadius: borderRadiusLG,
                             overflow: "hidden",
                             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
-                            height: "calc(100vh - 32px)",
+                            height: "100%",
                             background: "#000000",
                         }}
                     >
-                        <div style={{ height: "100%", overflow: "auto", padding: "16px 0", marginLeft: "10px" }}>
+                        <div style={{ height: "100%", overflow: "auto", padding: "16px 0", marginLeft: "15px" }}>
                             <ComponentSider />
                         </div>
                     </div>
