@@ -86,8 +86,8 @@ export const AlertRuleGroup = ({ }) => {
                         </Tooltip>
                         <Tooltip title="删除">
                             <Popconfirm
-                                title="确定要删除此模版组吗?"
-                                onConfirm={() => handleDelete(_, record)}
+                                title="确定要删除吗?"
+                                onConfirm={() => handleDelete(record)}
                                 okText="确定"
                                 cancelText="取消"
                                 placement="left"
@@ -150,7 +150,7 @@ export const AlertRuleGroup = ({ }) => {
         handleList(page.current, page.size)
     };
 
-    const handleDelete = async (_, record) => {
+    const handleDelete = async (record) => {
         try {
             const params = {
                 id: record.id,

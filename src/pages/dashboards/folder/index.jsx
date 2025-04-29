@@ -49,7 +49,7 @@ export const DashboardFolder = () => {
                         </Tooltip>
                         <Tooltip title="删除">
                             <Popconfirm
-                                title="确定要删除此模版组吗?"
+                                title="确定要删除吗?"
                                 onConfirm={() => handleDelete(record)}
                                 okText="确定"
                                 cancelText="取消"
@@ -100,7 +100,7 @@ export const DashboardFolder = () => {
         }
     }
 
-    const handleDelete = async (_, record) => {
+    const handleDelete = async (record) => {
         try {
             const params = {
                 id: record.id,

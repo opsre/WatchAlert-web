@@ -11,10 +11,10 @@ import {
     InputNumber,
     Card,
     TimePicker,
-    Typography, Tabs, Modal, Empty, Spin, Descriptions
+    Typography, Tabs, Modal, Empty, Spin, Descriptions, Alert
 } from 'antd'
 import React, { useState, useEffect } from 'react'
-import { RedoOutlined } from '@ant-design/icons'
+import {MinusCircleOutlined, PlusOutlined, RedoOutlined} from '@ant-design/icons'
 import {createRule, searchRuleInfo, updateRule} from '../../../api/rule'
 import {ElasticSearchData, getDatasource, searchDatasource} from '../../../api/datasource'
 import {getJaegerService, queryPromMetrics} from '../../../api/other'
@@ -207,6 +207,11 @@ export const AlertRule = ({ type }) => {
     }, [])
 
     const initBasicInfo = (selectedRow) => {
+        const labelsArray = Object.entries(selectedRow.externalLabels || {}).map(([key, value]) => ({
+            key,
+            value,
+        }));
+
         // 设置表单字段
         form.setFieldsValue({
             tenantId: selectedRow?.tenantId,
@@ -223,6 +228,7 @@ export const AlertRule = ({ type }) => {
             faultCenterId: selectedRow?.faultCenterId,
             enabled: selectedRow?.enabled,
             logEvalCondition: selectedRow?.logEvalCondition,
+            externalLabels: labelsArray,
 
             // 嵌套对象
             effectiveTime: {
@@ -478,6 +484,13 @@ export const AlertRule = ({ type }) => {
 
     // 创建
     const handleFormSubmit = async (values) => {
+        const formattedLabels = values.externalLabels?.reduce((acc, { key, value }) => {
+            if (key) {
+                acc[key] = value
+            }
+            return acc
+        }, {})
+
         const newEsConfig = {
             index: values?.elasticSearchConfig?.index,
             scope: values?.elasticSearchConfig?.scope,
@@ -490,6 +503,7 @@ export const AlertRule = ({ type }) => {
 
         const newValues= {
             ...values,
+            externalLabels: formattedLabels,
             elasticSearchConfig: newEsConfig,
             effectiveTime: {
                 week: week,
@@ -909,11 +923,11 @@ export const AlertRule = ({ type }) => {
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                 <div>
                     <strong style={{fontSize: '20px'}}>基础配置</strong>
-                    <div style={{display: 'flex'}}>
+                    <div style={{display: 'flex', gap: '10px'}}>
                         <MyFormItem
                             name="ruleName"
                             label="规则名称"
-                            rules={[{ required: true }]}
+                            rules={[{required: true}]}
                             style={{width: '100%'}}
                         >
                             <Input
@@ -921,13 +935,75 @@ export const AlertRule = ({ type }) => {
                                 onChange={handleInputChange}
                                 disabled={type === 'update'}/>
                         </MyFormItem>
+
+                        <MyFormItem
+                            name="description"
+                            label="描述"
+                            style={{width: '100%', marginTop: '5px'}}
+                        >
+                            <Input/>
+                        </MyFormItem>
                     </div>
-                    <MyFormItem
-                        name="description"
-                        label="描述"
-                        style={{width: '100%'}}
-                    >
-                        <Input/>
+
+                    <MyFormItem label="额外标签" >
+                        <Form.List name="externalLabels">
+                            {(fields, {add, remove}) => (
+                                <>
+                                    {fields.map(({key, name, ...restField}) => (
+                                        <div
+                                            key={key}
+                                            style={{
+                                                display: "flex",
+                                                marginBottom: 8,
+                                                gap: "8px",
+                                                alignItems: "center",
+                                            }}
+                                        >
+                                            <Form.Item
+                                                {...restField}
+                                                name={[name, "key"]}
+                                                style={{flex: 3}}
+                                                rules={[{required: true, message: "请输入标签键（key）"}]}
+                                            >
+                                                <Input placeholder="键（key）" onChange={handleInputChange}/>
+                                            </Form.Item>
+
+                                            <Form.Item
+                                                {...restField}
+                                                name={[name, "value"]}
+                                                style={{flex: 3}}
+                                                rules={[{required: true, message: "请输入标签值（value）"}]}
+                                            >
+                                                <Input placeholder="值（value）" onChange={handleInputChange}/>
+                                            </Form.Item>
+
+                                            <MinusCircleOutlined
+                                                style={{
+                                                    marginTop: "-25px",
+                                                    display: "flex",
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                    cursor: "pointer",
+                                                }}
+                                                onClick={() => remove(name)}
+                                            />
+                                        </div>
+                                    ))}
+
+                                    <Form.Item>
+                                        <Button
+                                            type="dashed"
+                                            onClick={() => add()}
+                                            block
+                                            icon={<PlusOutlined/>}
+                                            disabled={fields.length >= 10}
+                                        >
+                                            添加标签
+                                        </Button>
+                                    </Form.Item>
+                                </>
+                            )}
+                        </Form.List>
                     </MyFormItem>
                 </div>
 
@@ -1103,7 +1179,7 @@ export const AlertRule = ({ type }) => {
                                             rules={[{required: true}]}
                                         >
                                             <TextArea rows={2}
-                                                      placeholder="输入告警事件的详细消息内容，如：服务器: ${instanace}，发生故障请紧急排查!"
+                                                      placeholder="输入告警事件的详细消息内容，如：服务器: ${instance}，发生故障请紧急排查!"
                                                       maxLength={10000}/>
                                         </MyFormItem>
                                     </div>

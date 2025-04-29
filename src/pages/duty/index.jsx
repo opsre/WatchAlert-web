@@ -99,7 +99,7 @@ export const DutyManage = () => {
                     </Tooltip>
                     <Tooltip title="删除">
                         <Popconfirm
-                            title="确定要删除此模版组吗?"
+                            title="确定要删除此日程吗?"
                             onConfirm={() => handleDelete(record)}
                             okText="确定"
                             cancelText="取消"

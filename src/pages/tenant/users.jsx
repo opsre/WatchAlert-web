@@ -80,7 +80,7 @@ export const TenantUsers = ({ tenantInfo }) => {
                     <Tooltip title="删除">
                         <Popconfirm
                             title={`确定要删除用户 ${record.userName} 吗?`}
-                            onConfirm={() => handleDelete(_, record)}
+                            onConfirm={() => handleDelete(record)}
                             okText="确定"
                             cancelText="取消"
                             placement="left"
@@ -125,7 +125,7 @@ export const TenantUsers = ({ tenantInfo }) => {
         }
     }
 
-    const handleDelete = async (_, record) => {
+    const handleDelete = async (record) => {
         try {
             const params = {
                 id: tenantInfo.id,

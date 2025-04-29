@@ -95,8 +95,8 @@ export const Subscribe = () => {
                 <Space size="middle">
                     <Tooltip title="删除">
                         <Popconfirm
-                            title="确定要删除此模版组吗?"
-                            onConfirm={() => handleDelete(_, record)}
+                            title="确定要删除此订阅吗?"
+                            onConfirm={() => handleDelete(record)}
                             okText="确定"
                             cancelText="取消"
                             placement="left"
@@ -142,7 +142,7 @@ export const Subscribe = () => {
         }
     }
 
-    const handleDelete = async (_, record) => {
+    const handleDelete = async (record) => {
         try {
             const params = {
                 sId: record.sId,
