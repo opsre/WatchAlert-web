@@ -22,6 +22,22 @@ export const Silences = (props) => {
         size: 10,
         total: 0,
     });
+    const [height, setHeight] = useState(window.innerHeight)
+
+    useEffect(() => {
+        // 定义一个处理窗口大小变化的函数
+        const handleResize = () => {
+            setHeight(window.innerHeight)
+        }
+
+        // 监听窗口的resize事件
+        window.addEventListener("resize", handleResize)
+
+        // 在组件卸载时移除监听器
+        return () => {
+            window.removeEventListener("resize", handleResize)
+        }
+    }, [])
 
     useEffect(() => {
         handleList();
@@ -216,7 +232,7 @@ export const Silences = (props) => {
                 textAlign: 'left', position: 'relative', paddingBottom: '60px',
                 width: '100%',
                 alignItems: 'flex-start',
-                maxHeight: 'calc((-145px + 65vh) - 65px - 40px)',
+                maxHeight: height - 380,
                 overflowY: 'auto',
             }}>
                     <Row gutter={[18, 18]} style={{ display: 'flex', flexWrap: 'wrap' }}>

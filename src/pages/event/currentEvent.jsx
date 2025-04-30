@@ -17,13 +17,15 @@ import {
     Dropdown,
     message,
     Empty,
+    Menu,
 } from "antd"
 import {getCurEventList, ProcessAlertEvent} from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
 import { ReqAiAnalyze } from "../../api/ai"
 import MarkdownRenderer from "../../utils/MarkdownRenderer"
 import { AlertTriangle } from "lucide-react"
-import { DownOutlined, ReloadOutlined, SearchOutlined, FilterOutlined } from "@ant-design/icons"
+import { DownOutlined, ReloadOutlined, SearchOutlined, FilterOutlined, EllipsisOutlined } from "@ant-design/icons"
+import {CreateSilenceModal} from "../silence/SilenceRuleCreateModal";
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -47,6 +49,8 @@ export const AlertCurrentEvent = (props) => {
     const [batchProcessing, setBatchProcessing] = useState(false)
     // 添加一个状态来跟踪是否正在进行过滤操作
     const [isFiltering, setIsFiltering] = useState(false)
+    const [selectedSilenceRow, setSelectedSilenceRow] = useState(null)
+    const [silenceVisible, setSilenceVisible] = useState(false)
 
     // Constants
     const SEVERITY_COLORS = {
@@ -167,14 +171,27 @@ export const AlertCurrentEvent = (props) => {
             key: "action",
             width: "100px",
             render: (_, record) => {
-                return (
-                    <div style={{ display: "flex", gap: "10px" }}>
-                        <Button onClick={() => showDrawer(record)}>详情</Button>
-                        <Button onClick={() => openAiAnalyze(record)} disabled={analyzeLoading}>
+                const menu = (
+                    <Menu>
+                        <Menu.Item onClick={() => showDrawer(record)}>
+                            查看详情
+                        </Menu.Item>
+                        {record.status !== "silenced" && (
+                            <Menu.Item onClick={() => {handleSilenceModalOpen(record)}} >
+                                快捷静默
+                            </Menu.Item>
+                        )}
+                        <Menu.Item onClick={() => openAiAnalyze(record)} disabled={analyzeLoading}>
                             {analyzeLoading ? "Ai 分析中" : "Ai 分析"}
-                        </Button>
-                    </div>
-                )
+                        </Menu.Item>
+                    </Menu>
+                );
+
+                return (
+                    <Dropdown overlay={menu} trigger={['click']}>
+                        <EllipsisOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+                    </Dropdown>
+                );
             },
         },
     ]
@@ -210,6 +227,29 @@ export const AlertCurrentEvent = (props) => {
             handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
         }
     }, [id, isFiltering, currentPagination.pageIndex, currentPagination.pageSize])
+
+    const handleSilenceModalOpen = (record) => {
+        const excludeKeys = ['value']; // 要排除的 key 列表
+        const labelsArray = Object.entries(record.metric || {})
+            .filter(([key]) => !excludeKeys.includes(key))
+            .map(([key, value]) => ({
+                key,
+                operator: "=",
+                value,
+        }));
+
+        const newRecord = {
+            labels: labelsArray
+        }
+
+        setSelectedSilenceRow(newRecord);
+        setSilenceVisible(true);
+    };
+
+    const handleSilenceModalClose = () => {
+        setSilenceVisible(false);
+    };
+
 
     const showDrawer = (record) => {
         setSelectedEvent(record)
@@ -621,6 +661,9 @@ export const AlertCurrentEvent = (props) => {
                     emptyText: <Empty description="暂无告警事件" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
                 }}
             />
+
+            <CreateSilenceModal visible={silenceVisible} onClose={handleSilenceModalClose} type="create"
+                                selectedRow={selectedSilenceRow} faultCenterId={id}/>
 
             <Drawer
                 title="事件详情"
