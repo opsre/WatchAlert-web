@@ -351,12 +351,23 @@ export const AlertCurrentEvent = (props) => {
         // 创建 FormData 对象
         const formData = new FormData()
 
+        let content = ""
+        if (record.datasource_type === "AliCloudSLS"
+            || record.datasource_type === "Loki"
+            || record.datasource_type === "ElasticSearch"
+            || record.datasource_type === "VictoriaLogs"){
+            content = JSON.stringify(record.log, null, 2)
+        } else {
+            content = record.annotations
+        }
+
         // 添加表单字段
         formData.append("rule_name", record.rule_name)
         formData.append("rule_id", record.rule_id)
-        formData.append("content", record.annotations)
+        formData.append("content", content)
         formData.append("search_ql", record.searchQL)
         formData.append("deep", "false")
+
 
         const params = {
             ruleId: record.rule_id,
@@ -364,7 +375,7 @@ export const AlertCurrentEvent = (props) => {
             datasourceType: record.datasource_type,
             searchQL: record.searchQL,
             fingerprint: record.fingerprint,
-            annotations: record.annotations,
+            annotations: content,
         }
         setAiAnalyzeContent(params)
 
@@ -386,10 +397,20 @@ export const AlertCurrentEvent = (props) => {
     }
 
     const AiDeepAnalyze = async (params) => {
+        let content = ""
+        if (params.datasource_type === "AliCloudSLS"
+            || params.datasource_type === "Loki"
+            || params.datasource_type === "ElasticSearch"
+            || params.datasource_type === "VictoriaLogs"){
+            content = JSON.stringify(params.log, null, 2)
+        } else {
+            content = params.annotations
+        }
+
         const formData = new FormData()
         formData.append("rule_name", params.ruleName)
         formData.append("rule_id", params.ruleId)
-        formData.append("content", params.annotations)
+        formData.append("content", content)
         formData.append("search_ql", params.searchQL)
         formData.append("deep", "true")
 
