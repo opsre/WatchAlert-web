@@ -115,7 +115,22 @@ export const AlertCurrentEvent = (props) => {
             key: "annotations",
             width: "auto",
             ellipsis: true,
-            render: (text, record) => <span>{record.annotations && <span>{record.annotations.substring(0, 50)}</span>}</span>,
+            render: (text, record) => (
+                <span>
+                    { (selectedEvent.datasource_type === "AliCloudSLS"
+                        || selectedEvent.datasource_type === "Loki"
+                        || selectedEvent.datasource_type === "ElasticSearch"
+                        || selectedEvent.datasource_type === "VictoriaLogs") && (
+                        <span>
+                            {JSON.stringify(record.log, null, 2).substring(0, 50)}...
+                        </span>
+                    ) || (
+                        <span>
+                            {record.annotations.substring(0, 50)}...
+                        </span>
+                    ) }
+                </span>
+            ),
         },
         {
             title: "初次触发时间",
@@ -748,15 +763,30 @@ export const AlertCurrentEvent = (props) => {
 
                         <div>
                             <h4>事件详情:</h4>
-                            <TextArea
-                                value={selectedEvent.annotations}
-                                style={{
-                                    height: 300,
-                                    resize: "none",
-                                    marginTop: "8px",
-                                }}
-                                readOnly
-                            />
+                            { (selectedEvent.datasource_type === "AliCloudSLS"
+                                || selectedEvent.datasource_type === "Loki"
+                                || selectedEvent.datasource_type === "ElasticSearch"
+                                || selectedEvent.datasource_type === "VictoriaLogs") && (
+                                <TextArea
+                                    value={JSON.stringify(selectedEvent.log, null, 2)}
+                                    style={{
+                                        height: 400,
+                                        resize: "none",
+                                        marginTop: "8px",
+                                    }}
+                                    readOnly
+                                />
+                            ) || (
+                                <TextArea
+                                    value={selectedEvent.annotations}
+                                    style={{
+                                        height: 400,
+                                        resize: "none",
+                                        marginTop: "8px",
+                                    }}
+                                    readOnly
+                                />
+                            ) }
                         </div>
                     </div>
                 )}

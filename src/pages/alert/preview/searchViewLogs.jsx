@@ -37,41 +37,37 @@ export const SearchViewLogs = ({ type, datasourceId, index, query }) => {
 
     const renderLogMessage = (message) => {
         try {
-            const { log, time } = JSON.parse(message);
+            // 如果 message 是对象，就格式化显示 JSON
+            const prettyJson = JSON.stringify(message, null, 2);
+
             return (
-                <div style={{
-                    marginBottom: 16,
-                    padding: 12,
+                <pre style={{
                     background: '#f3dede',
-                    borderLeft: `4px solid ${'#f33131'}`,
-                    borderRadius: 4
+                    padding: '12px',
+                    borderRadius: '4px',
+                    borderLeft: '4px solid #f33131',
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: 'monospace',
+                    fontSize: '13px',
+                    margin: '16px 0'
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <span style={{ color: '#666', fontSize: 12 }}>
-                          {new Date(time).toLocaleString()}
-                        </span>
-                    </div>
-                    <pre style={{
-                        margin: 0,
-                        whiteSpace: 'pre-wrap',
-                        fontFamily: 'monospace',
-                        fontSize: 13,
-                        lineHeight: '1.5'
-                    }}>
-                        {log}
-                    </pre>
-                </div>
+                {prettyJson}
+            </pre>
             );
         } catch (e) {
+            // 如果不是对象或无法转换为 JSON，则显示原始文本
             return (
                 <div style={{
-                    padding: 12,
                     background: '#f3dede',
-                    borderLeft: `4px solid ${'#f33131'}`,
-                    marginBottom: 16
+                    padding: '12px',
+                    borderRadius: '4px',
+                    borderLeft: '4px solid #f33131',
+                    marginBottom: '16px'
                 }}>
                     <Tag color="orange">Invalid Format</Tag>
-                    <pre style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>{message}</pre>
+                    <pre style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>
+                    {String(message)}
+                </pre>
                 </div>
             );
         }
@@ -99,7 +95,7 @@ export const SearchViewLogs = ({ type, datasourceId, index, query }) => {
             <div>
                 <h4 style={{marginBottom: 12}}>Log Messages</h4>
                 {item.Message?.length > 0 ? (
-                    <div style={{maxHeight: 500, overflowY: 'auto', paddingRight: 8}}>
+                    <div style={{maxHeight: 400, overflowY: 'auto', paddingRight: 8}}>
                         {item.Message.map((msg, i) => (
                             <div key={i}>{renderLogMessage(msg)}</div>
                         ))}
@@ -141,7 +137,10 @@ export const SearchViewLogs = ({ type, datasourceId, index, query }) => {
                     <Empty description="No logs available" />
                 </div>
             ) : (
-                <div style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
+                <div style={{
+                    height: '100%',
+                    overflowY: 'auto'
+                }}>
                     {logs.map(renderLogItem)}
                 </div>
             )}
