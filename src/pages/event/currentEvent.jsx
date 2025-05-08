@@ -117,10 +117,10 @@ export const AlertCurrentEvent = (props) => {
             ellipsis: true,
             render: (text, record) => (
                 <span>
-                    { (selectedEvent.datasource_type === "AliCloudSLS"
-                        || selectedEvent.datasource_type === "Loki"
-                        || selectedEvent.datasource_type === "ElasticSearch"
-                        || selectedEvent.datasource_type === "VictoriaLogs") && (
+                    { (record.datasource_type === "AliCloudSLS"
+                        || record.datasource_type === "Loki"
+                        || record.datasource_type === "ElasticSearch"
+                        || record.datasource_type === "VictoriaLogs") && (
                         <span>
                             {JSON.stringify(record.log, null, 2).substring(0, 50)}...
                         </span>
