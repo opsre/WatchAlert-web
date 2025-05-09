@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
-import {Anchor, Button, Form, Input, Popconfirm, Select, Typography, Radio } from 'antd';
+import {Anchor, Button, Form, Input, Popconfirm, Typography, Radio } from 'antd';
 import "./index.css";
 import { getSystemSetting, saveSystemSetting } from "../../api/settings";
 import TextArea from "antd/es/input/TextArea";

@@ -77,6 +77,7 @@ export const AuditLog = () => {
                       showDrawer(record.body)
                   }}
                   style={{
+                      backgroundColor: "#000",
                       borderRadius: "6px",
                       display: "flex",
                       alignItems: "center",

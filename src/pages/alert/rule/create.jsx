@@ -16,7 +16,7 @@ import {
 import React, { useState, useEffect } from 'react'
 import {MinusCircleOutlined, PlusOutlined, RedoOutlined} from '@ant-design/icons'
 import {createRule, searchRuleInfo, updateRule} from '../../../api/rule'
-import {ElasticSearchData, getDatasource, searchDatasource} from '../../../api/datasource'
+import {getDatasource, searchDatasource} from '../../../api/datasource'
 import {getJaegerService, queryPromMetrics} from '../../../api/other'
 import {useParams} from 'react-router-dom'
 import dayjs from 'dayjs';

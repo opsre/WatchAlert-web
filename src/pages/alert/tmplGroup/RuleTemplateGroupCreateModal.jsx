@@ -1,7 +1,6 @@
 import { Modal, Form, Input, Button } from 'antd'
 import React, { useState, useEffect } from 'react'
 import {createRuleTmplGroup, updateRuleTmplGroup} from '../../../api/ruleTmpl'
-import {useParams} from "react-router-dom";
 
 const MyFormItemContext = React.createContext([])
 

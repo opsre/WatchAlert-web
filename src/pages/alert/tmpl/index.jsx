@@ -1,10 +1,10 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
-import {Button, Input, Table, message, Modal, Select, Form, Dropdown, Tooltip, Popconfirm, Space} from "antd"
+import {Button, Input, Table, message, Modal, Select, Form, Dropdown, Tooltip, Space} from "antd"
 import RuleTemplateCreateModal from "./RuleTemplateCreateModal"
 import { useParams, useNavigate } from "react-router-dom"
-import { deleteRuleTmpl, getRuleTmplList, createRuleTmpl, updateRuleTmpl } from "../../../api/ruleTmpl"
+import { deleteRuleTmpl, getRuleTmplList, createRuleTmpl } from "../../../api/ruleTmpl"
 import { getRuleGroupList } from "../../../api/rule"
 import { useRule } from "../../../context/RuleContext"
 import {DeleteOutlined, ExportOutlined, DownOutlined, ImportOutlined, EditOutlined} from "@ant-design/icons"

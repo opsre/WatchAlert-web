@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import {Layout, theme, Button, Typography, Spin, Result, message} from "antd"
+import {Layout, theme, Button, Typography, Spin, Result} from "antd"
 import { LeftOutlined, LoadingOutlined } from "@ant-design/icons"
 import "./index.css"
 import { ComponentSider } from "./sider"

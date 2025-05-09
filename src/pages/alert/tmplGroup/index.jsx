@@ -1,6 +1,6 @@
 "use client"
 
-import { Button, Input, Table, Popconfirm, Divider, Menu, Typography, Card, Badge, Tooltip, Space, Empty } from "antd"
+import { Button, Input, Table, Popconfirm, Divider, Menu, Badge, Tooltip, Space, Empty } from "antd"
 import { useState, useEffect } from "react"
 import RuleTemplateGroupCreateModal from "./RuleTemplateGroupCreateModal"
 import { Link, useParams } from "react-router-dom"

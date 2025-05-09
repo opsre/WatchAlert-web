@@ -180,6 +180,7 @@ export const NoticeRecords = () => {
                         size="small"
                         onClick={() => showDrawer(record)}
                         style={{
+                            backgroundColor: "#000",
                             borderRadius: "6px",
                             display: "flex",
                             alignItems: "center",
