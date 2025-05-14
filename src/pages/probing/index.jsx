@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import {Table, Button, Tag, Input, Popconfirm, Radio, message, Progress, Tooltip, Space} from 'antd';
+import {Table, Button, Tag, Input, Popconfirm, Radio, message, Progress, Tooltip, Space, Modal} from 'antd';
 import {ProbingDelete, ProbingList, ProbingSearch} from "../../api/probing";
 import {Link} from "react-router-dom";
 import moment from 'moment';
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {DetailProbingHistory} from "./detail";
 
 
 export const Probing = () => {
@@ -15,14 +16,42 @@ export const Probing = () => {
     const [sslMonList, setSslMonList] = useState([]);
     const [probingType, setprobingType] = useState('HTTP');
     const [searchQuery,setSearchQuery] = useState('')
+    const [openDetailHistoryModal, setOpenDetailHistoryModal] = useState(false)
+    const [selectedRow, setSelectedRow] = useState(null)
     const HTTPColumns = [
+        {
+            title: '任务类型',
+            key: '',
+            width: 'auto',
+            render: (record) => (
+                <>
+                    检测{
+                    (record.probingEndpointConfig?.strategy?.field === "StatusCode") && '状态码'
+                    || (record.probingEndpointConfig?.strategy?.field === "Latency") && '响应延迟'
+                    || '-'
+                }
+                </>
+            ),
+        },
         {
             title: '端点',
             key: 'probingEndpointConfig.endpoint',
             width: 'auto',
             render: (record) => (
-                <div>
-                    {record.probingEndpointConfig?.endpoint || '-'}
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                    <Button
+                        type={"text"}
+                        style={{
+                            color: "rgba(22,119,255,0.83)",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                        }}
+                        onClick={() => handleModalOpen(record)}
+                    >
+                        {record.probingEndpointConfig?.endpoint || '-'}
+                    </Button>
                 </div>
             ),
         },
@@ -100,12 +129,40 @@ export const Probing = () => {
     ]
     const ICMPColumns = [
         {
+            title: '任务类型',
+            key: '',
+            width: 'auto',
+            render: (record) => (
+                <>
+                    检测{
+                    (record.probingEndpointConfig?.strategy?.field === "PacketLoss") && '丢包率'
+                    || (record.probingEndpointConfig?.strategy?.field === "MinRtt") && '最小耗时'
+                    || (record.probingEndpointConfig?.strategy?.field === "MaxRtt") && '最大耗时'
+                    || (record.probingEndpointConfig?.strategy?.field === "AvgRtt") && '平均耗时'
+                    || '-'
+                }
+                </>
+            ),
+        },
+        {
             title: '端点',
             key: 'probingEndpointConfig.endpoint',
             width: 'auto',
             render: (record) => (
-                <div>
-                    {record.probingEndpointConfig?.endpoint || '-'}
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                    <Button
+                        type={"text"}
+                        style={{
+                            color: "rgba(22,119,255,0.83)",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                        }}
+                        onClick={() => handleModalOpen(record)}
+                    >
+                        {record.probingEndpointConfig?.endpoint || '-'}
+                    </Button>
                 </div>
             ),
         },
@@ -204,12 +261,34 @@ export const Probing = () => {
     ]
     const TCPColumns = [
         {
+            title: '任务类型',
+            key: '',
+            width: 'auto',
+            render: (record) => (
+                <>
+                    检测连通性
+                </>
+            ),
+        },
+        {
             title: '端点',
             key: 'probingEndpointConfig.endpoint',
             width: 'auto',
             render: (record) => (
-                <div>
-                    {record.probingEndpointConfig?.endpoint || '-'}
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                    <Button
+                        type={"text"}
+                        style={{
+                            color: "rgba(22,119,255,0.83)",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                        }}
+                        onClick={() => handleModalOpen(record)}
+                    >
+                        {record.probingEndpointConfig?.endpoint || '-'}
+                    </Button>
                 </div>
             ),
         },
@@ -284,6 +363,16 @@ export const Probing = () => {
         },
     ]
     const SSLColumns = [
+        {
+            title: '任务类型',
+            key: '',
+            width: 'auto',
+            render: (record) => (
+                <>
+                    检测证书有效期
+                </>
+            ),
+        },
         {
             title: '端点',
             key: 'probingEndpointConfig.endpoint',
@@ -452,6 +541,15 @@ export const Probing = () => {
         }
     }, []);
 
+    const handleModalOpen = (record) => {
+        setOpenDetailHistoryModal(true)
+        setSelectedRow(record)
+    }
+
+    const handleModalClose = () => {
+        setOpenDetailHistoryModal(false)
+    }
+
     const handleList = async (ruleType) => {
         try {
             const params = {
@@ -519,6 +617,8 @@ export const Probing = () => {
 
     return (
         <>
+            <DetailProbingHistory visible={openDetailHistoryModal} onClose={handleModalClose} row={selectedRow}/>
+
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
                 <div style={{display: 'flex', gap: '10px'}}>
                     <Radio.Group

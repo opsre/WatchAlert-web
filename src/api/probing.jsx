@@ -95,11 +95,16 @@ async function ProbingOnce(params) {
     }
 }
 
+async function ProbingGetHistory(params) {
+    return await http('get', '/api/w8t/probing/getProbingHistory', params);
+}
+
 export {
     ProbingList,
     ProbingSearch,
     ProbingCreate,
     ProbingUpdate,
     ProbingDelete,
-    ProbingOnce
+    ProbingOnce,
+    ProbingGetHistory
 }

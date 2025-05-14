@@ -2,7 +2,7 @@ import {Button, Input, Table, Popconfirm, message, Space, Tooltip, Badge} from '
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertRuleGroupCreateModal } from './AlertRuleGroupCreateModal'
-import {CopyOutlined, DeleteOutlined, EditOutlined} from '@ant-design/icons';
+import {CopyOutlined, DeleteOutlined, EditOutlined, FileTextOutlined} from '@ant-design/icons';
 import { deleteRuleGroup, getRuleGroupList } from '../../../api/rule'
 
 export const AlertRuleGroup = ({ }) => {
@@ -25,9 +25,20 @@ export const AlertRuleGroup = ({ }) => {
             render: (text, record) => (
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Link to={`/ruleGroup/${record.id}/rule/list`}>{text}</Link>
+                        <Link
+                            to={`/ruleGroup/${record.id}/rule/list`}
+                            style={{
+                                color: "#1677ff",
+                                fontWeight: "500",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                            }}
+                        >
+                            {text}
+                        </Link>
                         <CopyOutlined
-                            style={{ marginLeft: '5px', cursor: 'pointer' }}
+                            style={{ marginLeft: '5px', cursor: 'pointer', color: "#1677ff" }}
                             onClick={() => handleCopy(text)}
                         />
                     </div>

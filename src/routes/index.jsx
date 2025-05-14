@@ -10,7 +10,7 @@ import { User } from "../pages/members/user";
 import { NoticeObjects } from "../pages/notice";
 import { NoticeTemplate } from "../pages/notice/tmpl";
 import { Silences } from "../pages/silence";
-import { Login } from "../utils/Login";
+import { Login } from "../pages/login";
 import Error from "../utils/Error"
 import { ComponentsContent } from '../components';
 import { Tenants } from "../pages/tenant";

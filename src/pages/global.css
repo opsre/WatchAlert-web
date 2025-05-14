@@ -1,3 +1,4 @@
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -186,12 +187,16 @@ body {
     border-color: #6B7280;
 }
 
-.ant-form-item .ant-form-item-label >label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
-    display: inline-block;
-    margin-inline-end: 0;
-    color: #ff4d4f;
-    font-size: 14px;
-    font-family: SimSun, sans-serif;
-    line-height: 1;
-    content: "";
+/*.ant-form-item .ant-form-item-label >label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {*/
+/*    display: inline-block;*/
+/*    margin-inline-end: 0;*/
+/*    color: #ff4d4f;*/
+/*    font-size: 14px;*/
+/*    font-family: SimSun, sans-serif;*/
+/*    line-height: 1;*/
+/*    content: "";*/
+/*}*/
+
+.ant-radio-group.ant-radio-group-block {
+    display: block;
 }

@@ -179,6 +179,19 @@ export const CreateProbingRule = ({ type, handleList }) => {
 
     // 创建
     const handleFormSubmit = async (values) => {
+        if (protocolType === "TCP") {
+            values = {
+                ...values,
+                probingEndpointConfig: {
+                    ...values.probingEndpointConfig,
+                    strategy: {
+                        ...values.probingEndpointConfig.strategy,
+                        field: "Telnet",
+                    }
+                }
+            }
+        }
+
         const params = {
             ...values,
             ruleName: protocolType+" 拨测任务",
