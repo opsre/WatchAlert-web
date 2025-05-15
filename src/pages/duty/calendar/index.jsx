@@ -1,4 +1,4 @@
-import { Calendar, Divider, Button, message } from 'antd';
+import { Calendar, Divider, Button, message, Spin } from 'antd';
 import React, { useState, useEffect, useCallback } from 'react';
 import { CreateCalendarModal } from './CreateCalendar';
 import { UpdateCalendarModal } from './UpdateCalendar';
@@ -35,14 +35,18 @@ export const CalendarApp = ({ tenantId }) => {
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
     const [height, setHeight] = useState(window.innerHeight);
+    const [loading, setLoading] = useState(false);
 
     const fetchData = useCallback(async () => {
+        setLoading(true);
         try {
             const data = await fetchDutyData(id, currentYear, currentMonth);
             setDutyData(data);
         } catch (error) {
             console.error('Error:', error);
             message.error('加载数据失败');
+        } finally {
+            setLoading(false);
         }
     }, [id, currentYear, currentMonth]);
 
@@ -64,6 +68,12 @@ export const CalendarApp = ({ tenantId }) => {
     };
 
     const dateCellRender = (value) => {
+        const today = new Date();
+        const isToday =
+            value.year() === today.getFullYear() &&
+            value.month() === today.getMonth() &&
+            value.date() === today.getDate();
+
         const matchingDutyData = dutyData.find((item) => {
             const itemDate = new Date(item.time);
             return (
@@ -79,18 +89,23 @@ export const CalendarApp = ({ tenantId }) => {
                 style={{
                     height: '100%',
                     width: '100%',
-                    cursor: 'pointer' // 添加指针样式提示可点击
+                    cursor: 'pointer',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    border: '1px solid #e0e0e0',
+                    backgroundColor: isToday ? '#000' : '#fff',
+                    borderColor: '#d1d1d1',
+                    transition: 'all 0.2s ease-in-out',
                 }}
+                className="hover:shadow-md"
             >
+                <div className="text-xs text-gray-500">
+                    {dateFullCellRender(value)}
+                </div>
                 {matchingDutyData && (
-                    <>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            {dateFullCellRender(value)}
-                        </div>
-                        <div style={{ marginTop: '10px', textAlign: 'center' }}>
-                            {matchingDutyData.username}
-                        </div>
-                    </>
+                    <div className="text-s" style={{ color: isToday ? '#fff' : '#000' }}>
+                        {matchingDutyData.username}
+                    </div>
                 )}
             </div>
         );
@@ -108,13 +123,11 @@ export const CalendarApp = ({ tenantId }) => {
             return; // 如果没有数据则不处理
         }
 
-        const formattedDate = `${date.year()}-${(date.month() + 1)
-            .toString()
-            .padStart(2, '0')}-${date.date()
-            .toString()
-            .padStart(2, '0')}`;
+        const m = date.month();
+        const month = m + 1;
+        const year = date.year();
 
-        setSelectedDate(formattedDate);
+        setSelectedDate(`${year}-${month}-${date.date()}`);
         setModalVisible(true);
     };
 
@@ -131,18 +144,19 @@ export const CalendarApp = ({ tenantId }) => {
             alignItems: 'flex-start',
             height: height - 210,
             overflowY: 'auto',
-            marginTop: '-10px'
         }}>
-            <div style={{ position: 'relative', overflowY: "auto", height: '830px' }}>
-                <div style={{ position: 'absolute', width: '100%', marginTop: '3px' }}>
+            <Spin spinning={loading} tip="加载中...">
+                <div style={{position: 'absolute', width: '100%'}}>
                     <Button
                         type="primary"
-                        style={{ backgroundColor: '#000000' }}
+                        style={{
+                            backgroundColor: '#000000'
+                        }}
                         onClick={() => setCreateCalendarModal(true)}
                     >
                         发布日程
                     </Button>
-                    <div style={{ textAlign: 'center', marginTop: '-45px' }}>
+                    <div style={{ textAlign: 'center', marginTop: '-20px' }} className="text-xl items-center font-semibold" >
                         <h3>日程表名称：{calendarName}</h3>
                     </div>
                 </div>
@@ -154,30 +168,24 @@ export const CalendarApp = ({ tenantId }) => {
                     onSuccess={fetchData}
                 />
 
-                <Divider />
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: '-60px',
-                }}>
+                <div className="flex justify-center">
                     <Calendar
                         onPanelChange={handlePanelChange}
                         cellRender={dateCellRender}
-                        fullscreen={true}
+                        fullscreen={false}
                     />
                 </div>
-            </div>
 
-            <UpdateCalendarModal
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                onSuccess={fetchData}
-                time={selectedDate}
-                tenantId={tenantId}
-                dutyId={id}
-                date={selectedDate}
-            />
+                <UpdateCalendarModal
+                    visible={modalVisible}
+                    onClose={() => setModalVisible(false)}
+                    onSuccess={fetchData}
+                    time={selectedDate}
+                    tenantId={tenantId}
+                    dutyId={id}
+                    date={selectedDate}
+                />
+            </Spin>
         </div>
     );
 };

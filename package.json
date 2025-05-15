@@ -19,7 +19,7 @@
     "@codemirror/view": "^0.18.3",
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/postcss": "^4.1.6",
-    "antd": "^5.25.1",
+    "antd": "5.13.2",
     "axios": "^0.26.0",
     "codemirror": "^6.0.1",
     "codemirror-promql": "0.17.0",

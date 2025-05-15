@@ -1,19 +1,53 @@
-.events {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+.ant-calendar {
+    border-radius: 12px !important;
 }
-.events .ant-badge-status {
-    width: 100%;
-    overflow: hidden;
+
+.ant-calendar-fullscreen .ant-calendar {
+    border-radius: 0 !important;
+}
+
+.ant-calendar-date {
+    font-size: 14px !important;
+    color: #333 !important;
+}
+
+.ant-calendar-header {
+    background-color: #566b81 !important;
+}
+
+.ant-calendar-body {
+    background-color: #421717 !important;
+}
+
+.text-xs {
     font-size: 12px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
 }
-.notes-month {
-    font-size: 28px;
-    text-align: center;
+
+.text-gray-500 {
+    color: #fffefe;
 }
-.notes-month section {
-    font-size: 28px;
+
+.font-medium {
+    font-weight: 500;
+}
+
+.text-blue-600 {
+    color: #1dd8a0;
+}
+
+.shadow-sm:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.max-w-5xl {
+    max-width: 96rem;
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
 }
