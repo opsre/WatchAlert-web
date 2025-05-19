@@ -220,7 +220,7 @@ export const Silences = (props) => {
                 onChange={handleAggregationModeChange}
             />
 
-            <Typography.Title level={5} style={{ fontSize: '14px' }}>静默规则</Typography.Title>
+            <Typography.Title level={5} style={{ fontSize: '14px', marginTop: '10px' }}>静默规则</Typography.Title>
             <div style={{ display: 'flex' }}>
                 <CreateSilenceModal visible={visible} onClose={handleModalClose} type='create' handleList={handleList} faultCenterId={faultCenterId} />
 
