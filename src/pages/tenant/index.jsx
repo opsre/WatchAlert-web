@@ -4,7 +4,9 @@ import { deleteTenant, getTenantList } from '../../api/tenant';
 import { CreateTenant } from './CreateTenant';
 import {Link} from "react-router-dom";
 import {getUserInfo} from "../../api/user";
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {copyToClipboard} from "../../utils/copyToClipboard";
+
 
 export const Tenants = () => {
     const [selectedRow, setSelectedRow] = useState(null);
@@ -18,10 +20,39 @@ export const Tenants = () => {
             key: 'name',
             width: 'auto',
             render: (text, record) => (
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Link to={`/tenants/detail/${record.id}`}>{text}</Link>
-                    </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Link
+                        to={`/tenants/detail/${record.id}`}
+                        style={{
+                            color: "#1677ff",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: '4px'
+                        }}
+                    >
+                        {text}
+                    </Link>
+                    <Tooltip title="点击复制 ID">
+                        <span
+                            style={{
+                                color: '#8c8c8c',     // 灰色字体
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => copyToClipboard(record.id)}
+                        >
+                            {record.id}
+                            <CopyOutlined style={{ marginLeft: 8 }} />
+                        </span>
+                    </Tooltip>
                 </div>
             ),
         },

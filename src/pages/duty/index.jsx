@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import {Table, Button, Popconfirm, message, Space, Tooltip} from 'antd';
 import { CreateDutyModal } from './DutyManageCreateModal';
-import { CalendarApp } from './calendar';
 import {CopyOutlined, DeleteOutlined, EditOutlined} from '@ant-design/icons';
 import { deleteDutyManager, getDutyManagerList } from '../../api/duty';
 import {Link} from "react-router-dom";
+import { copyToClipboard } from "../../utils/copyToClipboard";
 
 export const DutyManage = () => {
     const [calendarVisible, setCalendarVisible] = useState(false);
@@ -13,31 +13,49 @@ export const DutyManage = () => {
     const [updateVisible, setUpdateVisible] = useState(false);
     const [list, setList] = useState([]);
     const [selectedRow, setSelectedRow] = useState(null)
+    const [height, setHeight] = useState(window.innerHeight);
     const [columns] = useState([
-        {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id',
-            width: 'auto',
-            render: (text, record) => (
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Link to={`/dutyManage/${record.id}/calendar?calendarName=${record.name}`}>
-                            {text}
-                        </Link>
-                        <CopyOutlined
-                            style={{ marginLeft: '5px', cursor: 'pointer' }}
-                            onClick={() => handleCopy(text)}
-                        />
-                    </div>
-                </div>
-            ),
-        },
         {
             title: '名称',
             dataIndex: 'name',
             key: 'name',
             width: 'auto',
+            render: (text, record) => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Link
+                        to={`/dutyManage/${record.id}/calendar?calendarName=${record.name}`}
+                        style={{
+                            color: "#1677ff",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: '4px'
+                        }}
+                    >
+                        {text}
+                    </Link>
+                    <Tooltip title="点击复制 ID">
+                        <span
+                            style={{
+                                color: '#8c8c8c',     // 灰色字体
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => copyToClipboard(record.id)}
+                        >
+                            {record.id}
+                            <CopyOutlined style={{ marginLeft: 8 }} />
+                        </span>
+                    </Tooltip>
+                </div>
+            ),
         },
         {
             title: '负责人',
@@ -111,7 +129,6 @@ export const DutyManage = () => {
                 </Space>
         },
     ]);
-    const [height, setHeight] = useState(window.innerHeight);
 
     useEffect(() => {
         // 定义一个处理窗口大小变化的函数

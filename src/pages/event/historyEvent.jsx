@@ -16,14 +16,17 @@ import {
     Radio,
     Descriptions
 } from "antd"
-import { DownloadOutlined } from "@ant-design/icons"
+import {DownloadOutlined, ReloadOutlined} from "@ant-design/icons"
 import dayjs from "dayjs"
 import { getHisEventList } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
 import {AlertTriangle} from "lucide-react";
+import {useLocation, useNavigate} from "react-router-dom";
 
 export const AlertHistoryEvent = (props) => {
     const { id } = props
+    const navigate = useNavigate();
+    const location = useLocation();
     const { RangePicker } = DatePicker
     const { Search } = Input
 
@@ -850,6 +853,21 @@ export const AlertHistoryEvent = (props) => {
         }
     }
 
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const query = searchParams.get('query');
+        if (query) {
+            setSearchQuery(query);
+        }
+    }, [location.search]);
+
+    const onSearchChange = (key) => {
+        setSearchQuery(key);
+        const searchParams = new URLSearchParams(location.search);
+        searchParams.set('query', key);
+        navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+    };
+
     // 渲染JSX
     return (
         <React.Fragment>
@@ -860,7 +878,7 @@ export const AlertHistoryEvent = (props) => {
                     placeholder="输入搜索关键字"
                     onSearch={handleSearch}
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => onSearchChange(e.target.value)}
                     style={{ width: 200 }}
                 />
                 <Select
@@ -892,7 +910,7 @@ export const AlertHistoryEvent = (props) => {
                     ]}
                 />
                 <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" onChange={onChange} onOk={onOk} presets={rangePresets} />
-                <Button onClick={() => handleHistoryEventList(historyPagination.pageIndex, historyPagination.pageSize)}>
+                <Button icon={<ReloadOutlined />} onClick={() => handleHistoryEventList(historyPagination.pageIndex, historyPagination.pageSize)}>
                     刷新
                 </Button>
                 <Button icon={<DownloadOutlined />} onClick={openExportModal}>
@@ -974,12 +992,12 @@ export const AlertHistoryEvent = (props) => {
                                 {
                                     key: "value",
                                     label: "触发时值",
-                                    children: selectedEvent.metric["value"],
+                                    children: selectedEvent.metric["value"] || 0,
                                 },
                                 {
                                     key: "value",
                                     label: "恢复时值",
-                                    children: selectedEvent.metric["recover_value"],
+                                    children: selectedEvent.metric["recover_value"] || 0,
                                 },
                                 {
                                     key: "handle",

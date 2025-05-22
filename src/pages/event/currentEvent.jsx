@@ -25,10 +25,13 @@ import { ReqAiAnalyze } from "../../api/ai"
 import MarkdownRenderer from "../../utils/MarkdownRenderer"
 import { AlertTriangle } from "lucide-react"
 import { DownOutlined, ReloadOutlined, SearchOutlined, FilterOutlined, EllipsisOutlined } from "@ant-design/icons"
-import {CreateSilenceModal} from "../silence/SilenceRuleCreateModal";
+import { CreateSilenceModal } from "../silence/SilenceRuleCreateModal";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
+    const navigate = useNavigate();
+    const location = useLocation();
     const { Search } = Input
     const [currentEventList, setCurrentEventList] = useState([])
     const [searchQuery, setSearchQuery] = useState("")
@@ -548,6 +551,21 @@ export const AlertCurrentEvent = (props) => {
         setIsFiltering(true) // 标记正在过滤
     }
 
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const query = searchParams.get('query');
+        if (query) {
+            setSearchQuery(query);
+        }
+    }, [location.search]);
+
+    const onSearchChange = (key) => {
+        setSearchQuery(key);
+        const searchParams = new URLSearchParams(location.search);
+        searchParams.set('query', key);
+        navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+    };
+
     return (
         <div>
             <Modal
@@ -618,7 +636,7 @@ export const AlertCurrentEvent = (props) => {
                             onSearch={handleSearch}
                             style={{ width: 200 }}
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => onSearchChange(e.target.value)}
                             prefix={<SearchOutlined />}
                         />
                         <Select
@@ -749,7 +767,7 @@ export const AlertCurrentEvent = (props) => {
                                 {
                                     key: "value",
                                     label: "触发时值",
-                                    children: selectedEvent.metric["value"],
+                                    children: selectedEvent.metric["value"] || '-',
                                 },
                                 {
                                     key: "confirm",

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Button, Input, Table, Tag, Popconfirm, Tooltip, Space} from 'antd';
+import {Button, Input, Table, Tag, Popconfirm, Tooltip, Space, message} from 'antd';
 import { CreateDatasourceModal } from './DatasourceCreateModal';
 import { deleteDatasource, getDatasourceList, searchDatasource } from '../../api/datasource';
 import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
@@ -12,7 +12,8 @@ import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import './index.css'
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import { copyToClipboard } from "../../utils/copyToClipboard";
 
 export const Datasources = () => {
     const { Search } = Input
@@ -20,11 +21,36 @@ export const Datasources = () => {
     const [updateVisible, setUpdateVisible] = useState(false);
     const [visible, setVisible] = useState(false);
     const [list, setList] = useState([]);
+    const [height, setHeight] = useState(window.innerHeight);
     const [columns] = useState([
         {
             title: '名称',
             dataIndex: 'name',
             key: 'name',
+            render: (text, record) => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {text}
+                    <Tooltip title="点击复制 ID">
+                        <span
+                            style={{
+                                color: '#8c8c8c',     // 灰色字体
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => copyToClipboard(record.id)}
+                        >
+                            {record.id}
+                            <CopyOutlined style={{ marginLeft: 8 }} />
+                        </span>
+                    </Tooltip>
+                </div>
+            ),
         },
         {
             title: '数据源类型',
@@ -119,8 +145,6 @@ export const Datasources = () => {
             ),
         },
     ]);
-
-    const [height, setHeight] = useState(window.innerHeight);
 
     useEffect(() => {
         // 定义一个处理窗口大小变化的函数

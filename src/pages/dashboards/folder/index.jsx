@@ -1,16 +1,14 @@
-import {Button, Table, Popconfirm, Input, Tooltip, Space} from 'antd'
+import {Button, Table, Popconfirm, Input, Tooltip, Space, message} from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { deleteRuleGroup } from '../../../api/rule'
 import {
-    deleteDashboard,
     deleteDashboardFolder,
-    getDashboardList,
     getFolderList,
     searchDashboard
 } from '../../../api/dashboard';
 import CreateFolderModal from './create';
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined,DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import { copyToClipboard } from "../../../utils/copyToClipboard";
 
 export const DashboardFolder = () => {
     const { Search } = Input
@@ -24,12 +22,56 @@ export const DashboardFolder = () => {
             dataIndex: 'name',
             key: 'name',
             render: (text, record) => (
-                < div >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Link to={`/folder/${record.id}/list`}>{text}</Link>
-                    </div>
-                </div >
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Link
+                        to={`/folder/${record.id}/list`}
+                        style={{
+                            color: "#1677ff",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: '4px'
+                        }}
+                    >
+                        {text}
+                    </Link>
+                    <Tooltip title="点击复制 ID">
+                <span
+                    style={{
+                        color: '#8c8c8c',     // 灰色字体
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        display: 'inline-block',
+                        maxWidth: '200px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                    }}
+                    onClick={() => copyToClipboard(record.id)}
+                >
+                    {record.id}
+                    <CopyOutlined style={{ marginLeft: 8 }} />
+                </span>
+                    </Tooltip>
+                </div>
             ),
+        },
+        {
+            title: '端点',
+            dataIndex: 'grafanaHost',
+            key: 'grafanaHost',
+        },
+        {
+            title: '目录ID',
+            dataIndex: 'grafanaFolderId',
+            key: 'grafanaFolderId',
+        },
+        {
+            title: '版本',
+            dataIndex: 'grafanaVersion',
+            key: 'grafanaVersion',
         },
         {
             title: '操作',

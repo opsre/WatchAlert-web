@@ -6,7 +6,9 @@ import { ReactComponent as FeiShuIcon } from '../img/feishu.svg';
 import { ReactComponent as DingdingIcon } from '../img/dingding.svg';
 import { ReactComponent as EmailIcon } from '../img/Email.svg';
 import { ReactComponent as WeChatIcon } from '../img/qywechat.svg'
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {Link} from "react-router-dom";
+import {copyToClipboard} from "../../../utils/copyToClipboard";
 
 const { Search } = Input;
 
@@ -23,6 +25,30 @@ export const NoticeTemplate = () => {
             dataIndex: 'name',
             key: 'name',
             width: 'auto',
+            render: (text, record) => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {text}
+                    <Tooltip title="点击复制 ID">
+                        <span
+                            style={{
+                                color: '#8c8c8c',     // 灰色字体
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => copyToClipboard(record.id)}
+                        >
+                            {record.id}
+                            <CopyOutlined style={{ marginLeft: 8 }} />
+                        </span>
+                    </Tooltip>
+                </div>
+            ),
         },
         {
             title: '模版类型',

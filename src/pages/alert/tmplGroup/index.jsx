@@ -9,7 +9,7 @@ import { ReactComponent as Metric } from "../assets/metric.svg"
 import { ReactComponent as Log } from "../assets/log.svg"
 import { ReactComponent as Trace } from "../assets/trace.svg"
 import { ReactComponent as Event } from "../assets/event.svg"
-import { SearchOutlined, PlusOutlined, DeleteOutlined, EditOutlined, FileTextOutlined } from "@ant-design/icons"
+import { SearchOutlined, PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons"
 
 const { Search } = Input
 
@@ -44,7 +44,6 @@ export const RuleTemplateGroup = () => {
                         gap: "8px",
                     }}
                 >
-                    <FileTextOutlined />
                     {text}
                 </Link>
             ),

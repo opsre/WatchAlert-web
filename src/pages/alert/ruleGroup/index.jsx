@@ -1,9 +1,10 @@
-import {Button, Input, Table, Popconfirm, message, Space, Tooltip, Badge} from 'antd'
+import {Button, Input, Table, Popconfirm, Space, Tooltip, Badge} from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertRuleGroupCreateModal } from './AlertRuleGroupCreateModal'
-import {CopyOutlined, DeleteOutlined, EditOutlined, FileTextOutlined} from '@ant-design/icons';
+import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { deleteRuleGroup, getRuleGroupList } from '../../../api/rule'
+import { copyToClipboard } from "../../../utils/copyToClipboard";
 
 export const AlertRuleGroup = ({ }) => {
     const { Search } = Input
@@ -18,38 +19,46 @@ export const AlertRuleGroup = ({ }) => {
     });
     const columns = [
         {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id',
-            width: 'auto',
-            render: (text, record) => (
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Link
-                            to={`/ruleGroup/${record.id}/rule/list`}
-                            style={{
-                                color: "#1677ff",
-                                fontWeight: "500",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "8px",
-                            }}
-                        >
-                            {text}
-                        </Link>
-                        <CopyOutlined
-                            style={{ marginLeft: '5px', cursor: 'pointer', color: "#1677ff" }}
-                            onClick={() => handleCopy(text)}
-                        />
-                    </div>
-                </div>
-            ),
-        },
-        {
             title: '规则组名称',
             dataIndex: 'name',
             key: 'name',
             width: 'auto',
+            render: (text, record) => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Link
+                        to={`/ruleGroup/${record.id}/rule/list`}
+                        style={{
+                            color: "#1677ff",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: '4px'
+                        }}
+                    >
+                        {text}
+                    </Link>
+                    <Tooltip title="点击复制 ID">
+                        <span
+                            style={{
+                                color: '#8c8c8c',     // 灰色字体
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => copyToClipboard(record.id)}
+                        >
+                            {record.id}
+                            <CopyOutlined style={{ marginLeft: 8 }} />
+                        </span>
+                    </Tooltip>
+                </div>
+            ),
         },
         {
             title: '规则数',
@@ -110,6 +119,7 @@ export const AlertRuleGroup = ({ }) => {
                 ) : null,
         },
     ]
+
     const [height, setHeight] = useState(window.innerHeight);
 
     useEffect(() => {
@@ -130,11 +140,6 @@ export const AlertRuleGroup = ({ }) => {
     useEffect(() => {
         handleList(pagination.index, pagination.size)
     }, [])
-
-    const handleCopy = (text) => {
-        navigator.clipboard.writeText(text);
-        message.success('已复制到剪贴板');
-    };
 
     const handleList = async (index, size) => {
         try {

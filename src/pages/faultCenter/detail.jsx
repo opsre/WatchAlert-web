@@ -2,23 +2,42 @@ import React, { useState, useEffect } from 'react';
 import { Input, Descriptions, Tabs, Button } from 'antd';
 import { EditOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import './index.css';
-import {FaultCenterReset, FaultCenterSearch} from '../../api/faultCenter';
-import { useParams } from 'react-router-dom';
+import { FaultCenterReset, FaultCenterSearch } from '../../api/faultCenter';
+import { useParams, useNavigate, useLocation } from 'react-router-dom'; // 新增
 import { AlertCurrentEvent } from '../event/currentEvent';
 import { AlertHistoryEvent } from '../event/historyEvent';
 import { Silences } from '../silence';
-import {FaultCenterNotify} from "./notify";
-import {AlarmUpgrade} from "./upgrade";
+import { FaultCenterNotify } from "./notify";
+import { AlarmUpgrade } from "./upgrade";
 
 export const FaultCenterDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
     const [detail, setDetail] = useState({});
-    const [editingField, setEditingField] = useState(null); // 当前正在编辑的字段
-    const [tempValue, setTempValue] = useState(''); // 临时存储编辑的值
+    const [editingField, setEditingField] = useState(null);
+    const [tempValue, setTempValue] = useState('');
+
+    // 解析 URL 中的 tab 参数，默认为 '1'
+    const getInitialTabKey = () => {
+        const searchParams = new URLSearchParams(location.search);
+        return searchParams.get('tab') || '1';
+    };
+
+    const [activeTabKey, setActiveTabKey] = useState(getInitialTabKey);
 
     useEffect(() => {
         handleList();
     }, []);
+
+    // 当 URL 的查询参数变化时更新 activeTabKey
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const tabFromUrl = searchParams.get('tab');
+        if (tabFromUrl) {
+            setActiveTabKey(tabFromUrl);
+        }
+    }, [location.search]);
 
     const handleList = async () => {
         try {
@@ -30,31 +49,26 @@ export const FaultCenterDetail = () => {
         }
     };
 
-    // 进入编辑模式
     const handleEdit = (field) => {
         setEditingField(field);
         setTempValue(detail[field] || '');
     };
 
-    // 保存编辑
     const handleSave = async (field) => {
         try {
-            // 更新本地状态
             setDetail({ ...detail, [field]: tempValue });
             setEditingField(null);
 
-            // 调用 API 保存到后端
             const params = {
                 id: id,
                 [field]: tempValue,
-            }
+            };
             await FaultCenterReset(params);
         } catch (error) {
             console.error('保存失败:', error);
         }
     };
 
-    // 取消编辑
     const handleCancel = () => {
         setEditingField(null);
     };
@@ -167,13 +181,26 @@ export const FaultCenterDetail = () => {
         },
     ];
 
+    // Tab 切换回调函数
+    const onTabChange = (key) => {
+        setActiveTabKey(key);
+        const searchParams = new URLSearchParams(location.search);
+        searchParams.set('tab', key);
+        navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+    };
+
     return (
         <div style={{ textAlign: 'left' }}>
             <Descriptions title="基础信息" items={describeItems} />
 
             <br />
 
-            <Tabs defaultActiveKey="1" items={tagItems} />
+            <Tabs
+                activeKey={activeTabKey}
+                defaultActiveKey="1"
+                items={tagItems}
+                onChange={onTabChange}
+            />
         </div>
     );
 };

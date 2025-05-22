@@ -8,7 +8,8 @@ import { ReactComponent as EmailIcon } from './img/Email.svg'
 import { ReactComponent as WeChatIcon } from './img/qywechat.svg'
 import { ReactComponent as CustomHookIcon } from './img/customhook.svg'
 import {getDutyManagerList} from "../../api/duty";
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import { copyToClipboard } from "../../utils/copyToClipboard";
 
 export const NoticeObjects = () => {
     const { Search } = Input
@@ -16,12 +17,38 @@ export const NoticeObjects = () => {
     const [updateVisible, setUpdateVisible] = useState(false);
     const [visible, setVisible] = useState(false);
     const [list, setList] = useState([]);
+    const [dutyList, setDutyList] = useState([])
+    const [height, setHeight] = useState(window.innerHeight);
     const columns = [
         {
             title: '名称',
             dataIndex: 'name',
             key: 'name',
             width: 'auto',
+            render: (text, record) => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {text}
+                    <Tooltip title="点击复制 ID">
+                        <span
+                            style={{
+                                color: '#8c8c8c',     // 灰色字体
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => copyToClipboard(record.uuid)}
+                        >
+                            {record.uuid}
+                            <CopyOutlined style={{ marginLeft: 8 }} />
+                        </span>
+                    </Tooltip>
+                </div>
+            ),
         },
         {
             title: '通知类型',
@@ -116,9 +143,6 @@ export const NoticeObjects = () => {
                 ) : null,
         },
     ]
-    const [dutyList, setDutyList] = useState([])
-
-    const [height, setHeight] = useState(window.innerHeight);
 
     useEffect(() => {
         // 定义一个处理窗口大小变化的函数

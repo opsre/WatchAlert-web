@@ -1255,8 +1255,8 @@ export const AlertRule = ({ type }) => {
                                         label="Project"
                                         rules={[{required: true}]}
                                         style={{
-                                            marginRight: '10px',
-                                            width: '500px',
+                                            marginRight: '5px',
+                                            width: '50%',
                                         }}>
                                         <Input/>
                                     </MyFormItem>
@@ -1265,7 +1265,8 @@ export const AlertRule = ({ type }) => {
                                         label="Logstore"
                                         rules={[{required: true}]}
                                         style={{
-                                            width: '500px',
+                                            marginLeft: '5px',
+                                            width: '50%',
                                         }}>
                                         <Input/>
                                     </MyFormItem>
