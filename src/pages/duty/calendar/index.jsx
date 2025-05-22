@@ -99,7 +99,7 @@ export const CalendarApp = ({ tenantId }) => {
                 }}
                 className="hover:shadow-md"
             >
-                <div className="text-xs text-gray-500">
+                <div className="text-xs">
                     {dateFullCellRender(value)}
                 </div>
                 {matchingDutyData && (
