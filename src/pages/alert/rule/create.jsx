@@ -1175,7 +1175,7 @@ export const AlertRule = ({ type }) => {
                                         <MyFormItem
                                             name="annotations"
                                             label="告警详情"
-                                            tooltip="获取 Label 变量, 示例: ${job}, ${instance}。凡是 Target 中的变量均可通过`${}`获取。"
+                                            tooltip="获取 Label 变量, 示例: ${labels.job}, ${labels.instance}。凡是 Target 中的变量均可通过`${labels.xxx}`获取。"
                                             rules={[{required: true}]}
                                         >
                                             <TextArea rows={2}

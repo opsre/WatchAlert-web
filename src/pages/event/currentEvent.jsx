@@ -125,7 +125,7 @@ export const AlertCurrentEvent = (props) => {
                         || record.datasource_type === "ElasticSearch"
                         || record.datasource_type === "VictoriaLogs") && (
                         <span>
-                            {JSON.stringify(record.log, null, 2).substring(0, 50)}...
+                            {JSON.stringify(record.labels, null, 2).substring(0, 50)}...
                         </span>
                     ) || (
                         <span>
@@ -248,19 +248,29 @@ export const AlertCurrentEvent = (props) => {
 
     const handleSilenceModalOpen = (record) => {
         const excludeKeys = ['value']; // 要排除的 key 列表
-        const labelsArray = Object.entries(record.metric || {})
-            .filter(([key]) => !excludeKeys.includes(key))
-            .map(([key, value]) => ({
-                key,
-                operator: "=",
-                value,
-        }));
 
-        const newRecord = {
-            labels: labelsArray
+        // 如果 record.labels 中包含 fingerprint，就只取 fingerprint
+        if (record.labels && 'fingerprint' in record.labels) {
+            setSelectedSilenceRow({
+                labels: [{
+                    key: 'fingerprint',
+                    operator: '=',
+                    value: record.labels.fingerprint,
+                }]
+            });
+        } else {
+            // 否则，继续原来逻辑：过滤掉 excludeKeys 的字段
+            const labelsArray = Object.entries(record.labels || {})
+                .filter(([key]) => !excludeKeys.includes(key))
+                .map(([key, value]) => ({
+                    key,
+                    operator: "=",
+                    value,
+                }));
+
+            setSelectedSilenceRow({ labels: labelsArray });
         }
 
-        setSelectedSilenceRow(newRecord);
         setSilenceVisible(true);
     };
 
@@ -767,7 +777,7 @@ export const AlertCurrentEvent = (props) => {
                                 {
                                     key: "value",
                                     label: "触发时值",
-                                    children: selectedEvent.metric["value"] || '-',
+                                    children: selectedEvent?.labels["value"] || '-',
                                 },
                                 {
                                     key: "confirm",
@@ -794,7 +804,7 @@ export const AlertCurrentEvent = (props) => {
                         <div style={{ marginBottom: "16px" }}>
                             <h4>事件标签:</h4>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                                {Object.entries(selectedEvent.metric).map(([key, value]) => (
+                                {Object.entries(selectedEvent?.labels).map(([key, value]) => (
                                     <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
                                 ))}
                             </div>
@@ -807,7 +817,7 @@ export const AlertCurrentEvent = (props) => {
                                 || selectedEvent.datasource_type === "ElasticSearch"
                                 || selectedEvent.datasource_type === "VictoriaLogs") && (
                                 <TextArea
-                                    value={JSON.stringify(selectedEvent.log, null, 2)}
+                                    value={JSON.stringify(selectedEvent?.labels, null, 2)}
                                     style={{
                                         height: 400,
                                         resize: "none",

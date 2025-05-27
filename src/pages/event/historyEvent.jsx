@@ -117,7 +117,7 @@ export const AlertHistoryEvent = (props) => {
                         || record.datasource_type === "ElasticSearch"
                         || record.datasource_type === "VictoriaLogs") && (
                         <span>
-                            {JSON.stringify(record?.log, null, 2).substring(0, 50)}...
+                            {JSON.stringify(record.labels, null, 2).substring(0, 50)}...
                         </span>
                     ) || (
                         <span>
@@ -991,13 +991,8 @@ export const AlertHistoryEvent = (props) => {
                                 },
                                 {
                                     key: "value",
-                                    label: "触发时值",
-                                    children: selectedEvent.metric["value"] || 0,
-                                },
-                                {
-                                    key: "value",
                                     label: "恢复时值",
-                                    children: selectedEvent.metric["recover_value"] || 0,
+                                    children: selectedEvent?.labels["recover_value"] || 0,
                                 },
                                 {
                                     key: "handle",
@@ -1061,7 +1056,7 @@ export const AlertHistoryEvent = (props) => {
                         <div style={{ marginBottom: "16px" }}>
                             <h4>事件标签:</h4>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                                {Object.entries(selectedEvent.metric).map(([key, value]) => (
+                                {Object.entries(selectedEvent?.labels).map(([key, value]) => (
                                     <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
                                 ))}
                             </div>
@@ -1074,7 +1069,7 @@ export const AlertHistoryEvent = (props) => {
                                 || selectedEvent.datasource_type === "ElasticSearch"
                                 || selectedEvent.datasource_type === "VictoriaLogs") && (
                                 <TextArea
-                                    value={JSON.stringify(selectedEvent.log, null, 2)}
+                                    value={JSON.stringify(selectedEvent?.labels, null, 2)}
                                     style={{
                                         height: 400,
                                         resize: "none",
