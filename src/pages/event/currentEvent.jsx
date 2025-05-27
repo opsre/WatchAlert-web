@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import React, { useRef } from "react"
 import { useState, useEffect } from "react"
 import {
     Table,
@@ -17,16 +17,25 @@ import {
     Dropdown,
     message,
     Empty,
-    Menu,
+    Menu, Radio, Checkbox, DatePicker,
 } from "antd"
 import {getCurEventList, ProcessAlertEvent} from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
 import { ReqAiAnalyze } from "../../api/ai"
 import MarkdownRenderer from "../../utils/MarkdownRenderer"
 import { AlertTriangle } from "lucide-react"
-import { DownOutlined, ReloadOutlined, SearchOutlined, FilterOutlined, EllipsisOutlined } from "@ant-design/icons"
+import {
+    DownOutlined,
+    ReloadOutlined,
+    SearchOutlined,
+    FilterOutlined,
+    EllipsisOutlined,
+    DownloadOutlined
+} from "@ant-design/icons"
 import { CreateSilenceModal } from "../silence/SilenceRuleCreateModal";
 import { useLocation, useNavigate } from "react-router-dom";
+import {exportAlarmRecordToHTML} from "../../utils/exportAlarmRecordToHTML";
+import dayjs from "dayjs";
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -54,6 +63,19 @@ export const AlertCurrentEvent = (props) => {
     const [isFiltering, setIsFiltering] = useState(false)
     const [selectedSilenceRow, setSelectedSilenceRow] = useState(null)
     const [silenceVisible, setSilenceVisible] = useState(false)
+    // 导出相关状态
+    const [exportModalVisible, setExportModalVisible] = useState(false)
+    const [exportTimeRange, setExportTimeRange] = useState([null, null])
+    const [exportFilters, setExportFilters] = useState({
+        ruleName: "",
+        ruleType: "",
+        alertLevel: "",
+    })
+    const [exportOptions, setExportOptions] = useState({
+        timeRange: "all", // all, custom
+        filterOptions: [], // ruleName, ruleType, alertLevel
+        itemsPerPage: 10, // 导出HTML的每页项目数
+    })
 
     // Constants
     const SEVERITY_COLORS = {
@@ -277,7 +299,6 @@ export const AlertCurrentEvent = (props) => {
     const handleSilenceModalClose = () => {
         setSilenceVisible(false);
     };
-
 
     const showDrawer = (record) => {
         setSelectedEvent(record)
@@ -576,6 +597,59 @@ export const AlertCurrentEvent = (props) => {
         navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
     };
 
+    // 打开导出对话框
+    const openExportModal = () => {
+        // 使用当前筛选条件作为默认值
+        setExportFilters({
+            ruleName: searchQuery,
+            ruleType: selectedDataSource,
+            alertLevel: selectedAlertLevel,
+        })
+        setExportOptions({
+            ...exportOptions,
+            filterOptions: [
+                ...(searchQuery ? ["ruleName"] : []),
+                ...(selectedDataSource ? ["ruleType"] : []),
+                ...(selectedAlertLevel ? ["alertLevel"] : []),
+            ],
+        })
+        setExportModalVisible(true)
+    }
+
+    const handleExportOptionsChange = (type, value) => {
+        if (type === "timeRange") {
+            setExportOptions({
+                ...exportOptions,
+                timeRange: value,
+            })
+        } else if (type === "filterOptions") {
+            setExportOptions({
+                ...exportOptions,
+                filterOptions: value,
+            })
+        } else if (type === "itemsPerPage") {
+            setExportOptions({
+                ...exportOptions,
+                itemsPerPage: value,
+            })
+        }
+    }
+
+    async function handleExportClick() {
+        if (currentEventList.length === 0) {
+            message.warning("当前告警列表中没有事件!")
+            return
+        };
+
+        exportAlarmRecordToHTML("活跃告警报表", currentEventList, {
+            ruleName: searchQuery,
+            ruleType: selectedDataSource,
+            alertLevel: selectedAlertLevel,
+        }, exportTimeRange);
+
+        setExportModalVisible(false)
+    }
+
     return (
         <div>
             <Modal
@@ -685,6 +759,9 @@ export const AlertCurrentEvent = (props) => {
                                 清除筛选
                             </Button>
                         )}
+                        <Button icon={<DownloadOutlined />} onClick={openExportModal}>
+                            导出
+                        </Button>
                     </Space>
                     <Space>
                         <Dropdown menu={batchOperationMenu} disabled={selectedRowKeys.length === 0 || batchProcessing}>
@@ -840,6 +917,103 @@ export const AlertCurrentEvent = (props) => {
                     </div>
                 )}
             </Drawer>
+
+            {/* 导出配置对话框 */}
+            <Modal
+                title="导出历史告警"
+                open={exportModalVisible}
+                onCancel={() => setExportModalVisible(false)}
+                footer={[
+                    <Button key="cancel" onClick={() => setExportModalVisible(false)}>
+                        取消
+                    </Button>,
+                    <Button key="export" type="primary" onClick={handleExportClick}>
+                        导出
+                    </Button>,
+                ]}
+                width={600}
+            >
+                <div style={{ marginBottom: 16 }}>
+                    <h4>时间范围</h4>
+                    <Radio.Group
+                        value={"all"}
+                    >
+                        <Radio value="all">全部时间</Radio>
+                    </Radio.Group>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                    <h4>筛选条件</h4>
+                    <Checkbox.Group
+                        value={exportOptions.filterOptions}
+                        onChange={(values) => handleExportOptionsChange("filterOptions", values)}
+                    >
+                        <Space direction="vertical">
+                            <Checkbox value="ruleName">按规则名称筛选</Checkbox>
+                            {exportOptions.filterOptions.includes("ruleName") && (
+                                <Input
+                                    placeholder="输入规则名称关键字"
+                                    value={exportFilters.ruleName}
+                                    onChange={(e) => setExportFilters({ ...exportFilters, ruleName: e.target.value })}
+                                    style={{ width: 300, marginLeft: 24 }}
+                                />
+                            )}
+
+                            <Checkbox value="ruleType">按规则类型筛选</Checkbox>
+                            {exportOptions.filterOptions.includes("ruleType") && (
+                                <Select
+                                    placeholder="选择规则类型"
+                                    style={{ width: 300, marginLeft: 24 }}
+                                    allowClear
+                                    value={exportFilters.ruleType || null}
+                                    onChange={(value) => setExportFilters({ ...exportFilters, ruleType: value })}
+                                    options={[
+                                        { value: "Prometheus", label: "Prometheus" },
+                                        { value: "VictoriaMetrics", label: "VictoriaMetrics" },
+                                        { value: "AliCloudSLS", label: "AliCloudSLS" },
+                                        { value: "Jaeger", label: "Jaeger" },
+                                        { value: "Loki", label: "Loki" },
+                                    ]}
+                                />
+                            )}
+
+                            <Checkbox value="alertLevel">按告警等级筛选</Checkbox>
+                            {exportOptions.filterOptions.includes("alertLevel") && (
+                                <Select
+                                    placeholder="选择告警等级"
+                                    style={{ width: 300, marginLeft: 24 }}
+                                    allowClear
+                                    value={exportFilters.alertLevel || null}
+                                    onChange={(value) => setExportFilters({ ...exportFilters, alertLevel: value })}
+                                    options={[
+                                        { value: "P0", label: "P0级告警" },
+                                        { value: "P1", label: "P1级告警" },
+                                        { value: "P2", label: "P2级告警" },
+                                    ]}
+                                />
+                            )}
+                        </Space>
+                    </Checkbox.Group>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                    <h4>分页设置</h4>
+                    <div style={{ marginTop: 8 }}>
+                        <span style={{ marginRight: 8 }}>每页显示条数:</span>
+                        <Select
+                            value={exportOptions.itemsPerPage}
+                            onChange={(value) => handleExportOptionsChange("itemsPerPage", value)}
+                            style={{ width: 120 }}
+                            options={[
+                                { value: 10, label: "10条/页" },
+                                { value: 20, label: "20条/页" },
+                                { value: 50, label: "50条/页" },
+                                { value: 100, label: "100条/页" },
+                            ]}
+                        />
+                    </div>
+                </div>
+            </Modal>
         </div>
     )
 }
