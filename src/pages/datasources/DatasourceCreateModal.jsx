@@ -85,6 +85,12 @@ const datasourceTypes = [
         icon: <DatabaseOutlined />,
         description: "轻量级日志分析系统",
     },
+    {
+        value: "ClickHouse",
+        label: "ClickHouse",
+        icon: <DatabaseOutlined />,
+        description: "高性能列式存储数据库",
+    },
 ]
 
 export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, handleList }) => {
@@ -174,6 +180,10 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
         const params = {
             ...values,
             labels: formattedLabels,
+            clickhouseConfig: {
+                addr: values?.clickhouseConfig?.addr,
+                timeout: Number(values?.clickhouseConfig?.timeout),
+            },
             http: {
                 url: values?.http?.url,
                 timeout: Number(values?.http?.timeout),
@@ -225,6 +235,10 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             const params = {
                 ...values,
                 labels: formattedLabels,
+                clickhouseConfig: {
+                    addr: values?.clickhouseConfig?.addr,
+                    timeout: Number(values?.clickhouseConfig?.timeout),
+                },
                 http: {
                     url: values?.http?.url,
                     timeout: Number(values?.http?.timeout),
@@ -386,38 +400,69 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                     selectedType === "VictoriaLogs" ||
                     selectedType === "VictoriaMetrics" ||
                     selectedType === "Jaeger" ||
-                    selectedType === "ElasticSearch") && (
+                    selectedType === "ElasticSearch" ||
+                    selectedType === "ClickHouse"
+                ) && (
                     <>
-                        <MyFormItemGroup prefix={["http"]}>
-                            <Divider orientation="left">HTTP</Divider>
-                            <MyFormItem
-                                name="url"
-                                label="URL"
-                                rules={[
-                                    {
-                                        required: true,
-                                    },
-                                    {
-                                        pattern: /^(http|https):\/\/.*[^/]$/,
-                                        message: '请输入正确的URL格式，且结尾不应包含"/"',
-                                    },
-                                ]}
-                            >
-                                <Input />
-                            </MyFormItem>
+                        {(selectedType === "ClickHouse") && (
+                            <MyFormItemGroup prefix={["clickhouseConfig"]}>
+                                <Divider orientation="left">Server</Divider>
+                                <MyFormItem
+                                    name="addr"
+                                    label="Addr"
+                                    rules={[
+                                        {
+                                            required: true,
+                                        },
+                                    ]}
+                                >
+                                    <Input placeholder="127.0.0.1:9000,127.0.0.2:9000"/>
+                                </MyFormItem>
 
-                            <MyFormItem
-                                name="timeout"
-                                label="Timeout"
-                                rules={[
-                                    {
-                                        required: true,
-                                    },
-                                ]}
-                            >
-                                <Input type={"number"} style={{ width: "100%" }} addonAfter={<span>秒</span>} placeholder="10" min={1} />
-                            </MyFormItem>
-                        </MyFormItemGroup>
+                                <MyFormItem
+                                    name="timeout"
+                                    label="Timeout"
+                                    rules={[
+                                        {
+                                            required: true,
+                                        },
+                                    ]}
+                                >
+                                    <Input type={"number"} style={{ width: "100%" }} addonAfter={<span>秒</span>} placeholder="10" min={1} />
+                                </MyFormItem>
+                            </MyFormItemGroup>
+                        ) || (
+                            <MyFormItemGroup prefix={["http"]}>
+                                <Divider orientation="left">HTTP</Divider>
+                                <MyFormItem
+                                    name="url"
+                                    label="URL"
+                                    rules={[
+                                        {
+                                            required: true,
+                                        },
+                                        {
+                                            pattern: /^(http|https):\/\/.*[^/]$/,
+                                            message: '请输入正确的URL格式，且结尾不应包含"/"',
+                                        },
+                                    ]}
+                                >
+                                    <Input />
+                                </MyFormItem>
+
+                                <MyFormItem
+                                    name="timeout"
+                                    label="Timeout"
+                                    rules={[
+                                        {
+                                            required: true,
+                                        },
+                                    ]}
+                                >
+                                    <Input type={"number"} style={{ width: "100%" }} addonAfter={<span>秒</span>} placeholder="10" min={1} />
+                                </MyFormItem>
+                            </MyFormItemGroup>
+                        )}
 
                         <MyFormItemGroup prefix={["auth"]}>
                             <Divider orientation="left">Auth</Divider>

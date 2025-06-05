@@ -214,7 +214,7 @@ export const DutyManage = () => {
 
             </div>
 
-            <div style={{ overflowX: 'auto', marginTop: 10, height: '71vh' }}>
+            <div style={{ overflowX: 'auto', marginTop: 10 }}>
                 <Table
                     columns={columns}
                     dataSource={list}

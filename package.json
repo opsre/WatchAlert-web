@@ -11,6 +11,7 @@
     "@codemirror/comment": "^0.18.0",
     "@codemirror/highlight": "^0.18.3",
     "@codemirror/history": "^0.18.0",
+    "@codemirror/lang-sql": "^6.9.0",
     "@codemirror/language": "^0.18.0",
     "@codemirror/lint": "^0.18.1",
     "@codemirror/matchbrackets": "^0.18.0",

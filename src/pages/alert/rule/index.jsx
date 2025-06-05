@@ -14,6 +14,7 @@ import { ReactComponent as VMImg } from "./img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "./img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "./img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "./img/victorialogs.svg"
+import { ReactComponent as CkImg } from "./img/clickhouse.svg"
 import { getDatasourceList } from "../../../api/datasource"
 import {
     DeleteOutlined,
@@ -101,6 +102,7 @@ export const AlertRuleList = () => {
                         {text === "VictoriaLogs" && <VLogImg style={{ height: "25px", width: "25px" }} />}
                         {text === "KubernetesEvent" && <K8sImg style={{ height: "25px", width: "25px" }} />}
                         {text === "ElasticSearch" && <ESImg style={{ height: "25px", width: "25px" }} />}
+                        {text === "ClickHouse" && <CkImg style={{ height: "25px", width: "25px" }} />}
                         <div style={{ marginLeft: "5px", marginTop: "3px", fontSize: "12px" }}>{text}</div>
                     </div>
                 )

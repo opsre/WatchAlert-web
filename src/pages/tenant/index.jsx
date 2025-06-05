@@ -195,7 +195,7 @@ export const Tenants = () => {
             <CreateTenant visible={visible} onClose={handleModalClose} type='create' handleList={handleList} />
             <CreateTenant visible={updateVisible} selectedRow={selectedRow} onClose={handleUpdateModalClose} type='update' handleList={handleList} />
 
-            <div style={{ overflowX: 'auto', marginTop: 10, height: '64vh',textAlign:'left' }}>
+            <div style={{ overflowX: 'auto', marginTop: 10, textAlign:'left' }}>
                 <Table
                     columns={columns}
                     dataSource={list}

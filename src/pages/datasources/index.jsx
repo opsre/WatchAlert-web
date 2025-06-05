@@ -11,6 +11,7 @@ import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
+import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
 import './index.css'
 import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
@@ -85,6 +86,9 @@ export const Datasources = () => {
                         )}
                         {text === "VictoriaLogs" && (
                             <VLogImg style={{height: "25px", width: "25px"}}/>
+                        )}
+                        {text === "ClickHouse" && (
+                            <CkImg style={{height: "25px", width: "25px"}}/>
                         )}
                         <div style={{marginLeft: "5px", marginTop: '3px', fontSize: '12px'}}>{text}</div>
                     </div>

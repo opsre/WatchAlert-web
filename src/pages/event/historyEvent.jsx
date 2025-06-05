@@ -116,9 +116,22 @@ export const AlertHistoryEvent = (props) => {
                     { (record.datasource_type === "AliCloudSLS"
                         || record.datasource_type === "Loki"
                         || record.datasource_type === "ElasticSearch"
-                        || record.datasource_type === "VictoriaLogs") && (
+                        || record.datasource_type === "VictoriaLogs"
+                        || record.datasource_type === "ClickHouse"
+                    ) && (
                         <span>
-                            {JSON.stringify(record.labels, null, 2).substring(0, 50)}...
+                            {JSON.stringify(
+                                selectedEvent?.labels
+                                    ? Object.entries(selectedEvent.labels)
+                                        .filter(([key]) => !['value', 'rule_name', 'severity', 'fingerprint'].includes(key))
+                                        .reduce((acc, [key, value]) => {
+                                            acc[key] = value;
+                                            return acc;
+                                        }, {})
+                                    : {},
+                                null,
+                                2
+                            ).substring(0, 50)}...
                         </span>
                     ) || (
                         <span>
@@ -639,9 +652,22 @@ export const AlertHistoryEvent = (props) => {
                             { (selectedEvent.datasource_type === "AliCloudSLS"
                                 || selectedEvent.datasource_type === "Loki"
                                 || selectedEvent.datasource_type === "ElasticSearch"
-                                || selectedEvent.datasource_type === "VictoriaLogs") && (
+                                || selectedEvent.datasource_type === "VictoriaLogs"
+                                || selectedEvent.datasource_type === "ClickHouse"
+                            ) && (
                                 <TextArea
-                                    value={JSON.stringify(selectedEvent?.labels, null, 2)}
+                                    value={JSON.stringify(
+                                        selectedEvent?.labels
+                                            ? Object.entries(selectedEvent.labels)
+                                                .filter(([key]) => !['value', 'rule_name', 'severity', 'fingerprint'].includes(key))
+                                                .reduce((acc, [key, value]) => {
+                                                    acc[key] = value;
+                                                    return acc;
+                                                }, {})
+                                            : {},
+                                        null,
+                                        2
+                                    )}
                                     style={{
                                         height: 400,
                                         resize: "none",
