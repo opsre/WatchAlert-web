@@ -282,7 +282,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     <MyFormItem
                         name="dutyId"
                         label="值班表"
-                        style={{ marginTop: '5px', width: '500px' }}
+                        style={{ width: '500px' }}
                     >
                         <Select
                             showSearch

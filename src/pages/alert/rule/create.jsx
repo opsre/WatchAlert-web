@@ -903,7 +903,7 @@ export const AlertRule = ({ type }) => {
                         <MyFormItem
                             name="description"
                             label="描述"
-                            style={{width: '100%', marginTop: '5px'}}
+                            style={{width: '100%'}}
                         >
                             <Input/>
                         </MyFormItem>
