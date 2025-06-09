@@ -179,7 +179,7 @@ export const AlarmUpgrade = () => {
     ];
 
     return (
-        <div style={{ padding: "24px", background: "#f5f7fa", borderRadius: "8px" }}>
+        <div style={{ borderRadius: "8px" }}>
             <div style={{ marginBottom: "24px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Title level={4} style={{ margin: 0 }}>

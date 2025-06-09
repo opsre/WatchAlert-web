@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Table, Popconfirm, Typography, Radio, Row, Col, Card, Dropdown, Empty, Menu, Modal } from 'antd';
+import { Typography, Radio, Row, Col, Card, Dropdown, Empty, Menu, Modal } from 'antd';
 import { CreateSilenceModal } from './SilenceRuleCreateModal';
 import { deleteSilence, getSilenceList } from '../../api/silence';
-import { DeleteOutlined, ExclamationCircleOutlined, MoreOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+    BellOutlined,
+    BlockOutlined,
+    DeleteOutlined,
+    ExclamationCircleOutlined,
+    MoreOutlined, PauseCircleOutlined,
+    PlusOutlined
+} from "@ant-design/icons";
 import "../alert/rule/index.css";
 import {FaultCenterReset} from "../../api/faultCenter";
+
+const { Title } = Typography
 
 const { confirm } = Modal;
 
@@ -112,7 +121,7 @@ export const Silences = (props) => {
 
     const radioOptions = [
         {
-            label: '规则聚合',
+            label: '按规则聚合',
             value: 'Rule',
         },
         {
@@ -211,7 +220,10 @@ export const Silences = (props) => {
 
     return (
         <>
-            <Typography.Title level={5} style={{ fontSize: '14px' }}>告警聚合</Typography.Title>
+            <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
+                <BlockOutlined style={{ marginRight: "12px" }} />
+                告警聚合
+            </Title>
             <Radio.Group
                 block
                 options={radioOptions}
@@ -220,7 +232,11 @@ export const Silences = (props) => {
                 onChange={handleAggregationModeChange}
             />
 
-            <Typography.Title level={5} style={{ fontSize: '14px', marginTop: '10px' }}>静默规则</Typography.Title>
+            <Title level={4} style={{ marginTop: '20px', fontSize: "16px" }}>
+                <PauseCircleOutlined style={{ marginRight: "12px" }} />
+                静默规则
+            </Title>
+            <Typography.Title level={5} style={{ fontSize: '14px', marginTop: '10px' }}></Typography.Title>
             <div style={{ display: 'flex' }}>
                 <CreateSilenceModal visible={visible} onClose={handleModalClose} type='create' handleList={handleList} faultCenterId={faultCenterId} />
 

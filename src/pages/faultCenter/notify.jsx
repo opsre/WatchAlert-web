@@ -208,7 +208,7 @@ export const FaultCenterNotify = () => {
     }
 
     return (
-        <div className="notify-config-container" style={{ padding: "24px", background: "#f5f7fa", borderRadius: "8px" }}>
+        <div className="notify-config-container">
             <div style={{ marginBottom: "24px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Title level={4} style={{ margin: 0 }}>

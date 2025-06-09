@@ -14,9 +14,9 @@ import {
     Modal,
     Checkbox,
     Radio,
-    Descriptions
+    Descriptions, Menu, Dropdown
 } from "antd"
-import {DownloadOutlined, ReloadOutlined} from "@ant-design/icons"
+import {DownloadOutlined, EllipsisOutlined, ReloadOutlined} from "@ant-design/icons"
 import dayjs from "dayjs"
 import { getHisEventList } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
@@ -109,7 +109,7 @@ export const AlertHistoryEvent = (props) => {
             title: "事件详情",
             dataIndex: "annotations",
             key: "annotations",
-            width: "auto",
+            width: "300px",
             ellipsis: true,
             render: (text, record) => (
                 <span>
@@ -163,6 +163,7 @@ export const AlertHistoryEvent = (props) => {
             title: "事件状态",
             dataIndex: "status",
             key: "status",
+            width: "100px",
             render: () => {
                 return  <Tag color={"green"}>{"已恢复"}</Tag>
             },
@@ -171,6 +172,7 @@ export const AlertHistoryEvent = (props) => {
             title: "处理人",
             dataIndex: "upgradeState",
             key: "upgradeState",
+            width: "100px",
             render: (text) => {
                 return (
                     <>
@@ -229,8 +231,22 @@ export const AlertHistoryEvent = (props) => {
         {
             title: "操作",
             key: "action",
-            width: "50px",
-            render: (_, record) => <Button onClick={() => showDrawer(record)}>详情</Button>,
+            width: "100px",
+            render: (_, record) => {
+                const menu = (
+                    <Menu>
+                        <Menu.Item onClick={() => showDrawer(record)}>
+                            查看详情
+                        </Menu.Item>
+                    </Menu>
+                );
+
+                return (
+                    <Dropdown overlay={menu} trigger={['click']}>
+                        <EllipsisOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+                    </Dropdown>
+                );
+            },
         },
     ]
 
