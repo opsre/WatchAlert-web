@@ -150,8 +150,8 @@ export const AlertCurrentEvent = (props) => {
                     ) && (
                         <span>
                             {JSON.stringify(
-                                selectedEvent?.labels
-                                    ? Object.entries(selectedEvent.labels)
+                                record?.labels
+                                    ? Object.entries(record.labels)
                                         .filter(([key]) => !['value', 'rule_name', 'severity', 'fingerprint'].includes(key))
                                         .reduce((acc, [key, value]) => {
                                             acc[key] = value;
