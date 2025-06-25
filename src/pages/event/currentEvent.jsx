@@ -35,7 +35,6 @@ import {
 import { CreateSilenceModal } from "../silence/SilenceRuleCreateModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import {exportAlarmRecordToHTML} from "../../utils/exportAlarmRecordToHTML";
-import dayjs from "dayjs";
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -76,6 +75,8 @@ export const AlertCurrentEvent = (props) => {
         filterOptions: [], // ruleName, ruleType, alertLevel
         itemsPerPage: 10, // 导出HTML的每页项目数
     })
+    // 选中的告警状态
+    const [selectedStatus, setSelectedStatus] = useState(null);
 
     // Constants
     const SEVERITY_COLORS = {
@@ -211,7 +212,7 @@ export const AlertCurrentEvent = (props) => {
             },
         },
         {
-            title: "事件状态",
+            title: "告警状态",
             dataIndex: "status",
             key: "status",
             render: (text) => {
@@ -330,6 +331,7 @@ export const AlertCurrentEvent = (props) => {
                 index: pageIndex,
                 size: pageSize,
                 query: searchQuery || undefined,
+                status: selectedStatus || undefined,
                 datasourceType: selectedDataSource || undefined,
                 severity: selectedAlertLevel || undefined,
             }
@@ -374,6 +376,11 @@ export const AlertCurrentEvent = (props) => {
 
     const handleSearch = (value) => {
         setSearchQuery(value)
+        setIsFiltering(true) // 标记正在过滤
+    }
+
+    const handleStatusChange = (value) => {
+        setSelectedStatus(value)
         setIsFiltering(true) // 标记正在过滤
     }
 
@@ -750,10 +757,11 @@ export const AlertCurrentEvent = (props) => {
                                 { value: "Loki", label: "Loki" },
                                 { value: "ElasticSearch", label: "ElasticSearch" },
                                 { value: "VictoriaLogs", label: "VictoriaLogs" },
+                                { value: "ClickHouse", label: "ClickHouse" },
                             ]}
                         />
                         <Select
-                            placeholder="选择告警等级"
+                            placeholder="告警等级"
                             style={{ width: 150 }}
                             allowClear
                             value={selectedAlertLevel || null}
@@ -762,6 +770,19 @@ export const AlertCurrentEvent = (props) => {
                                 { value: "P0", label: "P0级告警" },
                                 { value: "P1", label: "P1级告警" },
                                 { value: "P2", label: "P2级告警" },
+                            ]}
+                        />
+                        <Select
+                            placeholder="告警状态"
+                            style={{ width: 150 }}
+                            allowClear
+                            value={selectedStatus || null}
+                            onChange={handleStatusChange}
+                            options={[
+                                { value: "pre_alert", label: "预告警" },
+                                { value: "alerting", label: "告警中" },
+                                { value: "silenced", label: "静默中" },
+                                { value: "pending_recovery", label: "待恢复" },
                             ]}
                         />
                         <Button onClick={handleRefresh} icon={<ReloadOutlined />} loading={loading}>

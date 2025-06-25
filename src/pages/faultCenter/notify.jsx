@@ -167,7 +167,7 @@ export const FaultCenterNotify = () => {
                 ...values,
                 noticeRoutes: noticeRoutes,
                 repeatNoticeInterval: Number(values.repeatNoticeInterval),
-                recoverWaitTime: Number(values.recoverWaitTime),
+                recoverWaitTime: Number(values.recoverWaitTime) || 1,
             }
 
             await FaultCenterUpdate(params)
@@ -357,17 +357,11 @@ export const FaultCenterNotify = () => {
                             >
                                 <Input
                                     type="number"
-                                    addonAfter="分钟"
+                                    addonAfter="秒"
                                     placeholder="请输入等待时间，如 1"
                                     min={1}
                                     disabled={!editable}
                                     style={{ borderRadius: "6px" }}
-                                    onChange={(e) => {
-                                        const value = e.target.value
-                                        if (value !== "" && !/^\d+$/.test(value)) {
-                                            e.target.value = value.replace(/\D/g, "")
-                                        }
-                                    }}
                                 />
                             </MyFormItem>
 
