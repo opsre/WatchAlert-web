@@ -8,6 +8,7 @@ import { deleteRuleTmpl, getRuleTmplList, createRuleTmpl } from "../../../api/ru
 import { getRuleGroupList } from "../../../api/rule"
 import { useRule } from "../../../context/RuleContext"
 import {DeleteOutlined, ExportOutlined, DownOutlined, ImportOutlined, EditOutlined} from "@ant-design/icons"
+import {HandleShowTotal} from "../../../utils/lib";
 
 const MyFormItemContext = React.createContext([])
 const { Search } = Input
@@ -471,6 +472,10 @@ export const RuleTemplate = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     rowKey={(record) => `${record.ruleGroupName}-${record.ruleName}`} // 使用组合键作为唯一标识
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}

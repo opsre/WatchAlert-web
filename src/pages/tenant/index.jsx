@@ -6,6 +6,7 @@ import {Link} from "react-router-dom";
 import {getUserInfo} from "../../api/user";
 import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import {copyToClipboard} from "../../utils/copyToClipboard";
+import {HandleShowTotal} from "../../utils/lib";
 
 
 export const Tenants = () => {
@@ -202,6 +203,10 @@ export const Tenants = () => {
                     scroll={{
                         y: height - 280, // 动态设置滚动高度
                         x: 'max-content', // 水平滚动
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     style={{
                         backgroundColor: "#fff",

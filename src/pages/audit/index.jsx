@@ -4,6 +4,7 @@ import { listAuditLog, searchAuditLog } from "../../api/auditLog"
 import moment from "moment"
 import JsonViewer from "react-json-view"
 import {FileText} from "lucide-react";
+import {HandleShowTotal} from "../../utils/lib";
 
 export const AuditLog = () => {
     const { Search } = Input
@@ -254,8 +255,9 @@ export const AuditLog = () => {
                         current: pagination.current,
                         pageSize: pagination.pageSize,
                         total: pagination.total,
-                        showTotal: handleShowTotal,
+                        showTotal: HandleShowTotal,
                         onChange: handlePageChange,
+                        pageSizeOptions: ['10'],
                     }}
                     scroll={{
                         y: height - 280, // 动态设置滚动高度

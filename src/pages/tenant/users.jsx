@@ -5,6 +5,7 @@ import { getUserList } from '../../api/user';
 import {addUsersToTenant, changeTenantUserRole, delUsersOfTenant, getUsersForTenant,} from "../../api/tenant";
 import './index.css'
 import {getRoleList} from "../../api/role";
+import {HandleShowTotal} from "../../utils/lib";
 
 const MyFormItemContext = React.createContext([]);
 
@@ -283,11 +284,18 @@ export const TenantUsers = ({ tenantInfo }) => {
                 </Form>
             </Modal>
 
-            <Table style={{ overflow: 'hidden' }}  columns={columns} dataSource={userData}
-                   scroll={{
-                       x: false,
-                       y: 'calc(45vh - 120px)'
-                   }}
+            <Table
+                style={{ overflow: 'hidden' }}
+                columns={columns}
+                dataSource={userData}
+                scroll={{
+                    x: false,
+                    y: '45vh'
+                }}
+                pagination={{
+                    showTotal: HandleShowTotal,
+                    pageSizeOptions: ['10'],
+                }}
             />
         </>
     );

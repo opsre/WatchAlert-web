@@ -9,6 +9,7 @@ import { ReactComponent as WeChatIcon } from '../img/qywechat.svg'
 import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import {Link} from "react-router-dom";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
+import {HandleShowTotal} from "../../../utils/lib";
 
 const { Search } = Input;
 
@@ -232,6 +233,10 @@ export const NoticeTemplate = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                     rowKey={(record) => record.id} // 设置行唯一键

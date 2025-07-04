@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import UserRoleCreateModal from './UserRoleCreateModal';
 import { deleteRole, getRoleList } from '../../../api/role';
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {HandleShowTotal} from "../../../utils/lib";
 
 const { Search } = Input;
 
@@ -152,6 +153,10 @@ export const UserRole = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                     rowKey={(record) => record.id} // 设置行唯一键

@@ -3,7 +3,10 @@ import React, { useState, useEffect } from 'react';
 import UserCreateModal from './UserCreateModal';
 import UserChangePass from './UserChangePass';
 import { deleteUser, getUserList, searchUser } from '../../../api/user';
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {HandleShowTotal} from "../../../utils/lib";
+import {Link} from "react-router-dom";
+import {copyToClipboard} from "../../../utils/copyToClipboard";
 
 const { Search } = Input;
 
@@ -21,6 +24,30 @@ export const User = () => {
             title: '用户名',
             dataIndex: 'username',
             key: 'username',
+            render: (text, record) => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {text}
+                    <Tooltip title="点击复制 ID">
+                        <span
+                            style={{
+                                color: '#8c8c8c',     // 灰色字体
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => copyToClipboard(record.userid)}
+                        >
+                            {record.userid}
+                            <CopyOutlined style={{ marginLeft: 8 }} />
+                        </span>
+                    </Tooltip>
+                </div>
+            ),
         },
         {
             title: '邮箱',
@@ -202,6 +229,10 @@ export const User = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                 />

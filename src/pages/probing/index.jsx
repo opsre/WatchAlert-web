@@ -5,6 +5,7 @@ import {Link} from "react-router-dom";
 import moment from 'moment';
 import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import {DetailProbingHistory} from "./detail";
+import {HandleShowTotal} from "../../utils/lib";
 
 
 export const Probing = () => {
@@ -668,6 +669,10 @@ export const Probing = () => {
                             borderRadius: "8px",
                             overflow: "hidden",
                         }}
+                        pagination={{
+                            showTotal: HandleShowTotal,
+                            pageSizeOptions: ['10'],
+                        }}
                         rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                         rowKey={(record) => record.id} // 设置行唯一键
                     />
@@ -686,6 +691,10 @@ export const Probing = () => {
                             backgroundColor: "#fff",
                             borderRadius: "8px",
                             overflow: "hidden",
+                        }}
+                        pagination={{
+                            showTotal: HandleShowTotal,
+                            pageSizeOptions: ['10'],
                         }}
                         rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                         rowKey={(record) => record.id} // 设置行唯一键
@@ -706,6 +715,10 @@ export const Probing = () => {
                             borderRadius: "8px",
                             overflow: "hidden",
                         }}
+                        pagination={{
+                            showTotal: HandleShowTotal,
+                            pageSizeOptions: ['10'],
+                        }}
                         rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                         rowKey={(record) => record.id} // 设置行唯一键
                     />
@@ -723,6 +736,10 @@ export const Probing = () => {
                             backgroundColor: "#fff",
                             borderRadius: "8px",
                             overflow: "hidden",
+                        }}
+                        pagination={{
+                            showTotal: HandleShowTotal,
+                            pageSizeOptions: ['10'],
                         }}
                         rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                         rowKey={(record) => record.id} // 设置行唯一键

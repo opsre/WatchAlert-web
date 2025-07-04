@@ -35,6 +35,7 @@ import {
 import { CreateSilenceModal } from "../silence/SilenceRuleCreateModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import {exportAlarmRecordToHTML} from "../../utils/exportAlarmRecordToHTML";
+import {HandleShowTotal} from "../../utils/lib";
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -816,7 +817,7 @@ export const AlertCurrentEvent = (props) => {
                     current: currentPagination.pageIndex,
                     pageSize: currentPagination.pageSize,
                     total: currentPagination.pageTotal,
-                    showTotal: handleShowTotal,
+                    showTotal: HandleShowTotal,
                     showSizeChanger: true,
                     pageSizeOptions: ["10", "20", "50", "100"],
                 }}

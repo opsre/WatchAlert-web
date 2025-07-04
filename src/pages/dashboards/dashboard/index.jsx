@@ -6,6 +6,7 @@ import {
     getGrafanaDashboardList,
 } from '../../../api/dashboard';
 import { useParams } from 'react-router-dom'
+import {HandleShowTotal} from "../../../utils/lib";
 
 export const Dashboards = () => {
     const [list, setList] = useState()
@@ -74,6 +75,10 @@ export const Dashboards = () => {
                     scroll={{
                         x: 1000,
                         y: 'calc(71vh - 71px - 40px)'
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                 />
             </div>

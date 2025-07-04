@@ -10,6 +10,7 @@ import { ReactComponent as Log } from "../assets/log.svg"
 import { ReactComponent as Trace } from "../assets/trace.svg"
 import { ReactComponent as Event } from "../assets/event.svg"
 import { SearchOutlined, PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons"
+import {HandleShowTotal} from "../../../utils/lib";
 
 const { Search } = Input
 
@@ -297,6 +298,10 @@ export const RuleTemplateGroup = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                     rowKey={(record) => record.id || record.name}

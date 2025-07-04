@@ -21,6 +21,7 @@ import { noticeRecordList } from "../../api/notice"
 import VSCodeEditor from "../../utils/VSCodeEditor";
 import { NotificationTypeIcon } from "./notification-type-icon"
 import { SearchIcon, FilterIcon, AlertTriangle, CheckCircle, XCircle, Clock, FileText, RefreshCw } from "lucide-react"
+import {HandleShowTotal} from "../../utils/lib";
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -351,9 +352,9 @@ export const NoticeRecords = () => {
                     current: pagination.pageIndex,
                     pageSize: pagination.pageSize,
                     total: pagination.pageTotal,
-                    showTotal: handleShowTotal,
+                    showTotal: HandleShowTotal,
                     showSizeChanger: true,
-                    pageSizeOptions: ["10", "20", "50", "100"],
+                    pageSizeOptions: ["10"],
                     style: { marginTop: "16px" },
                 }}
                 onChange={handlePageChange}

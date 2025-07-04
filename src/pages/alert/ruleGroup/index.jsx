@@ -5,6 +5,7 @@ import { AlertRuleGroupCreateModal } from './AlertRuleGroupCreateModal'
 import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { deleteRuleGroup, getRuleGroupList } from '../../../api/rule'
 import { copyToClipboard } from "../../../utils/copyToClipboard";
+import {HandleShowTotal} from "../../../utils/lib";
 
 export const AlertRuleGroup = ({ }) => {
     const { Search } = Input
@@ -213,9 +214,6 @@ export const AlertRuleGroup = ({ }) => {
         }
     }
 
-    const handleShowTotal = (total, range) =>
-        `第 ${range[0]} - ${range[1]} 条 共 ${total} 条`;
-
     return (
         <>
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
@@ -255,7 +253,8 @@ export const AlertRuleGroup = ({ }) => {
                         index: pagination.index ?? 1,
                         size: pagination.size ?? 10,
                         total: pagination?.total ?? 0,
-                        showTotal: handleShowTotal,
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     onChange={handlePageChange}
                     scroll={{

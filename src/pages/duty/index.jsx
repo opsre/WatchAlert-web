@@ -6,6 +6,7 @@ import {CopyOutlined, DeleteOutlined, EditOutlined} from '@ant-design/icons';
 import { deleteDutyManager, getDutyManagerList } from '../../api/duty';
 import {Link} from "react-router-dom";
 import { copyToClipboard } from "../../utils/copyToClipboard";
+import {HandleShowTotal} from "../../utils/lib";
 
 export const DutyManage = () => {
     const [calendarVisible, setCalendarVisible] = useState(false);
@@ -226,6 +227,10 @@ export const DutyManage = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     rowKey={(record) => record.id} // 设置行唯一键
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}

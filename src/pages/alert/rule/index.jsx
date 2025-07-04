@@ -26,6 +26,8 @@ import {
 } from "@ant-design/icons"
 import {FaultCenterList} from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
+import {copyToClipboard} from "../../../utils/copyToClipboard";
+import {HandleShowTotal} from "../../../utils/lib";
 
 export const AlertRuleList = () => {
     const { Search } = Input
@@ -66,6 +68,30 @@ export const AlertRuleList = () => {
             dataIndex: "ruleName",
             key: "ruleName",
             width: "auto",
+            render: (text, record) => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {text}
+                    <Tooltip title="点击复制 ID">
+                        <span
+                            style={{
+                                color: '#8c8c8c',     // 灰色字体
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => copyToClipboard(record.ruleId)}
+                        >
+                            {record.ruleId}
+                            <CopyOutlined style={{ marginLeft: 8 }} />
+                        </span>
+                    </Tooltip>
+                </div>
+            ),
         },
         {
             title: "告警等级",
@@ -295,8 +321,6 @@ export const AlertRuleList = () => {
         handleList(id, page.current, page.size)
     }
 
-    const handleShowTotal = (total, range) => `第 ${range[0]} - ${range[1]} 条 共 ${total} 条`
-
     const handleClone = (record) => {
         // 实现克隆功能
         console.log("Clone rule:", record)
@@ -440,7 +464,7 @@ export const AlertRuleList = () => {
             setConvertedRules(converted)
             setImportedRules(converted)
             setIsConverting(false)
-            message.success("转换成功")
+            message.success("转换成功, 请确认导入!")
         } catch (error) {
             setIsConverting(false)
             message.error("转换失败: " + (error.message || "未知错误"))
@@ -708,7 +732,8 @@ export const AlertRuleList = () => {
                         index: pagination.index ?? 1,
                         size: pagination.size ?? 10,
                         total: pagination?.total ?? 0,
-                        showTotal: handleShowTotal,
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     onChange={handlePageChange}
                     scroll={{

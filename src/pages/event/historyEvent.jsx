@@ -23,6 +23,7 @@ import TextArea from "antd/es/input/TextArea"
 import {AlertTriangle} from "lucide-react";
 import {useLocation, useNavigate} from "react-router-dom";
 import {exportAlarmRecordToHTML} from "../../utils/exportAlarmRecordToHTML";
+import {HandleShowTotal} from "../../utils/lib";
 
 export const AlertHistoryEvent = (props) => {
     const { id } = props
@@ -528,7 +529,8 @@ export const AlertHistoryEvent = (props) => {
                     current: historyPagination.pageIndex,
                     pageSize: historyPagination.pageSize,
                     total: historyPagination.pageTotal,
-                    showTotal: handleShowTotal,
+                    showTotal: HandleShowTotal,
+                    pageSizeOptions: ['10'],
                 }}
                 onChange={handleHistoryPageChange}
                 style={{

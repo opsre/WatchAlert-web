@@ -12,6 +12,7 @@ import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {HandleShowTotal} from "../../utils/lib";
 
 export const Subscribe = () => {
     const { Search } = Input
@@ -214,6 +215,10 @@ export const Subscribe = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     rowKey={(record) => record.id} // 设置行唯一键
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}

@@ -9,6 +9,7 @@ import {
 import CreateFolderModal from './create';
 import {CopyOutlined,DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../../utils/copyToClipboard";
+import {HandleShowTotal} from "../../../utils/lib";
 
 export const DashboardFolder = () => {
     const { Search } = Input
@@ -231,6 +232,10 @@ export const DashboardFolder = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
+                    }}
+                    pagination={{
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10'],
                     }}
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                     rowKey={(record) => record.id} // 设置行唯一键
