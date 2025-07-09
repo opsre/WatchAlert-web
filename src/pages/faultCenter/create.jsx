@@ -143,7 +143,7 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
                     <Input
                         type="number"
                         style={{ width: '100%' }}
-                        addonAfter="秒"
+                        addonAfter="分钟"
                         placeholder="60"
                         min={1}
                         onChange={(e) => {
@@ -170,7 +170,7 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
                     <Input
                         type="number"
                         style={{ width: '100%' }}
-                        addonAfter="分钟"
+                        addonAfter="秒"
                         placeholder="1"
                         min={1}
                         onChange={(e) => {
