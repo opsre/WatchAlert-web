@@ -45,9 +45,11 @@ export const Login = () => {
         };
         try {
             const response = await loginUser(params);
-            const token = response.data;
-            if (token) {
-                localStorage.setItem('Authorization', token);
+            if (response.data) {
+                const info = response.data;
+                localStorage.setItem('Authorization', info.token);
+                localStorage.setItem('Username', info.username);
+                localStorage.setItem('UserId', info.userId);
                 navigate('/');
             }
         } catch (error) {

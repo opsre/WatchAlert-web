@@ -17,25 +17,42 @@ import {
     Dropdown,
     message,
     Empty,
-    Menu, Radio, Checkbox, DatePicker,
+    Menu, Radio, Checkbox, Tooltip, Typography,
+    List,
+    Form,
+    Card, Avatar, Popconfirm,
 } from "antd"
-import {getCurEventList, ProcessAlertEvent} from "../../api/event"
+import {
+    AddEventComment,
+    DeleteEventComment,
+    getCurEventList,
+    ListEventComments,
+    ProcessAlertEvent
+} from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
 import { ReqAiAnalyze } from "../../api/ai"
 import MarkdownRenderer from "../../utils/MarkdownRenderer"
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle, Clock } from "lucide-react"
 import {
     DownOutlined,
     ReloadOutlined,
     SearchOutlined,
     FilterOutlined,
     EllipsisOutlined,
-    DownloadOutlined
+    DownloadOutlined, CloseOutlined
 } from "@ant-design/icons"
 import { CreateSilenceModal } from "../silence/SilenceRuleCreateModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import {exportAlarmRecordToHTML} from "../../utils/exportAlarmRecordToHTML";
-import {HandleShowTotal} from "../../utils/lib";
+import {
+    FormatDuration, FormatTime,
+    GetBlockColor,
+    GetDurationGradient, HandleApiError,
+    HandleShowTotal,
+    RenderTruncatedText
+} from "../../utils/lib";
+
+const { Title, Text } = Typography
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -78,6 +95,8 @@ export const AlertCurrentEvent = (props) => {
     })
     // 选中的告警状态
     const [selectedStatus, setSelectedStatus] = useState(null);
+    const [comments, setComments] = useState( [])
+    const [newComment, setNewComment] = useState("")
 
     // Constants
     const SEVERITY_COLORS = {
@@ -108,12 +127,6 @@ export const AlertCurrentEvent = (props) => {
 
     const columns = [
         {
-            title: "规则名称",
-            dataIndex: "rule_name",
-            key: "rule_name",
-            ellipsis: true,
-        },
-        {
             title: "告警等级",
             dataIndex: "severity",
             key: "severity",
@@ -137,63 +150,159 @@ export const AlertCurrentEvent = (props) => {
             ),
         },
         {
-            title: "事件详情",
-            dataIndex: "annotations",
-            key: "annotations",
-            width: "auto",
+            title: "事件信息",
+            key: "rule_info",
+            width: "300px",
             ellipsis: true,
-            render: (text, record) => (
-                <span>
-                    { (record.datasource_type === "AliCloudSLS"
-                        || record.datasource_type === "Loki"
-                        || record.datasource_type === "ElasticSearch"
-                        || record.datasource_type === "VictoriaLogs"
-                        || record.datasource_type === "ClickHouse"
-                    ) && (
-                        <span>
-                            {JSON.stringify(
-                                record?.labels
-                                    ? Object.entries(record.labels)
-                                        .filter(([key]) => !['value', 'rule_name', 'severity', 'fingerprint'].includes(key))
-                                        .reduce((acc, [key, value]) => {
-                                            acc[key] = value;
-                                            return acc;
-                                        }, {})
-                                    : {},
-                                null,
-                                2
-                            ).substring(0, 50)}...
-                        </span>
-                    ) || (
-                        <span>
-                            {record.annotations.substring(0, 50)}...
-                        </span>
-                    ) }
-                </span>
-            ),
-        },
-        {
-            title: "初次触发时间",
-            dataIndex: "first_trigger_time",
-            key: "first_trigger_time",
-            render: (text) => {
-                const date = new Date(text * 1000)
-                return date.toLocaleString()
+            render: (_, record) => {
+                let contentString;
+                // Determine the full content string based on datasource_type
+                if (
+                    record.datasource_type === "AliCloudSLS" ||
+                    record.datasource_type === "Loki" ||
+                    record.datasource_type === "ElasticSearch" ||
+                    record.datasource_type === "VictoriaLogs" ||
+                    record.datasource_type === "ClickHouse"
+                ) {
+                    contentString = JSON.stringify(
+                        record?.labels
+                            ? Object.entries(record.labels)
+                                .filter(([key]) => !["value", "rule_name", "severity", "fingerprint"].includes(key))
+                                .reduce((acc, [key, value]) => {
+                                    acc[key] = value;
+                                    return acc;
+                                }, {})
+                            : {},
+                        null,
+                        2,
+                    );
+                } else {
+                    contentString = record.annotations;
+                }
+
+                const maxLength = 100;
+                const displayContent = contentString.length > maxLength
+                    ? contentString.substring(0, maxLength) + '...'
+                    : contentString;
+
+                return (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        {/* 规则名称 */}
+                        <div
+                            style={{
+                                fontSize: "11px",
+                                fontWeight: "500",
+                                lineHeight: "1.2",
+                            }}
+                        >
+                            {record.datasource_type} / {record.rule_name}
+                        </div>
+
+                        {/* 事件详情 */}
+                        <div
+                            style={{
+                                fontSize: "12px",
+                                color: "#999",
+                                lineHeight: "1.4",
+                            }}
+                        >
+                            <Tooltip title={contentString} placement="topLeft">
+                            <span style={{ cursor: contentString.length > maxLength ? 'help' : 'default' }}>
+                                {displayContent}
+                            </span>
+                            </Tooltip>
+                        </div>
+                    </div>
+                );
             },
         },
         {
-            title: "最近评估时间",
-            dataIndex: "last_eval_time",
-            key: "last_eval_time",
+            title: "触发时间",
+            dataIndex: "first_trigger_time",
+            key: "first_trigger_time",
+            width: "160px",
             render: (text) => {
                 const date = new Date(text * 1000)
                 return date.toLocaleString()
+                }
+        },
+        {
+            title: "持续时长",
+            dataIndex: "first_trigger_time",
+            key: "duration",
+            width: "160px",
+            render: (startTime) => {
+                const durationText = FormatDuration(startTime)
+                const gradientStyle = GetDurationGradient(startTime)
+                const totalBlocks = 10
+
+                return (
+                    <div>
+                        {/* 时间文本 */}
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                                color: "#262626",
+                                fontFamily: "monospace",
+                                marginBottom: "6px",
+                            }}
+                        >
+                            <Clock size={12} style={{ color: "#8c8c8c" }} />
+                            <span>{durationText}</span>
+                        </div>
+
+                        {/* 一行方块 */}
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: "2px",
+                                width: "100%",
+                                justifyContent: "flex-start",
+                            }}
+                        >
+                            {[...Array(totalBlocks)].map((_, blockIndex) => {
+                                const blockColor = GetBlockColor(blockIndex, totalBlocks, gradientStyle.intensity)
+                                const isActive = blockColor !== "#e8e8e8"
+
+                                return (
+                                    <div
+                                        key={blockIndex}
+                                        style={{
+                                            width: "10px",
+                                            height: "8px",
+                                            borderRadius: "2px",
+                                            backgroundColor: blockColor,
+                                            transition: "all 0.3s ease",
+                                            boxShadow: isActive ? `0 0 3px ${blockColor}` : "none",
+                                            opacity: isActive ? 1 : 0.3,
+                                        }}
+                                    />
+                                )
+                            })}
+                        </div>
+                    </div>
+                )
+            },
+        },
+        {
+            title: "告警状态",
+            dataIndex: "status",
+            key: "status",
+            width: "100px",
+            render: (text) => {
+                const status = statusMap[text]
+                return status ? <Tag color={status.color}>{status.text}</Tag> : "未知"
             },
         },
         {
             title: "认领人",
             dataIndex: "upgradeState",
             key: "upgradeState",
+            width: "100px",
             render: (text) => {
                 return (
                     <Tag
@@ -210,15 +319,6 @@ export const AlertCurrentEvent = (props) => {
                         {text.whoAreConfirm || "暂无"}
                     </Tag>
                 )
-            },
-        },
-        {
-            title: "告警状态",
-            dataIndex: "status",
-            key: "status",
-            render: (text) => {
-                const status = statusMap[text]
-                return status ? <Tag color={status.color}>{status.text}</Tag> : "未知"
             },
         },
         {
@@ -671,6 +771,77 @@ export const AlertCurrentEvent = (props) => {
         setExportModalVisible(false)
     }
 
+    const handleListComments = async () => {
+        if (!selectedEvent) {
+            return;
+        }
+
+        try {
+            const comment = {
+                tenantId: selectedEvent.tenantId,
+                fingerprint: selectedEvent.fingerprint,
+            };
+            const res = await ListEventComments(comment);
+            setComments(res.data);
+        } catch (error) {
+            HandleApiError(error)
+        }
+    };
+
+    // 新增评论
+    const handleAddComment = async () => {
+        if (!newComment.trim()) {
+            message.warning("请输入评论内容")
+            return
+        }
+
+        try {
+            const comment = {
+                tenantId: selectedEvent.tenantId,
+                faultCenterId: selectedEvent.faultCenterId,
+                fingerprint: selectedEvent.fingerprint,
+                content: newComment.trim(),
+            }
+
+            await AddEventComment(comment)
+            await handleListComments()
+            setNewComment("")
+            message.success("评论添加成功")
+        } catch (error) {
+            HandleApiError(error)
+        }
+    }
+
+    // 处理回车键
+    const handleKeyPress = (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault()
+            handleAddComment()
+        }
+    }
+
+    // 删除评论
+    const handleDeleteComment = async (commentId) => {
+        try {
+            const comment = {
+                tenantId: selectedEvent.tenantId,
+                commentId: commentId
+            }
+
+            await DeleteEventComment(comment)
+            await handleListComments()
+            message.success("评论删除成功")
+        } catch (error) {
+            HandleApiError(error)
+        }
+    }
+
+    useEffect(() => {
+        if (drawerOpen && selectedEvent) {
+            handleListComments();
+        }
+    }, [drawerOpen, selectedEvent]);
+
     return (
         <div>
             <Modal
@@ -846,7 +1017,7 @@ export const AlertCurrentEvent = (props) => {
                 placement="right"
                 onClose={onCloseDrawer}
                 open={drawerOpen}
-                width={520}
+                width={1000}
                 styles={{
                     body: { padding: "16px" },
                 }}
@@ -856,74 +1027,82 @@ export const AlertCurrentEvent = (props) => {
                         <Descriptions
                             title="基本信息"
                             bordered
-                            column={1}
-                            style={{ marginBottom: "24px" }}
+                            column={2}
+                            style={{ marginBottom: '24px' }}
                             items={[
                                 {
-                                    key: "rule_name",
-                                    label: "规则名称",
-                                    children: selectedEvent.rule_name,
+                                    key: 'rule_name',
+                                    label: '规则名称',
+                                    children: RenderTruncatedText(selectedEvent.rule_name),
                                 },
                                 {
-                                    key: "fingerprint",
-                                    label: "告警指纹",
-                                    children: selectedEvent.fingerprint,
+                                    key: 'fingerprint',
+                                    label: '告警指纹',
+                                    children: RenderTruncatedText(selectedEvent.fingerprint),
                                 },
                                 {
-                                    key: "datasource",
-                                    label: "数据源",
-                                    children: `${selectedEvent.datasource_type} (${selectedEvent.datasource_id})`,
+                                    key: 'datasource',
+                                    label: '数据源',
+                                    children: RenderTruncatedText(`${selectedEvent.datasource_type} (${selectedEvent.datasource_id})`),
                                 },
                                 {
-                                    key: "severity",
-                                    label: "告警等级",
+                                    key: 'severity',
+                                    label: '告警等级',
                                     children: <Tag color={SEVERITY_COLORS[selectedEvent.severity]}>{selectedEvent.severity}</Tag>,
                                 },
                                 {
-                                    key: "status",
-                                    label: "事件状态",
+                                    key: 'status',
+                                    label: '事件状态',
                                     children: (
                                         <Tag color={statusMap[selectedEvent.status].color}>{statusMap[selectedEvent.status].text}</Tag>
                                     ),
                                 },
                                 {
-                                    key: "value",
-                                    label: "触发时值",
-                                    children: selectedEvent?.labels["value"] || '-',
+                                    key: 'value',
+                                    label: '触发时值',
+                                    children: RenderTruncatedText(selectedEvent?.labels?.value || '-'),
                                 },
                                 {
-                                    key: "confirm",
-                                    label: "认领人",
+                                    key: 'confirm',
+                                    label: '认领人',
                                     children: (
                                         <Tag
                                             style={{
-                                                borderRadius: "12px",
-                                                padding: "0 10px",
-                                                fontSize: "12px",
-                                                fontWeight: "500",
-                                                display: "inline-flex",
-                                                alignItems: "center",
-                                                gap: "4px",
+                                                borderRadius: '12px',
+                                                padding: '0 10px',
+                                                fontSize: '12px',
+                                                fontWeight: '500',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
                                             }}
                                         >
-                                            {selectedEvent?.upgradeState?.whoAreConfirm || "暂无"}
+                                            {RenderTruncatedText(selectedEvent?.upgradeState?.whoAreConfirm || '暂无')}
                                         </Tag>
                                     ),
                                 },
                             ]}
                         />
 
+                        <Divider/>
+
                         <div style={{ marginBottom: "16px" }}>
-                            <h4>事件标签:</h4>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                            <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
+                                事件标签
+                            </Title>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "15px" }}>
                                 {Object.entries(selectedEvent?.labels).map(([key, value]) => (
                                     <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
                                 ))}
                             </div>
                         </div>
 
+                        <Divider/>
+
                         <div>
-                            <h4>事件详情:</h4>
+                            <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
+                                事件详情
+                            </Title>
                             { (selectedEvent.datasource_type === "AliCloudSLS"
                                 || selectedEvent.datasource_type === "Loki"
                                 || selectedEvent.datasource_type === "ElasticSearch"
@@ -946,7 +1125,7 @@ export const AlertCurrentEvent = (props) => {
                                     style={{
                                         height: 400,
                                         resize: "none",
-                                        marginTop: "8px",
+                                        marginTop: "15px",
                                     }}
                                     readOnly
                                 />
@@ -956,11 +1135,136 @@ export const AlertCurrentEvent = (props) => {
                                     style={{
                                         height: 400,
                                         resize: "none",
-                                        marginTop: "8px",
+                                        marginTop: "15px",
                                     }}
                                     readOnly
                                 />
                             ) }
+                        </div>
+
+                        <Divider/>
+
+                        <div>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    marginBottom: "16px",
+                                    marginTop: "15px",
+                                }}
+                            >
+                                <Title level={4} style={{margin: 0, fontSize: "16px"}}>
+                                    事件评论
+                                </Title>
+                            </div>
+
+                            {comments.length === 0 ? (
+                                <Card>
+                                    <div
+                                        style={{
+                                            textAlign: "center",
+                                            padding: "40px 0",
+                                            color: "#999",
+                                        }}
+                                    >
+                                        暂无评论，在下方输入框添加第一条评论
+                                    </div>
+                                </Card>
+                            ) : (
+                                <List
+                                    style={{
+                                        marginTop: "16px",
+                                        padding: "16px",
+                                        border: "1px solid #f0f0f0",
+                                        borderRadius: "8px",
+                                        marginBottom: "12px",
+                                    }}
+                                    dataSource={comments}
+                                    renderItem={(comment) => (
+                                        <List.Item
+                                            style={{ borderBlockEnd: "none" }}
+                                            key={comment.commentId}
+                                        >
+                                            <List.Item.Meta
+                                                avatar={
+                                                    <Avatar
+                                                        style={{
+                                                            backgroundColor: "#7265e6",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                        }}
+                                                        size="default"
+                                                    >
+                                                        {comment.username ? comment.username.charAt(0).toUpperCase() : ""}
+                                                    </Avatar>
+                                                }
+                                                title={
+                                                    <Space style={{marginTop: "3px"}}>
+                                                        <Text strong type="secondary">{comment.username}</Text>
+
+                                                    </Space>
+                                                }
+                                                description={
+                                                    <>
+                                                        <Text>{comment.content}</Text>
+                                                        <div>
+                                                            <Text type="secondary" style={{ fontSize: "12px" }}>
+                                                                {FormatTime(comment.time)}
+                                                            </Text>
+                                                            {localStorage.getItem('Username') === comment.username && (
+                                                                <Popconfirm
+                                                                    title="确定要删除这条评论吗？"
+                                                                    onConfirm={() => handleDeleteComment(comment.commentId)}
+                                                                    okText="删除"
+                                                                    cancelText="取消"
+                                                                    placement="topRight"
+                                                                >
+                                                                    <Button
+                                                                        key="delete-comment"
+                                                                        type="text"
+                                                                        style={{ color: "#ff4d4f", fontSize: "12px", marginLeft: "8px" }}
+                                                                    >
+                                                                        删除
+                                                                    </Button>
+                                                                </Popconfirm>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                }
+                                            />
+                                        </List.Item>
+                                    )}
+                                />
+                            )}
+
+                            {/* 新增评论输入区 */}
+                            <div style={{ marginTop: "16px" }}>
+                                <div style={{ marginBottom: "12px" }}>
+                                    <TextArea
+                                        placeholder="请输入你想说的内容，按回车发送"
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        rows={3}
+                                        maxLength={1000}
+                                        showCount
+                                    />
+                                </div>
+                                <div style={{ textAlign: "right"}}>
+                                    {newComment.trim() && (
+                                        <Button
+                                            type="primary"
+                                            onClick={handleAddComment}
+                                            style={{ marginTop: "10px", backgroundColor: "#000000" }}
+                                        >
+                                            发送评论
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 )}
@@ -968,7 +1272,7 @@ export const AlertCurrentEvent = (props) => {
 
             {/* 导出配置对话框 */}
             <Modal
-                title="导出历史告警"
+                title="导出活跃告警"
                 open={exportModalVisible}
                 onCancel={() => setExportModalVisible(false)}
                 footer={[

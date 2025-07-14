@@ -76,7 +76,7 @@ export const FaultCenterDetail = () => {
     const tagItems = [
         {
             key: '1',
-            label: '当前告警',
+            label: '活跃告警',
             children: <AlertCurrentEvent id={id} />,
         },
         {
