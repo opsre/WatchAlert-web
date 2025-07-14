@@ -1,10 +1,10 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import {Button, Input, Table, Radio, Tag, Dropdown, message, Modal, Drawer, Select, Tooltip, Space} from "antd"
+import {Button, Input, Table, Radio, Tag, Dropdown, message, Modal, Drawer, Select, Tooltip, Space, Switch} from "antd"
 import { Link } from "react-router-dom"
 import { useParams } from "react-router-dom"
-import {createRule, deleteRule, getRuleList} from "../../../api/rule"
+import {createRule, deleteRule, getRuleList, RuleChangeStatus} from "../../../api/rule"
 import { ReactComponent as PrometheusImg } from "./img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "./img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "./img/jaeger.svg"
@@ -27,7 +27,7 @@ import {
 import {FaultCenterList} from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
-import {HandleShowTotal} from "../../../utils/lib";
+import {HandleApiError, HandleShowTotal} from "../../../utils/lib";
 
 export const AlertRuleList = () => {
     const { Search } = Input
@@ -167,13 +167,35 @@ export const AlertRuleList = () => {
             title: "状态",
             dataIndex: "enabled",
             key: "enabled",
-            width: "auto",
-            render: (enabled) => (
-                <div className="status-container">
-                    <div className={`status-dot ${enabled ? "status-enabled" : "status-disabled"}`} />
-                    <span>{enabled ? "启用" : "禁用"}</span>
-                </div>
-            ),
+            width: "100px",
+            render: (enabled, record) => {
+                const handleStatusChange = async (checked) => {
+                    try {
+                        const params={
+                            tenantId: record.tenantId,
+                            ruleGroupId: record.ruleGroupId,
+                            ruleId: record.ruleId,
+                            faultCenterId: record.faultCenterId,
+                            enabled: checked,
+                        }
+                        await RuleChangeStatus(params)
+                        message.success(`「${record.ruleName}」状态已更新为: ${checked ? "启用" : "禁用"}`);
+                        handleList(id, pagination.index, pagination.size)
+                    } catch (error) {
+                        HandleApiError(error)
+                    }
+                };
+
+                return (
+                    <Switch
+                        checked={enabled}
+                        onChange={handleStatusChange}
+                        checkedChildren="启用"
+                        unCheckedChildren="禁用"
+                        loading={false}
+                    />
+                );
+            },
         },
         {
             title: "操作",

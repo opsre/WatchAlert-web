@@ -10,7 +10,7 @@ import {
     InputNumber,
     Card,
     TimePicker,
-    Typography, Modal, message
+    Typography, Modal, message, Checkbox
 } from 'antd'
 import React, { useState, useEffect } from 'react'
 import {MinusCircleOutlined, PlusOutlined, RedoOutlined} from '@ant-design/icons'
@@ -2008,7 +2008,6 @@ export const AlertRule = ({ type }) => {
                     </MyFormItem>
                 </div>
 
-
                 <div style={{marginTop: '20px'}}>
                     <MyFormItem
                         style={{marginBottom: 0}}
@@ -2016,10 +2015,12 @@ export const AlertRule = ({ type }) => {
                         valuePropName="checked"
                     >
                         <div style={{display: 'flex', alignItems: 'center'}}>
-                            <span style={{marginRight: 8}}>规则状态</span>
-                            <Switch value={enabled} checked={enabled} onChange={(e) => {
-                                setEnabled(e)
-                            }}/>
+                            <span style={{marginRight: 8}}>启用规则</span>
+                            <Checkbox
+                                style={{marginTop: '0', marginRight: '10px'}}
+                                checked={enabled}
+                                onChange={(e) => setEnabled(e.target.checked)}
+                            />
                         </div>
                     </MyFormItem>
                 </div>

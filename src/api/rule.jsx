@@ -1,5 +1,6 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getRuleList(params) {
     try {
@@ -145,6 +146,10 @@ async function deleteRuleGroup(params) {
     }
 }
 
+async function RuleChangeStatus(params) {
+    return await http('post', `/api/w8t/rule/ruleChangeStatus`,params);
+}
+
 export {
     getRuleList,
     createRule,
@@ -155,4 +160,5 @@ export {
     createRuleGroup,
     updateRuleGroup,
     deleteRuleGroup,
+    RuleChangeStatus
 } 
