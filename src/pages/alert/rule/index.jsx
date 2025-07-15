@@ -1,7 +1,22 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import {Button, Input, Table, Radio, Tag, Dropdown, message, Modal, Drawer, Select, Tooltip, Space, Switch} from "antd"
+import {
+    Button,
+    Input,
+    Table,
+    Radio,
+    Tag,
+    Dropdown,
+    message,
+    Modal,
+    Drawer,
+    Select,
+    Tooltip,
+    Space,
+    Switch,
+    Popconfirm
+} from "antd"
 import { Link } from "react-router-dom"
 import { useParams } from "react-router-dom"
 import {createRule, deleteRule, getRuleList, RuleChangeStatus} from "../../../api/rule"
@@ -221,6 +236,21 @@ export const AlertRuleList = () => {
                             style={{ color: "#615454" }}
                         />
                     </Tooltip>
+                    <Tooltip title="删除">
+                        <Popconfirm
+                            title="确定要删除此规则吗?"
+                            onConfirm={() => handleDelete(record.ruleGroupId,record.ruleId)}
+                            okText="确定"
+                            cancelText="取消"
+                            placement="left"
+                        >
+                            <Button
+                                type="text"
+                                icon={<DeleteOutlined />}
+                                style={{ color: "red" }}
+                            />
+                        </Popconfirm>
+                    </Tooltip>
                 </Space>
             ),
         },
@@ -357,6 +387,20 @@ export const AlertRuleList = () => {
 
         // 跳转到创建页面
         window.location.href = `/ruleGroup/${id}/rule/add?isClone=1`
+    }
+
+    // 删除单个规则
+    const handleDelete = async (ruleGroupId,ruleId) =>{
+        try {
+            await deleteRule({
+                ruleId: ruleId,
+                ruleGroupId: ruleGroupId,
+            })
+        } catch (error) {
+            HandleApiError(error)
+        }
+
+        handleList(id, pagination.index, pagination.size)
     }
 
     // 批量删除
