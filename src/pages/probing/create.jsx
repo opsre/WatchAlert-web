@@ -513,7 +513,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                         options={options}
                                     />
                                 </MyFormItem>
-                                <MyFormItem name="expectedValue" label="表达式" style={{ width: "50%" }} rules={[{ required: true }]}>
+                                <MyFormItem name="expectedValue" label="告警条件" style={{ width: "50%" }} rules={[{ required: true }]}>
                                     <InputNumber
                                         type="number"
                                         min={1}

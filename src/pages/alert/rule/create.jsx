@@ -667,7 +667,7 @@ export const AlertRule = ({ type }) => {
             updateExprRule(index, 'expr', trimmedValue);
             newErrors[index] = '';
         } else {
-            newErrors[index] = '请输入有效的表达式，例如：>80';
+            newErrors[index] = '请输入有效的告警条件，例如：>80';
         }
 
         setErrors(newErrors);
@@ -1075,7 +1075,7 @@ export const AlertRule = ({ type }) => {
                                         </Button>
                                     </div>
 
-                                    <MyFormItem name="" label="表达式" rules={[{required: !exprRule}]}>
+                                    <MyFormItem name="" label="告警条件" rules={[{required: !exprRule}]}>
                                         {exprRule?.map((label, index) => (
                                             <div className="rule-item" key={index} style={{gap: '10px'}}>
                                                 <MyFormItem
@@ -1100,16 +1100,28 @@ export const AlertRule = ({ type }) => {
 
                                                 <MyFormItem
                                                     name={['rules', index, 'expr']}
-                                                    rules={[{required: true, message: '请输入表达式'}]}
+                                                    rules={[{required: true, message: '请输入告警条件'}]}
                                                     validateStatus={errors[index] ? 'error' : ''}
                                                     help={errors[index]}
                                                     style={{width: '100%'}}
                                                 >
                                                     <Input
-                                                        placeholder='请输入有效的表达式，例如：>80'
+                                                        placeholder='请输入有效的告警条件，例如：>80'
                                                         value={label.expr}
                                                         onChange={(e) => handleExprChange(index, e.target.value)}
                                                         style={{width: '100%'}}
+                                                    />
+                                                </MyFormItem>
+
+                                                <MyFormItem
+                                                    name={['rules', index, 'forDuration']}
+                                                    rules={[{required: true}]}
+                                                >
+                                                    <InputNumber
+                                                        addonBefore="持续"
+                                                        addonAfter="秒"
+                                                        placeholder="60"
+                                                        min={0}
                                                     />
                                                 </MyFormItem>
 
@@ -1117,31 +1129,19 @@ export const AlertRule = ({ type }) => {
                                                         disabled={index === 0}>
                                                     -
                                                 </Button>
+
+
                                             </div>
                                         ))}
                                     </MyFormItem>
 
-                                    <div className="action-buttons" style={{marginTop: '-30px'}}>
-                                        <Button type="link" onClick={addExprRule} disabled={exprRule?.length === 3}>
-                                            + 添加规则条件
+                                    <div className="action-buttons" style={{marginTop: '-35px'}}>
+                                        <Button icon={<PlusOutlined/>} type="dashed" block onClick={addExprRule} disabled={exprRule?.length === 3}>
+                                            添加规则条件
                                         </Button>
                                     </div>
 
-                                    <div className="duration-input">
-                                        <MyFormItem
-                                            name="forDuration"
-                                            label={"持续时间"}
-                                            rules={[{required: true}]}
-                                        >
-                                            <InputNumber
-                                                addonAfter="秒"
-                                                placeholder="60"
-                                                min={0}
-                                            />
-                                        </MyFormItem>
-                                    </div>
-
-                                    <div>
+                                    <div style={{ marginTop: '30px' }}>
                                         <MyFormItem
                                             name="annotations"
                                             label="告警详情"
@@ -1149,7 +1149,7 @@ export const AlertRule = ({ type }) => {
                                             rules={[{required: true}]}
                                         >
                                             <TextArea rows={2}
-                                                      placeholder="输入告警事件的详细消息内容，如：服务器: ${instance}，发生故障请紧急排查!"
+                                                      placeholder="输入告警事件的详细消息内容，如：服务器: ${labels.instance}，发生故障请紧急排查!"
                                                       maxLength={10000}/>
                                         </MyFormItem>
                                     </div>
@@ -1262,7 +1262,7 @@ export const AlertRule = ({ type }) => {
 
                                 <MyFormItem
                                     name='tags'
-                                    label="判断条件"
+                                    label="告警条件"
                                     style={{
                                         width: '50%',
                                     }}
@@ -1373,7 +1373,7 @@ export const AlertRule = ({ type }) => {
 
                                 <MyFormItem
                                     name="threshold"
-                                    label="表达式"
+                                    label="告警条件"
                                     style={{
                                         width: '24%',
                                     }}
@@ -1487,7 +1487,7 @@ export const AlertRule = ({ type }) => {
 
                                     <MyFormItem
                                         name="value"
-                                        label="表达式"
+                                        label="告警条件"
                                         style={{
                                             width: '45%',
                                         }}
@@ -1827,14 +1827,14 @@ export const AlertRule = ({ type }) => {
                     {(selectedType === 1 || selectedType === 2 || selectedType === 7 || selectedType === 8 || selectedType === 9) && (
                         <MyFormItem
                             name="logEvalCondition"
-                            label="表达式"
-                            rules={[{ required: true, message: '请输入表达式' }]}
+                            label="告警条件"
+                            rules={[{ required: true, message: '请输入告警条件' }]}
                             style={{ width: '100%' }}
                         >
                             <Input
                                 addonBefore="当日志条数"
                                 addonAfter="时触发告警"
-                                placeholder="请输入有效的表达式，例如：> 2"
+                                placeholder="请输入有效的告警条件，例如：> 2"
                                 onKeyPress={handleKeyPress} // 监听按键事件
                                 style={{ width: '100%' }}
                             />

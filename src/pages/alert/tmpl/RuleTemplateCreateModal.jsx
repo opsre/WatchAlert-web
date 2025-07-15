@@ -305,7 +305,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
             updateExprRule(index, 'expr', trimmedValue);
             newErrors[index] = '';
         } else {
-            newErrors[index] = '请输入有效的表达式，例如：>80';
+            newErrors[index] = '请输入有效的告警条件，例如：>80';
         }
 
         setErrors(newErrors);
@@ -453,7 +453,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                         />
                                     </MyFormItem>
 
-                                    <MyFormItem name="" label="* 表达式" rules={[{required: !exprRule}]}>
+                                    <MyFormItem name="" label="* 告警条件" rules={[{required: !exprRule}]}>
                                         {exprRule?.map((label, index) => (
                                             <div className="rule-item" key={index} style={{gap: '10px'}}>
                                                 <MyFormItem
@@ -478,13 +478,13 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
 
                                                 <MyFormItem
                                                     name={['rules', index, 'expr']}
-                                                    rules={[{required: true, message: '请输入表达式'}]}
+                                                    rules={[{required: true, message: '请输入告警条件'}]}
                                                     validateStatus={errors[index] ? 'error' : ''}
                                                     help={errors[index]}
                                                     style={{width: '100%'}}
                                                 >
                                                     <Input
-                                                        placeholder='请输入有效的表达式，例如：>80'
+                                                        placeholder='请输入有效的告警条件，例如：>80'
                                                         value={label.expr}
                                                         onChange={(e) => handleExprChange(index, e.target.value)}
                                                         style={{width: '100%'}}
@@ -622,7 +622,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                             <div style={{display: 'flex', gap: '10px'}}>
                                 <MyFormItem
                                     name='tags'
-                                    label="判断条件"
+                                    label="告警条件"
                                     style={{
                                         width: '100%',
                                     }}
@@ -691,7 +691,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
 
                                     <MyFormItem
                                         name="value"
-                                        label="表达式"
+                                        label="告警条件"
                                         style={{
                                             width: '45%',
                                         }}

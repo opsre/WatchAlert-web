@@ -24,7 +24,7 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
 
         form.setFieldsValue({
             repeatNoticeInterval: 60,
-            recoverWaitTime: 1,
+            recoverWaitTime: 30,
 
         })
     }, []);
@@ -58,9 +58,10 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
     const handleFormSubmit = async (values) => {
         const params = {
             ...values,
-            "aggregationType": "Rule",
-            "recoverNotify": true,
-            repeatNoticeInterval: Number(values.repeatNoticeInterval)
+            aggregationType: "Rule",
+            recoverNotify: true,
+            repeatNoticeInterval: Number(values.repeatNoticeInterval),
+            recoverWaitTime: Number(values.recoverWaitTime),
         }
 
         handleCreate(params)
@@ -171,7 +172,7 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
                         type="number"
                         style={{ width: '100%' }}
                         addonAfter="秒"
-                        placeholder="1"
+                        placeholder="30"
                         min={1}
                         onChange={(e) => {
                             const value = e.target.value;

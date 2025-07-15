@@ -519,7 +519,7 @@ export const AlertRuleList = () => {
                     rules: [
                         {
                             severity: "P0", // 默认严重级别
-                            expr: "> 0", // 默认表达式
+                            expr: "> 0", // 默认告警条件
                         },
                     ],
                 },
@@ -564,7 +564,7 @@ export const AlertRuleList = () => {
                     }
                     inAnnotations = false
                 }
-                // 表达式
+                // 告警条件
                 else if (line.startsWith("expr:") && currentRule) {
                     currentRule.expr = line.substring("expr:".length).trim()
                 }
