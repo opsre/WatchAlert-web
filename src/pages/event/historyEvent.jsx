@@ -180,13 +180,29 @@ export const AlertHistoryEvent = (props) => {
             },
         },
         {
-            title: "触发时间",
-            dataIndex: "first_trigger_time",
-            key: "first_trigger_time",
-            width: "160px",
-            render: (text) => {
-                const date = new Date(text * 1000)
-                return date.toLocaleString()
+            title: "告警时间",
+            key: "trigger_and_recover_time",
+            width: "130px",
+            render: (text, record) => {
+                const triggerTime = new Date(record.first_trigger_time * 1000).toLocaleString();
+                const recoverTime = new Date(record.recover_time * 1000).toLocaleString();
+
+                return (
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        fontSize: '13px',
+                        lineHeight: '1.4'
+                    }}>
+                        <div>
+                            {triggerTime}
+                        </div>
+                        <div>
+                            {recoverTime}
+                        </div>
+                    </div>
+                );
             },
         },
         {
