@@ -6,8 +6,8 @@ import { ReactComponent as FeiShuIcon } from '../img/feishu.svg';
 import { ReactComponent as DingdingIcon } from '../img/dingding.svg';
 import { ReactComponent as EmailIcon } from '../img/Email.svg';
 import { ReactComponent as WeChatIcon } from '../img/qywechat.svg'
+import { ReactComponent as SlackIcon } from '../img/slack.svg'
 import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
-import {Link} from "react-router-dom";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
 
@@ -83,6 +83,13 @@ export const NoticeTemplate = () => {
                         <div style={{ display: 'flex' }}>
                             <WeChatIcon style={{ height: '25px', width: '25px' }} />
                             <div style={{ marginLeft: '5px', marginTop: '5px', fontSize: '12px' }}>企业微信</div>
+                        </div>
+                    );
+                }  else if (record.noticeType === 'Slack') {
+                    return (
+                        <div style={{ display: 'flex' }}>
+                            <SlackIcon style={{ height: '25px', width: '25px' }} />
+                            <div style={{ marginLeft: '5px', marginTop: '5px', fontSize: '12px' }}>Slack</div>
                         </div>
                     );
                 }

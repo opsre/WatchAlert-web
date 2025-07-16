@@ -148,8 +148,6 @@ export const CreateProbingRule = ({ type, handleList }) => {
                         // Corrected: Use 'header' here to match the backend structure and `Form.List` name
                         header: initialHeader,
                         body: selectedRow.probingEndpointConfig.http?.body
-                            ? JSON.stringify(selectedRow.probingEndpointConfig.http.body, null, 2)
-                            : undefined,
                     },
                     strategy: {
                         timeout: selectedRow.probingEndpointConfig.strategy?.timeout,

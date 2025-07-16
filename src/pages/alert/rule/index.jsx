@@ -515,11 +515,11 @@ export const AlertRuleList = () => {
                 prometheusConfig: {
                     promQL: rule.expr || "",
                     annotations: rule.annotations?.description || rule.annotations?.summary || "",
-                    forDuration: parseForDuration(rule.for),
                     rules: [
                         {
                             severity: "P0", // 默认严重级别
                             expr: "> 0", // 默认告警条件
+                            forDuration: parseForDuration(rule.for),
                         },
                     ],
                 },
@@ -533,8 +533,7 @@ export const AlertRuleList = () => {
             message.success("转换成功, 请确认导入!")
         } catch (error) {
             setIsConverting(false)
-            message.error("转换失败: " + (error.message || "未知错误"))
-            console.error("转换错误:", error)
+            HandleApiError(error)
         }
     }
 

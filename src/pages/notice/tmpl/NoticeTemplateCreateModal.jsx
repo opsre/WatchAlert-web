@@ -6,6 +6,7 @@ import FeiShuImg from "../img/feishu.svg";
 import EmailImg from "../img/Email.svg";
 import DingDingImg from "../img/dingding.svg";
 import WeChatImg from "../img/qywechat.svg"
+import SlackImg from "../img/slack.svg"
 import {QuestionCircleOutlined} from "@ant-design/icons";
 
 const MyFormItemContext = React.createContext([])
@@ -66,6 +67,8 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
                 t = 2
             } else if (selectedRow.noticeType === "WeChat"){
                 t = 3
+            } else if (selectedRow.noticeType === "Slack"){
+                t = 4
             }
 
             setIsChecked(selectedRow.enableFeiShuJsonCard)
@@ -134,6 +137,10 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
         {
             imgSrc: WeChatImg,
             text: '企业微信'
+        },
+        {
+            imgSrc: SlackImg,
+            text: 'Slack'
         }
     ];
 
@@ -152,7 +159,9 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
             t = "DingDing"
         } else if (index === 3){
            t = "WeChat"
-       }
+        } else if (index === 4){
+           t = "Slack"
+        }
 
         setNotifyType(t)
         setSelectedNotifyCard(index);

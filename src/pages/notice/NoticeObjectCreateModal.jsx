@@ -6,6 +6,7 @@ import FeiShuImg from "./img/feishu.svg";
 import EmailImg from "./img/Email.svg";
 import DingDingImg from "./img/dingding.svg";
 import WeChatImg from "./img/qywechat.svg"
+import SlackImg from "./img/slack.svg"
 import CustomHook from "./img/customhook.svg"
 import { searchNoticeTmpl} from "../../api/noticeTmpl";
 import { getAllUsers } from "../../api/other";
@@ -62,7 +63,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         { imgSrc: EmailImg, text: '邮件', value: 'Email' },
         { imgSrc: DingDingImg, text: '钉钉', value: 'DingDing' },
         { imgSrc: WeChatImg, text: '企业微信', value: 'WeChat' },
-        { imgSrc: CustomHook, text: '自定义Hook', value: 'CustomHook' }
+        { imgSrc: SlackImg, text: 'Slack', value: 'Slack' },
+        { imgSrc: CustomHook, text: '自定义Hook', value: 'CustomHook' },
     ]
 
     const handleInputEmailChange = (name, value) => {
@@ -248,7 +250,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
             title="创建通知对象"
             open={visible}
             onClose={onClose}
-            size='large'
+            width={820}
             footer={
                 <div style={{display: 'flex', justifyContent: 'flex-end'}}>
                     <Button
@@ -418,7 +420,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     </MyFormItem>
                 )}
 
-                {selectedNoticeCard !== 4 && (
+                {selectedNoticeCard !== 5 && (
                     <MyFormItem
                         name="noticeTmplId"
                         label="通知模版"
@@ -437,7 +439,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     </MyFormItem>
                 )}
 
-                {selectedNoticeCard === 4 && (
+                {selectedNoticeCard === 5 && (
                     <pre>
                         <span>Request Body</span>
                         <code>{`

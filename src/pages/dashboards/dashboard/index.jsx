@@ -18,7 +18,7 @@ export const Dashboards = () => {
             key: 'title',
             render: (text, record) => (
                 <div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', color: 'rgb(22, 119, 255)' }}>
                         <Link
                             to={{
                                 pathname: `/dashboard/f/${id}/g/${record.uid}/info`

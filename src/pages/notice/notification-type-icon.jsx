@@ -3,6 +3,8 @@ import { ReactComponent as DingdingIcon } from "./img/dingding.svg"
 import { ReactComponent as EmailIcon } from "./img/Email.svg"
 import { ReactComponent as WeChatIcon } from "./img/qywechat.svg"
 import { ReactComponent as CustomHookIcon } from "./img/customhook.svg"
+import { ReactComponent as SlackIcon } from "./img/slack.svg"
+
 
 const NOTIFICATION_TYPES = {
     FeiShu: {
@@ -25,6 +27,10 @@ const NOTIFICATION_TYPES = {
         icon: CustomHookIcon,
         label: "自定义Hook",
     },
+    Slack: {
+        icon: SlackIcon,
+        label: "Slack"
+    }
 }
 
 export const NotificationTypeIcon = ({ type }) => {
