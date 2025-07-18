@@ -219,7 +219,7 @@ export const Silences = (props) => {
     };
 
     return (
-        <>
+        <div style={{ marginTop: "5px" }}>
             <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
                 <BlockOutlined style={{ marginRight: "12px" }} />
                 告警聚合
@@ -308,6 +308,6 @@ export const Silences = (props) => {
                         </Col>
                     </Row>
             </div>
-        </>
+        </div>
     );
 };

@@ -136,7 +136,6 @@ export const HandleApiError = (error, prefixMessage = "操作失败") => {
     if (error.response && error.response.data) {
         // --- THIS IS THE KEY CHANGE ---
         // Only proceed to display a message if response.data.msg is exactly "failed"
-        console.log("--->",error.response.data.msg)
         if (error.response.data.msg === "failed") {
             // Prefer the detailed error from 'data' if available
             if (error.response.data.data) {

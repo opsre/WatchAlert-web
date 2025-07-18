@@ -182,7 +182,7 @@ export const AlarmUpgrade = () => {
         <div style={{ borderRadius: "8px" }}>
             <div style={{ marginBottom: "24px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Title level={4} style={{ margin: 0 }}>
+                    <Title level={4} style={{ margin: 0, fontSize: "16px"  }}>
                         <AlertOutlined style={{ marginRight: "12px" }} />
                         告警升级
                         <Switch

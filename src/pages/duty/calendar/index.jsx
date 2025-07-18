@@ -3,10 +3,10 @@
 import { Calendar, Button, message, Spin } from "antd"
 import { useState, useEffect, useCallback } from "react"
 import {CalendarIcon, Plus, Users} from "lucide-react"
-import { CreateCalendarModal } from "./CreateCalendar"
 import { UpdateCalendarModal } from "./UpdateCalendar"
 import { searchCalendar } from "../../../api/duty"
 import { useParams } from "react-router-dom"
+import {CreateCalendarModal} from "./CreateCalendar";
 
 export const fetchDutyData = async (dutyId, year, month) => {
     try {
@@ -39,6 +39,7 @@ export const CalendarApp = ({ tenantId }) => {
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth())
     const [height, setHeight] = useState(window.innerHeight)
     const [loading, setLoading] = useState(false)
+    const [selectedDayDutyUsers, setSelectedDayDutyUsers] = useState(null)
 
     const fetchData = useCallback(async () => {
         setLoading(true)
@@ -84,13 +85,11 @@ export const CalendarApp = ({ tenantId }) => {
                 onDoubleClick={() => handleDoubleClick(value)}
                 className={`
                     relative cursor-pointer p-2
-                    ${
-                                isToday
-                                    ? "bg-black text-white shadow-lg"
-                                    : hasData
-                                        ? "bg-gray-50 hover:bg-gray-100 hover:shadow-md"
-                                        : "bg-white hover:shadow-sm"
-                            }
+                    ${isToday
+                    ? "bg-black text-white shadow-lg"
+                    : hasData
+                        ? "bg-gray-50 hover:bg-gray-100 hover:shadow-md"
+                        : "bg-white hover:shadow-sm"}
                   `}
             >
                 <div>
@@ -107,7 +106,16 @@ export const CalendarApp = ({ tenantId }) => {
                             style={{ marginTop: "10px" }}
                         >
                             <Users size={10}/>
-                            <span>{matchingDutyData.username}</span>
+                            {/* 遍历组内人员并显示他们的用户名 */}
+                            <span>
+                                {matchingDutyData.users.map((user, userIndex) => (
+                                    <span key={user.userid}>
+                                    <div>
+                                        {user.username}
+                                    </div>
+                                  </span>
+                                ))}
+                            </span>
                         </div>
                     )}
 
@@ -137,6 +145,21 @@ export const CalendarApp = ({ tenantId }) => {
         ) {
             return
         }
+
+        // 查找匹配当前日期的值班数据
+        const matchingData = dutyData.find((item) => {
+            const itemDate = new Date(item.time)
+            return (
+                itemDate.getFullYear() === date.year() &&
+                itemDate.getMonth() === date.month() &&
+                itemDate.getDate() === date.date()
+            )
+        })
+
+        if (!matchingData || !matchingData.users || matchingData.users.length === 0) {
+            return // If no matching data or no duty groups, do nothing
+        }
+        setSelectedDayDutyUsers(matchingData.users) // Store the full matching data for the modal
 
         const m = date.month()
         const month = m + 1
@@ -203,12 +226,16 @@ export const CalendarApp = ({ tenantId }) => {
 
                 <UpdateCalendarModal
                     visible={modalVisible}
-                    onClose={() => setModalVisible(false)}
+                    onClose={() => {
+                        setModalVisible(false)
+                        setSelectedDayDutyUsers(null)
+                    }} // Clear on close
                     onSuccess={fetchData}
                     time={selectedDate}
                     tenantId={tenantId}
                     dutyId={id}
                     date={selectedDate}
+                    currentDutyUsers={selectedDayDutyUsers} // Pass the new prop
                 />
             </Spin>
         </div>

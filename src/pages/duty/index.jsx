@@ -1,12 +1,13 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from 'react';
-import {Table, Button, Popconfirm, message, Space, Tooltip} from 'antd';
+import {Table, Button, Popconfirm, message, Space, Tag, Tooltip } from 'antd';
 import { CreateDutyModal } from './DutyManageCreateModal';
 import {CopyOutlined, DeleteOutlined, EditOutlined} from '@ant-design/icons';
 import { deleteDutyManager, getDutyManagerList } from '../../api/duty';
 import {Link} from "react-router-dom";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
+import {Users} from "lucide-react";
 
 export const DutyManage = () => {
     const [calendarVisible, setCalendarVisible] = useState(false);
@@ -73,10 +74,28 @@ export const DutyManage = () => {
             key: 'curDutyUser',
             width: 'auto',
             render: (text) => {
-                if (!text) {
+                if (!text || text.length === 0) {
                     return '-';
                 }
-                return text;
+                return (
+                    <>
+                        {text.map((user, index) => (
+                            <Tooltip title={user.username} key={index}>
+                                <Tag style={{
+                                    borderRadius: "12px",
+                                    padding: "0 10px",
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                }}>
+                                    {user.username}
+                                </Tag>
+                            </Tooltip>
+                        ))}
+                    </>
+                );
             },
         },
         {

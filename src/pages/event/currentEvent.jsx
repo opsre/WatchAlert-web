@@ -459,7 +459,7 @@ export const AlertCurrentEvent = (props) => {
                 }
             }
         } catch (error) {
-            message.error("获取事件列表失败: " + error.message)
+            HandleApiError(error)
         } finally {
             setLoading(false)
         }

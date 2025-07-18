@@ -1,16 +1,14 @@
-import { Modal, Form, Input, Button, Select, Switch } from 'antd'
-import React, { useState, useEffect } from 'react'
-import { registerUser, updateUser } from '../../../api/user'
-import { getRoleList } from '../../../api/role'
-
+"use client"
+import { Modal, Form, Input, Button, Switch, Typography, message } from "antd" // 导入 message
+import React, { useState, useEffect } from "react"
+import { registerUser, updateUser } from "../../../api/user" // 假设这些路径是正确的
 
 const MyFormItemContext = React.createContext([])
-
 function toArr(str) {
     return Array.isArray(str) ? str : [str]
 }
 
-// 表单
+// 表单自定义 Form.Item 包装器
 const MyFormItem = ({ name, ...props }) => {
     const prefixPath = React.useContext(MyFormItemContext)
     const concatName = name !== undefined ? [...prefixPath, ...toArr(name)] : undefined
@@ -20,143 +18,148 @@ const MyFormItem = ({ name, ...props }) => {
 // 函数组件
 const UserCreateModal = ({ visible, onClose, selectedRow, type, handleList }) => {
     const [form] = Form.useForm()
-    const [checked, setChecked] = useState()
-    const [username, setUsername] = useState("")
+    const [checked, setChecked] = useState(false) // 初始值设为 false
+    const [spaceValue, setSpaceValue] = useState("") // 用户名输入框的值，用于处理空格
 
-    // 禁止输入空格
-    const [spaceValue, setSpaceValue] = useState('')
+    useEffect(() => {
+        if (visible) {
+            // 仅当模态框可见时才设置值
+            if (selectedRow && type === "update") {
+                const joinDutyStatus = selectedRow.joinDuty === "true"
+                setChecked(joinDutyStatus)
+                setSpaceValue(selectedRow.username) // 初始化禁用空格输入框的值
+                form.setFieldsValue({
+                    username: selectedRow.username,
+                    phone: selectedRow.phone,
+                    email: selectedRow.email,
+                    joinDuty: joinDutyStatus,
+                    dutyUserId: selectedRow.dutyUserId,
+                    role: selectedRow.role,
+                })
+            } else {
+                // 'create' 或没有 selectedRow 时，重置表单和相关状态
+                form.resetFields()
+                setChecked(false)
+                setSpaceValue("")
+                form.setFieldsValue({
+                    joinDuty: false, // 确保初始值为false
+                    role: "app", // 设置默认角色
+                })
+            }
+        }
+    }, [visible, selectedRow, type, form]) // 依赖 visible, selectedRow, type, form
 
+    // 用户名输入框处理，禁止输入空格
     const handleInputChange = (e) => {
-        // 移除输入值中的空格
-        const newValue = e.target.value.replace(/\s/g, '')
+        const newValue = e.target.value.replace(/\s/g, "")
         setSpaceValue(newValue)
+        form.setFieldsValue({ username: newValue }) // 同步更新form的值
     }
-
     const handleKeyPress = (e) => {
-        // 阻止空格键的默认行为
-        if (e.key === ' ') {
+        if (e.key === " ") {
             e.preventDefault()
         }
     }
 
-    useEffect(() => {
-        if (selectedRow) {
-            if (type === 'update') {
-                setChecked(selectedRow.joinDuty === 'true' ? true : false)
-                setUsername(selectedRow.username)
-            }
-            form.setFieldsValue({
-                username: selectedRow.username,
-                phone: selectedRow.phone,
-                email: selectedRow.email,
-                joinDuty: selectedRow.joinDuty, // 修改这里
-                dutyUserId: selectedRow.dutyUserId,
-                role: selectedRow.role
-            })
-        }
-    }, [selectedRow, form])
-
-    // 创建
+    // 创建用户
     const handleCreate = async (values) => {
         try {
             await registerUser(values)
+            message.success("用户创建成功！")
             handleList()
         } catch (error) {
             console.error(error)
+            message.error("用户创建失败。")
         }
     }
 
-    // 更新
+    // 更新用户
     const handleUpdate = async (values) => {
         try {
             await updateUser(values)
+            message.success("用户更新成功！")
             handleList()
         } catch (error) {
             console.error(error)
+            message.error("用户更新失败。")
         }
     }
 
-    // 提交
-    const handleFormSubmit = (values) => {
-
-        if (type === 'create') {
+    // 提交表单
+    const handleFormSubmit = async (values) => {
+        console.log("values.dutyUserId->",values.dutyUserId)
+        if (type === "create") {
             const newValues = {
                 ...values,
                 joinDuty: values.joinDuty ? "true" : "false",
                 role: "app",
+                dutyUserId: values.dutyUserId
             }
-            handleCreate(newValues)
-
+            await handleCreate(newValues)
         }
-
-        if (type === 'update') {
+        if (type === "update") {
             const newValues = {
                 ...values,
                 joinDuty: values.joinDuty ? "true" : "false",
                 userid: selectedRow.userid,
+                dutyUserId: values.dutyUserId
             }
-
-            handleUpdate(newValues)
+            await handleUpdate(newValues)
         }
-
-        // 关闭弹窗
         onClose()
-
     }
 
-    const onChangeJoinDuty = (checked) => {
-        setChecked(checked) // 修改这里
+    // 接受值班 Switch 变化
+    const onChangeJoinDuty = (checkedStatus) => {
+        setChecked(checkedStatus)
+        form.setFieldsValue({ joinDuty: checkedStatus }) // 同步更新 Form.Item 的值
     }
 
     return (
         <Modal visible={visible} onCancel={onClose} footer={null}>
-            <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
+            <Form
+                form={form}
+                name="user_form" // 更改表单名称
+                layout="horizontal" // 关键：设置为水平布局
+                onFinish={handleFormSubmit}
+                labelCol={{ span: 5 }} // 默认标签宽度
+                wrapperCol={{ span: 20 }} // 默认输入框宽度
+                style={{ padding: "40px 24px" }}
 
-                <div style={{ display: 'flex' }}>
-                    <MyFormItem name="username" label="用户名"
-                        style={{
-                            marginRight: '10px',
-                            width: '500px',
-                        }}
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please input your username!',
-                            },
-                        ]}>
-                        <Input
-                            value={spaceValue}
-                            onChange={handleInputChange}
-                            onKeyPress={handleKeyPress}
-                            disabled={type === 'update'} />
-                    </MyFormItem>
-                    {type === 'create' && <Form.Item
+            >
+                <MyFormItem
+                    name="username"
+                    label="用户名"
+                    style={{ flex: 1 }}
+                    rules={[{ required: true, message: "请输入用户名！" }]}
+                >
+                    <Input
+                        value={spaceValue}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+                        disabled={type === "update"}
+                    />
+                </MyFormItem>
+
+                {type === "create" && (
+                    <Form.Item
                         name="password"
                         label="密码"
-                        style={{
-                            marginRight: '10px',
-                            width: '500px',
-                        }}
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please input your password!',
-                            },
-                        ]}
+                        style={{ flex: 1 }}
+                        rules={[{ required: true, message: "请输入密码！" }]}
                         hasFeedback
                     >
                         <Input.Password />
-                    </Form.Item>}
+                    </Form.Item>
+                )}
 
-                </div>
-
-                <MyFormItem name="email" label="邮箱"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Please input your email!',
-                                },
-                            ]}>
+                <MyFormItem
+                    name="email"
+                    label="邮箱"
+                    rules={[
+                        { required: true, message: "请输入邮箱！", type: "email" }, // 添加type: 'email'进行格式校验
+                    ]}
+                >
                     <Input />
                 </MyFormItem>
 
@@ -164,31 +167,32 @@ const UserCreateModal = ({ visible, onClose, selectedRow, type, handleList }) =>
                     <Input />
                 </MyFormItem>
 
-                <MyFormItem name="joinDuty" label="接受值班">
+                <MyFormItem
+                    name="joinDuty"
+                    label="接受值班"
+                    valuePropName="checked"
+                >
                     <Switch checked={checked} onChange={onChangeJoinDuty} />
                 </MyFormItem>
 
-                {checked === true && <MyFormItem name="dutyUserId" label="UserID「飞书/钉钉」"
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please input your UserID!',
-                        },
-                    ]}>
-                    <Input />
-                </MyFormItem>}
+                {checked && (
+                    <>
+                        <MyFormItem name="dutyUserId" label="用户标识" rules={[{ required: true, message: "请输入用户标识！" }]}>
+                            <Input />
+                        </MyFormItem>
+                        <Typography.Text type="secondary" style={{ marginTop: "5px", fontSize: "12px", display: "block" }}>
+                            {"第三方平台的用户 ID（飞书/Slack平台） 或 手机号（钉钉/企微平台）"}
+                        </Typography.Text>
+                    </>
+                )}
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        style={{
-                            backgroundColor: '#000000'
-                        }}
-                    >
-                        提交
-                    </Button>
-                </div>
+                <Form.Item wrapperCol={{ offset: 6, span: 18 }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <Button type="primary" htmlType="submit" style={{ backgroundColor: "#000000" }}>
+                            提交
+                        </Button>
+                    </div>
+                </Form.Item>
             </Form>
         </Modal>
     )
