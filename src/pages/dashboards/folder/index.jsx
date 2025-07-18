@@ -7,7 +7,7 @@ import {
     searchDashboard
 } from '../../../api/dashboard';
 import CreateFolderModal from './create';
-import {CopyOutlined,DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
 
@@ -199,6 +199,7 @@ export const DashboardFolder = () => {
                         style={{
                             backgroundColor: '#000000'
                         }}
+                        icon={<PlusOutlined />}
                     >
                         创建
                     </Button>

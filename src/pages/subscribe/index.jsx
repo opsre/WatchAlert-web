@@ -11,7 +11,7 @@ import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {HandleShowTotal} from "../../utils/lib";
 
 export const Subscribe = () => {
@@ -193,10 +193,11 @@ export const Subscribe = () => {
                     <Link to={`/subscribe/create`}>
                         <Button
                             type="primary"
+                            icon={<PlusOutlined />}
                             style={{
                                 backgroundColor: '#000000'
                             }}
-                        > 创 建 </Button>
+                        > 创建 </Button>
                     </Link>
                 </div>
             </div>

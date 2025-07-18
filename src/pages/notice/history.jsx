@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import {
     Table,
     message,
@@ -22,6 +22,7 @@ import VSCodeEditor from "../../utils/VSCodeEditor";
 import { NotificationTypeIcon } from "./notification-type-icon"
 import { SearchIcon, FilterIcon, AlertTriangle, CheckCircle, XCircle, Clock, FileText, RefreshCw } from "lucide-react"
 import {HandleShowTotal} from "../../utils/lib";
+import {ReloadOutlined} from "@ant-design/icons";
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -334,7 +335,7 @@ export const NoticeRecords = () => {
                     prefix={<SearchIcon size={14} />}
                 />
 
-                <Button type="default" icon={<RefreshCw size={14} />} onClick={handleRefresh} loading={loading}>
+                <Button type="default" icon={<ReloadOutlined />} onClick={handleRefresh} loading={loading}>
                     刷新
                 </Button>
             </div>

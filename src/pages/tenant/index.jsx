@@ -4,7 +4,7 @@ import { deleteTenant, getTenantList } from '../../api/tenant';
 import { CreateTenant } from './CreateTenant';
 import {Link} from "react-router-dom";
 import {getUserInfo} from "../../api/user";
-import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {copyToClipboard} from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
 
@@ -188,6 +188,7 @@ export const Tenants = () => {
                     style={{
                         backgroundColor: '#000000'
                     }}
+                    icon={<PlusOutlined />}
                 >
                     创建
                 </Button>

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Table, message, Button, Drawer, Select, Input, Tag } from "antd"
 import { listAuditLog, searchAuditLog } from "../../api/auditLog"
 import moment from "moment"
 import JsonViewer from "react-json-view"
 import {FileText} from "lucide-react";
 import {HandleShowTotal} from "../../utils/lib";
+import {ReloadOutlined} from "@ant-design/icons";
 
 export const AuditLog = () => {
     const { Search } = Input
@@ -245,6 +246,14 @@ export const AuditLog = () => {
                     }}
                 />
                 <Search allowClear placeholder="输入搜索关键字" style={{ width: 300 }} onSearch={onSearch} />
+
+                <Button
+                    style={{ marginLeft: '10px'}}
+                    onClick={() => {
+                        fetchData()
+                    }}
+                    icon={<ReloadOutlined />}
+                >刷新</Button>
             </div>
 
             <div style={{ overflowX: "auto", marginTop: 10 }}>

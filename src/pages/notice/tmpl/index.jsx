@@ -7,7 +7,7 @@ import { ReactComponent as DingdingIcon } from '../img/dingding.svg';
 import { ReactComponent as EmailIcon } from '../img/Email.svg';
 import { ReactComponent as WeChatIcon } from '../img/qywechat.svg'
 import { ReactComponent as SlackIcon } from '../img/slack.svg'
-import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
 
@@ -212,6 +212,7 @@ export const NoticeTemplate = () => {
                         style={{
                             backgroundColor: '#000000'
                         }}
+                        icon={<PlusOutlined />}
                     >
                         创建
                     </Button>

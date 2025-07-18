@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import {Table, Button, Popconfirm, message, Space, Tag, Tooltip } from 'antd';
 import { CreateDutyModal } from './DutyManageCreateModal';
-import {CopyOutlined, DeleteOutlined, EditOutlined} from '@ant-design/icons';
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from '@ant-design/icons';
 import { deleteDutyManager, getDutyManagerList } from '../../api/duty';
 import {Link} from "react-router-dom";
 import { copyToClipboard } from "../../utils/copyToClipboard";
@@ -221,6 +221,7 @@ export const DutyManage = () => {
                     style={{
                         backgroundColor: '#000000'
                     }}
+                    icon={<PlusOutlined />}
                 >
                     创建
                 </Button>            </div>

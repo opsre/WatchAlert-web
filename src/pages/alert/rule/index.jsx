@@ -37,7 +37,7 @@ import {
     DownOutlined,
     ImportOutlined,
     EditOutlined,
-    CopyOutlined
+    CopyOutlined, PlusOutlined
 } from "@ant-design/icons"
 import {FaultCenterList} from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
@@ -751,18 +751,28 @@ export const AlertRuleList = () => {
                     </Dropdown>
 
                     {/* 导入按钮 */}
-                    <Button icon={<ImportOutlined />} onClick={handleImportClick}>
+                    <Button
+                        type="primary"
+                        size="default"
+                        icon={<ImportOutlined />}
+                        onClick={handleImportClick}
+                        style={{
+                            backgroundColor: "#000000",
+                        }}
+                    >
                         导入
                     </Button>
 
                     <Link to={`/ruleGroup/${id}/rule/add`}>
                         <Button
                             type="primary"
+                            size="default"
                             style={{
                                 backgroundColor: "#000000",
                             }}
+                            icon={<PlusOutlined />}
                         >
-                            创 建
+                            创建
                         </Button>
                     </Link>
                 </div>

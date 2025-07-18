@@ -13,7 +13,7 @@ import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
 import './index.css'
-import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
 
@@ -239,6 +239,7 @@ export const Datasources = () => {
                         style={{
                             backgroundColor: '#000000'
                         }}
+                        icon={<PlusOutlined />}
                     >
                         创建
                     </Button>

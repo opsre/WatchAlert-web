@@ -1,12 +1,13 @@
 "use client"
 
 import { Calendar, Button, message, Spin } from "antd"
-import { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import {CalendarIcon, Plus, Users} from "lucide-react"
 import { UpdateCalendarModal } from "./UpdateCalendar"
 import { searchCalendar } from "../../../api/duty"
 import { useParams } from "react-router-dom"
 import {CreateCalendarModal} from "./CreateCalendar";
+import {PlusOutlined, ReloadOutlined} from "@ant-design/icons";
 
 export const fetchDutyData = async (dutyId, year, month) => {
     try {
@@ -197,14 +198,28 @@ export const CalendarApp = ({ tenantId }) => {
                         </div>
                     </div>
 
-                    <Button
-                        type="primary"
-                        size="default"
-                        style={{ backgroundColor: '#000000' }}
-                        onClick={() => setCreateCalendarModal(true)}
-                    >
-                        发布日程
-                    </Button>
+                    <div className="flex items-center gap-3">
+                        <Button
+                            type="primary"
+                            size="default"
+                            onClick={fetchData}
+                            icon={<ReloadOutlined />}
+                            style={{ backgroundColor: '#000000' }}
+                            loading={loading}
+                        >
+                            刷新
+                        </Button>
+
+                        <Button
+                            type="primary"
+                            size="default"
+                            style={{ backgroundColor: '#000000' }}
+                            onClick={() => setCreateCalendarModal(true)}
+                            icon={<PlusOutlined />}
+                        >
+                            发布
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Calendar Section */}

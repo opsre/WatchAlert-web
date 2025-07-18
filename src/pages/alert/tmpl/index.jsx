@@ -7,7 +7,14 @@ import { useParams, useNavigate } from "react-router-dom"
 import { deleteRuleTmpl, getRuleTmplList, createRuleTmpl } from "../../../api/ruleTmpl"
 import { getRuleGroupList } from "../../../api/rule"
 import { useRule } from "../../../context/RuleContext"
-import {DeleteOutlined, ExportOutlined, DownOutlined, ImportOutlined, EditOutlined} from "@ant-design/icons"
+import {
+    DeleteOutlined,
+    ExportOutlined,
+    DownOutlined,
+    ImportOutlined,
+    EditOutlined,
+    PlusOutlined
+} from "@ant-design/icons"
 import {HandleShowTotal} from "../../../utils/lib";
 
 const MyFormItemContext = React.createContext([])
@@ -362,7 +369,15 @@ export const RuleTemplate = () => {
                     </Dropdown>
 
                     {/* 导入按钮 */}
-                    <Button icon={<ImportOutlined />} onClick={handleImportClick}>
+                    <Button
+                        type="primary"
+                        size="default"
+                        icon={<ImportOutlined />}
+                        onClick={handleImportClick}
+                        style={{
+                            backgroundColor: "#000000",
+                        }}
+                    >
                         导入
                     </Button>
                     <input
@@ -376,6 +391,7 @@ export const RuleTemplate = () => {
                     <Button
                         type="primary"
                         onClick={() => setVisible(true)}
+                        icon={<PlusOutlined />}
                         style={{
                             backgroundColor: "#000000",
                         }}

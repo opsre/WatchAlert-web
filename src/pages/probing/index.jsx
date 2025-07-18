@@ -3,7 +3,7 @@ import {Table, Button, Tag, Input, Popconfirm, Radio, message, Progress, Tooltip
 import {ProbingDelete, ProbingList, ProbingSearch} from "../../api/probing";
 import {Link} from "react-router-dom";
 import moment from 'moment';
-import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined} from "@ant-design/icons";
 import {DetailProbingHistory} from "./detail";
 import {HandleShowTotal} from "../../utils/lib";
 
@@ -640,16 +640,24 @@ export const Probing = () => {
                 </div>
 
                 <div style={{display: 'flex', gap: '10px'}}>
-                    <Button style={{marginLeft: 'auto'}} onClick={() => {
-                        handleList(probingType)
-                    }}>刷 新</Button>
+                    <Button
+                        type="primary"
+                        size="default"
+                        style={{ marginLeft: 'auto', backgroundColor: '#000000' }}
+                        onClick={() => {
+                            handleList(probingType)
+                        }}
+                        icon={<ReloadOutlined />}
+                    >刷新</Button>
+
                     <Link to={`/probing/create`}>
                         <Button
                             type="primary"
                             style={{
                                 backgroundColor: '#000000'
                             }}
-                        > 创 建 </Button>
+                            icon={<PlusOutlined />}
+                        > 创建 </Button>
                     </Link>
                 </div>
             </div>

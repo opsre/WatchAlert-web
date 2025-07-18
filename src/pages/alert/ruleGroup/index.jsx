@@ -2,7 +2,7 @@ import {Button, Input, Table, Popconfirm, Space, Tooltip, Badge} from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertRuleGroupCreateModal } from './AlertRuleGroupCreateModal'
-import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from '@ant-design/icons';
 import { deleteRuleGroup, getRuleGroupList } from '../../../api/rule'
 import { copyToClipboard } from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
@@ -233,6 +233,7 @@ export const AlertRuleGroup = ({ }) => {
                             marginLeft: 'auto',
                             backgroundColor: '#000000'
                         }}
+                        icon={<PlusOutlined />}
                     >
                         创建
                     </Button>

@@ -2,7 +2,7 @@ import {Input, Table, Button, Popconfirm, Tooltip, Space} from 'antd';
 import React, { useState, useEffect } from 'react';
 import UserRoleCreateModal from './UserRoleCreateModal';
 import { deleteRole, getRoleList } from '../../../api/role';
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {HandleShowTotal} from "../../../utils/lib";
 
 const { Search } = Input;
@@ -126,6 +126,7 @@ export const UserRole = () => {
                     style={{
                         backgroundColor: '#000000'
                     }}
+                    icon={<PlusOutlined />}
                 >
                     创建
                 </Button>

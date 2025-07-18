@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import UserCreateModal from './UserCreateModal';
 import UserChangePass from './UserChangePass';
 import { deleteUser, getUserList, searchUser } from '../../../api/user';
-import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {HandleShowTotal} from "../../../utils/lib";
 import {Link} from "react-router-dom";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
@@ -183,6 +183,7 @@ export const User = () => {
                     style={{
                         backgroundColor: '#000000'
                     }}
+                    icon={<PlusOutlined />}
                 >
                     创建
                 </Button>

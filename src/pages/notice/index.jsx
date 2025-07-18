@@ -9,7 +9,7 @@ import { ReactComponent as WeChatIcon } from './img/qywechat.svg'
 import { ReactComponent as CustomHookIcon } from './img/customhook.svg'
 import { ReactComponent as SlackIcon } from './img/slack.svg'
 import {getDutyManagerList} from "../../api/duty";
-import {CopyOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
 
@@ -247,6 +247,7 @@ export const NoticeObjects = () => {
                         style={{
                             backgroundColor: '#000000'
                         }}
+                        icon={<PlusOutlined />}
                     >
                         创建
                     </Button>
