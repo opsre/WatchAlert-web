@@ -757,12 +757,35 @@ export const AlertCurrentEvent = (props) => {
     }
 
     async function handleExportClick() {
+        console.log("123")
         if (currentEventList.length === 0) {
             message.warning("当前告警列表中没有事件!")
             return
         };
 
-        exportAlarmRecordToHTML("活跃告警报表", currentEventList, {
+        let event  = []
+        try {
+            setLoading(true)
+            const params = {
+                faultCenterId: id,
+                index: 1,
+                size: 1000,
+                query: searchQuery || undefined,
+                status: selectedStatus || undefined,
+                datasourceType: selectedDataSource || undefined,
+                severity: selectedAlertLevel || undefined,
+            }
+            const res = await getCurEventList(params)
+            if (res?.data?.list) {
+                event = res.data.list.sort((a, b) => b.first_trigger_time - a.first_trigger_time)
+            }
+        } catch (error) {
+            HandleApiError(error)
+        } finally {
+            setLoading(false)
+        }
+
+        exportAlarmRecordToHTML("活跃告警报表", event, {
             ruleName: searchQuery,
             ruleType: selectedDataSource,
             alertLevel: selectedAlertLevel,
@@ -1286,70 +1309,6 @@ export const AlertCurrentEvent = (props) => {
                 width={600}
             >
                 <div style={{ marginBottom: 16 }}>
-                    <h4>时间范围</h4>
-                    <Radio.Group
-                        value={"all"}
-                    >
-                        <Radio value="all">全部时间</Radio>
-                    </Radio.Group>
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                    <h4>筛选条件</h4>
-                    <Checkbox.Group
-                        value={exportOptions.filterOptions}
-                        onChange={(values) => handleExportOptionsChange("filterOptions", values)}
-                    >
-                        <Space direction="vertical">
-                            <Checkbox value="ruleName">按规则名称筛选</Checkbox>
-                            {exportOptions.filterOptions.includes("ruleName") && (
-                                <Input
-                                    placeholder="输入规则名称关键字"
-                                    value={exportFilters.ruleName}
-                                    onChange={(e) => setExportFilters({ ...exportFilters, ruleName: e.target.value })}
-                                    style={{ width: 300, marginLeft: 24 }}
-                                />
-                            )}
-
-                            <Checkbox value="ruleType">按规则类型筛选</Checkbox>
-                            {exportOptions.filterOptions.includes("ruleType") && (
-                                <Select
-                                    placeholder="选择规则类型"
-                                    style={{ width: 300, marginLeft: 24 }}
-                                    allowClear
-                                    value={exportFilters.ruleType || null}
-                                    onChange={(value) => setExportFilters({ ...exportFilters, ruleType: value })}
-                                    options={[
-                                        { value: "Prometheus", label: "Prometheus" },
-                                        { value: "VictoriaMetrics", label: "VictoriaMetrics" },
-                                        { value: "AliCloudSLS", label: "AliCloudSLS" },
-                                        { value: "Jaeger", label: "Jaeger" },
-                                        { value: "Loki", label: "Loki" },
-                                    ]}
-                                />
-                            )}
-
-                            <Checkbox value="alertLevel">按告警等级筛选</Checkbox>
-                            {exportOptions.filterOptions.includes("alertLevel") && (
-                                <Select
-                                    placeholder="选择告警等级"
-                                    style={{ width: 300, marginLeft: 24 }}
-                                    allowClear
-                                    value={exportFilters.alertLevel || null}
-                                    onChange={(value) => setExportFilters({ ...exportFilters, alertLevel: value })}
-                                    options={[
-                                        { value: "P0", label: "P0级告警" },
-                                        { value: "P1", label: "P1级告警" },
-                                        { value: "P2", label: "P2级告警" },
-                                    ]}
-                                />
-                            )}
-                        </Space>
-                    </Checkbox.Group>
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                    <h4>分页设置</h4>
                     <div style={{ marginTop: 8 }}>
                         <span style={{ marginRight: 8 }}>每页显示条数:</span>
                         <Select
