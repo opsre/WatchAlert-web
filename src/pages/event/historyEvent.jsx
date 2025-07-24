@@ -1,6 +1,5 @@
 "use client"
-
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import {
     Table,
     Button,
@@ -12,38 +11,46 @@ import {
     Input,
     message,
     Modal,
-    Checkbox,
-    Radio,
-    Descriptions, Menu, Dropdown, Tooltip, Divider, Typography, Card, List, Avatar, Popconfirm
+    Descriptions,
+    Menu,
+    Dropdown,
+    Tooltip,
+    Divider,
+    Typography,
+    Card,
+    List,
+    Avatar,
+    Popconfirm,
 } from "antd"
-import {DownloadOutlined, EllipsisOutlined, ReloadOutlined} from "@ant-design/icons"
+import { DownloadOutlined, EllipsisOutlined, ReloadOutlined } from "@ant-design/icons"
 import dayjs from "dayjs"
-import {AddEventComment, DeleteEventComment, getHisEventList, ListEventComments} from "../../api/event"
+import { AddEventComment, DeleteEventComment, getHisEventList, ListEventComments } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
-import {AlertTriangle, Clock} from "lucide-react";
-import {useLocation, useNavigate} from "react-router-dom";
-import {exportAlarmRecordToHTML} from "../../utils/exportAlarmRecordToHTML";
+import { AlertTriangle, Clock } from "lucide-react"
+import { useLocation, useNavigate } from "react-router-dom"
+import { exportAlarmRecordToHTML } from "../../utils/exportAlarmRecordToHTML"
 import {
-    FormatDuration, FormatTime,
+    FormatDuration,
+    FormatTime,
     GetBlockColor,
-    GetDurationGradient, HandleApiError,
+    GetDurationGradient,
+    HandleApiError,
     HandleShowTotal,
-    RenderTruncatedText
-} from "../../utils/lib";
+    RenderTruncatedText,
+} from "../../utils/lib"
 
 const { Title, Text } = Typography
-
+const { RangePicker } = DatePicker
+const { Search } = Input
 
 export const AlertHistoryEvent = (props) => {
     const { id } = props
-    const navigate = useNavigate();
-    const location = useLocation();
-    const { RangePicker } = DatePicker
-    const { Search } = Input
+    const navigate = useNavigate()
+    const location = useLocation()
 
-    // 状态管理
+    // State Management
     const [historyEventList, setHistoryEventList] = useState([])
-    const [searchQuery, setSearchQuery] = useState("")
+    const [searchQuery, setSearchQuery] = useState("") // State for the actual search query used in API
     const [selectedDataSource, setSelectedDataSource] = useState("")
     const [selectedAlertLevel, setSelectedAlertLevel] = useState("")
     const [startTimestamp, setStartTimestamp] = useState(null)
@@ -57,10 +64,11 @@ export const AlertHistoryEvent = (props) => {
     })
     const [loading, setLoading] = useState(true)
     const [height, setHeight] = useState(window.innerHeight)
-    const [comments, setComments] = useState( [])
+    const [comments, setComments] = useState([])
     const [newComment, setNewComment] = useState("")
+    const [sortOrder, setSortOrder] = useState(null)
 
-    // 导出相关状态
+    // Export related states
     const [exportModalVisible, setExportModalVisible] = useState(false)
     const [exportTimeRange, setExportTimeRange] = useState([null, null])
     const [exportFilters, setExportFilters] = useState({
@@ -74,20 +82,20 @@ export const AlertHistoryEvent = (props) => {
         filterOptions: [], // ruleName, ruleType, alertLevel
         itemsPerPage: 10, // 导出HTML的每页项目数
     })
+
     // Constants
     const SEVERITY_COLORS = {
-        P0: '#ff4d4f',
-        P1: '#faad14',
-        P2: '#b0e1fb'
+        P0: "#ff4d4f",
+        P1: "#faad14",
+        P2: "#b0e1fb",
     }
-
     const SEVERITY_LABELS = {
         P0: "P0",
         P1: "P1",
         P2: "P2",
     }
 
-    // 表格列定义
+    // Table Column Definitions
     const columns = [
         {
             title: "告警等级",
@@ -118,7 +126,7 @@ export const AlertHistoryEvent = (props) => {
             width: "300px",
             ellipsis: true,
             render: (_, record) => {
-                let contentString;
+                let contentString
                 // Determine the full content string based on datasource_type
                 if (
                     record.datasource_type === "AliCloudSLS" ||
@@ -132,22 +140,19 @@ export const AlertHistoryEvent = (props) => {
                             ? Object.entries(record.labels)
                                 .filter(([key]) => !["value", "rule_name", "severity", "fingerprint"].includes(key))
                                 .reduce((acc, [key, value]) => {
-                                    acc[key] = value;
-                                    return acc;
+                                    acc[key] = value
+                                    return acc
                                 }, {})
                             : {},
                         null,
                         2,
-                    );
+                    )
                 } else {
-                    contentString = record.annotations;
+                    contentString = record.annotations
                 }
-
-                const maxLength = 100;
-                const displayContent = contentString.length > maxLength
-                    ? contentString.substring(0, maxLength) + '...'
-                    : contentString;
-
+                const maxLength = 100
+                const displayContent =
+                    contentString.length > maxLength ? contentString.substring(0, maxLength) + "..." : contentString
                 return (
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                         {/* 规则名称 */}
@@ -160,7 +165,6 @@ export const AlertHistoryEvent = (props) => {
                         >
                             {record.datasource_type} / {record.rule_name}
                         </div>
-
                         {/* 事件详情 */}
                         <div
                             style={{
@@ -170,13 +174,11 @@ export const AlertHistoryEvent = (props) => {
                             }}
                         >
                             <Tooltip title={contentString} placement="topLeft">
-                            <span style={{ cursor: contentString.length > maxLength ? 'help' : 'default' }}>
-                                {displayContent}
-                            </span>
+                                <span style={{ cursor: contentString.length > maxLength ? "help" : "default" }}>{displayContent}</span>
                             </Tooltip>
                         </div>
                     </div>
-                );
+                )
             },
         },
         {
@@ -184,25 +186,22 @@ export const AlertHistoryEvent = (props) => {
             key: "trigger_and_recover_time",
             width: "130px",
             render: (text, record) => {
-                const triggerTime = new Date(record.first_trigger_time * 1000).toLocaleString();
-                const recoverTime = new Date(record.recover_time * 1000).toLocaleString();
-
+                const triggerTime = new Date(record.first_trigger_time * 1000).toLocaleString()
+                const recoverTime = new Date(record.recover_time * 1000).toLocaleString()
                 return (
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                        fontSize: '13px',
-                        lineHeight: '1.4'
-                    }}>
-                        <div>
-                            {triggerTime}
-                        </div>
-                        <div>
-                            {recoverTime}
-                        </div>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
+                            fontSize: "13px",
+                            lineHeight: "1.4",
+                        }}
+                    >
+                        <div>{triggerTime}</div>
+                        <div>{recoverTime}</div>
                     </div>
-                );
+                )
             },
         },
         {
@@ -210,11 +209,11 @@ export const AlertHistoryEvent = (props) => {
             dataIndex: "first_trigger_time",
             key: "duration",
             width: "160px",
+            sorter: true,
             render: (_, record) => {
-                const durationText = FormatDuration(record.first_trigger_time,record.recover_time)
-                const gradientStyle = GetDurationGradient(record.first_trigger_time,record.recover_time)
+                const durationText = FormatDuration(record.first_trigger_time, record.recover_time)
+                const gradientStyle = GetDurationGradient(record.first_trigger_time, record.recover_time)
                 const totalBlocks = 10
-
                 return (
                     <div>
                         {/* 时间文本 */}
@@ -233,7 +232,6 @@ export const AlertHistoryEvent = (props) => {
                             <Clock size={12} style={{ color: "#8c8c8c" }} />
                             <span>{durationText}</span>
                         </div>
-
                         {/* 一行方块 */}
                         <div
                             style={{
@@ -246,7 +244,6 @@ export const AlertHistoryEvent = (props) => {
                             {[...Array(totalBlocks)].map((_, blockIndex) => {
                                 const blockColor = GetBlockColor(blockIndex, totalBlocks, gradientStyle.intensity)
                                 const isActive = blockColor !== "#e8e8e8"
-
                                 return (
                                     <div
                                         key={blockIndex}
@@ -273,7 +270,7 @@ export const AlertHistoryEvent = (props) => {
             key: "status",
             width: "100px",
             render: () => {
-                return  <Tag color={"green"}>{"已恢复"}</Tag>
+                return <Tag color={"green"}>{"已恢复"}</Tag>
             },
         },
         {
@@ -284,7 +281,7 @@ export const AlertHistoryEvent = (props) => {
             render: (text) => {
                 return (
                     <>
-                        {text.whoAreConfirm === text.whoAreHandle && (
+                        {(text.whoAreConfirm === text.whoAreHandle && (
                             <Tag
                                 style={{
                                     borderRadius: "12px",
@@ -298,7 +295,7 @@ export const AlertHistoryEvent = (props) => {
                             >
                                 {text.whoAreHandle || "无"}
                             </Tag>
-                        ) || (
+                        )) || (
                             <>
                                 {text.whoAreConfirm !== "" && (
                                     <Tag
@@ -343,17 +340,14 @@ export const AlertHistoryEvent = (props) => {
             render: (_, record) => {
                 const menu = (
                     <Menu>
-                        <Menu.Item onClick={() => showDrawer(record)}>
-                            查看详情
-                        </Menu.Item>
+                        <Menu.Item onClick={() => showDrawer(record)}>查看详情</Menu.Item>
                     </Menu>
-                );
-
+                )
                 return (
-                    <Dropdown overlay={menu} trigger={['click']}>
-                        <EllipsisOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+                    <Dropdown overlay={menu} trigger={["click"]}>
+                        <EllipsisOutlined style={{ fontSize: 20, cursor: "pointer" }} />
                     </Dropdown>
-                );
+                )
             },
         },
     ]
@@ -377,40 +371,110 @@ export const AlertHistoryEvent = (props) => {
         },
     ]
 
-    // 副作用
+    // Effects
     useEffect(() => {
-        // 处理窗口大小变化
+        // Handle window resize
         const handleResize = () => {
             setHeight(window.innerHeight)
         }
-
         window.addEventListener("resize", handleResize)
         return () => {
             window.removeEventListener("resize", handleResize)
         }
     }, [])
 
+    // Effect to sync searchQuery with URL query param
     useEffect(() => {
-        const url = new URL(window.location)
-        const queryParam = url.searchParams.get("query")
-        if (queryParam) {
-            setSearchQuery(queryParam)
-        }
-    }, [])
+        const searchParams = new URLSearchParams(location.search)
+        const queryParam = searchParams.get("query")
 
-    useEffect(() => {
-        handleHistoryEventList(historyPagination.pageIndex, historyPagination.pageSize)
+        // Update searchQuery state if it differs from URL param
+        // This handles initial load and browser back/forward navigation
+        if (queryParam !== searchQuery) {
+            setSearchQuery(queryParam || "")
+            // If query changes from URL, reset page to 1
+            setHistoryPagination((prev) => ({ ...prev, pageIndex: 1 }))
+        }
+
+        // Update URL if searchQuery state differs from URL param
+        // This handles cases where searchQuery changes from input and needs to be reflected in URL
+        const currentUrlQuery = searchParams.get("query")
+        if (searchQuery !== currentUrlQuery) {
+            if (searchQuery) {
+                searchParams.set("query", searchQuery)
+            } else {
+                searchParams.delete("query")
+            }
+            const newUrl = `${location.pathname}?${searchParams.toString()}`
+            if (newUrl !== `${location.pathname}${location.search}`) {
+                navigate(newUrl, { replace: true })
+            }
+        }
+    }, [searchQuery, location.search, location.pathname, navigate])
+
+    // Centralized data fetching function
+    const fetchHistoryEvents = useCallback(async () => {
+        try {
+            const params = {
+                faultCenterId: id,
+                index: historyPagination.pageIndex,
+                size: historyPagination.pageSize,
+                query: searchQuery || undefined,
+                datasourceType: selectedDataSource || undefined,
+                severity: selectedAlertLevel || undefined,
+                startAt: startTimestamp || undefined,
+                endAt: endTimestamp || undefined,
+                sortOrder: sortOrder || undefined,
+            }
+            setLoading(true)
+            const res = await getHisEventList(params)
+            if (res?.data?.list) {
+                setHistoryEventList(res.data.list)
+                setHistoryPagination((prev) => ({
+                    ...prev,
+                    pageTotal: res.data.total,
+                }))
+                // If current page has no data but total > 0 and not page 1, reset to page 1
+                if (res.data.total > 0 && res.data.list.length === 0 && historyPagination.pageIndex > 1) {
+                    setHistoryPagination((prev) => ({
+                        ...prev,
+                        pageIndex: 1, // This will trigger the main useEffect again
+                    }))
+                }
+            }
+        } catch (error) {
+            HandleApiError(error)
+        } finally {
+            setLoading(false)
+        }
     }, [
+        id,
+        historyPagination.pageIndex,
+        historyPagination.pageSize,
+        searchQuery,
         selectedDataSource,
         selectedAlertLevel,
         startTimestamp,
         endTimestamp,
-        searchQuery,
-        historyPagination.pageIndex,
-        historyPagination.pageSize,
+        sortOrder,
     ])
 
-    // 事件处理函数
+    // Main data fetching effect: triggers on dependency changes
+    useEffect(() => {
+        fetchHistoryEvents()
+    }, [
+        fetchHistoryEvents, // useCallback ensures this doesn't cause infinite loop
+        selectedDataSource,
+        selectedAlertLevel,
+        startTimestamp,
+        endTimestamp,
+        searchQuery, // This is updated by input and URL sync
+        historyPagination.pageIndex, // This is updated by table pagination and search reset
+        historyPagination.pageSize,
+        sortOrder,
+    ])
+
+    // Event Handlers
     const showDrawer = (record) => {
         setSelectedEvent(record)
         setDrawerOpen(true)
@@ -422,67 +486,52 @@ export const AlertHistoryEvent = (props) => {
 
     const handleDataSourceChange = (value) => {
         setSelectedDataSource(value)
+        setHistoryPagination((prev) => ({ ...prev, pageIndex: 1 })) // Reset page on filter change
     }
 
-    const handleHistoryEventList = async (pageIndex, pageSize) => {
-        try {
-            const params = {
-                faultCenterId: id,
-                index: pageIndex,
-                size: pageSize,
-                query: searchQuery || undefined,
-                datasourceType: selectedDataSource || undefined,
-                severity: selectedAlertLevel || undefined,
-                startAt: startTimestamp || undefined,
-                endAt: endTimestamp || undefined,
-            }
-            setLoading(true)
-            const res = await getHisEventList(params)
-            setLoading(false)
-            setHistoryEventList(res.data.list)
-            setHistoryPagination({
-                ...historyPagination,
-                pageIndex: res.data.index,
-                pageTotal: res.data.total,
-            })
-        } catch (error) {
-            console.error(error)
-            setLoading(false)
-        }
+    const handleHistoryPageChange = (pagination, filters, sorter) => {
+        setSortOrder(sorter.order) // Update sort order
+        setHistoryPagination({
+            ...historyPagination,
+            pageIndex: pagination.current,
+            pageSize: pagination.pageSize,
+        })
+        // The useEffect will now trigger the data fetch
     }
 
-    const handleShowTotal = (total, range) => `第 ${range[0]} - ${range[1]} 条 共 ${total} 条`
-
-    const handleHistoryPageChange = (page) => {
-        setHistoryPagination({ ...historyPagination, pageIndex: page.current, pageSize: page.pageSize })
-        handleHistoryEventList(page.current, page.pageSize)
+    // Function to handle search input change (typing)
+    const handleSearchInputChange = (e) => {
+        setSearchQuery(e.target.value)
     }
 
-    const handleSearch = (value) => {
-        setSearchQuery(value)
-        handleHistoryEventList(historyPagination.pageIndex, historyPagination.pageSize)
+    // Function to handle search submission (Enter or search button)
+    const handleSearchSubmit = (value) => {
+        // When search is submitted, reset page to 1
+        setHistoryPagination((prev) => ({ ...prev, pageIndex: 1 }))
+        // The `searchQuery` is already updated by `handleSearchInputChange`
+        // and the `useEffect` above will handle URL update and trigger data fetch.
     }
 
     const handleSeverityChange = (value) => {
         setSelectedAlertLevel(value)
+        setHistoryPagination((prev) => ({ ...prev, pageIndex: 1 })) // Reset page on filter change
     }
 
-    const onChange = (dates) => {
+    const onDateRangeChange = (dates) => {
         if (dates && dates.length === 2) {
-            onOk(dates)
+            setStartTimestamp(dates[0] ? dates[0].unix() : null)
+            setEndTimestamp(dates[1] ? dates[1].unix() : null)
+            setHistoryPagination((prev) => ({ ...prev, pageIndex: 1 })) // Reset page on date change
+        } else {
+            setStartTimestamp(null)
+            setEndTimestamp(null)
+            setHistoryPagination((prev) => ({ ...prev, pageIndex: 1 })) // Reset page on date clear
         }
     }
 
-    const onOk = (dates) => {
-        if (dates && dates[0] && dates[1]) {
-            setStartTimestamp(dates[0].unix())
-            setEndTimestamp(dates[1].unix())
-        }
-    }
-
-    // 打开导出对话框
+    // Open export modal
     const openExportModal = () => {
-        // 使用当前筛选条件作为默认值
+        // Use current filter conditions as default values for export
         setExportFilters({
             ruleName: searchQuery,
             ruleType: selectedDataSource,
@@ -504,25 +553,23 @@ export const AlertHistoryEvent = (props) => {
         setExportModalVisible(true)
     }
 
-    // 导出相关函数
+    // Export related functions
     const fetchExportData = async () => {
         try {
-            // 构建导出参数
+            // Build export parameters
             const params = {
                 faultCenterId: id,
                 index: 1,
-                size: 10000, // 获取足够多的数据用于导出
+                size: 10000, // Get enough data for export
                 query: exportFilters.ruleName || undefined,
                 datasourceType: exportFilters.ruleType || undefined,
                 severity: exportFilters.alertLevel || undefined,
                 startAt: exportOptions.timeRange === "custom" && exportTimeRange[0] ? exportTimeRange[0].unix() : undefined,
                 endAt: exportOptions.timeRange === "custom" && exportTimeRange[1] ? exportTimeRange[1].unix() : undefined,
             }
-
             setExportLoading(true)
             const res = await getHisEventList(params)
             setExportLoading(false)
-
             return res.data.list
         } catch (error) {
             console.error(error)
@@ -551,57 +598,46 @@ export const AlertHistoryEvent = (props) => {
         }
     }
 
-    useEffect(() => {
-        const searchParams = new URLSearchParams(location.search);
-        const query = searchParams.get('query');
-        if (query) {
-            setSearchQuery(query);
-        }
-    }, [location.search]);
-
-    const onSearchChange = (key) => {
-        setSearchQuery(key);
-        const searchParams = new URLSearchParams(location.search);
-        searchParams.set('query', key);
-        navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
-    };
-
     async function handleExportClick() {
-        const data = await fetchExportData(); // 保持这个函数在你的组件中获取数据
-        if (data.length === 0) return;
-
-        exportAlarmRecordToHTML("历史告警报表", data, {
-            ruleName: searchQuery,
-            ruleType: selectedDataSource,
-            alertLevel: selectedAlertLevel,
-        }, exportTimeRange);
+        const data = await fetchExportData() // Keep this function in your component to get data
+        if (data.length === 0) {
+            message.info("没有数据可供导出")
+            return
+        }
+        exportAlarmRecordToHTML(
+            "历史告警报表",
+            data,
+            {
+                ruleName: searchQuery,
+                ruleType: selectedDataSource,
+                alertLevel: selectedAlertLevel,
+            },
+            exportTimeRange,
+        )
     }
-
 
     const handleListComments = async () => {
         if (!selectedEvent) {
-            return;
+            return
         }
-
         try {
             const comment = {
                 tenantId: selectedEvent.tenantId,
                 fingerprint: selectedEvent.fingerprint,
-            };
-            const res = await ListEventComments(comment);
-            setComments(res.data);
+            }
+            const res = await ListEventComments(comment)
+            setComments(res.data)
         } catch (error) {
             HandleApiError(error)
         }
-    };
+    }
 
-    // 新增评论
+    // Add new comment
     const handleAddComment = async () => {
         if (!newComment.trim()) {
             message.warning("请输入评论内容")
             return
         }
-
         try {
             const comment = {
                 tenantId: selectedEvent.tenantId,
@@ -609,7 +645,6 @@ export const AlertHistoryEvent = (props) => {
                 fingerprint: selectedEvent.fingerprint,
                 content: newComment.trim(),
             }
-
             await AddEventComment(comment)
             await handleListComments()
             setNewComment("")
@@ -619,7 +654,7 @@ export const AlertHistoryEvent = (props) => {
         }
     }
 
-    // 处理回车键
+    // Handle Enter key press for comments
     const handleKeyPress = (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault()
@@ -627,14 +662,13 @@ export const AlertHistoryEvent = (props) => {
         }
     }
 
-    // 删除评论
+    // Delete comment
     const handleDeleteComment = async (commentId) => {
         try {
             const comment = {
                 tenantId: selectedEvent.tenantId,
-                commentId: commentId
+                commentId: commentId,
             }
-
             await DeleteEventComment(comment)
             await handleListComments()
             message.success("评论删除成功")
@@ -645,22 +679,21 @@ export const AlertHistoryEvent = (props) => {
 
     useEffect(() => {
         if (drawerOpen && selectedEvent) {
-            handleListComments();
+            handleListComments()
         }
-    }, [drawerOpen, selectedEvent]);
+    }, [drawerOpen, selectedEvent]) // Fetch comments when drawer opens or selected event changes
 
-
-    // 渲染JSX
+    // Render JSX
     return (
         <React.Fragment>
-            {/* 筛选和操作区域 */}
+            {/* Filter and Action Area */}
             <Space style={{ marginBottom: 16 }} wrap>
                 <Search
                     allowClear
                     placeholder="输入搜索关键字"
-                    onSearch={handleSearch}
-                    value={searchQuery}
-                    onChange={(e) => onSearchChange(e.target.value)}
+                    onSearch={handleSearchSubmit} // On search button click or Enter
+                    value={searchQuery} // Controlled component
+                    onChange={handleSearchInputChange} // On every keystroke
                     style={{ width: 200 }}
                 />
                 <Select
@@ -692,8 +725,14 @@ export const AlertHistoryEvent = (props) => {
                         { value: "P2", label: "P2级告警" },
                     ]}
                 />
-                <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" onChange={onChange} onOk={onOk} presets={rangePresets} />
-                <Button icon={<ReloadOutlined />} onClick={() => handleHistoryEventList(historyPagination.pageIndex, historyPagination.pageSize)}>
+                <RangePicker
+                    showTime
+                    format="YYYY-MM-DD HH:mm:ss"
+                    onChange={onDateRangeChange}
+                    onOk={onDateRangeChange}
+                    presets={rangePresets}
+                />
+                <Button icon={<ReloadOutlined />} onClick={() => fetchHistoryEvents()}>
                     刷新
                 </Button>
                 <Button icon={<DownloadOutlined />} onClick={openExportModal}>
@@ -701,7 +740,7 @@ export const AlertHistoryEvent = (props) => {
                 </Button>
             </Space>
 
-            {/* 数据表格 */}
+            {/* Data Table */}
             <Table
                 columns={columns}
                 dataSource={historyEventList}
@@ -711,7 +750,7 @@ export const AlertHistoryEvent = (props) => {
                     pageSize: historyPagination.pageSize,
                     total: historyPagination.pageTotal,
                     showTotal: HandleShowTotal,
-                    pageSizeOptions: ['10'],
+                    pageSizeOptions: ["10"],
                 }}
                 onChange={handleHistoryPageChange}
                 style={{
@@ -727,7 +766,7 @@ export const AlertHistoryEvent = (props) => {
                 }}
             />
 
-            {/* 详情抽屉 */}
+            {/* Detail Drawer */}
             <Drawer
                 title="事件详情"
                 placement="right"
@@ -744,7 +783,7 @@ export const AlertHistoryEvent = (props) => {
                             title="基本信息"
                             bordered
                             column={2}
-                            style={{marginBottom: "24px"}}
+                            style={{ marginBottom: "24px" }}
                             items={[
                                 {
                                     key: "rule_name",
@@ -764,15 +803,12 @@ export const AlertHistoryEvent = (props) => {
                                 {
                                     key: "severity",
                                     label: "告警等级",
-                                    children: <Tag
-                                        color={SEVERITY_COLORS[selectedEvent.severity]}>{selectedEvent.severity}</Tag>,
+                                    children: <Tag color={SEVERITY_COLORS[selectedEvent.severity]}>{selectedEvent.severity}</Tag>,
                                 },
                                 {
                                     key: "status",
                                     label: "事件状态",
-                                    children: (
-                                        <Tag color={"green"}>{"已恢复"}</Tag>
-                                    ),
+                                    children: <Tag color={"green"}>{"已恢复"}</Tag>,
                                 },
                                 {
                                     key: "value",
@@ -784,7 +820,7 @@ export const AlertHistoryEvent = (props) => {
                                     label: "处理人",
                                     children: (
                                         <>
-                                            {selectedEvent?.upgradeState?.whoAreConfirm === selectedEvent?.upgradeState?.whoAreHandle && (
+                                            {(selectedEvent?.upgradeState?.whoAreConfirm === selectedEvent?.upgradeState?.whoAreHandle && (
                                                 <Tag
                                                     style={{
                                                         borderRadius: "12px",
@@ -798,7 +834,7 @@ export const AlertHistoryEvent = (props) => {
                                                 >
                                                     {RenderTruncatedText(selectedEvent?.upgradeState?.whoAreHandle || "无")}
                                                 </Tag>
-                                            ) || (
+                                            )) || (
                                                 <>
                                                     {selectedEvent?.upgradeState?.whoAreConfirm !== "" && (
                                                         <Tag
@@ -837,44 +873,39 @@ export const AlertHistoryEvent = (props) => {
                                 },
                             ]}
                         />
-
-                        <Divider/>
-
-                        <div style={{marginBottom: "16px"}}>
-                            <Title level={4} style={{margin: 0, fontSize: "16px"}}>
+                        <Divider />
+                        <div style={{ marginBottom: "16px" }}>
+                            <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
                                 事件标签
                             </Title>
-                            <div style={{display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "15px"}}>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "15px" }}>
                                 {Object.entries(selectedEvent?.labels).map(([key, value]) => (
                                     <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
                                 ))}
                             </div>
                         </div>
-
-                        <Divider/>
-
+                        <Divider />
                         <div>
-                            <Title level={4} style={{margin: 0, fontSize: "16px"}}>
+                            <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
                                 事件详情
                             </Title>
-                            {(selectedEvent.datasource_type === "AliCloudSLS"
-                                || selectedEvent.datasource_type === "Loki"
-                                || selectedEvent.datasource_type === "ElasticSearch"
-                                || selectedEvent.datasource_type === "VictoriaLogs"
-                                || selectedEvent.datasource_type === "ClickHouse"
-                            ) && (
+                            {((selectedEvent.datasource_type === "AliCloudSLS" ||
+                                selectedEvent.datasource_type === "Loki" ||
+                                selectedEvent.datasource_type === "ElasticSearch" ||
+                                selectedEvent.datasource_type === "VictoriaLogs" ||
+                                selectedEvent.datasource_type === "ClickHouse") && (
                                 <TextArea
                                     value={JSON.stringify(
                                         selectedEvent?.labels
                                             ? Object.entries(selectedEvent.labels)
-                                                .filter(([key]) => !['value', 'rule_name', 'severity', 'fingerprint'].includes(key))
+                                                .filter(([key]) => !["value", "rule_name", "severity", "fingerprint"].includes(key))
                                                 .reduce((acc, [key, value]) => {
-                                                    acc[key] = value;
-                                                    return acc;
+                                                    acc[key] = value
+                                                    return acc
                                                 }, {})
                                             : {},
                                         null,
-                                        2
+                                        2,
                                     )}
                                     style={{
                                         height: 400,
@@ -883,7 +914,7 @@ export const AlertHistoryEvent = (props) => {
                                     }}
                                     readOnly
                                 />
-                            ) || (
+                            )) || (
                                 <TextArea
                                     value={selectedEvent.annotations}
                                     style={{
@@ -895,9 +926,7 @@ export const AlertHistoryEvent = (props) => {
                                 />
                             )}
                         </div>
-
-                        <Divider/>
-
+                        <Divider />
                         <div>
                             <div
                                 style={{
@@ -908,11 +937,10 @@ export const AlertHistoryEvent = (props) => {
                                     marginTop: "15px",
                                 }}
                             >
-                                <Title level={4} style={{margin: 0, fontSize: "16px"}}>
+                                <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
                                     事件评论
                                 </Title>
                             </div>
-
                             {comments.length === 0 ? (
                                 <Card>
                                     <div
@@ -936,10 +964,7 @@ export const AlertHistoryEvent = (props) => {
                                     }}
                                     dataSource={comments}
                                     renderItem={(comment) => (
-                                        <List.Item
-                                            style={{borderBlockEnd: "none"}}
-                                            key={comment.commentId}
-                                        >
+                                        <List.Item style={{ borderBlockEnd: "none" }} key={comment.commentId}>
                                             <List.Item.Meta
                                                 avatar={
                                                     <Avatar
@@ -955,19 +980,20 @@ export const AlertHistoryEvent = (props) => {
                                                     </Avatar>
                                                 }
                                                 title={
-                                                    <Space style={{marginTop: "3px"}}>
-                                                        <Text strong type="secondary">{comment.username}</Text>
-
+                                                    <Space style={{ marginTop: "3px" }}>
+                                                        <Text strong type="secondary">
+                                                            {comment.username}
+                                                        </Text>
                                                     </Space>
                                                 }
                                                 description={
                                                     <>
                                                         <Text>{comment.content}</Text>
                                                         <div>
-                                                            <Text type="secondary" style={{fontSize: "12px"}}>
+                                                            <Text type="secondary" style={{ fontSize: "12px" }}>
                                                                 {FormatTime(comment.time)}
                                                             </Text>
-                                                            {localStorage.getItem('Username') === comment.username && (
+                                                            {localStorage.getItem("Username") === comment.username && (
                                                                 <Popconfirm
                                                                     title="确定要删除这条评论吗？"
                                                                     onConfirm={() => handleDeleteComment(comment.commentId)}
@@ -981,7 +1007,7 @@ export const AlertHistoryEvent = (props) => {
                                                                         style={{
                                                                             color: "#ff4d4f",
                                                                             fontSize: "12px",
-                                                                            marginLeft: "8px"
+                                                                            marginLeft: "8px",
                                                                         }}
                                                                     >
                                                                         删除
@@ -996,10 +1022,9 @@ export const AlertHistoryEvent = (props) => {
                                     )}
                                 />
                             )}
-
-                            {/* 新增评论输入区 */}
-                            <div style={{marginTop: "16px"}}>
-                                <div style={{marginBottom: "12px"}}>
+                            {/* New Comment Input Area */}
+                            <div style={{ marginTop: "16px" }}>
+                                <div style={{ marginBottom: "12px" }}>
                                     <TextArea
                                         placeholder="请输入你想说的内容，按回车发送"
                                         value={newComment}
@@ -1010,25 +1035,24 @@ export const AlertHistoryEvent = (props) => {
                                         showCount
                                     />
                                 </div>
-                                <div style={{textAlign: "right"}}>
+                                <div style={{ textAlign: "right" }}>
                                     {newComment.trim() && (
                                         <Button
                                             type="primary"
                                             onClick={handleAddComment}
-                                            style={{marginTop: "10px", backgroundColor: "#000000"}}
+                                            style={{ marginTop: "10px", backgroundColor: "#000000" }}
                                         >
                                             发送评论
                                         </Button>
                                     )}
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 )}
             </Drawer>
 
-            {/* 导出配置对话框 */}
+            {/* Export Configuration Modal */}
             <Modal
                 title="导出历史告警"
                 open={exportModalVisible}
@@ -1043,18 +1067,18 @@ export const AlertHistoryEvent = (props) => {
                 ]}
                 width={600}
             >
-                <div style={{marginBottom: 16}}>
-                    <div style={{marginTop: 8}}>
-                        <span style={{marginRight: 8}}>每页显示条数:</span>
+                <div style={{ marginBottom: 16 }}>
+                    <div style={{ marginTop: 8 }}>
+                        <span style={{ marginRight: 8 }}>每页显示条数:</span>
                         <Select
                             value={exportOptions.itemsPerPage}
                             onChange={(value) => handleExportOptionsChange("itemsPerPage", value)}
-                            style={{width: 120}}
+                            style={{ width: 120 }}
                             options={[
-                                {value: 10, label: "10条/页"},
-                                {value: 20, label: "20条/页"},
-                                {value: 50, label: "50条/页"},
-                                {value: 100, label: "100条/页"},
+                                { value: 10, label: "10条/页" },
+                                { value: 20, label: "20条/页" },
+                                { value: 50, label: "50条/页" },
+                                { value: 100, label: "100条/页" },
                             ]}
                         />
                     </div>
@@ -1063,4 +1087,3 @@ export const AlertHistoryEvent = (props) => {
         </React.Fragment>
     )
 }
-

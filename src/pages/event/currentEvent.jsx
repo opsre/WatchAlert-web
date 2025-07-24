@@ -97,6 +97,7 @@ export const AlertCurrentEvent = (props) => {
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [comments, setComments] = useState( [])
     const [newComment, setNewComment] = useState("")
+    const [sortOrder,setSortOrder] = useState(null)
 
     // Constants
     const SEVERITY_COLORS = {
@@ -231,6 +232,7 @@ export const AlertCurrentEvent = (props) => {
             dataIndex: "first_trigger_time",
             key: "duration",
             width: "160px",
+            sorter: true,
             render: (startTime) => {
                 const durationText = FormatDuration(startTime)
                 const gradientStyle = GetDurationGradient(startTime)
@@ -381,7 +383,7 @@ export const AlertCurrentEvent = (props) => {
             // 正常分页或初始加载
             handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
         }
-    }, [id, isFiltering, currentPagination.pageIndex, currentPagination.pageSize])
+    }, [id, isFiltering, currentPagination.pageIndex, currentPagination.pageSize, sortOrder])
 
     const handleSilenceModalOpen = (record) => {
         const excludeKeys = ['value']; // 要排除的 key 列表
@@ -435,11 +437,11 @@ export const AlertCurrentEvent = (props) => {
                 status: selectedStatus || undefined,
                 datasourceType: selectedDataSource || undefined,
                 severity: selectedAlertLevel || undefined,
+                sortOrder: sortOrder || undefined,
             }
             const res = await getCurEventList(params)
             if (res?.data?.list) {
-                const sortedList = res.data.list.sort((a, b) => b.first_trigger_time - a.first_trigger_time)
-                setCurrentEventList(sortedList)
+                setCurrentEventList(res.data.list)
 
                 // 更新分页信息
                 setCurrentPagination({
@@ -449,7 +451,7 @@ export const AlertCurrentEvent = (props) => {
                 })
 
                 // 检查是否有数据但当前页为空
-                if (res.data.total > 0 && sortedList.length === 0 && pageIndex > 1) {
+                if (res.data.total > 0 && res.data.list.length === 0 && pageIndex > 1) {
                     // 自动跳转到第一页
                     setCurrentPagination((prev) => ({
                         ...prev,
@@ -485,9 +487,8 @@ export const AlertCurrentEvent = (props) => {
         setIsFiltering(true) // 标记正在过滤
     }
 
-    const handleShowTotal = (total, range) => `第 ${range[0]} - ${range[1]} 条 共 ${total} 条`
-
-    const handleCurrentPageChange = (page) => {
+    const handleCurrentPageChange = (page,_,sort) => {
+        setSortOrder(sort.order)
         setCurrentPagination({ ...currentPagination, pageIndex: page.current, pageSize: page.pageSize })
     }
 

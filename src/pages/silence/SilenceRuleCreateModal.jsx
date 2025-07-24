@@ -142,6 +142,7 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                                             {...restField}
                                             name={[name, 'key']}
                                             rules={[{ required: true, message: '请输入 key' }]}
+                                            style={{width: '265px'}}
                                         >
                                             <Input placeholder="key" />
                                         </Form.Item>
@@ -149,7 +150,6 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                                             {...restField}
                                             name={[name, 'operator']}
                                             rules={[{ required: true, message: '请选择操作符' }]}
-                                            style={{width: '100px'}}
                                         >
                                             <Select defaultValue={'='}>
                                                 <Option value="=">等于</Option>
@@ -160,6 +160,7 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                                             {...restField}
                                             name={[name, 'value']}
                                             rules={[{ required: true, message: '请输入 value' }]}
+                                            style={{width: '265px'}}
                                         >
                                             <Input placeholder="value" />
                                         </Form.Item>
