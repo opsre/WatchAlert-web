@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {Table, Button, Tag, Input, Popconfirm, Radio, message, Progress, Tooltip, Space, Modal} from 'antd';
-import {ProbingDelete, ProbingList, ProbingSearch} from "../../api/probing";
+import {Table, Button, Tag, Input, Popconfirm, Radio, message, Progress, Tooltip, Space, Modal, Switch} from 'antd';
+import {ProbingChangeState, ProbingDelete, ProbingList, ProbingSearch} from "../../api/probing";
 import {Link} from "react-router-dom";
 import moment from 'moment';
 import {DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined} from "@ant-design/icons";
 import {DetailProbingHistory} from "./detail";
-import {HandleShowTotal} from "../../utils/lib";
+import {HandleApiError, HandleShowTotal} from "../../utils/lib";
+import {RuleChangeStatus} from "../../api/rule";
 
 
 export const Probing = () => {
@@ -88,15 +89,33 @@ export const Probing = () => {
             title: '状态',
             dataIndex: 'enabled',
             key: 'enabled',
-            width: 'auto',
-            render: enabled => (
-                <div className="status-container">
-                    <div
-                        className={`status-dot ${enabled ? 'status-enabled' : 'status-disabled'}`}
+            width: "100px",
+            render: (enabled, record) => {
+                const handleStatusChange = async (checked) => {
+                    try {
+                        const params={
+                            tenantId: record.tenantId,
+                            ruleId: record.ruleId,
+                            enabled: checked,
+                        }
+                        await ProbingChangeState(params)
+                        message.success(`状态已更新为: ${checked ? "启用" : "禁用"}`);
+                        handleList(probingType)
+                    } catch (error) {
+                        HandleApiError(error)
+                    }
+                };
+
+                return (
+                    <Switch
+                        checked={enabled}
+                        onChange={handleStatusChange}
+                        checkedChildren="启用"
+                        unCheckedChildren="禁用"
+                        loading={false}
                     />
-                    <span>{enabled ? '启用' : '禁用'}</span>
-                </div>
-            ),
+                );
+            },
         },
         {
             title: '操作',
@@ -220,15 +239,33 @@ export const Probing = () => {
             title: '状态',
             dataIndex: 'enabled',
             key: 'enabled',
-            width: 'auto',
-            render: enabled => (
-                <div className="status-container">
-                    <div
-                        className={`status-dot ${enabled ? 'status-enabled' : 'status-disabled'}`}
+            width: '100px',
+            render: (enabled, record) => {
+                const handleStatusChange = async (checked) => {
+                    try {
+                        const params={
+                            tenantId: record.tenantId,
+                            ruleId: record.ruleId,
+                            enabled: checked,
+                        }
+                        await ProbingChangeState(params)
+                        message.success(`状态已更新为: ${checked ? "启用" : "禁用"}`);
+                        handleList(probingType)
+                    } catch (error) {
+                        HandleApiError(error)
+                    }
+                };
+
+                return (
+                    <Switch
+                        checked={enabled}
+                        onChange={handleStatusChange}
+                        checkedChildren="启用"
+                        unCheckedChildren="禁用"
+                        loading={false}
                     />
-                    <span>{enabled ? '启用' : '禁用'}</span>
-                </div>
-            ),
+                );
+            },
         },
         {
             title: '操作',
@@ -323,15 +360,33 @@ export const Probing = () => {
             title: '状态',
             dataIndex: 'enabled',
             key: 'enabled',
-            width: 'auto',
-            render: enabled => (
-                <div className="status-container">
-                    <div
-                        className={`status-dot ${enabled ? 'status-enabled' : 'status-disabled'}`}
+            width: '100px',
+            render: (enabled, record) => {
+                const handleStatusChange = async (checked) => {
+                    try {
+                        const params={
+                            tenantId: record.tenantId,
+                            ruleId: record.ruleId,
+                            enabled: checked,
+                        }
+                        await ProbingChangeState(params)
+                        message.success(`状态已更新为: ${checked ? "启用" : "禁用"}`);
+                        handleList(probingType)
+                    } catch (error) {
+                        HandleApiError(error)
+                    }
+                };
+
+                return (
+                    <Switch
+                        checked={enabled}
+                        onChange={handleStatusChange}
+                        checkedChildren="启用"
+                        unCheckedChildren="禁用"
+                        loading={false}
                     />
-                    <span>{enabled ? '启用' : '禁用'}</span>
-                </div>
-            ),
+                );
+            },
         },
         {
             title: '操作',
@@ -449,15 +504,33 @@ export const Probing = () => {
             title: '状态',
             dataIndex: 'enabled',
             key: 'enabled',
-            width: 'auto',
-            render: enabled => (
-                <div className="status-container">
-                    <div
-                        className={`status-dot ${enabled ? 'status-enabled' : 'status-disabled'}`}
+            width: '100px',
+            render: (enabled, record) => {
+                const handleStatusChange = async (checked) => {
+                    try {
+                        const params={
+                            tenantId: record.tenantId,
+                            ruleId: record.ruleId,
+                            enabled: checked,
+                        }
+                        await ProbingChangeState(params)
+                        message.success(`状态已更新为: ${checked ? "启用" : "禁用"}`);
+                        handleList(probingType)
+                    } catch (error) {
+                        HandleApiError(error)
+                    }
+                };
+
+                return (
+                    <Switch
+                        checked={enabled}
+                        onChange={handleStatusChange}
+                        checkedChildren="启用"
+                        unCheckedChildren="禁用"
+                        loading={false}
                     />
-                    <span>{enabled ? '启用' : '禁用'}</span>
-                </div>
-            ),
+                );
+            },
         },
         {
             title: '操作',

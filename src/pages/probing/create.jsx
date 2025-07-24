@@ -1,16 +1,30 @@
 "use client"
 
 import React, { useState, useEffect, useContext, useMemo } from "react"
-import { Form, Input, Button, Switch, Divider, Select, InputNumber, Typography, Collapse, Space } from "antd"
-import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons"
+import {
+    Form,
+    Input,
+    Button,
+    Switch,
+    Divider,
+    Select,
+    InputNumber,
+    Typography,
+    Collapse,
+    Space,
+    message,
+    Checkbox
+} from "antd" // Added message
+import {DownOutlined, MinusCircleOutlined, PlusOutlined, RightOutlined} from "@ant-design/icons"
 import { useParams } from "react-router-dom"
 import { getNoticeList } from "../../api/notice"
 import { ProbingCreate, ProbingSearch, ProbingUpdate } from "../../api/probing"
 import TextArea from "antd/es/input/TextArea"
+import {HandleApiError} from "../../utils/lib";
+import VSCodeEditor from "../../utils/VSCodeEditor";
 
 const MyFormItemContext = React.createContext([])
 const { Panel } = Collapse
-const { Title } = Typography
 
 function toArr(str) {
     return Array.isArray(str) ? str : [str]
@@ -28,7 +42,7 @@ const MyFormItemGroup = ({ prefix, children }) => {
     return <MyFormItemContext.Provider value={concatPath}>{children}</MyFormItemContext.Provider>
 }
 
-export const CreateProbingRule = ({ type, handleList }) => {
+export const CreateProbingRule = ({ type }) => {
     const [form] = Form.useForm()
     const { id } = useParams()
     const [selectedRow, setSelectedRow] = useState(null)
@@ -40,6 +54,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
     const [methodType, setMethodType] = useState("GET")
     const [calculate, setCalculate] = useState(">")
     const [submitLoading, setSubmitLoading] = useState(false)
+    const [requestHeaderExpanded, setRequestHeaderExpanded] = useState(false);
 
     const httpOptions = [
         {
@@ -83,17 +98,20 @@ export const CreateProbingRule = ({ type, handleList }) => {
     ]
 
     useEffect(() => {
-        form.setFieldsValue({
-            ruleType: "HTTP",
-            repeatNoticeInterval: 60,
-            probingEndpointConfig: {
-                strategy: {
-                    evalInterval: 10,
-                    timeout: 10,
-                    failure: 3,
+        // Set initial default values for new rule creation
+        if (type === "add") {
+            form.setFieldsValue({
+                ruleType: "HTTP",
+                repeatNoticeInterval: 60,
+                probingEndpointConfig: {
+                    strategy: {
+                        evalInterval: 10,
+                        timeout: 10,
+                        failure: 3,
+                    },
                 },
-            },
-        })
+            })
+        }
 
         const handleSearchRuleInfo = async () => {
             try {
@@ -103,7 +121,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                 const res = await ProbingSearch(params)
                 setSelectedRow(res?.data)
             } catch (error) {
-                console.error("Error fetching rule info:", error)
+                HandleApiError(error)
             } finally {
                 setLoading(false)
             }
@@ -115,7 +133,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
             setLoading(false)
         }
         handleGetNoticeData()
-    }, [id, type])
+    }, [id, type, form]) // Added form to dependencies
 
     useEffect(() => {
         if (selectedRow) {
@@ -145,9 +163,8 @@ export const CreateProbingRule = ({ type, handleList }) => {
                     },
                     http: {
                         method: selectedRow.probingEndpointConfig.http?.method,
-                        // Corrected: Use 'header' here to match the backend structure and `Form.List` name
-                        header: initialHeader,
-                        body: selectedRow.probingEndpointConfig.http?.body
+                        header: initialHeader, // Corrected: Use 'header' here to match the backend structure and `Form.List` name
+                        body: selectedRow.probingEndpointConfig.http?.body,
                     },
                     strategy: {
                         timeout: selectedRow.probingEndpointConfig.strategy?.timeout,
@@ -169,12 +186,10 @@ export const CreateProbingRule = ({ type, handleList }) => {
     const handleCreate = async (params) => {
         try {
             await ProbingCreate(params)
-            handleList()
         } catch (error) {
             console.error(error)
-            throw error
-        } finally {
-            setSubmitLoading(false)
+            message.error("创建失败：" + error.message) // Added error message
+            throw error // Re-throw to be caught by handleFormSubmit
         }
     }
 
@@ -185,12 +200,10 @@ export const CreateProbingRule = ({ type, handleList }) => {
                 ruleId: selectedRow.ruleId,
             }
             await ProbingUpdate(newParams)
-            handleList()
         } catch (error) {
             console.error(error)
-            throw error
-        } finally {
-            setSubmitLoading(false)
+            message.error("更新失败：" + error.message) // Added error message
+            throw error // Re-throw to be caught by handleFormSubmit
         }
     }
 
@@ -214,22 +227,21 @@ export const CreateProbingRule = ({ type, handleList }) => {
                     },
                 },
             }
-
             // Corrected: Check for 'header' (plural) as this is what the Form.List outputs
             if (protocolType === "HTTP" && finalParams.probingEndpointConfig.http.header) {
-                const headerObject = {};
+                const headerObject = {}
                 finalParams.probingEndpointConfig.http.header.forEach((headerItem) => {
                     if (
                         headerItem &&
-                        typeof headerItem.key === 'string' &&
-                        headerItem.key.trim() !== '' &&
-                        Object.prototype.hasOwnProperty.call(headerItem, 'value')
+                        typeof headerItem.key === "string" &&
+                        headerItem.key.trim() !== "" &&
+                        Object.prototype.hasOwnProperty.call(headerItem, "value")
                     ) {
-                        headerObject[headerItem.key.trim()] = headerItem.value || "";
+                        headerObject[headerItem.key.trim()] = headerItem.value || ""
                     }
-                });
+                })
                 // Corrected: Assign back to 'header' (plural)
-                finalParams.probingEndpointConfig.http.header = headerObject;
+                finalParams.probingEndpointConfig.http.header = headerObject
             }
 
             if (protocolType === "TCP") {
@@ -241,12 +253,13 @@ export const CreateProbingRule = ({ type, handleList }) => {
             } else if (type === "edit") {
                 await handleUpdate(finalParams)
             }
+            // Only navigate back on successful submission
+            window.history.back()
         } catch (error) {
-            console.error("Form submission failed:", error)
+            HandleApiError(error)
         } finally {
             setSubmitLoading(false)
         }
-        window.history.back()
     }
 
     const handleGetNoticeData = async () => {
@@ -258,7 +271,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
             }))
             setNoticeOptions(newData)
         } catch (error) {
-            console.error("Error fetching notice list:", error)
+            HandleApiError(error)
         }
     }
 
@@ -291,6 +304,10 @@ export const CreateProbingRule = ({ type, handleList }) => {
         }
     }
 
+    const toggleRequestHeader = () => {
+        setRequestHeaderExpanded(!requestHeaderExpanded);
+    };
+
     if (loading && type === "edit") {
         return <div>Loading...</div>
     }
@@ -308,16 +325,16 @@ export const CreateProbingRule = ({ type, handleList }) => {
         >
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                 <Divider orientation="left">基础配置</Divider>
-                <div style={{ display: "flex", gap: "10px" }}>
-                    <MyFormItem name="ruleType" label="拨测协议" style={{ width: "100%" }} rules={[{ required: true }]}>
+                <div style={{display: "flex", gap: "10px"}}>
+                    <MyFormItem name="ruleType" label="拨测协议" style={{width: "100%"}} rules={[{required: true}]}>
                         <Select
                             placeholder="选择拨测协议"
-                            style={{ flex: 1 }}
+                            style={{flex: 1}}
                             options={[
-                                { value: "HTTP", label: "HTTP" },
-                                { value: "ICMP", label: "ICMP" },
-                                { value: "TCP", label: "TCP" },
-                                { value: "SSL", label: "SSL" },
+                                {value: "HTTP", label: "HTTP"},
+                                {value: "ICMP", label: "ICMP"},
+                                {value: "TCP", label: "TCP"},
+                                {value: "SSL", label: "SSL"},
                             ]}
                             defaultValue={protocolType}
                             value={protocolType}
@@ -327,13 +344,13 @@ export const CreateProbingRule = ({ type, handleList }) => {
                     </MyFormItem>
                 </div>
                 <MyFormItemGroup prefix={["probingEndpointConfig"]}>
-                    <div style={{ display: "flex", gap: "10px" }}>
+                    <div style={{display: "flex", gap: "10px"}}>
                         <MyFormItem
                             name="endpoint"
                             label="端点"
-                            style={{ width: "100%" }}
+                            style={{width: "100%"}}
                             rules={[
-                                { required: true, message: "请输入端点" },
+                                {required: true, message: "请输入端点"},
                                 {
                                     validator: (_, value) => {
                                         switch (protocolType) {
@@ -366,10 +383,10 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                     addonBefore={
                                         <Select
                                             defaultValue="GET"
-                                            style={{ flex: 1 }}
+                                            style={{flex: 1}}
                                             options={[
-                                                { value: "GET", label: "GET" },
-                                                { value: "POST", label: "POST" },
+                                                {value: "GET", label: "GET"},
+                                                {value: "POST", label: "POST"},
                                             ]}
                                             value={methodType}
                                             onChange={setMethodType}
@@ -377,85 +394,86 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                     }
                                 />
                             ) : (
-                                <Input />
+                                <Input/>
                             )}
                         </MyFormItem>
                     </div>
                     {/* ICMP Ping Settings */}
                     {protocolType === "ICMP" && (
                         <MyFormItemGroup prefix={["icmp"]}>
-                            <div style={{ display: "flex", gap: "10px" }}>
-                                <MyFormItem name="interval" label="请求间隔(s)" style={{ width: "100%" }} rules={[{ required: true }]}>
-                                    <InputNumber type="number" min={1} placeholder="1" style={{ width: "100%" }} />
+                            <div style={{display: "flex", gap: "10px"}}>
+                                <MyFormItem name="interval" label="请求间隔(s)" style={{width: "100%"}}
+                                            rules={[{required: true}]}>
+                                    <InputNumber type="number" min={1} placeholder="1" style={{width: "100%"}}/>
                                 </MyFormItem>
-                                <MyFormItem name="count" label="请求总数(个)" style={{ width: "100%" }} rules={[{ required: true }]}>
-                                    <InputNumber type="number" min={1} placeholder="1" style={{ width: "100%" }} />
+                                <MyFormItem name="count" label="请求总数(个)" style={{width: "100%"}}
+                                            rules={[{required: true}]}>
+                                    <InputNumber type="number" min={1} placeholder="1" style={{width: "100%"}}/>
                                 </MyFormItem>
                             </div>
                         </MyFormItemGroup>
                     )}
                     {/* HTTP Request Settings */}
                     {protocolType === "HTTP" && (
-                        <Collapse>
-                            <Panel header="高级选项" key="1">
-                                {/* Bordered div for header */}
-                                <Typography.Text style={{ marginBottom: 10, display: "block" }}>
-                                    请求头
-                                </Typography.Text>
-                                <div
-                                    style={{
-                                        border: "1px solid #d9d9d9",
-                                        borderRadius: "6px",
-                                        padding: "16px",
-                                        marginBottom: "24px",
-                                    }}
-                                >
-                                    {/* Corrected: Use 'header' here to match the backend structure and initial form value */}
-                                    <Form.List name={["probingEndpointConfig", "http", "header"]}>
-                                        {(fields, { add, remove }) => (
-                                            <>
-                                                {fields.map(({ key, name, ...restField }) => (
-                                                    <Space key={key} style={{ display: "flex", marginBottom: 8 }} align="baseline">
-                                                        <Form.Item
-                                                            {...restField}
-                                                            name={[name, "key"]}
-                                                            rules={[{ required: true, message: "缺少键" }]}
-                                                            style={{ flex: 1, width: "300px" }}
-                                                        >
-                                                            <Input placeholder="键 (例如: Content-Type)" />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            {...restField}
-                                                            name={[name, "value"]}
-                                                            rules={[{ required: true, message: "缺少值" }]}
-                                                            style={{ flex: 1, width: "300px" }}
-                                                        >
-                                                            <Input placeholder="值 (例如: application/json)" />
-                                                        </Form.Item>
-                                                        <MinusCircleOutlined onClick={() => remove(name)} />
-                                                    </Space>
-                                                ))}
-                                                <Form.Item>
-                                                    <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                                                        添加请求头
-                                                    </Button>
-                                                </Form.Item>
-                                            </>
-                                        )}
-                                    </Form.List>
-                                </div>
+                        <>
+                            <Typography.Text style={{marginBottom: 10, display: "block"}}>
+                                请求头
+                            </Typography.Text>
+                            <div
+                                style={{
+                                    border: "1px solid #d9d9d9",
+                                    borderRadius: "6px",
+                                    padding: "16px",
+                                    marginBottom: "24px",
+                                }}
+                            >
+                                {/* Corrected: Use 'header' here to match the backend structure and initial form value */}
+                                <Form.List name={["probingEndpointConfig", "http", "header"]}>
+                                    {(fields, {add, remove}) => (
+                                        <>
+                                            {fields.map(({key, name, ...restField}) => (
+                                                <Space key={key} style={{display: "flex", marginBottom: 8}}
+                                                       align="baseline">
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "key"]}
+                                                        rules={[{required: true, message: "缺少键"}]}
+                                                        style={{flex: 1, width: "300px"}}
+                                                    >
+                                                        <Input placeholder="键 (例如: Content-Type)"/>
+                                                    </Form.Item>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "value"]}
+                                                        rules={[{required: true, message: "缺少值"}]}
+                                                        style={{flex: 1, width: "300px"}}
+                                                    >
+                                                        <Input placeholder="值 (例如: application/json)"/>
+                                                    </Form.Item>
+                                                    <MinusCircleOutlined onClick={() => remove(name)}/>
+                                                </Space>
+                                            ))}
+                                            <Form.Item>
+                                                <Button type="dashed" onClick={() => add()} block
+                                                        icon={<PlusOutlined/>}>
+                                                    添加请求头
+                                                </Button>
+                                            </Form.Item>
+                                        </>
+                                    )}
+                                </Form.List>
+                            </div>
 
-                                {methodType === "POST" && (
-                                    <MyFormItem name={["http", "body"]} label="请求体" rules={[{ validator: validateJson }]}>
-                                        <Input.TextArea placeholder='请输入请求体，格式为 JSON，例如 {"key": "value"}' rows={5} />
-                                    </MyFormItem>
-                                )}
-                            </Panel>
-                        </Collapse>
+                            {methodType === "POST" && (
+                                <MyFormItem name={["http", "body"]} label="请求体" rules={[{validator: validateJson}]}>
+                                    <VSCodeEditor height={"300px"}/>
+                                </MyFormItem>
+                            )}
+                        </>
                     )}
                     <Divider orientation="left">策略配置</Divider>
                     <MyFormItemGroup prefix={["strategy"]}>
-                        <div style={{ display: "flex", gap: "10px" }}>
+                        <div style={{display: "flex", gap: "10px"}}>
                             <MyFormItem
                                 name="evalInterval"
                                 label="执行频率(s)"
@@ -468,7 +486,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                     },
                                 ]}
                             >
-                                <InputNumber type={"number"} min={1} style={{ width: "100%" }} />
+                                <InputNumber type={"number"} min={1} style={{width: "100%"}}/>
                             </MyFormItem>
                             <MyFormItem
                                 name="timeout"
@@ -482,7 +500,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                     },
                                 ]}
                             >
-                                <InputNumber type={"number"} min={1} style={{ width: "100%" }} />
+                                <InputNumber type={"number"} min={1} style={{width: "100%"}}/>
                             </MyFormItem>
                         </div>
                         <MyFormItem
@@ -497,11 +515,11 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                 },
                             ]}
                         >
-                            <InputNumber type={"number"} min={1} placeholder="1" style={{ width: "100%" }} />
+                            <InputNumber type={"number"} min={1} placeholder="1" style={{width: "100%"}}/>
                         </MyFormItem>
                         {protocolType !== "TCP" && (
-                            <div style={{ display: "flex", gap: "10px" }}>
-                                <MyFormItem name="field" label="字段" style={{ width: "50%" }} rules={[{ required: true }]}>
+                            <div style={{display: "flex", gap: "10px"}}>
+                                <MyFormItem name="field" label="字段" style={{width: "50%"}} rules={[{required: true}]}>
                                     <Select
                                         placeholder="选择需要评估的字段"
                                         style={{
@@ -511,12 +529,13 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                         options={options}
                                     />
                                 </MyFormItem>
-                                <MyFormItem name="expectedValue" label="告警条件" style={{ width: "50%" }} rules={[{ required: true }]}>
+                                <MyFormItem name="expectedValue" label="告警条件" style={{width: "50%"}}
+                                            rules={[{required: true}]}>
                                     <InputNumber
                                         type="number"
                                         min={1}
                                         placeholder="1"
-                                        style={{ width: "100%", borderRadius: "0" }}
+                                        style={{width: "100%", borderRadius: "0"}}
                                         addonBefore={
                                             <Select
                                                 placeholder="运算"
@@ -527,12 +546,12 @@ export const CreateProbingRule = ({ type, handleList }) => {
                                                 defaultValue={">"}
                                                 value={calculate}
                                                 options={[
-                                                    { value: ">", label: "大于" },
-                                                    { value: ">=", label: "大于等于" },
-                                                    { value: "<", label: "小于" },
-                                                    { value: "<=", label: "小于等于" },
-                                                    { value: "==", label: "等于" },
-                                                    { value: "!=", label: "不等于" },
+                                                    {value: ">", label: "大于"},
+                                                    {value: ">=", label: "大于等于"},
+                                                    {value: "<", label: "小于"},
+                                                    {value: "<=", label: "小于等于"},
+                                                    {value: "==", label: "等于"},
+                                                    {value: "!=", label: "不等于"},
                                                 ]}
                                                 onChange={setCalculate}
                                             />
@@ -543,7 +562,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                             </div>
                         )}
                         {protocolType === "TCP" && (
-                            <Typography.Text type="secondary" style={{ marginTop: "5px", fontSize: "12px" }}>
+                            <Typography.Text type="secondary" style={{marginTop: "5px", fontSize: "12px"}}>
                                 {"> 在对端点执行 TCP 探测时，如果探测失败，将触发相应的告警。"}
                             </Typography.Text>
                         )}
@@ -568,7 +587,7 @@ export const CreateProbingRule = ({ type, handleList }) => {
                         />
                     </MyFormItem>
                 </div>
-                <div style={{ display: "flex" }}>
+                <div style={{display: "flex"}}>
                     <MyFormItem
                         name="noticeId"
                         label="通知对象"
@@ -577,46 +596,57 @@ export const CreateProbingRule = ({ type, handleList }) => {
                             marginRight: "10px",
                             width: "50%",
                         }}
-                        rules={[{ required: true }]}
+                        rules={[{required: true}]}
                     >
-                        <Select style={{ width: "100%" }} allowClear placeholder="选择通知对象" options={noticeOptions} />
+                        <Select style={{width: "100%"}} allowClear placeholder="选择通知对象" options={noticeOptions}/>
                     </MyFormItem>
                     <MyFormItem
                         name="repeatNoticeInterval"
                         label="重复通知"
-                        style={{ width: "50%" }}
+                        style={{width: "50%"}}
                         rules={[
                             {
                                 required: true,
                             },
                         ]}
                     >
-                        <InputNumber style={{ width: "100%" }} addonAfter={<span>分钟</span>} min={1} />
+                        <InputNumber style={{width: "100%"}} addonAfter={<span>分钟</span>} min={1}/>
                     </MyFormItem>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "15px", marginTop: "10px" }}>
-                    <MyFormItem style={{ marginBottom: 0 }} name="recoverNotify" valuePropName="checked">
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                            <span style={{ marginRight: 8 }}>恢复通知</span>
-                            <Switch value={recoverNotify} checked={recoverNotify} onChange={setRecoverNotify} />
+
+                <div>
+                    <MyFormItem
+                        style={{marginBottom: 0}}
+                        name="recoverNotify"
+                        valuePropName="checked"
+                    >
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <span style={{marginRight: 8}}>恢复通知</span>
+                            <Checkbox
+                                style={{marginTop: '0', marginRight: '10px'}}
+                                checked={recoverNotify}
+                                onChange={(e) => setRecoverNotify(e.target.checked)}
+                            />
                         </div>
                     </MyFormItem>
-                </div>
-                <div style={{ marginTop: "20px" }}>
-                    <MyFormItem style={{ marginBottom: 0 }} name="enabled" valuePropName="checked">
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                            <span style={{ marginRight: 8 }}>规则状态</span>
-                            <Switch
-                                value={enabled}
+
+                    <MyFormItem
+                        style={{marginBottom: 0}}
+                        name="enabled"
+                        valuePropName="checked"
+                    >
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <span style={{marginRight: 8}}>启用规则</span>
+                            <Checkbox
+                                style={{marginTop: '0', marginRight: '10px'}}
                                 checked={enabled}
-                                onChange={(e) => {
-                                    setEnabled(e)
-                                }}
+                                onChange={(e) => setEnabled(e.target.checked)}
                             />
                         </div>
                     </MyFormItem>
                 </div>
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+
+                <div style={{display: "flex", justifyContent: "flex-end"}}>
                     <Button
                         type="primary"
                         htmlType="submit"

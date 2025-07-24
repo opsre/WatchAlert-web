@@ -99,6 +99,10 @@ async function ProbingGetHistory(params) {
     return await http('get', '/api/w8t/probing/getProbingHistory', params);
 }
 
+async function ProbingChangeState(params) {
+    return await http('post', `/api/w8t/probing/changeState`,params);
+}
+
 export {
     ProbingList,
     ProbingSearch,
@@ -106,5 +110,6 @@ export {
     ProbingUpdate,
     ProbingDelete,
     ProbingOnce,
-    ProbingGetHistory
+    ProbingGetHistory,
+    ProbingChangeState
 }
