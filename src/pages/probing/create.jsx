@@ -43,6 +43,7 @@ const MyFormItemGroup = ({ prefix, children }) => {
 }
 
 export const CreateProbingRule = ({ type }) => {
+    const searchParams = new URLSearchParams(window.location.search);
     const [form] = Form.useForm()
     const { id } = useParams()
     const [selectedRow, setSelectedRow] = useState(null)
@@ -111,6 +112,11 @@ export const CreateProbingRule = ({ type }) => {
                     },
                 },
             })
+
+            if (searchParams.get("isClone") === "1"){
+                const copyData = JSON.parse(localStorage.getItem("RuleDataCopy"))
+                initBasicInfo(copyData)
+            }
         }
 
         const handleSearchRuleInfo = async () => {
@@ -136,6 +142,10 @@ export const CreateProbingRule = ({ type }) => {
     }, [id, type, form]) // Added form to dependencies
 
     useEffect(() => {
+        initBasicInfo(selectedRow)
+    }, [selectedRow, form])
+
+    const initBasicInfo = (selectedRow) => {
         if (selectedRow) {
             setProtocolType(selectedRow.ruleType)
             setRecoverNotify(selectedRow.recoverNotify)
@@ -156,23 +166,23 @@ export const CreateProbingRule = ({ type }) => {
                 ruleType: selectedRow.ruleType,
                 repeatNoticeInterval: selectedRow.repeatNoticeInterval,
                 probingEndpointConfig: {
-                    endpoint: selectedRow.probingEndpointConfig.endpoint,
+                    endpoint: selectedRow?.probingEndpointConfig?.endpoint,
                     icmp: {
-                        interval: selectedRow.probingEndpointConfig.icmp?.interval,
-                        count: selectedRow.probingEndpointConfig.icmp?.count,
+                        interval: selectedRow?.probingEndpointConfig?.icmp?.interval,
+                        count: selectedRow?.probingEndpointConfig?.icmp?.count,
                     },
                     http: {
-                        method: selectedRow.probingEndpointConfig.http?.method,
+                        method: selectedRow?.probingEndpointConfig?.http?.method,
                         header: initialHeader, // Corrected: Use 'header' here to match the backend structure and `Form.List` name
-                        body: selectedRow.probingEndpointConfig.http?.body,
+                        body: selectedRow?.probingEndpointConfig?.http?.body,
                     },
                     strategy: {
-                        timeout: selectedRow.probingEndpointConfig.strategy?.timeout,
-                        evalInterval: selectedRow.probingEndpointConfig.strategy?.evalInterval,
-                        failure: selectedRow.probingEndpointConfig.strategy?.failure,
-                        operator: selectedRow.probingEndpointConfig.strategy?.operator,
-                        field: selectedRow.probingEndpointConfig.strategy?.field,
-                        expectedValue: selectedRow.probingEndpointConfig.strategy?.expectedValue,
+                        timeout: selectedRow?.probingEndpointConfig?.strategy?.timeout,
+                        evalInterval: selectedRow?.probingEndpointConfig?.strategy?.evalInterval,
+                        failure: selectedRow?.probingEndpointConfig?.strategy?.failure,
+                        operator: selectedRow?.probingEndpointConfig?.strategy?.operator,
+                        field: selectedRow?.probingEndpointConfig?.strategy?.field,
+                        expectedValue: selectedRow?.probingEndpointConfig?.strategy?.expectedValue,
                     },
                 },
                 noticeId: selectedRow.noticeId,
@@ -181,7 +191,7 @@ export const CreateProbingRule = ({ type }) => {
                 enabled: selectedRow.enabled,
             })
         }
-    }, [selectedRow, form])
+    }
 
     const handleCreate = async (params) => {
         try {

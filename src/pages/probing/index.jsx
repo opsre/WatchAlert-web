@@ -3,7 +3,7 @@ import {Table, Button, Tag, Input, Popconfirm, Radio, message, Progress, Tooltip
 import {ProbingChangeState, ProbingDelete, ProbingList, ProbingSearch} from "../../api/probing";
 import {Link} from "react-router-dom";
 import moment from 'moment';
-import {DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined} from "@ant-design/icons";
 import {DetailProbingHistory} from "./detail";
 import {HandleApiError, HandleShowTotal} from "../../utils/lib";
 import {RuleChangeStatus} from "../../api/rule";
@@ -132,6 +132,14 @@ export const Probing = () => {
                                 style={{ color: "#1677ff" }}
                             />
                         </Link>
+                        <Tooltip title="克隆">
+                            <Button
+                                type="text"
+                                icon={<CopyOutlined />}
+                                onClick={() => handleClone(record)}
+                                style={{ color: "#615454" }}
+                            />
+                        </Tooltip>
                         <Tooltip title="删除">
                             <Popconfirm
                                 title="确定要删除此任务吗?"
@@ -282,6 +290,14 @@ export const Probing = () => {
                                 style={{ color: "#1677ff" }}
                             />
                         </Link>
+                        <Tooltip title="克隆">
+                            <Button
+                                type="text"
+                                icon={<CopyOutlined />}
+                                onClick={() => handleClone(record)}
+                                style={{ color: "#615454" }}
+                            />
+                        </Tooltip>
                         <Tooltip title="删除">
                             <Popconfirm
                                 title="确定要删除此任务吗?"
@@ -403,6 +419,14 @@ export const Probing = () => {
                                 style={{ color: "#1677ff" }}
                             />
                         </Link>
+                        <Tooltip title="克隆">
+                            <Button
+                                type="text"
+                                icon={<CopyOutlined />}
+                                onClick={() => handleClone(record)}
+                                style={{ color: "#615454" }}
+                            />
+                        </Tooltip>
                         <Tooltip title="删除">
                             <Popconfirm
                                 title="确定要删除此任务吗?"
@@ -547,6 +571,14 @@ export const Probing = () => {
                                 style={{ color: "#1677ff" }}
                             />
                         </Link>
+                        <Tooltip title="克隆">
+                            <Button
+                                type="text"
+                                icon={<CopyOutlined />}
+                                onClick={() => handleClone(record)}
+                                style={{ color: "#615454" }}
+                            />
+                        </Tooltip>
                         <Tooltip title="删除">
                             <Popconfirm
                                 title="确定要删除此任务吗?"
@@ -688,6 +720,31 @@ export const Probing = () => {
         url.searchParams.set('view', value); // Update or add the view parameter
         window.history.pushState({}, '', url); // Update the browser's address bar
     };
+
+    const handleClone = (record) => {
+        // 实现克隆功能
+        console.log("Clone rule:", record)
+
+        // 将规则数据存储到 localStorage，以便在创建页面中获取
+        const cloneData = {
+            ...record,
+            ruleId: "", // 清空 ruleId
+            probingEndpointConfig: {
+                ...record.probingEndpointConfig,
+                endpoint: "", // 清空 endpoint
+                http: {
+                    method: "", // 清空 http 字段
+                    header: [], // 注意：header 是数组，应初始化为空数组
+                    body: "",
+                },
+            },
+        };
+
+        localStorage.setItem(`RuleDataCopy`, JSON.stringify(cloneData))
+
+        // 跳转到创建页面
+        window.location.href = `/probing/create?isClone=1`
+    }
 
     return (
         <>
