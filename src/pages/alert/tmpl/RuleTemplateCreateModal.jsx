@@ -24,6 +24,7 @@ import ESImg from "../rule/img/ElasticSearch.svg";
 import VLogImg from "../rule/img/victorialogs.svg"
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
+import {PlusOutlined} from "@ant-design/icons";
 
 const MyFormItemContext = React.createContext([])
 const { Option } = Select;
@@ -445,7 +446,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                     {(selectedType === 0 || selectedType === 4) &&
                         <>
                             <div className="rule-config-container">
-                            <MyFormItemGroup prefix={['prometheusConfig']}>
+                                <MyFormItemGroup prefix={['prometheusConfig']}>
                                     <MyFormItem name="promQL" label="PromQL" rules={[{required: true}]}>
                                         <PrometheusPromQL
                                             value={handleGetPromQL}
@@ -491,6 +492,18 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                                     />
                                                 </MyFormItem>
 
+                                                <MyFormItem
+                                                    name={['rules', index, 'forDuration']}
+                                                    rules={[{required: true}]}
+                                                >
+                                                    <InputNumber
+                                                        addonBefore="持续"
+                                                        addonAfter="秒"
+                                                        placeholder="60"
+                                                        min={0}
+                                                    />
+                                                </MyFormItem>
+
                                                 <Button onClick={() => removeExprRule(index)}
                                                     // style={{marginLeft: '10px'}}
                                                         disabled={index === 0}>
@@ -500,21 +513,14 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                         ))}
                                     </MyFormItem>
 
-                                    <div className="duration-input">
-                                        <MyFormItem
-                                            name="forDuration"
-                                            label={"持续时间"}
-                                            rules={[{required: true}]}
-                                        >
-                                            <InputNumber
-                                                addonAfter="秒"
-                                                placeholder="60"
-                                                min={1}
-                                            />
-                                        </MyFormItem>
+                                    <div className="action-buttons" style={{marginTop: '-35px'}}>
+                                        <Button icon={<PlusOutlined/>} type="dashed" block onClick={addExprRule}
+                                                disabled={exprRule?.length === 3}>
+                                            添加规则条件
+                                        </Button>
                                     </div>
 
-                                    <div>
+                                    <div style={{ marginTop: '30px' }}>
                                         <MyFormItem
                                             name="annotations"
                                             label="告警详情"
