@@ -2,7 +2,6 @@ import { Table, Input } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-    getFolderInfo,
     getGrafanaDashboardList,
 } from '../../../api/dashboard';
 import { useParams } from 'react-router-dom'
@@ -46,14 +45,7 @@ export const Dashboards = () => {
             const fParams = {
                 id: id
             }
-            const resInfo = await getFolderInfo(fParams)
-            const params = {
-                grafanaHost: resInfo.data.grafanaHost,
-                grafanaFolderId: resInfo.data.grafanaFolderId,
-                grafanaVersion: resInfo.data.grafanaVersion,
-                limit: 1000,
-            }
-            const res = await getGrafanaDashboardList(params)
+            const res = await getGrafanaDashboardList(fParams)
             const d = res.data.map((item, index) => {
                 return {
                     key: index,

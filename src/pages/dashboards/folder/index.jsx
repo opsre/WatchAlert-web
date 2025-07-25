@@ -173,7 +173,7 @@ export const DashboardFolder = () => {
             const params = {
                 query: value,
             }
-            const res = await searchDashboard(params)
+            const res = await getFolderList(params)
             setList(res.data)
         } catch (error) {
             console.error(error)

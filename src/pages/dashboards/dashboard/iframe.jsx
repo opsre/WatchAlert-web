@@ -18,8 +18,8 @@ export const GrafanaDashboardComponent = () => {
             const resInfo = await getFolderInfo(fParams)
             const params = {
                 theme: resInfo.data.theme,
-                grafanaHost:  resInfo.data.grafanaHost,
-                grafanaDashboardUid: did
+                host:  resInfo.data.grafanaHost,
+                uid: did
             }
             const res = await getDashboardFullUrl(params)
             setIframeSrc(res.data)
