@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {Table, Button, Tag, Input, Popconfirm, Radio, message, Progress, Tooltip, Space, Modal, Switch} from 'antd';
 import {ProbingChangeState, ProbingDelete, ProbingList, ProbingSearch} from "../../api/probing";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import moment from 'moment';
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined} from "@ant-design/icons";
 import {DetailProbingHistory} from "./detail";
 import {HandleApiError, HandleShowTotal} from "../../utils/lib";
-import {RuleChangeStatus} from "../../api/rule";
+import {useAppContext} from "../../context/RuleContext";
 
 
 export const Probing = () => {
+    const { setCloneProbeRule } = useAppContext()
+    const navigate = useNavigate()
     const { Search } = Input;
     const params = new URLSearchParams(window.location.search);
     const [httpMonList, setHttpMonList] = useState([]);
@@ -740,10 +742,10 @@ export const Probing = () => {
             },
         };
 
-        localStorage.setItem(`RuleDataCopy`, JSON.stringify(cloneData))
+        setCloneProbeRule(cloneData)
 
         // 跳转到创建页面
-        window.location.href = `/probing/create?isClone=1`
+        navigate(`/probing/create?isClone=1`)
     }
 
     return (

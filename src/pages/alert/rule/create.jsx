@@ -40,7 +40,7 @@ import VLogImg from "./img/victorialogs.svg"
 import CKImg from "./img/clickhouse.svg"
 import {PrometheusPromQL} from "../../promethues";
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
-import { useRule } from '../../../context/RuleContext';
+import { useAppContext } from '../../../context/RuleContext';
 import TextArea from "antd/es/input/TextArea";
 import {FaultCenterList} from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
@@ -72,7 +72,7 @@ const MyFormItem = ({ name, ...props }) => {
 
 export const AlertRule = ({ type }) => {
     const searchParams = new URLSearchParams(window.location.search);
-    const { ruleTemplate } = useRule();
+    const { appState } = useAppContext();
     const [form] = Form.useForm()
     const { id,ruleId } = useParams()
     const [selectedRow,setSelectedRow] = useState({})
@@ -175,12 +175,12 @@ export const AlertRule = ({ type }) => {
     }
 
     useEffect(() => {
-        if (ruleTemplate) {
+        if (appState?.ruleTemplate) {
             // 使用模板数据初始化表单
-            form.setFieldsValue(ruleTemplate);
-            setPromQL(ruleTemplate.prometheusConfig.promQL);
-            setExprRule(ruleTemplate.prometheusConfig.rules);
-            const t = datasourceTypeMap[ruleTemplate.datasourceType] || 0;
+            form.setFieldsValue(appState?.ruleTemplate);
+            setPromQL(appState?.ruleTemplate.prometheusConfig.promQL);
+            setExprRule(appState?.ruleTemplate.prometheusConfig.rules);
+            const t = datasourceTypeMap[appState?.ruleTemplate.datasourceType] || 0;
             setSelectedType(t);
             setSelectedCard(t);
             type = 'tmpl'
@@ -205,7 +205,8 @@ export const AlertRule = ({ type }) => {
                 handleSearchRuleInfo()
             }
             if (searchParams.get("isClone") === "1"){
-                initBasicInfo(JSON.parse(localStorage.getItem("RuleDataCopy")))
+                const copyData = appState?.cloneAlertRule
+                initBasicInfo(copyData)
             }
         }
     }, [])

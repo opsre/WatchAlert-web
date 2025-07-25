@@ -6,7 +6,7 @@ import RuleTemplateCreateModal from "./RuleTemplateCreateModal"
 import { useParams, useNavigate } from "react-router-dom"
 import { deleteRuleTmpl, getRuleTmplList, createRuleTmpl } from "../../../api/ruleTmpl"
 import { getRuleGroupList } from "../../../api/rule"
-import { useRule } from "../../../context/RuleContext"
+import { useAppContext } from "../../../context/RuleContext"
 import {
     DeleteOutlined,
     ExportOutlined,
@@ -42,7 +42,7 @@ export const RuleTemplate = () => {
     const [ruleGroupOptions, setRuleGroupOptions] = useState([])
     const [selectedRuleGroup, setSelectedRuleGroup] = useState(null)
     const navigate = useNavigate()
-    const { setRuleTemplate } = useRule()
+    const { setRuleTemplate } = useAppContext()
     const [selectedRowKeys, setSelectedRowKeys] = useState([])
     const [importModalVisible, setImportModalVisible] = useState(false)
     const [importedTemplates, setImportedTemplates] = useState([])

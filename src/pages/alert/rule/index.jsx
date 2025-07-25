@@ -17,7 +17,7 @@ import {
     Switch,
     Popconfirm
 } from "antd"
-import { Link } from "react-router-dom"
+import {Link, useNavigate} from "react-router-dom"
 import { useParams } from "react-router-dom"
 import {createRule, deleteRule, getRuleList, RuleChangeStatus} from "../../../api/rule"
 import { ReactComponent as PrometheusImg } from "./img/Prometheus.svg"
@@ -43,8 +43,11 @@ import {FaultCenterList} from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
 import {HandleApiError, HandleShowTotal} from "../../../utils/lib";
+import {useAppContext} from "../../../context/RuleContext";
 
 export const AlertRuleList = () => {
+    const { setCloneAlertRule } = useAppContext()
+    const navigate = useNavigate()
     const { Search } = Input
     const [list, setList] = useState([])
     const [datasourceList, setDatasourceList] = useState([])
@@ -383,10 +386,11 @@ export const AlertRuleList = () => {
             ruleName: `${record.ruleName} - Copy`,
             ruleId: "",
         }
-        localStorage.setItem(`RuleDataCopy`, JSON.stringify(cloneData))
+
+        setCloneAlertRule(cloneData)
 
         // 跳转到创建页面
-        window.location.href = `/ruleGroup/${id}/rule/add?isClone=1`
+        navigate(`/ruleGroup/${id}/rule/add?isClone=1`)
     }
 
     // 删除单个规则

@@ -22,6 +22,7 @@ import { ProbingCreate, ProbingSearch, ProbingUpdate } from "../../api/probing"
 import TextArea from "antd/es/input/TextArea"
 import {HandleApiError} from "../../utils/lib";
 import VSCodeEditor from "../../utils/VSCodeEditor";
+import {useAppContext} from "../../context/RuleContext";
 
 const MyFormItemContext = React.createContext([])
 const { Panel } = Collapse
@@ -43,6 +44,7 @@ const MyFormItemGroup = ({ prefix, children }) => {
 }
 
 export const CreateProbingRule = ({ type }) => {
+    const { appState } = useAppContext()
     const searchParams = new URLSearchParams(window.location.search);
     const [form] = Form.useForm()
     const { id } = useParams()
@@ -114,7 +116,7 @@ export const CreateProbingRule = ({ type }) => {
             })
 
             if (searchParams.get("isClone") === "1"){
-                const copyData = JSON.parse(localStorage.getItem("RuleDataCopy"))
+                const copyData = appState?.cloneProbeRule
                 initBasicInfo(copyData)
             }
         }
