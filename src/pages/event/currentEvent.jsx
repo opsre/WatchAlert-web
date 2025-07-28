@@ -383,7 +383,7 @@ export const AlertCurrentEvent = (props) => {
             // 正常分页或初始加载
             handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
         }
-    }, [id, isFiltering, currentPagination.pageIndex, currentPagination.pageSize, sortOrder])
+    }, [searchQuery, id, isFiltering, currentPagination.pageIndex, currentPagination.pageSize, sortOrder])
 
     const handleSilenceModalOpen = (record) => {
         const excludeKeys = ['value']; // 要排除的 key 列表

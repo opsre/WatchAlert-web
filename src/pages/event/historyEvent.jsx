@@ -383,37 +383,16 @@ export const AlertHistoryEvent = (props) => {
         }
     }, [])
 
-    // Effect to sync searchQuery with URL query param
     useEffect(() => {
-        const searchParams = new URLSearchParams(location.search)
-        const queryParam = searchParams.get("query")
-
-        // Update searchQuery state if it differs from URL param
-        // This handles initial load and browser back/forward navigation
-        if (queryParam !== searchQuery) {
-            setSearchQuery(queryParam || "")
-            // If query changes from URL, reset page to 1
-            setHistoryPagination((prev) => ({ ...prev, pageIndex: 1 }))
+        const searchParams = new URLSearchParams(location.search);
+        const query = searchParams.get('query');
+        if (query) {
+            setSearchQuery(query);
         }
-
-        // Update URL if searchQuery state differs from URL param
-        // This handles cases where searchQuery changes from input and needs to be reflected in URL
-        const currentUrlQuery = searchParams.get("query")
-        if (searchQuery !== currentUrlQuery) {
-            if (searchQuery) {
-                searchParams.set("query", searchQuery)
-            } else {
-                searchParams.delete("query")
-            }
-            const newUrl = `${location.pathname}?${searchParams.toString()}`
-            if (newUrl !== `${location.pathname}${location.search}`) {
-                navigate(newUrl, { replace: true })
-            }
-        }
-    }, [searchQuery, location.search, location.pathname, navigate])
+    }, [location.search]);
 
     // Centralized data fetching function
-    const fetchHistoryEvents = useCallback(async () => {
+    const fetchHistoryEvents = async () => {
         try {
             const params = {
                 faultCenterId: id,
@@ -447,23 +426,12 @@ export const AlertHistoryEvent = (props) => {
         } finally {
             setLoading(false)
         }
-    }, [
-        id,
-        historyPagination.pageIndex,
-        historyPagination.pageSize,
-        searchQuery,
-        selectedDataSource,
-        selectedAlertLevel,
-        startTimestamp,
-        endTimestamp,
-        sortOrder,
-    ])
+    }
 
     // Main data fetching effect: triggers on dependency changes
     useEffect(() => {
         fetchHistoryEvents()
     }, [
-        fetchHistoryEvents, // useCallback ensures this doesn't cause infinite loop
         selectedDataSource,
         selectedAlertLevel,
         startTimestamp,
@@ -499,10 +467,12 @@ export const AlertHistoryEvent = (props) => {
         // The useEffect will now trigger the data fetch
     }
 
-    // Function to handle search input change (typing)
-    const handleSearchInputChange = (e) => {
-        setSearchQuery(e.target.value)
-    }
+    const onSearchChange = (key) => {
+        setSearchQuery(key);
+        const searchParams = new URLSearchParams(location.search);
+        searchParams.set('query', key);
+        navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+    };
 
     // Function to handle search submission (Enter or search button)
     const handleSearchSubmit = (value) => {
@@ -693,7 +663,7 @@ export const AlertHistoryEvent = (props) => {
                     placeholder="输入搜索关键字"
                     onSearch={handleSearchSubmit} // On search button click or Enter
                     value={searchQuery} // Controlled component
-                    onChange={handleSearchInputChange} // On every keystroke
+                    onChange={(e) => onSearchChange(e.target.value)}
                     style={{ width: 200 }}
                 />
                 <Select
