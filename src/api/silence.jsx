@@ -1,15 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getSilenceList(params) {
     try {
         const res = await http('get', '/api/w8t/silence/silenceList', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '静默规则列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -23,10 +21,7 @@ async function createSilence(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '静默规则创建失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -40,10 +35,7 @@ async function updateSilence(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '静默规则更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -57,10 +49,7 @@ async function deleteSilence(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '静默规则删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

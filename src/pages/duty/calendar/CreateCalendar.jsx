@@ -4,11 +4,11 @@ import { useEffect, useState } from "react"
 import { Form, Modal, DatePicker, Select, Button, List, Avatar, Space, Drawer, Input, InputNumber, message } from "antd"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import { PlusOutlined, DeleteOutlined, MenuOutlined } from "@ant-design/icons"
-import { getAllUsers } from "../../../api/other.jsx" // 假设这些路径是正确的
 import { createCalendar, GetCalendarUsers } from "../../../api/duty" // 假设这些路径是正确的
 import Search from "antd/es/input/Search"
 import { v4 as uuidv4 } from "uuid"
 import dayjs from "dayjs"
+import {getUserList} from "../../../api/user";
 
 export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
     const { Option } = Select
@@ -86,7 +86,7 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
             const params = {
                 joinDuty: "true",
             }
-            const res = await getAllUsers(params)
+            const res = await getUserList(params)
             const options = res.data.map((item) => ({
                 username: item.username,
                 userid: item.userid,

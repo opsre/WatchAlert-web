@@ -1,5 +1,6 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getRuleTmplList(params) {
     try {
@@ -10,10 +11,7 @@ async function getRuleTmplList(params) {
         const res = await http('get', `/api/w8t/ruleTmpl/ruleTmplList?${queryString}`);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则模版列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -27,10 +25,7 @@ async function createRuleTmpl(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则模版创建失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -44,10 +39,7 @@ async function updateRuleTmpl(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则模版更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -62,10 +54,7 @@ async function deleteRuleTmpl(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则模版删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -75,10 +64,7 @@ async function getRuleTmplGroupList(params) {
         const res = await http('get', `/api/w8t/ruleTmplGroup/ruleTmplGroupList`, params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则模版组获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -92,10 +78,7 @@ async function createRuleTmplGroup(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则模版组创建失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -109,10 +92,7 @@ async function updateRuleTmplGroup(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则模版组更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -126,10 +106,7 @@ async function deleteRuleTmplGroup(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则模版组删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip} from 'antd';
 import { CreateNoticeObjectModal } from './NoticeObjectCreateModal';
-import { deleteNotice, getNoticeList, searchNotice } from '../../api/notice';
+import { deleteNotice, getNoticeList } from '../../api/notice';
 import { ReactComponent as FeiShuIcon } from './img/feishu.svg'
 import { ReactComponent as DingdingIcon } from './img/dingding.svg'
 import { ReactComponent as EmailIcon } from './img/Email.svg'
@@ -227,7 +227,7 @@ export const NoticeObjects = () => {
             const params = {
                 query: value,
             }
-            const res = await searchNotice(params)
+            const res = await getNoticeList(params)
             setList(res.data)
         } catch (error) {
             console.error(error)

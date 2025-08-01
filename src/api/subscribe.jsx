@@ -1,15 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function listSubscribe(params) {
     try {
         const res = await http('get', '/api/w8t/subscribe/listSubscribe', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '订阅列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -23,10 +21,7 @@ async function createSubscribe(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: `订阅规则创建失败`,
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -40,10 +35,7 @@ async function deleteSubscribe(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '订阅规则删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

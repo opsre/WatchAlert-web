@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {Button, Input, Table, Tag, Popconfirm, Tooltip, Space, message} from 'antd';
 import { CreateDatasourceModal } from './DatasourceCreateModal';
-import { deleteDatasource, getDatasourceList, searchDatasource } from '../../api/datasource';
+import { deleteDatasource, getDatasourceList } from '../../api/datasource';
 import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
@@ -213,7 +213,7 @@ export const Datasources = () => {
             const params = {
                 query: value,
             }
-            const res = await searchDatasource(params)
+            const res = await getDatasourceList(params)
             setList(res.data)
         } catch (error) {
             console.error(error)

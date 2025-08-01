@@ -1,15 +1,12 @@
 import http from '../utils/http';
-import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 export async function ReqAiAnalyze(params) {
     try {
         const response = await http('post', `/api/w8t/ai/chat`,params);
         return response;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: `Ai 分析失败: ${error.message}`,
-        });
+        HandleApiError(error)
         return error
     }
 }

@@ -15,8 +15,7 @@ export const fetchDutyData = async (dutyId, year, month) => {
             dutyId: dutyId,
             ...(year &&
                 month && {
-                    year,
-                    month: month + 1,
+                    time: year+"-"+(month + 1),
                 }),
         }
         const res = await searchCalendar(params)

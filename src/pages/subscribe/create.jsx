@@ -11,8 +11,8 @@ import VMImg from "../alert/rule/img/victoriametrics.svg";
 import K8sImg from "../alert/rule/img/Kubernetes.svg";
 import ESImg from "../alert/rule/img/ElasticSearch.svg";
 import VLogImg from "../alert/rule/img/victorialogs.svg"
-import {searchNoticeTmpl} from "../../api/noticeTmpl";
 import {createSubscribe} from "../../api/subscribe";
+import {getNoticeTmplList} from "../../api/noticeTmpl";
 
 const MyFormItemContext = React.createContext([])
 
@@ -171,7 +171,7 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
         const params = {
             noticeType: "Email",
         }
-        const res =  await searchNoticeTmpl(params)
+        const res =  await getNoticeTmplList(params)
         const newData = res.data.map((item) => ({
             label: item.name,
             value: item.id
@@ -192,7 +192,7 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
             width: '100%',
             alignItems: 'flex-start',
             marginTop: '-10px',
-            maxHeight: 'calc((-145px + 100vh) - 65px - 40px)',
+            maxHeight: 'calc(100vh)',
             overflowY: 'auto',
         }}>
             <Alert message="订阅的告警只为当前用户生效, 其通过邮件的方式发送订阅消息；⚠️ 只允许订阅已启用的规则。" type="info" showIcon />

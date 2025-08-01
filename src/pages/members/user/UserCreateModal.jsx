@@ -75,19 +75,12 @@ const UserCreateModal = ({ visible, onClose, selectedRow, type, handleList }) =>
 
     // 更新用户
     const handleUpdate = async (values) => {
-        try {
-            await updateUser(values)
-            message.success("用户更新成功！")
-            handleList()
-        } catch (error) {
-            console.error(error)
-            message.error("用户更新失败。")
-        }
+        await updateUser(values)
+        handleList()
     }
 
     // 提交表单
     const handleFormSubmit = async (values) => {
-        console.log("values.dutyUserId->",values.dutyUserId)
         if (type === "create") {
             const newValues = {
                 ...values,

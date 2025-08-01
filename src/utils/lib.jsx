@@ -127,9 +127,9 @@ export const RenderTruncatedText = (text) => (
  * 它会尝试从错误对象中提取具体的错误信息，并使用 Ant Design 的 message.error 提示用户。
  *
  * @param {Error} error 捕获到的错误对象。
- * @param {string} [prefixMessage="操作失败"] 可选，在错误信息前显示的前缀消息。
+ * @param {string} [prefixMessage="错误"] 可选，在错误信息前显示的前缀消息。
  */
-export const HandleApiError = (error, prefixMessage = "操作失败") => {
+export const HandleApiError = (error, prefixMessage = "错误") => {
     let errorMessage = "未知错误"; // Default fallback message
 
     // Check if it's an Axios response error and if response.data exists

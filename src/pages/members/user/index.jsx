@@ -2,7 +2,7 @@ import {Input, Table, Button, Popconfirm, Tooltip, Space} from 'antd';
 import React, { useState, useEffect } from 'react';
 import UserCreateModal from './UserCreateModal';
 import UserChangePass from './UserChangePass';
-import { deleteUser, getUserList, searchUser } from '../../../api/user';
+import { deleteUser, getUserList } from '../../../api/user';
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {HandleShowTotal} from "../../../utils/lib";
 import {Link} from "react-router-dom";
@@ -156,7 +156,10 @@ export const User = () => {
     // 搜索用户
     const onSearch = async (value) => {
         try {
-            const res = await searchUser({ query: value });
+            const params = {
+                query: value
+            }
+            const res = await getUserList(params)
             setList(res.data);
         } catch (error) {
             console.error(error);

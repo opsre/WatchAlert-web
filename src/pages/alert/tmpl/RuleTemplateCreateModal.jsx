@@ -411,9 +411,9 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                             height: 100,
                                             width: 120,
                                             position: 'relative',
-                                            cursor: type === 'edit' ? 'not-allowed' : 'pointer',
+                                            cursor: type === 'update' ? 'not-allowed' : 'pointer',
                                             border: selectedCard === index ? '2px solid #1890ff' : '1px solid #d9d9d9',
-                                            pointerEvents: type === 'edit' ? 'none' : 'auto',
+                                            pointerEvents: type === 'update' ? 'none' : 'auto',
                                             flexShrink: 0,  // 防止卡片被压缩
                                         }}
                                         onClick={() => handleCardClick(index)}
@@ -532,12 +532,6 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                             ]}>
                                             <Input/>
                                         </MyFormItem>
-                                    </div>
-
-                                    <div className="action-buttons">
-                                        <Button type="link" onClick={addExprRule} disabled={exprRule.length === 3}>
-                                            + 添加规则条件
-                                        </Button>
                                     </div>
                                 </MyFormItemGroup>
                             </div>

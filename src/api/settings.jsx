@@ -1,15 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getSystemSetting() {
     try {
         const res = await http('get', '/api/w8t/setting/getSystemSetting');
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '系统配置获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -23,10 +21,7 @@ async function saveSystemSetting(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '系统配置保存失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

@@ -1,15 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
-async function getUserList() {
+async function getUserList(params) {
     try {
-        const res = await http('get', `/api/w8t/user/userList`);
+        const res = await http('get', `/api/w8t/user/userList`, params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '用户列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -37,10 +35,7 @@ async function registerUser(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '用户注册失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -54,10 +49,7 @@ async function updateUser(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '用户更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -71,10 +63,7 @@ async function deleteUser(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '用户删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -84,10 +73,7 @@ async function getUserInfo() {
         const res = await http('get', `/api/system/userInfo`);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '用户信息获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -114,23 +100,7 @@ async function changeUserPass(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '修改密码失败',
-        });
-        return error
-    }
-}
-
-async function searchUser(params) {
-    try {
-        const res = await http('get', '/api/w8t/user/searchUser', params);
-        return res;
-    } catch (error) {
-        message.open({
-            type: 'error',
-            content: '获取用户信息失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -144,5 +114,4 @@ export {
     checkUser,
     getUserInfo,
     changeUserPass,
-    searchUser
 }

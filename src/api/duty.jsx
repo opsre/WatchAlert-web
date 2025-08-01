@@ -1,15 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getDutyManagerList(params) {
     try {
         const res = await http('get', '/api/w8t/dutyManage/dutyManageList', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '值班列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -23,10 +21,7 @@ async function createDutyManager(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '值班表创建失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -40,10 +35,7 @@ async function updateDutyManager(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '值班表更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -57,10 +49,7 @@ async function deleteDutyManager(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '值班表删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -74,10 +63,7 @@ async function createCalendar(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '日程表发布失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -91,10 +77,7 @@ async function updateCalendar(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '日程表更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -104,10 +87,7 @@ async function searchCalendar(params) {
         const res = await http('get', '/api/w8t/calendar/calendarSearch', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '日程表查询失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -117,10 +97,7 @@ async function GetCalendarUsers(params) {
         const res = await http('get', '/api/w8t/calendar/getCalendarUsers', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '获取值班表用户列表失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

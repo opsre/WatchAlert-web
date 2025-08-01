@@ -7,10 +7,7 @@ async function getRuleList(params) {
         const res = await http('get', `/api/w8t/rule/ruleList`, params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -24,10 +21,7 @@ async function createRule(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '创建规则失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -41,10 +35,7 @@ async function updateRule(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -58,10 +49,7 @@ async function deleteRule(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -71,10 +59,7 @@ async function searchRuleInfo(params) {
         const res = await http('get', `/api/w8t/rule/ruleSearch`, params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则信息查询失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -104,10 +89,7 @@ async function createRuleGroup(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '创建规则组失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -121,10 +103,7 @@ async function updateRuleGroup(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则组更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -138,10 +117,7 @@ async function deleteRuleGroup(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则组删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

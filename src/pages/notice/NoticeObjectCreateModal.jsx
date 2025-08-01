@@ -8,9 +8,9 @@ import DingDingImg from "./img/dingding.svg";
 import WeChatImg from "./img/qywechat.svg"
 import SlackImg from "./img/slack.svg"
 import CustomHook from "./img/customhook.svg"
-import { searchNoticeTmpl} from "../../api/noticeTmpl";
-import { getAllUsers } from "../../api/other";
 import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
+import {getNoticeTmplList} from "../../api/noticeTmpl";
+import {getUserList} from "../../api/user";
 
 const MyFormItemContext = React.createContext([])
 
@@ -195,7 +195,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
 
     const handleGetNoticeTmpl = async () => {
         const params = { noticeType: noticeType }
-        const res = await searchNoticeTmpl(params)
+        const res = await getNoticeTmplList(params)
         const newData = res.data.map((item) => ({
             label: item.name,
             value: item.id
@@ -213,7 +213,10 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
 
     const handleSearchUser = async () => {
         try {
-            const res = await getAllUsers()
+            const params = {
+                joinDuty: "true",
+            }
+            const res = await getUserList(params)
             const options = res.data.map((item) => ({
                 userName: item.username,
                 userEmail: item.email

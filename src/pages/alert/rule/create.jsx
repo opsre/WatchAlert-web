@@ -15,7 +15,7 @@ import {
 import React, { useState, useEffect } from 'react'
 import {MinusCircleOutlined, PlusOutlined, RedoOutlined} from '@ant-design/icons'
 import {createRule, searchRuleInfo, updateRule} from '../../../api/rule'
-import {getDatasource, searchDatasource} from '../../../api/datasource'
+import {getDatasource, getDatasourceList} from '../../../api/datasource'
 import {getJaegerService} from '../../../api/other'
 import {useParams} from 'react-router-dom'
 import dayjs from 'dayjs';
@@ -460,7 +460,7 @@ export const AlertRule = ({ type }) => {
             const params = {
                 type: dsType
             }
-            const res = await searchDatasource(params)
+            const res = await getDatasourceList(params)
             const newData = res.data?.map((item) => ({
                 label: item.name,
                 value: item.id,

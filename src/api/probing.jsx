@@ -1,15 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function ProbingList(params) {
     try {
         const res = await http('get', '/api/w8t/probing/listProbing', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '拨测列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -19,10 +17,7 @@ async function ProbingSearch(params) {
         const res = await http('get', '/api/w8t/probing/searchProbing', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '拨测规则信息获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -36,10 +31,7 @@ async function ProbingCreate(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '拨测规则创建失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -53,10 +45,7 @@ async function ProbingUpdate(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '拨测规则更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -70,10 +59,7 @@ async function ProbingDelete(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '拨测规则删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -87,10 +73,7 @@ async function ProbingOnce(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '拨测请求提交失败!',
-        });
+        HandleApiError(error)
         return error
     }
 }

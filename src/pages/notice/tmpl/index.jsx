@@ -1,7 +1,7 @@
 import {Button, Input, Table, Popconfirm, Space, Tooltip} from 'antd';
 import React, { useState, useEffect } from 'react';
 import NoticeTemplateCreateModal from './NoticeTemplateCreateModal';
-import { getNoticeTmplList, deleteNoticeTmpl, searchNoticeTmpl } from '../../../api/noticeTmpl';
+import { getNoticeTmplList, deleteNoticeTmpl } from '../../../api/noticeTmpl';
 import { ReactComponent as FeiShuIcon } from '../img/feishu.svg';
 import { ReactComponent as DingdingIcon } from '../img/dingding.svg';
 import { ReactComponent as EmailIcon } from '../img/Email.svg';
@@ -187,7 +187,7 @@ export const NoticeTemplate = () => {
             const params = {
                 query: value,
             };
-            const res = await searchNoticeTmpl(params);
+            const res = await getNoticeTmplList(params);
             setList(res.data);
         } catch (error) {
             console.error(error);

@@ -1,5 +1,6 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getCurEventList(params) {
     try {
@@ -10,10 +11,7 @@ async function getCurEventList(params) {
         const res = await http('get', `/api/w8t/event/curEvent?${queryString}`);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '当前告警列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -29,10 +27,7 @@ async function getHisEventList(params) {
         const res = await http('get', url);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '历史告警列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

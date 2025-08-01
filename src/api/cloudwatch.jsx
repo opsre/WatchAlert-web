@@ -1,15 +1,12 @@
 import http from '../utils/http';
-import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getMetricTypes() {
     try {
         const res = await http('get', '/api/w8t/community/cloudwatch/metricTypes');
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '指标类型获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -19,10 +16,7 @@ async function getMetricNames(params) {
         const res = await http('get', '/api/w8t/community/cloudwatch/metricNames?metricType='+params.metricType);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '指标获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -32,10 +26,7 @@ async function getStatistics() {
         const res = await http('get', '/api/w8t/community/cloudwatch/statistics');
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '统计类型获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -45,10 +36,7 @@ async function getDimensions(params) {
         const res = await http('get', '/api/w8t/community/cloudwatch/dimensions?metricType='+params.metricType);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '端点类型获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -58,10 +46,7 @@ async function getRdsInstances(params) {
         const res = await http('get', '/api/w8t/community/rds/instances?datasourceId='+params.datasourceId);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '端点实例获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -71,10 +56,7 @@ async function getRdsClusters(params) {
         const res = await http('get', '/api/w8t/community/rds/clusters?datasourceId='+params.datasourceId);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '端点集群获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

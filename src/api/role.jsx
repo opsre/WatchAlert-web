@@ -1,15 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getRoleList() {
     try {
         const res = await http('get', `/api/w8t/role/roleList`);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '角色列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -23,10 +21,7 @@ async function createRole(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '角色创建失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -40,10 +35,7 @@ async function updateRole(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '角色更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -57,10 +49,7 @@ async function deleteRole(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '角色删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

@@ -1,7 +1,7 @@
 import { createDutyManager, updateDutyManager } from '../../api/duty'
-import { getAllUsers } from '../../api/other'
 import { Modal, Form, Input, Button, Select } from 'antd'
 import React, { useState, useEffect } from 'react'
+import {getUserList} from "../../api/user";
 const MyFormItemContext = React.createContext([])
 
 function toArr(str) {
@@ -98,7 +98,10 @@ export const CreateDutyModal = ({ visible, onClose, handleList, selectedRow, typ
 
     const handleSearchDutyUser = async () => {
         try {
-            const res = await getAllUsers()
+            const params = {
+                joinDuty: "true",
+            }
+            const res = await getUserList(params)
             const options = res.data.map((item) => ({
                 username: item.username,
                 userid: item.userid

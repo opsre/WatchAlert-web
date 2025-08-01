@@ -1,5 +1,5 @@
 import http from '../utils/http';
-import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function listAuditLog(params) {
     try {
@@ -10,10 +10,7 @@ async function listAuditLog(params) {
         const res = await http('get', `/api/w8t/auditLog/listAuditLog?${queryString}`);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '审计日志列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -28,10 +25,7 @@ async function searchAuditLog(params) {
         const res = await http('get', `/api/w8t/auditLog/searchAuditLog?${queryString}`);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '日志审计列表查询失败',
-        });
+        HandleApiError(error)
         return error
     }
 }

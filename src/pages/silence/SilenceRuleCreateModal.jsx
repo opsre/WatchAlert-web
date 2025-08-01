@@ -178,7 +178,7 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                                             {...restField}
                                             name={[name, "key"]}
                                             rules={[{ required: true, message: "请输入 key" }]}
-                                            style={{ width: "265px" }}
+                                            style={{ width: "250px" }}
                                         >
                                             <Input placeholder="请输入 key" />
                                         </Form.Item>
@@ -199,7 +199,7 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                                             {...restField}
                                             name={[name, "value"]}
                                             rules={[{ required: true, message: "请输入 value" }]}
-                                            style={{ width: "265px" }}
+                                            style={{ width: "250px" }}
                                         >
                                             <Input placeholder="请输入 value" />
                                         </Form.Item>

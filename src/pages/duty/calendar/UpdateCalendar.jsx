@@ -1,8 +1,8 @@
 "use client"
 import { updateCalendar } from "../../../api/duty"
-import { getAllUsers } from "../../../api/other.jsx"
 import {Modal, Form, Button, message, Select, Typography} from "antd"
 import React, { useState, useEffect } from "react"
+import {getUserList} from "../../../api/user";
 
 export const UpdateCalendarModal = ({ visible, onClose, time, tenantId, dutyId, date, currentDutyUsers, onSuccess }) => {
     const { Option } = Select
@@ -53,7 +53,7 @@ export const UpdateCalendarModal = ({ visible, onClose, time, tenantId, dutyId, 
             const params = {
                 joinDuty: "true",
             }
-            const res = await getAllUsers(params)
+            const res = await getUserList(params)
             const options = res.data.map((item) => ({
                 username: item.username,
                 userid: item.userid,

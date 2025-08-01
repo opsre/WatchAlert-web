@@ -1,15 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getNoticeList(params) {
     try {
         const res = await http('get', '/api/w8t/notice/noticeList', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '通知对象列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -23,10 +21,7 @@ async function createNotice(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '通知对象创建失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -40,10 +35,7 @@ async function updateNotice(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '通知对象更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -57,23 +49,7 @@ async function deleteNotice(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '通知对象删除失败',
-        });
-        return error
-    }
-}
-
-async function searchNotice(params) {
-    try {
-        const res = await http('get', '/api/w8t/notice/noticeSearch', params);
-        return res;
-    } catch (error) {
-        message.open({
-            type: 'error',
-            content: '搜索通知对象失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -83,10 +59,7 @@ async function noticeRecordList(params) {
         const res = await http('get', '/api/w8t/notice/noticeRecordList',params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '获取通知记录列表失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -96,10 +69,7 @@ async function noticeRecordMetric() {
         const res = await http('get', '/api/w8t/notice/noticeRecordMetric');
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '获取通知记录指标失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -109,7 +79,6 @@ export {
     createNotice,
     updateNotice,
     deleteNotice,
-    searchNotice,
     noticeRecordList,
     noticeRecordMetric
 }

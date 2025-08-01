@@ -1,32 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
 async function getDatasourceList(params) {
     try {
         const res = await http('get', '/api/w8t/datasource/dataSourceList', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '数据源列表获取失败',
-        });
-        return error
-    }
-}
-
-async function searchDatasource(params) {
-    try {
-        const queryString = Object.keys(params)
-            .map(key => params[key] !== undefined ? `${key}=${params[key]}` : '')
-            .filter(Boolean)
-            .join('&');
-        const res = await http('get', `/api/w8t/datasource/dataSourceSearch?${queryString}`);
-        return res;
-    } catch (error) {
-        message.open({
-            type: 'error',
-            content: '数据源搜索失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -40,10 +21,7 @@ async function getDatasource(params) {
         const res = await http('get', `/api/w8t/datasource/dataSourceGet?${queryString}`);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '数据源搜索失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -57,10 +35,7 @@ async function createDatasource(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '数据源创建失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -74,10 +49,7 @@ async function updateDatasource(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '数据源更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -91,10 +63,7 @@ async function deleteDatasource(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '数据源删除失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -108,10 +77,7 @@ async function DatasourcePing(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '数据源测试失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -125,10 +91,7 @@ async function ElasticSearchData(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '查询ES内容失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -138,17 +101,13 @@ async function SearchViewLogsContent(params) {
         const res = await http('post', `/api/w8t/datasource/searchViewLogsContent`, params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '数据预览内容查询失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
 
 export {
     getDatasourceList,
-    searchDatasource,
     createDatasource,
     updateDatasource,
     deleteDatasource,

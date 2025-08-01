@@ -1,15 +1,13 @@
 import http from '../utils/http';
 import { message } from 'antd';
+import {HandleApiError} from "../utils/lib";
 
-async function getNoticeTmplList() {
+async function getNoticeTmplList(params) {
     try {
-        const res = await http('get', '/api/w8t/noticeTemplate/noticeTemplateList');
+        const res = await http('get', '/api/w8t/noticeTemplate/noticeTemplateList', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '通知模版列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -23,10 +21,7 @@ async function createNoticeTmpl(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '通知模版创建失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -40,10 +35,7 @@ async function updateNoticeTmpl(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '通知模版更新失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -57,23 +49,7 @@ async function deleteNoticeTmpl(params) {
         });
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '通知模版删除失败',
-        });
-        return error
-    }
-}
-
-async function searchNoticeTmpl(params) {
-    try {
-        const res = await http('get', '/api/w8t/noticeTemplate/searchNoticeTmpl', params);
-        return res;
-    } catch (error) {
-        message.open({
-            type: 'error',
-            content: '搜索通知模版失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -83,5 +59,4 @@ export {
     createNoticeTmpl,
     updateNoticeTmpl,
     deleteNoticeTmpl,
-    searchNoticeTmpl
 }
