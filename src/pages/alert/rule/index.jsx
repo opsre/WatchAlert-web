@@ -19,7 +19,7 @@ import {
 } from "antd"
 import {Link, useNavigate} from "react-router-dom"
 import { useParams } from "react-router-dom"
-import {createRule, deleteRule, getRuleList, RuleChangeStatus} from "../../../api/rule"
+import {createRule, deleteRule, getRuleList, RuleChangeStatus, RuleImport} from "../../../api/rule"
 import { ReactComponent as PrometheusImg } from "./img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "./img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "./img/jaeger.svg"
@@ -61,16 +61,12 @@ export const AlertRuleList = () => {
     const [selectedRowKeys, setSelectedRowKeys] = useState([])
     // 导入相关状态
     const [importDrawerVisible, setImportDrawerVisible] = useState(false)
-    const [importType, setImportType] = useState("watchalert") // 'watchalert' 或 'prometheus'
-    const [importModalVisible, setImportModalVisible] = useState(false)
-    const [importedRules, setImportedRules] = useState([])
+    const [importType, setImportType] = useState(1) // 1 'watchalert' 或 0 'prometheus'
     const [selectedDatasource, setSelectedDatasource] = useState(null)
-    const [selectedDatasourceType, setSelectedDatasourceType] = useState('Prometheus')
+    const [selectedDatasourceType, setSelectedDatasourceType] = useState("")
     const [selectedFaultCenter, setSelectedFaultCenter] = useState(null)
     const [faultCenterList, setFaultCenterList] = useState([])
     const [yamlContent, setYamlContent] = useState("")
-    const [convertedRules, setConvertedRules] = useState([])
-    const [isConverting, setIsConverting] = useState(false)
     const [jsonContent, setJsonContent] = useState("")
 
     // 行选择配置
@@ -477,153 +473,8 @@ export const AlertRuleList = () => {
         // 重置内容
         setJsonContent("")
         setYamlContent("")
-        setConvertedRules([])
     }
 
-    // 修改 convertPrometheusToWatchAlert 函数，实现 Prometheus YAML 到 WatchAlert JSON 的转换
-    const convertPrometheusToWatchAlert = async () => {
-        if (!yamlContent.trim()) {
-            message.error("请输入Prometheus规则YAML内容")
-            return
-        }
-
-        if (!selectedDatasource) {
-            message.error("请选择数据源")
-            return
-        }
-
-        if (!selectedFaultCenter) {
-            message.error("请选择故障中心")
-            return
-        }
-
-        setIsConverting(true)
-
-        try {
-            const parsedRules = parsePrometheusYaml(yamlContent)
-
-            // 将Prometheus规则转换为WatchAlert格式
-            const converted = parsedRules.map((rule, index) => ({
-                ruleGroupId: id,
-                datasourceType: selectedDatasourceType,
-                datasourceId: Array.isArray(selectedDatasource) ? selectedDatasource : [selectedDatasource],
-                ruleName: rule.alert || `未命名规则-${index}`,
-                evalInterval: 10,
-                evalTimeType: "second",
-                description: "",
-                effectiveTime: {
-                    week: null,
-                    startTime: 0,
-                    endTime: 86340,
-                },
-                prometheusConfig: {
-                    promQL: rule.expr || "",
-                    annotations: rule.annotations?.description || rule.annotations?.summary || "",
-                    rules: [
-                        {
-                            severity: "P0", // 默认严重级别
-                            expr: "> 0", // 默认告警条件
-                            forDuration: parseForDuration(rule.for),
-                        },
-                    ],
-                },
-                faultCenterId: selectedFaultCenter,
-                enabled: false,
-            }))
-
-            setConvertedRules(converted)
-            setImportedRules(converted)
-            setIsConverting(false)
-            message.success("转换成功, 请确认导入!")
-        } catch (error) {
-            setIsConverting(false)
-            HandleApiError(error)
-        }
-    }
-
-    // 添加解析Prometheus YAML的函数
-    const parsePrometheusYaml = (yamlContent) => {
-        try {
-            // 这是一个简化的解析实现，实际项目中应使用专业的YAML解析库
-            // 这里我们尝试从文本中提取关键信息
-
-            const rules = []
-            const lines = yamlContent.split("\n")
-
-            let currentRule = null
-            let inAnnotations = false
-
-            for (let line of lines) {
-                line = line.trim()
-
-                // 新规则开始
-                if (line.startsWith("- alert:")) {
-                    if (currentRule) {
-                        rules.push(currentRule)
-                    }
-                    currentRule = {
-                        alert: line.substring("- alert:".length).trim(),
-                        annotations: {},
-                    }
-                    inAnnotations = false
-                }
-                // 告警条件
-                else if (line.startsWith("expr:") && currentRule) {
-                    currentRule.expr = line.substring("expr:".length).trim()
-                }
-                // for 持续时间
-                else if (line.startsWith("for:") && currentRule) {
-                    currentRule.for = line.substring("for:".length).trim()
-                }
-                // 注解开始
-                else if (line.startsWith("annotations:") && currentRule) {
-                    inAnnotations = true
-                }
-                // 注解内容
-                else if (inAnnotations && currentRule) {
-                    if (line.startsWith("summary:")) {
-                        currentRule.annotations.summary = line.substring("summary:".length).trim()
-                    } else if (line.startsWith("description:")) {
-                        currentRule.annotations.description = line.substring("description:".length).trim()
-                    }
-                }
-            }
-
-            // 添加最后一个规则
-            if (currentRule) {
-                rules.push(currentRule)
-            }
-
-            return rules
-        } catch (error) {
-            console.error("YAML解析错误:", error)
-            throw new Error("YAML格式错误，无法解析")
-        }
-    }
-
-    // 添加解析for持续时间的函数
-    const parseForDuration = (forString) => {
-        if (!forString) return 0
-
-        try {
-            // 解析形如 "5m", "1h", "30s" 的持续时间
-            const value = Number.parseInt(forString)
-            if (isNaN(value)) return 0
-
-            if (forString.includes("s")) {
-                return value // 秒
-            } else if (forString.includes("m")) {
-                return value * 60 // 分钟转秒
-            } else if (forString.includes("h")) {
-                return value * 3600 // 小时转秒
-            } else {
-                return value // 默认按秒处理
-            }
-        } catch (error) {
-            console.error("持续时间解析错误:", error)
-            return 0
-        }
-    }
 
     const handleJsonContentChange = (value) => {
         setJsonContent(value)
@@ -633,61 +484,45 @@ export const AlertRuleList = () => {
         setYamlContent(value)
     }
 
-    // 处理JSON内容解析
-    const parseJsonContent = () => {
-        if (!jsonContent.trim()) {
-            message.error("请输入JSON内容")
-            return
-        }
-
-        try {
-            const rules = JSON.parse(jsonContent)
-            if (!Array.isArray(rules)) {
-                message.error("输入的JSON格式不正确，应为规则数组")
+    // 确认导入
+    const handleConfirmImport = async () => {
+        if (importType === 1) {
+            if (!jsonContent.trim()) {
+                message.error("请输入JSON内容")
+                return
+            }
+        } else if (importType === 0) {
+            if (!yamlContent.trim()) {
+                message.error("请输入Prometheus规则YAML内容")
                 return
             }
 
-            // 确保所有规则都有正确的ruleGroupId
-            const rulesWithGroupId = rules.map((rule) => ({
-                ...rule,
-                ruleGroupId: id, // 使用当前的组ID
-            }))
+            if (!selectedDatasource) {
+                message.error("请选择数据源")
+                return
+            }
 
-            setImportedRules(rulesWithGroupId)
-            setImportModalVisible(true)
-        } catch (error) {
-            message.error("解析失败：JSON格式错误")
-            console.error("JSON解析错误:", error)
+            if (!selectedFaultCenter) {
+                message.error("请选择故障中心")
+                return
+            }
         }
-    }
 
-    // 确认导入
-    const handleConfirmImport = async () => {
         try {
-            console.log("导入结果:", importedRules)
-
-            const importPromises = importedRules.map((rule) => {
-                // 检查是否已存在相同名称的模板
-                const exists = list.some(
-                    (item) => item.ruleName === rule.ruleName && item.ruleId === rule.ruleId,
-                )
-
-                if (exists) {
-                    message.warning(`规则 ${rule.ruleName} 已存在,跳过导入`)
-                } else {
-                    // 如果不存在，则创建新的
-                    return createRule(rule)
-                }
-            })
-
-            await Promise.all(importPromises)
-            message.success(`成功导入 ${importedRules.length} 条规则`)
-            setImportModalVisible(false)
+            const params = {
+                ruleGroupId: id,
+                datasourceType: selectedDatasourceType || undefined,
+                datasourceIdList: [selectedDatasource] || undefined,
+                faultCenterId: selectedFaultCenter || undefined,
+                importType: importType,
+                rules: (importType===0 && yamlContent || jsonContent),
+            }
+            await RuleImport(params)
             setImportDrawerVisible(false)
-            handleList(id, pagination.index, pagination.size) // 刷新规则列表
+            handleList(id, pagination.index, pagination.size)
+            message.success("导入成功!")
         } catch (error) {
-            message.error("导入失败")
-            console.error("导入错误:", error)
+            HandleApiError(error)
         }
     }
 
@@ -782,26 +617,6 @@ export const AlertRuleList = () => {
                 </div>
             </div>
 
-            {/* 导入确认模态框 */}
-            <Modal
-                title="确认导入"
-                open={importModalVisible}
-                onCancel={() => setImportModalVisible(false)}
-                onOk={handleConfirmImport}
-                okText="确认导入"
-                cancelText="取消"
-            >
-                <p>即将导入 {importedRules.length} 条规则：</p>
-                <ul style={{ maxHeight: "300px", overflow: "auto" }}>
-                    {importedRules.map((rule, index) => (
-                        <li key={index}>
-                            {rule.ruleName} ({rule.datasourceType})
-                        </li>
-                    ))}
-                </ul>
-                <p>已存在的规则将跳过，不存在的将被创建。确认继续？</p>
-            </Modal>
-
             <div style={{ marginTop: 10 }}>
                 <Table
                     rowSelection={rowSelection}
@@ -843,17 +658,10 @@ export const AlertRuleList = () => {
                             }}
                             type="primary"
                             onClick={() => {
-                                if (importType === "watchalert") {
-                                    parseJsonContent()
-                                } else if (importType === "prometheus" && convertedRules.length > 0) {
-                                    setImportModalVisible(true)
-                                } else if (importType === "prometheus") {
-                                    convertPrometheusToWatchAlert()
-                                }
+                                handleConfirmImport()
                             }}
-                            loading={isConverting}
                         >
-                            {importType === "watchalert" ? "解析JSON" : convertedRules.length > 0 ? "确认导入" : "转换并导入"}
+                            确认导入
                         </Button>
                     </div>
                 }
@@ -863,21 +671,20 @@ export const AlertRuleList = () => {
                         value={importType}
                         onChange={(e) => {
                             setImportType(e.target.value)
-                            setConvertedRules([])
                         }}
                         style={{ marginBottom: 16, display: "flex", width: "100%" }}
                         buttonStyle="solid"
                     >
-                        <Radio.Button value="watchalert" style={{ flex: 1, textAlign: "center" }}>
+                        <Radio.Button value={1} style={{ flex: 1, textAlign: "center" }}>
                             WatchAlert JSON
                         </Radio.Button>
-                        <Radio.Button value="prometheus" style={{ flex: 1, textAlign: "center" }}>
+                        <Radio.Button value={0} style={{ flex: 1, textAlign: "center" }}>
                             Prometheus Rule YAML
                         </Radio.Button>
                     </Radio.Group>
                 </div>
 
-                {importType === "watchalert" && (
+                {importType === 1 && (
                     <div>
                         <VSCodeEditor
                             height="75vh"
@@ -888,16 +695,14 @@ export const AlertRuleList = () => {
                     </div>
                 )}
 
-                {importType === "prometheus" && (
+                {importType === 0 && (
                     <div>
                         <div style={{marginBottom: 16}}>
                             <VSCodeEditor
                                 height="60vh"
                                 language="Yaml"
-                                value={jsonContent}
-                                defaultValue={`groups:
-- name: NodeStatus
-  rules:
+                                value={`# 示例:
+rules:
   - alert: Exporter Componen is Down
     expr: up == 0
     for: 2m
@@ -905,8 +710,7 @@ export const AlertRuleList = () => {
       severity: serious
     annotations:
       summary: 节点 Exporter Componen is Down
-      description: 节点 Exporter Componen is Down
-                                `}
+      description: 节点 Exporter Componen is Down`}
                                 onChange={handleYamlContentChange}
                             />
                         </div>
