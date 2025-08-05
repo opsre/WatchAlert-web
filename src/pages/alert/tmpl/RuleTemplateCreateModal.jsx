@@ -158,11 +158,6 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                     tags: selectedRow.jaegerConfig.tags,
                     scope: selectedRow.jaegerConfig.scope,
                 },
-                effectiveTime: {
-                    week: selectedRow.effectiveTime.week,
-                    startTime: selectedRow.effectiveTime.startTime,
-                    endTime: selectedRow.effectiveTime.endTime,
-                },
                 cloudwatchConfig: selectedRow.cloudwatchConfig,
                 kubernetesConfig: selectedRow.kubernetesConfig,
                 elasticSearchConfig: selectedRow.elasticSearchConfig,
