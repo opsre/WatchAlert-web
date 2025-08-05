@@ -7,8 +7,7 @@ COPY . /app
 WORKDIR /app
 
 # yarn config set registry https://registry.npmmirror.com && \
-RUN yarn config set registry https://registry.npmmirror.com && \
-    yarn cache clean && \
+RUN yarn cache clean && \
     yarn install && \
     yarn build && \
     tar zcf build.tar.gz ./build
