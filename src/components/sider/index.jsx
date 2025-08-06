@@ -15,7 +15,7 @@ import {
 } from '@ant-design/icons';
 import {Link, useNavigate} from 'react-router-dom';
 import {Menu, Layout, Typography, Dropdown, Space, message, Spin, theme, Popover, Avatar, Divider} from 'antd';
-import logoIcon from "../../img/logo.jpeg";
+import logoIcon from "../../img/logo.svg";
 import {getUserInfo} from "../../api/user";
 import {getTenantList} from "../../api/tenant";
 
@@ -310,7 +310,7 @@ export const ComponentSider = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 16,
-                    marginTop: '-40px',
+                    marginTop: '-70px',
                 }}>
                     <img
                         src={logoIcon || "/placeholder.svg"}
