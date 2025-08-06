@@ -2,8 +2,9 @@ import {Input, Table, Button, Popconfirm, Tooltip, Space} from 'antd';
 import React, { useState, useEffect } from 'react';
 import UserRoleCreateModal from './UserRoleCreateModal';
 import { deleteRole, getRoleList } from '../../../api/role';
-import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {HandleShowTotal} from "../../../utils/lib";
+import {copyToClipboard} from "../../../utils/copyToClipboard";
 
 const { Search } = Input;
 
@@ -20,6 +21,30 @@ export const UserRole = () => {
             dataIndex: 'name',
             key: 'name',
             width: 'auto',
+            render: (text, record) => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {text}
+                    <Tooltip title="点击复制 ID">
+                        <span
+                            style={{
+                                color: '#8c8c8c',     // 灰色字体
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                display: 'inline-block',
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onClick={() => copyToClipboard(record.id)}
+                        >
+                            {record.id}
+                            <CopyOutlined style={{ marginLeft: 8 }} />
+                        </span>
+                    </Tooltip>
+                </div>
+            ),
         },
         {
             title: '描述',
