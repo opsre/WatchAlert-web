@@ -257,7 +257,9 @@ export const ComponentSider = () => {
         if (c.item.props.value) {
             localStorage.setItem("TenantID", c.item.props.value)
         }
-        window.location.reload()
+
+        setSelectedMenuKey('1')
+        navigate('/')
     }
 
     const tenantMenu = (
