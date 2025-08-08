@@ -260,6 +260,7 @@ export const ComponentSider = () => {
 
         setSelectedMenuKey('1')
         navigate('/')
+        window.location.reload();
     }
 
     const tenantMenu = (
@@ -322,7 +323,7 @@ export const ComponentSider = () => {
                 <Dropdown overlay={tenantMenu} trigger={["click"]} placement="bottomLeft">
                     <div style={{
                         display: 'flex',
-                        marginTop: '-20px',
+                        marginTop: '-40px',
                         alignItems: 'center',
                         padding: '8px 12px',
                         borderRadius: '4px',
