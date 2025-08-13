@@ -150,7 +150,7 @@ export const AlertHistoryEvent = (props) => {
                 } else {
                     contentString = record.annotations
                 }
-                const maxLength = 100
+                const maxLength = 80
                 const displayContent =
                     contentString.length > maxLength ? contentString.substring(0, maxLength) + "..." : contentString
                 return (
@@ -783,7 +783,7 @@ export const AlertHistoryEvent = (props) => {
                                 {
                                     key: "value",
                                     label: "恢复时值",
-                                    children: RenderTruncatedText(selectedEvent?.labels["recover_value"] || 0),
+                                    children: RenderTruncatedText(selectedEvent?.labels["value"] || 0),
                                 },
                                 {
                                     key: "handle",

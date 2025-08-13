@@ -1084,7 +1084,7 @@ export const AlertCurrentEvent = (props) => {
                                 {
                                     key: 'value',
                                     label: '触发时值',
-                                    children: RenderTruncatedText(selectedEvent?.labels?.value || '-'),
+                                    children: RenderTruncatedText(selectedEvent?.labels["value"] || 0),
                                 },
                                 {
                                     key: 'confirm',
