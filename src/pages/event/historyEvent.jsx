@@ -781,9 +781,9 @@ export const AlertHistoryEvent = (props) => {
                                     children: <Tag color={"green"}>{"已恢复"}</Tag>,
                                 },
                                 {
-                                    key: "value",
-                                    label: "恢复时值",
-                                    children: RenderTruncatedText(selectedEvent?.labels["value"] || 0),
+                                    key: "first_value",
+                                    label: "触发时值",
+                                    children: RenderTruncatedText(selectedEvent?.labels["first_value"] || 0),
                                 },
                                 {
                                     key: "handle",
@@ -840,6 +840,11 @@ export const AlertHistoryEvent = (props) => {
                                             )}
                                         </>
                                     ),
+                                },
+                                {
+                                    key: "recover_value",
+                                    label: "恢复时值",
+                                    children: RenderTruncatedText(selectedEvent?.labels["value"] || 0),
                                 },
                             ]}
                         />
