@@ -117,6 +117,7 @@ export const AlertCurrentEvent = (props) => {
         "alerting": { color: "red", text: "告警中" },
         "silenced": { color: "grey", text: "静默中" },
         "pending_recovery": { color: "orange", text: "待恢复" },
+        "recovered": { color: "green", text: "已恢复" },
     }
 
     const rowSelection = {
