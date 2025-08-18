@@ -491,7 +491,8 @@ export const RuleTemplate = () => {
                     }}
                     pagination={{
                         showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10'],
+                        //showSizeChanger: true,
+                        pageSizeOptions: ['10','20'],
                     }}
                     rowKey={(record) => `${record.ruleGroupName}-${record.ruleName}`} // 使用组合键作为唯一标识
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
