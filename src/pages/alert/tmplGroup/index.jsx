@@ -127,20 +127,29 @@ export const RuleTemplateGroup = () => {
         }
     }, [])
 
-    const handleList = async () => {
+    const handleList = async (index, size) => {
         try {
-            setLoading(true)
+            setLoading(true);
             const params = {
+                index: index,
+                size: size,
                 type: selectedType,
-            }
-            const res = await getRuleTmplGroupList(params)
-            setList(res.data)
+            };
+            const res = await getRuleTmplGroupList(params);
+
+            setPagination({
+                index: res.data.index,
+                size: res.data.size,
+                total: res.data.total,
+            });
+
+            setList(res.data.list)
         } catch (error) {
-            console.error("Failed to fetch template groups:", error)
+            console.error("Failed to fetch template groups:", error);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     const handleDelete = async (record) => {
         try {
@@ -149,14 +158,14 @@ export const RuleTemplateGroup = () => {
                 name: record.name,
             }
             await deleteRuleTmplGroup(params)
-            handleList()
+            handleList(pagination.index, pagination.size)
         } catch (error) {
             console.error("Failed to delete template group:", error)
         }
     }
 
     useEffect(() => {
-        handleList()
+        handleList(pagination.index, pagination.size)
     }, [pagination.index, pagination.size, selectedType])
 
     const handleModalClose = () => setVisible(false)
@@ -181,7 +190,7 @@ export const RuleTemplateGroup = () => {
                 total: res.data.total,
             })
 
-            setList(res.data)
+            setList(res.data.list)
         } catch (error) {
             console.error(error)
         } finally {
@@ -214,6 +223,12 @@ export const RuleTemplateGroup = () => {
 
     // Handle menu click
     const handleClick = (e) => {
+        setPagination({
+            index: 1,
+            size: 10,
+            total: 0,
+        });
+
         const type = e.key
         setSelectedType(type)
         const pathname = `/tmplType/${type}/group`
@@ -290,6 +305,22 @@ export const RuleTemplateGroup = () => {
                     columns={columns}
                     dataSource={list}
                     loading={loading}
+                    pagination={{
+                        current: pagination.index ?? 1,
+                        pageSize: pagination.size ?? 10,
+                        total: pagination.total ?? 0,
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10', '30', '50', '100'],
+                        showSizeChanger: true,
+                        onShowSizeChange: (current, size) => {
+                            setPagination({ ...pagination, index: 1, size });
+                            handleList(1, size);
+                        }
+                    }}
+                    onChange={(pagination) => {
+                        setPagination({ ...pagination, index: pagination.current, size: pagination.pageSize });
+                        handleList(pagination.current, pagination.pageSize);
+                    }}
                     scroll={{
                         y: height - 280,
                     }}
@@ -298,10 +329,6 @@ export const RuleTemplateGroup = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
-                    }}
-                    pagination={{
-                        showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10'],
                     }}
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                     rowKey={(record) => record.id || record.name}
