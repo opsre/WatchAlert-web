@@ -618,16 +618,16 @@ export const AlertRuleList = () => {
                     columns={columns}
                     dataSource={list}
                     pagination={{
-                        current: pagination.index,
-                        pageSize: pagination.size,
-                        total: pagination.total,
+                        current: pagination.index ?? 1,
+                        pageSize: pagination.size ?? 10,
+                        total: pagination.total ?? 0,
                         showTotal: HandleShowTotal,
                         pageSizeOptions: ['10', '30', '50', '100'],
                         showSizeChanger: true,
-                        onShowSizeChange: (pageSize) => {
-                            setPagination({ ...pagination, index: 1, size: pageSize });
-                            handleList(id, 1, pageSize);
-                        },
+                        onShowSizeChange: (current, size) => {
+                            setPagination({ ...pagination, index: 1, size });
+                            handleList(id, 1, size);
+                        }
                     }}
                     onChange={(pagination) => {
                         setPagination({ ...pagination, index: pagination.current, size: pagination.pageSize });
