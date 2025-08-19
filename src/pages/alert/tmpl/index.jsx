@@ -47,6 +47,11 @@ export const RuleTemplate = () => {
     const [importModalVisible, setImportModalVisible] = useState(false)
     const [importedTemplates, setImportedTemplates] = useState([])
     const fileInputRef = useRef(null)
+    const [pagination, setPagination] = useState({
+        index: 1,
+        size: 10,
+        total: 0,
+    })
 
     // 行选择配置
     const rowSelection = {
@@ -119,7 +124,7 @@ export const RuleTemplate = () => {
     }, [])
 
     useEffect(() => {
-        handleList()
+        handleList(pagination.index, pagination.size)
     }, [tmplType, ruleGroupName])
 
     const handleUpdateTmpl = useCallback((record) => {
@@ -127,12 +132,24 @@ export const RuleTemplate = () => {
         setUpdateVisible(true)
     }, [])
 
-    const handleList = useCallback(async () => {
-        const params = { type: tmplType, ruleGroupName }
-        const res = await getRuleTmplList(params)
-        setList(res.data)
+    const handleList = useCallback(async (index, size) => {
+        const params = { 
+            type: tmplType, 
+            ruleGroupName, 
+            index: index, 
+            size: size, 
+        };
+        const res = await getRuleTmplList(params);
+    
+        setPagination({
+            index: res.data.index,
+            size: res.data.size,
+            total: res.data.total,
+        })
+
+        setList(res.data.list);
         // 清空选择
-        setSelectedRowKeys([])
+        setSelectedRowKeys([]);
     }, [tmplType, ruleGroupName])
 
     const handleGetRuleGroupList = useCallback(async () => {
@@ -161,7 +178,7 @@ export const RuleTemplate = () => {
                     type: tmplType,
                 }
                 const res = await getRuleTmplList(params)
-                setList(res.data)
+                setList(res.data.list)
                 // 清空选择
                 setSelectedRowKeys([])
             } catch (error) {
@@ -227,7 +244,7 @@ export const RuleTemplate = () => {
 
         await Promise.all(deletePromises)
         setSelectedRowKeys([])
-        handleList()
+        handleList(pagination.index, pagination.size) // 刷新列表
     }
 
     // 批量导出
@@ -318,7 +335,7 @@ export const RuleTemplate = () => {
             message.success(`成功导入 ${importedTemplates.length} 个模板`)
             setImportModalVisible(false)
             setImportedTemplates([])
-            handleList() // 刷新列表
+            handleList(pagination.index, pagination.size) // 刷新列表
         } catch (error) {
             message.error("导入失败")
             console.error("导入错误:", error)
@@ -480,6 +497,22 @@ export const RuleTemplate = () => {
                     rowSelection={rowSelection}
                     columns={columns}
                     dataSource={list}
+                    pagination={{
+                        current: pagination.index ?? 1,
+                        pageSize: pagination.size ?? 10,
+                        total: pagination.total ?? 0,
+                        showTotal: HandleShowTotal,
+                        pageSizeOptions: ['10', '30', '50', '100'],
+                        showSizeChanger: true,
+                        onShowSizeChange: (current, size) => {
+                            setPagination({ ...pagination, index: 1, size });
+                            handleList(1, size);
+                        }
+                    }}
+                    onChange={(pagination) => {
+                        setPagination({ ...pagination, index: pagination.current, size: pagination.pageSize });
+                        handleList(pagination.current, pagination.pageSize);
+                    }}
                     scroll={{
                         y: height - 280, // 动态设置滚动高度
                         x: "max-content", // 水平滚动
@@ -488,10 +521,6 @@ export const RuleTemplate = () => {
                         backgroundColor: "#fff",
                         borderRadius: "8px",
                         overflow: "hidden",
-                    }}
-                    pagination={{
-                        showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10'],
                     }}
                     rowKey={(record) => `${record.ruleGroupName}-${record.ruleName}`} // 使用组合键作为唯一标识
                     rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
