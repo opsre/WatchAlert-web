@@ -367,6 +367,11 @@ export const AlertRuleList = () => {
         setSelectRuleStatus(value)
     }
 
+    const handlePageChange = (page) => {
+        setPagination({ ...pagination, index: page.current, size: page.size })
+        handleList(id, page.current, page.size)
+    }
+
     const handleClone = (record) => {
         // 实现克隆功能
         console.log("Clone rule:", record)
@@ -618,21 +623,13 @@ export const AlertRuleList = () => {
                     columns={columns}
                     dataSource={list}
                     pagination={{
-                        current: pagination.index ?? 1,
-                        pageSize: pagination.size ?? 10,
-                        total: pagination.total ?? 0,
+                        index: pagination.index ?? 1,
+                        size: pagination.size ?? 10,
+                        total: pagination?.total ?? 0,
                         showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10', '30', '50', '100'],
-                        showSizeChanger: true,
-                        onShowSizeChange: (current, size) => {
-                            setPagination({ ...pagination, index: 1, size });
-                            handleList(id, 1, size);
-                        }
+                        pageSizeOptions: ['10'],
                     }}
-                    onChange={(pagination) => {
-                        setPagination({ ...pagination, index: pagination.current, size: pagination.pageSize });
-                        handleList(id, pagination.current, pagination.pageSize);
-                    }}
+                    onChange={handlePageChange}
                     scroll={{
                         y: height - 280, // 动态设置滚动高度
                         x: "max-content", // 水平滚动
