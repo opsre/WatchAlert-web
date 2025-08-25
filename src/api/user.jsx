@@ -105,6 +105,25 @@ async function changeUserPass(params) {
     }
 }
 
+async function getOidcInfo() {
+    try {
+        const res = await http('get', `/api/oidc/oidcInfo`);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
+async function getCookieConvertToken() {
+    try {
+        const res = await http('get', `/api/oidc/token`);
+        return res;
+    } catch (error) {
+        return error
+    }
+}
+
 export {
     getUserList,
     loginUser,
@@ -114,4 +133,6 @@ export {
     checkUser,
     getUserInfo,
     changeUserPass,
+    getOidcInfo,
+    getCookieConvertToken
 }

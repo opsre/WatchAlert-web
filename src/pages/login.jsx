@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import './global.css';
-import { checkUser, loginUser, registerUser } from '../api/user';
+import { checkUser, loginUser, registerUser, getOidcInfo } from '../api/user';
 import { message } from "antd";
+import { UserManager } from 'oidc-client';
 
 export const Login = () => {
+    const [showOidcButtons,setShowOidcButtons] = useState(false);
     const [passwordModal, setPasswordModal] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const navigate = useNavigate();
@@ -89,6 +91,25 @@ export const Login = () => {
         }
     };
 
+    const handleOidcLogin = async () => {
+        try {
+            const res = await getOidcInfo();
+            if (res) {
+                const oidcConfig = {
+                    authority: res.data.upperURI,
+                    client_id: res.data.clientID,
+                    redirect_uri: res.data.redirectURI,
+                    response_type: 'code',
+                    scope: 'openid profile email',
+                };
+                const userManager = new UserManager(oidcConfig);
+                userManager.signinRedirect();
+            }
+        } catch (error) {
+            console.error('获取 OIDC 信息失败:', error);
+        }
+    }
+
     // 显示/隐藏模态框
     const handleShowModal = () => setIsModalVisible(true);
     const handleHideModal = () => setIsModalVisible(false);
@@ -128,51 +149,65 @@ export const Login = () => {
                 >
                     <h1 className="text-2xl font-medium mb-2">欢迎回来</h1>
                     <p className="text-gray-600 mb-8">请登录以继续使用 WatchAlert</p>
-
-                    <form onSubmit={onFinish} className="space-y-6">
-                        <div>
-                            <input
-                                type="text"
-                                name="username"
-                                placeholder="用户名"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="密码"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all"
-                                required
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    className="form-checkbox h-4 w-4 text-black rounded border-gray-300"
-                                />
-                                <span className="text-sm text-gray-600">记住我</span>
-                            </label>
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
-                        >
-                            登录
-                        </button>
-                        {!passwordModal && (
-                            <button
-                                type="button"
-                                onClick={handleShowModal}
-                                className="text-sm text-gray-600 hover:text-black underline mt-4"
-                            >
-                                ➡️ 点击初始化 admin 密码
-                            </button>
-                        )}
-                    </form>
+                    {!showOidcButtons ? (
+                            <div>
+                                <form onSubmit={onFinish} className="space-y-6">
+                                    <div>
+                                        <input
+                                            type="text"
+                                            name="username"
+                                            placeholder="用户名"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            placeholder="密码"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="form-checkbox h-4 w-4 text-black rounded border-gray-300"
+                                            />
+                                            <span className="text-sm text-gray-600">记住我</span>
+                                        </label>
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
+                                    >
+                                        登录
+                                    </button>
+                                    {!passwordModal && (
+                                        <button
+                                            type="button"
+                                            onClick={handleShowModal}
+                                            className="text-sm text-gray-600 hover:text-black underline mt-4"
+                                        >
+                                            ➡️ 点击初始化 admin 密码
+                                        </button>
+                                    )}
+                                </form>
+                                <p className="text-black text-center text-sm py-3 rounded-lg" onClick={()=> setShowOidcButtons(true)}>Login using SSO service</p>
+                            </div>
+                        ):(
+                            <div>
+                                <button onClick={handleOidcLogin}
+                                    className="w-full py-3 border border-gray-300 text-black rounded-lg hover:bg-gray-100 transition-colors text-center"
+                                >
+                                    Login with Oidc
+                                </button>
+                                <p className="text-black text-center text-sm py-3 rounded-lg" onClick={()=> setShowOidcButtons(false)}>Login as administrator</p>
+                            </div>
+                        )
+                    }
                 </motion.div>
             </div>
 
