@@ -131,7 +131,7 @@ export const SystemSettings = () => {
                 "---\n" +
                 "请根据以下三个方面，结构化地回复我，要求简洁明了、通俗易懂：\n" +
                 "1. 分析可能的原因\n" +
-                "2. 具���的排查步骤\n" +
+                "2. 具体的排查步骤\n" +
                 "3. 如何规避\n" +
                 "---\n" +
                 "请清晰格式化您的回复，并使用适当的标题分隔每个部分。\n";
@@ -165,14 +165,30 @@ export const SystemSettings = () => {
                 token: res.data.emailConfig?.token || "",
             };
 
+            const oidcConfig = {
+                enable: res.data.oidcConfig?.enable || false,
+                clientID: res.data.oidcConfig?.clientID || "",
+                upperURI: res.data.oidcConfig?.upperURI || "",
+                redirectURI: res.data.oidcConfig?.redirectURI || "",
+                domain: res.data.oidcConfig?.domain || "",
+            }
+
             //  确保表单字段正确初始化
             form.setFieldsValue({
                 emailConfig,
                 aiConfig,
-                ldapConfig
+                ldapConfig,
+                oidcConfig
             });
 
-            setAlignValue(res.data.authType === 0 ? "系统认证" : "LDAP 认证");
+            // 修复 authType 映射逻辑
+            const authTypeMapping = {
+                0: "系统认证",
+                1: "LDAP 认证",
+                2: "OIDC 认证"
+            };
+            setAlignValue(authTypeMapping[res.data.authType] || "系统认证");
+
             setEnableAi(aiConfig.enable);
             setVersion(res.data.appVersion || 'Unknown');
         } catch (error) {
@@ -201,7 +217,10 @@ export const SystemSettings = () => {
                     timeout: values.aiConfig.timeout ? Number(values.aiConfig.timeout) : 30,
                     maxTokens: values.aiConfig.maxTokens ? Number(values.aiConfig.maxTokens) : 1000
                 },
-                authType: alignValue === "系统认证" ? 0 : 1
+                authType: alignValue === "系统认证" ? 0 : 1,
+                oidcConfig: {
+                    ...values.oidcConfig,
+                }
             };
 
             console.log("[v0] Saving cronjob:", processedValues.ldapConfig?.cronjob); //  调试日志
@@ -254,6 +273,8 @@ export const SystemSettings = () => {
         // 同步更新表单字段
         form.setFieldValue(['aiConfig', 'enable'], enabled);
     };
+
+    const segmentedOptions = ['系统认证', 'LDAP 认证', 'OIDC 认证'];
 
     return (
         <div style={{ display: 'flex', width: '100%' }}>
@@ -381,7 +402,7 @@ export const SystemSettings = () => {
                             value={alignValue}
                             style={{ marginBottom: 8 }}
                             onChange={setAlignValue}
-                            options={['系统认证', 'LDAP 认证']}
+                            options={segmentedOptions}
                         />
 
                         {alignValue === 'LDAP 认证' && (
@@ -473,6 +494,65 @@ export const SystemSettings = () => {
                                         • 0 0 1 * * - 每月1号午夜执行
                                     </div>
 
+                                </MyFormItemGroup>
+                            </div>
+                        )}
+
+                        {alignValue === 'OIDC 认证' && (
+                            <div 
+                                style={{
+                                    padding: "24px",
+                                    background: "#fff",
+                                    borderRadius: "12px",
+                                    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
+                                    border: "1px solid #f0f0f0",
+                                    minHeight: "300px"
+                                }}
+                            >
+                                <MyFormItemGroup prefix={['oidcConfig']}>
+                                    <MyFormItem
+                                        name="enable"
+                                        label="是否启用"
+                                        rules={[{ required: true, message: '请选择是否启用' }]}
+                                    >
+                                        <Radio.Group
+                                            options={[
+                                                { label: '启用', value: true },
+                                                { label: '禁用', value: false },
+                                            ]}
+                                        />
+                                    </MyFormItem>
+                                    <MyFormItem
+                                        name="clientID"
+                                        label="客户端ID"
+                                        rules={[{required: true, message: '请输入客户端ID'}]}
+                                    >
+                                        <Input placeholder="例如: oidc"/>
+                                    </MyFormItem>
+
+                                    <MyFormItem
+                                        name="upperURI"
+                                        label="认证地址"
+                                        rules={[{required: true, message: '请输入跳转认证平台地址'}]}
+                                    >
+                                        <Input placeholder="例如: https://upper.watchalert.tech:5005"/>
+                                    </MyFormItem>
+
+                                    <MyFormItem
+                                        name="redirectURI"
+                                        label="回调地址"
+                                        rules={[{required: true, message: '请输入CallBack地址'}]}
+                                    >
+                                        <Input placeholder="例如: http://w8t.watchalert.tech:3000/api/oidc/callback"/>
+                                    </MyFormItem>
+                                    
+                                    <MyFormItem
+                                        name="domain"
+                                        label="域名"
+                                        rules={[{required: true, message: '请输入统一域名'}]}
+                                    >
+                                        <Input placeholder="例如: watchalert.tech"/>
+                                    </MyFormItem>
                                 </MyFormItemGroup>
                             </div>
                         )}

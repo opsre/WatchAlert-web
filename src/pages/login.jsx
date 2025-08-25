@@ -95,6 +95,11 @@ export const Login = () => {
         try {
             const res = await getOidcInfo();
             if (res) {
+                if (!res.data.enable) {
+                    message.error('OIDC 未启用，请联系管理员');
+                    return;
+                }
+
                 const oidcConfig = {
                     authority: res.data.upperURI,
                     client_id: res.data.clientID,
