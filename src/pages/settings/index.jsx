@@ -166,7 +166,6 @@ export const SystemSettings = () => {
             };
 
             const oidcConfig = {
-                enable: res.data.oidcConfig?.enable || false,
                 clientID: res.data.oidcConfig?.clientID || "",
                 upperURI: res.data.oidcConfig?.upperURI || "",
                 redirectURI: res.data.oidcConfig?.redirectURI || "",
@@ -217,7 +216,7 @@ export const SystemSettings = () => {
                     timeout: values.aiConfig.timeout ? Number(values.aiConfig.timeout) : 30,
                     maxTokens: values.aiConfig.maxTokens ? Number(values.aiConfig.maxTokens) : 1000
                 },
-                authType: alignValue === "系统认证" ? 0 : 1,
+                authType: alignValue === "系统认证" ? 0 : alignValue === "LDAP 认证" ? 1 : 2, // 支持 OIDC认证
                 oidcConfig: {
                     ...values.oidcConfig,
                 }
@@ -510,18 +509,6 @@ export const SystemSettings = () => {
                                 }}
                             >
                                 <MyFormItemGroup prefix={['oidcConfig']}>
-                                    <MyFormItem
-                                        name="enable"
-                                        label="是否启用"
-                                        rules={[{ required: true, message: '请选择是否启用' }]}
-                                    >
-                                        <Radio.Group
-                                            options={[
-                                                { label: '启用', value: true },
-                                                { label: '禁用', value: false },
-                                            ]}
-                                        />
-                                    </MyFormItem>
                                     <MyFormItem
                                         name="clientID"
                                         label="客户端ID"

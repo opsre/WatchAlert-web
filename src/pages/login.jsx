@@ -95,7 +95,8 @@ export const Login = () => {
         try {
             const res = await getOidcInfo();
             if (res) {
-                if (!res.data.enable) {
+                console.log(res.data.authType)
+                if (res.data.authType !== 2) {
                     message.error('OIDC 未启用，请联系管理员');
                     return;
                 }
