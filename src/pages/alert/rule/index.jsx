@@ -37,7 +37,10 @@ import {
     DownOutlined,
     ImportOutlined,
     EditOutlined,
-    CopyOutlined, PlusOutlined
+    CopyOutlined, 
+    PlusOutlined,
+    CheckSquareOutlined,
+    CloseSquareOutlined
 } from "@ant-design/icons"
 import {FaultCenterList} from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
@@ -446,6 +449,32 @@ export const AlertRuleList = () => {
         message.success(`已导出 ${selectedRules.length} 条规则`)
     }
 
+    // 批量改变状态
+    const handleBatchChangeStatus = async (status) => {
+        if (selectedRowKeys.length === 0) {
+            message.warning("请先选择要启用的规则")
+            return
+        }
+
+        const enablePromises = selectedRowKeys.map((key) => {
+            const record = list.find((item) => item.ruleId === key)
+            if (record) {
+                return RuleChangeStatus({
+                    tenantId: record.tenantId,
+                    ruleGroupId: record.ruleGroupId,
+                    ruleId: record.ruleId,
+                    faultCenterId: record.faultCenterId,
+                    enabled: status,
+                });
+            }
+            return Promise.resolve()
+        })
+
+        await Promise.all(enablePromises)
+        setSelectedRowKeys([])
+        handleList(id, pagination.index, pagination.size)
+    }
+
     // 获取故障中心列表
     const fetchFaultCenterList = async () => {
         try {
@@ -547,6 +576,38 @@ export const AlertRuleList = () => {
                 icon: <ExportOutlined />,
                 onClick: handleBatchExport,
             },
+            {
+                key: "batchEnable",
+                label: "批量启用",
+                icon: <CheckSquareOutlined />,
+                onClick: () => {
+                    if (selectedRowKeys.length > 0) {
+                        Modal.confirm({
+                            title: "确认启用",
+                            content: `确定要启用选中的 ${selectedRowKeys.length} 条规则吗？`,
+                            onOk: () => handleBatchChangeStatus(true),
+                        })
+                    } else {
+                        message.warning("请先选择要启用的规则")
+                    }
+                },
+            },
+            {
+                key: "batchDisable",
+                label: "批量禁用",
+                icon: <CloseSquareOutlined />,
+                onClick: () => {
+                    if (selectedRowKeys.length > 0) {
+                        Modal.confirm({
+                            title: "确认禁用",
+                            content: `确定要禁用选中的 ${selectedRowKeys.length} 条规则吗？`,
+                            onOk: () => handleBatchChangeStatus(false),
+                        })
+                    } else {
+                        message.warning("请先选择要禁用的规则")
+                    }
+                },
+            }
         ],
     }
 
