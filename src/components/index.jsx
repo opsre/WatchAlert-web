@@ -25,59 +25,59 @@ const Components = (props) => {
 
     // 检查认证和租户信息
     useEffect(() => {
-        let isMounted = true;
+        let isMounted = true
 
         const checkAuthAndTenant = async () => {
             try {
-                const auth = localStorage.getItem("Authorization");
-                const tenant = localStorage.getItem("TenantID");
+                const auth = localStorage.getItem("Authorization")
+                const tenant = localStorage.getItem("TenantID")
 
                 if (!auth) {
-                    setError(true);
-                    setLoading(false);
-                    return;
+                    setError(true)
+                    setLoading(false)
+                    return
                 }
 
                 // 如果有认证信息但没有租户信息，尝试获取用户信息
                 if (auth && !tenant) {
                     try {
-                        const userRes = await getUserInfo();
+                        const userRes = await getUserInfo()
                         if (userRes.data?.userid) {
-                            await fetchTenantList(userRes.data.userid);
+                            await fetchTenantList(userRes.data.userid)
                         }
                     } catch (err) {
-                        console.error("Failed to fetch user info:", err);
-                        setError(true);
+                        console.error("Failed to fetch user info:", err)
+                        setError(true)
                     }
                 }
 
                 // 再次检查租户信息
-                const updatedTenant = localStorage.getItem("TenantID");
+                const updatedTenant = localStorage.getItem("TenantID")
                 if (isMounted) {
-                    setAuthorization(auth);
-                    setTenantId(updatedTenant);
-                    setLoading(false);
-                    setError(!updatedTenant);
+                    setAuthorization(auth)
+                    setTenantId(updatedTenant)
+                    setLoading(false)
+                    setError(!updatedTenant)
                 }
             } catch (error) {
-                console.error("Error accessing localStorage:", error);
+                console.error("Error accessing localStorage:", error)
                 if (isMounted) {
-                    setError(true);
-                    setLoading(false);
+                    setError(true)
+                    setLoading(false)
                 }
             }
-        };
+        }
 
         // 延迟检查逻辑
         const delayCheck = setTimeout(() => {
-            checkAuthAndTenant();
-        }, 500); // 延迟 500 毫秒
+            checkAuthAndTenant()
+        }, 500) // 延迟 500 毫秒
 
         return () => {
-            isMounted = false;
-            clearTimeout(delayCheck);
-        };
-    }, []);
+            isMounted = false
+            clearTimeout(delayCheck)
+        }
+    }, [])
 
     // 监听渲染完成
     useEffect(() => {
