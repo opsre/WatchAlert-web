@@ -16,23 +16,23 @@ const Auth = (WrappedComponent) => {
         // Check if user is logged in
         useEffect(() => {
             const checkUser = async () => {
-                const token = localStorage.getItem("Authorization");
+                const token = localStorage.getItem("Authorization")
                 if (!token) {
-                    const res = await getCookieConvertToken();
+                    const res = await getCookieConvertToken()
                     if (res.code !== 200) {
-                        localStorage.clear();
-                        navigate("/login");
+                        localStorage.clear()
+                        navigate("/login")
                     } else {
-                        localStorage.setItem("Authorization", res.data.token);
-                        localStorage.setItem("Username", res.data.username);
-                        localStorage.setItem("UserId", res.data.userId);
-                        navigate("/");
+                        localStorage.setItem("Authorization", res.data.token)
+                        localStorage.setItem("Username", res.data.username)
+                        localStorage.setItem("UserId", res.data.userId)
+                        navigate("/")
                     }
                 }
-            };
-        
-            checkUser();
-        }, [navigate]);
+            }
+
+            checkUser()
+        }, [navigate])
 
         // Set global request headers
         useEffect(() => {
