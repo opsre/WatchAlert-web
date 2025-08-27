@@ -542,6 +542,19 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                             >
                                 <Input.Password />
                             </MyFormItem>
+
+                            <MyFormItem
+                                name="alicloudSlsProject"
+                                label="SLS Project"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "请输入SLS项目名称",
+                                    },
+                                ]}
+                            >
+                                <Input placeholder="请输入SLS项目名称" />
+                            </MyFormItem>
                         </MyFormItemGroup>
                     </div>
                 )}

@@ -248,7 +248,6 @@ export const AlertRule = ({ type }) => {
                 rules: selectedRow?.prometheusConfig?.rules,
             },
             alicloudSLSConfig: {
-                project: selectedRow?.alicloudSLSConfig?.project,
                 logstore: selectedRow?.alicloudSLSConfig?.logstore,
                 logQL: selectedRow?.alicloudSLSConfig?.logQL,
                 logScope: selectedRow?.alicloudSLSConfig?.logScope,
@@ -1189,28 +1188,15 @@ export const AlertRule = ({ type }) => {
                         <MyFormItemGroup prefix={['alicloudSLSConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
-                                <div style={{display: 'flex'}}>
-                                    <MyFormItem
-                                        name="project"
-                                        label="Project"
-                                        rules={[{required: true}]}
-                                        style={{
-                                            marginRight: '5px',
-                                            width: '50%',
-                                        }}>
-                                        <Input/>
-                                    </MyFormItem>
-                                    <MyFormItem
-                                        name="logstore"
-                                        label="Logstore"
-                                        rules={[{required: true}]}
-                                        style={{
-                                            marginLeft: '5px',
-                                            width: '50%',
-                                        }}>
-                                        <Input/>
-                                    </MyFormItem>
-                                </div>
+                                <MyFormItem
+                                    name="logstore"
+                                    label="Logstore"
+                                    rules={[{required: true}]}
+                                    style={{
+                                        width: '50%',
+                                    }}>
+                                    <Input/>
+                                </MyFormItem>
 
                                 <MyFormItem
                                     name="logQL"

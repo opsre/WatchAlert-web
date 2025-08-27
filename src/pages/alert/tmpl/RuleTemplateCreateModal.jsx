@@ -537,27 +537,15 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         <MyFormItemGroup prefix={['alicloudSLSConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
-                                <div style={{display: 'flex'}}>
-                                    <MyFormItem
-                                        name="project"
-                                        label="Project"
-                                        rules={[{required: true}]}
-                                        style={{
-                                            marginRight: '10px',
-                                            width: '500px',
-                                        }}>
-                                        <Input/>
-                                    </MyFormItem>
-                                    <MyFormItem
-                                        name="logstore"
-                                        label="Logstore"
-                                        rules={[{required: true}]}
-                                        style={{
-                                            width: '500px',
-                                        }}>
-                                        <Input/>
-                                    </MyFormItem>
-                                </div>
+                                <MyFormItem
+                                    name="logstore"
+                                    label="Logstore"
+                                    rules={[{required: true}]}
+                                    style={{
+                                        width: '500px',
+                                    }}>
+                                    <Input/>
+                                </MyFormItem>
 
                                 <MyFormItem
                                     name="logQL"
