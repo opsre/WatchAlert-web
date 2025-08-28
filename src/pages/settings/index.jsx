@@ -244,7 +244,7 @@ export const SystemSettings = () => {
     };
 
     const formItemStyle = { width: '100%' };
-    const helpTextStyle = { fontSize: '12px', color: '#7f838a', marginTop: '-20px' };
+    const helpTextStyle = { fontSize: '12px', color: '#7f838a'};
 
     const radioOptions = [
         { label: '启用', value: true },
@@ -281,7 +281,7 @@ export const SystemSettings = () => {
                 <Form form={form} name="form_item_path" layout="vertical" onFinish={handleSave}>
                     <section id="email">
                         <Typography.Title level={5}>邮箱配置</Typography.Title>
-                        <p style={helpTextStyle}>｜↪ 用于推送邮件告警消息；</p>
+                        <p style={helpTextStyle}>• 用于推送邮件告警消息；</p>
                         <MyFormItemGroup prefix={['emailConfig']}>
                             <MyFormItem
                                 name="serverAddress"

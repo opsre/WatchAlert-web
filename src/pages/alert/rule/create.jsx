@@ -249,7 +249,7 @@ export const AlertRule = ({ type }) => {
             },
             alicloudSLSConfig: {
                 project: selectedRow?.alicloudSLSConfig?.project,
-                logstore: selectedRow?.alicloudSLSConfig?.logstore,
+                logstore: toArr(selectedRow?.alicloudSLSConfig?.logstore),
                 logQL: selectedRow?.alicloudSLSConfig?.logQL,
                 logScope: selectedRow?.alicloudSLSConfig?.logScope,
             },
@@ -1180,7 +1180,7 @@ export const AlertRule = ({ type }) => {
                                         datasourceId={selectedItems}
                                         promQL={promQL}
                                     />
-                                < /Modal>
+                                </Modal>
                             </div>
                         </>
                     }
@@ -1208,7 +1208,12 @@ export const AlertRule = ({ type }) => {
                                             marginLeft: '5px',
                                             width: '50%',
                                         }}>
-                                        <Input/>
+                                        <Select
+                                            mode="tags"
+                                            tokenSeparators={[',']}
+                                            style={{ width: '100%' }}
+                                            placeholder="输入后按 Enter 添加，可添加多个"
+                                        />
                                     </MyFormItem>
                                 </div>
 
