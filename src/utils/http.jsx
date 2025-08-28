@@ -6,14 +6,9 @@ import {message} from "antd";
 const protocol = window.location.protocol;
 const curUrl = window.location.hostname
 const port = window.location.port;
-const type = process.env.REACT_APP_TYPE
 axios.defaults.timeout = 100000;
+axios.defaults.baseURL = `${protocol}//${curUrl}:${port}`;
 
-if (type === "local") {
-    axios.defaults.baseURL = `${protocol}//${curUrl}:${9001}`; // 本地开发端口为 9001
-} else {
-    axios.defaults.baseURL = `${protocol}//${curUrl}:${port}`; // 使用当前端口
-}
 /**
  * http request 拦截器
  */

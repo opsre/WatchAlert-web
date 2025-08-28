@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { message } from "antd"
 import axios from "axios"
+import { getCookieConvertToken } from "../api/user"
 
 // Create a Higher-Order Component (HOC) instead of a hook
 const Auth = (WrappedComponent) => {
@@ -17,7 +18,16 @@ const Auth = (WrappedComponent) => {
             const checkUser = async () => {
                 const token = localStorage.getItem("Authorization")
                 if (!token) {
-                    navigate("/login") // Redirect to login page if not logged in
+                    const res = await getCookieConvertToken()
+                    if (res.code !== 200) {
+                        localStorage.clear()
+                        navigate("/login")
+                    } else {
+                        localStorage.setItem("Authorization", res.data.token)
+                        localStorage.setItem("Username", res.data.username)
+                        localStorage.setItem("UserId", res.data.userId)
+                        navigate("/")
+                    }
                 }
             }
 

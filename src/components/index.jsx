@@ -68,10 +68,14 @@ const Components = (props) => {
             }
         }
 
-        checkAuthAndTenant()
+        // 延迟检查逻辑
+        const delayCheck = setTimeout(() => {
+            checkAuthAndTenant()
+        }, 500) // 延迟 500 毫秒
 
         return () => {
             isMounted = false
+            clearTimeout(delayCheck)
         }
     }, [])
 
