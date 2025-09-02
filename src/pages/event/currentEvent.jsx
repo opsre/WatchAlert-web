@@ -910,7 +910,7 @@ export const AlertCurrentEvent = (props) => {
                             type="primary"
                             onClick={handleAiDeepAnalyze}
                             disabled={analyzeLoading}
-                            style={{ background: "#000" }}
+                            style={{ background: "#000", color: 'white' }}
                         >
                             深度分析
                         </Button>
