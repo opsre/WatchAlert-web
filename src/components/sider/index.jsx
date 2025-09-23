@@ -292,14 +292,17 @@ export const ComponentSider = () => {
     return (
         <Sider
             style={{
-                overflow: 'auto',
+                overflow: 'hidden',
                 height: '100%',
                 background: '#000',
                 borderRadius: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative', 
             }}
             theme="dark"
         >
-            {/* 固定在顶部的Logo和租户选择区域 */}
+            {/* 顶部Logo和租户选择区域 */}
             <div style={{
                 padding: '16px 16px 0',
                 position: 'sticky',
@@ -346,13 +349,14 @@ export const ComponentSider = () => {
 
             <Divider style={{margin: '0', background: 'rgba(255, 255, 255, 0.1)'}}/>
 
-            {/* 导航菜单 */}
+            {/* 主内容，预留底部空间 */}
             <div
                 style={{
                     textAlign:'left',
                     alignItems: 'flex-start',
-                    height: '70%',
                     overflowY: 'auto',
+                    flex: 1,
+                    paddingBottom: 70, // 预留底部空间
                 }}
             >
                 <Menu
@@ -365,10 +369,15 @@ export const ComponentSider = () => {
                 </Menu>
             </div>
 
-            {/* 固定在底部的用户信息 */}
+            {/* 绝对定位底部用户信息 */}
             <div style={{
+                position: 'absolute',
+                left: 0,
+                bottom: 0,
+                width: '100%',
                 padding: '10px',
                 borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                background: '#000',
             }}>
                 <Popover content={userMenu} trigger="click" placement="topRight">
                     <div style={{
@@ -377,9 +386,7 @@ export const ComponentSider = () => {
                         cursor: "pointer",
                         padding: '8px',
                         borderRadius: '4px',
-                        ':hover': {
-                            background: 'rgba(255, 255, 255, 0.1)',
-                        }
+                        width: '100%',
                     }}>
                         <Avatar
                             style={{

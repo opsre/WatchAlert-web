@@ -82,7 +82,7 @@ export default function Profile() {
                             {/* Profile Info */}
                             <div className="text-center">
                                 <h1 className="text-3xl font-bold">{userInfo?.username}</h1>
-                                <p className="text-xl text-muted-foreground">UID: {userInfo?.userid}</p>
+                                <p className="text-l text-muted-foreground">UID: {userInfo?.userid}</p>
                             </div>
                             {/* Edit Profile Button */}
                             <div className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
@@ -92,6 +92,7 @@ export default function Profile() {
                                     htmlType="submit"
                                     onClick={() => setIsEditing(true)}
                                     style={{
+                                        marginLeft: '12px',
                                         width: '90%',
                                         marginTop: '-15px',
                                         backgroundColor: '#000000'
