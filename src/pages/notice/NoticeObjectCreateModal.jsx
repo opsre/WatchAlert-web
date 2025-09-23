@@ -11,6 +11,7 @@ import CustomHook from "./img/customhook.svg"
 import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
 import {getNoticeTmplList} from "../../api/noticeTmpl";
 import {getUserList} from "../../api/user";
+import { noticeTest } from '../../api/notice';
 
 const MyFormItemContext = React.createContext([])
 
@@ -36,6 +37,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
     const [dutyList, setDutyList] = useState([])
     const [selectedDutyItem, setSelectedDutyItem] = useState([])
     const [submitLoading,setSubmitLoading] = useState(false)
+    const [testLoading, setTestLoading] = useState(false)
     const [subjectValue,setSubjectValue] = useState('')
     const [selectedNoticeCard, setSelectedNoticeCard] = useState(null)
     const [noticeType,setNoticeType] = useState('')
@@ -239,6 +241,17 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         setSubmitLoading(false)
     }
 
+    const handleTestNotice = async () => {
+        setTestLoading(true)
+        const values = form.getFieldsValue(['noticeType', 'hook', 'sign', 'routes', 'email']);
+        try {
+            const res = await noticeTest(values);
+        } catch (error) {
+            console.log(error)
+        }
+        setTestLoading(false)
+    };
+
     const getAvailablePriorityOptions = (fields) => {
         const usedPriorities = fields.map(field =>
             form.getFieldValue(['routes', field.name, 'severity'])
@@ -255,7 +268,18 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
             onClose={onClose}
             width={820}
             footer={
-                <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    <Button
+                        type="default"
+                        onClick={handleTestNotice}
+                        loading={testLoading}
+                    >
+                        通知测试
+                    </Button>
                     <Button
                         type="primary"
                         htmlType="submit"

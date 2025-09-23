@@ -74,11 +74,27 @@ async function noticeRecordMetric() {
     }
 }
 
+
+async function noticeTest(params) {
+    try {
+        const res = await http('post', '/api/w8t/notice/noticeTest', params);
+        message.open({
+            type: 'success',
+            content: '测试消息发送成功!',
+        });
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
 export {
     getNoticeList,
     createNotice,
     updateNotice,
     deleteNotice,
     noticeRecordList,
-    noticeRecordMetric
+    noticeRecordMetric,
+    noticeTest
 }
