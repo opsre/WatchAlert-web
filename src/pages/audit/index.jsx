@@ -6,6 +6,7 @@ import JsonViewer from "react-json-view"
 import {FileText} from "lucide-react";
 import {HandleShowTotal} from "../../utils/lib";
 import {ReloadOutlined} from "@ant-design/icons";
+import { TableWithPagination } from "../../utils/TableWithPagination"
 
 export const AuditLog = () => {
     const { Search } = Input
@@ -15,9 +16,10 @@ export const AuditLog = () => {
     const [scope, setScope] = useState("")
     const [startTimestamp, setStartTimestamp] = useState(null)
     const [endTimestamp, setEndTimestamp] = useState(null)
+    // 统一分页参数为 index 和 size
     const [pagination, setPagination] = useState({
-        current: 1, // Changed from index to current to match Ant Design's naming
-        pageSize: 10, // Changed from size to pageSize to match Ant Design's naming
+        index: 1,
+        size: 10,
         total: 0,
     })
     const columns = [
@@ -122,11 +124,12 @@ export const AuditLog = () => {
     }, [scope])
 
     // Renamed from handleList to fetchData for clarity
-    const fetchData = async () => {
+    // fetchData 支持传参
+    const fetchData = async (page = pagination.index, size = pagination.size) => {
         try {
             const params = {
-                index: pagination.current, // Map to backend parameter
-                size: pagination.pageSize, // Map to backend parameter
+                index: page,
+                size: size,
                 scope: scope,
             }
 
@@ -134,8 +137,8 @@ export const AuditLog = () => {
 
             // Update pagination with response data
             setPagination({
-                current: res.data.index || 1, // Use response index or default to 1
-                pageSize: res.data.size || 10, // Use response size or default to 10
+                index: res.data.index || 1, // Use response index or default to 1
+                size: res.data.size || 10, // Use response size or default to 10
                 total: res.data.total || 0, // Use response total or default to 0
             })
 
@@ -147,12 +150,22 @@ export const AuditLog = () => {
 
     // Updated to handle Ant Design's pagination change event
     const handlePageChange = (page, pageSize) => {
-        setPagination({
-            ...pagination,
-            current: page,
-            pageSize: pageSize,
-        })
+        setPagination(prev => ({
+            ...prev,
+            index: page,
+            size: pageSize,
+        }));
+        fetchData(page, pageSize);
     }
+
+    const handlePageSizeChange = (current, size) => {
+        setPagination(prev => ({
+            ...prev,
+            index: 1,
+            size: size,
+        }));
+        fetchData(1, size);
+    };
 
     const handleShowTotal = (total, range) => `第 ${range[0]} - ${range[1]} 条 共 ${total} 条`
 
@@ -256,31 +269,17 @@ export const AuditLog = () => {
                 >刷新</Button>
             </div>
 
-            <div style={{ overflowX: "auto", marginTop: 10 }}>
-                <Table
-                    columns={columns}
-                    dataSource={list}
-                    pagination={{
-                        current: pagination.current,
-                        pageSize: pagination.pageSize,
-                        total: pagination.total,
-                        showTotal: HandleShowTotal,
-                        onChange: handlePageChange,
-                        pageSizeOptions: ['10'],
-                    }}
-                    scroll={{
-                        y: height - 280, // 动态设置滚动高度
-                        x: "max-content", // 水平滚动
-                    }}
-                    style={{
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                    }}
-                    rowKey={(record) => record.id} // 设置行唯一键
-                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
-                />
-            </div>
+
+            <TableWithPagination
+                columns={columns}
+                dataSource={list}
+                pagination={pagination}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                scrollY={height - 280}
+                rowKey={record => record.id}
+                showTotal={HandleShowTotal}
+            />
         </div>
     )
 }

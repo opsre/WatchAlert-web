@@ -1,4 +1,4 @@
-import {Button, Input, Table, Popconfirm, Space, Tooltip, Badge} from 'antd'
+import {Button, Input, Table, Popconfirm, Space, Tooltip, Badge, Pagination} from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertRuleGroupCreateModal } from './AlertRuleGroupCreateModal'
@@ -6,6 +6,7 @@ import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from '@ant-des
 import { deleteRuleGroup, getRuleGroupList } from '../../../api/rule'
 import { copyToClipboard } from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
+import { TableWithPagination } from "../../../utils/TableWithPagination"
 
 export const AlertRuleGroup = ({ }) => {
     const { Search } = Input
@@ -241,38 +242,22 @@ export const AlertRuleGroup = ({ }) => {
             <AlertRuleGroupCreateModal visible={updateModalVisible} onClose={handleUpdateModalClose}
                                        selectedRow={selectedRow} type='update' handleList={handleList} pagination={pagination}/>
 
-            <div style={{overflowX: 'auto', marginTop: 10}}>
-                <Table
-                    columns={columns}
-                    dataSource={list}
-                    pagination={{
-                        current: pagination.index ?? 1,
-                        pageSize: pagination.size ?? 10,
-                        total: pagination?.total ?? 0,
-                        showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10', '30', '50', '100'],
-                        showSizeChanger: true,
-                        onShowSizeChange: (current, size) => {
-                            setPagination({ ...pagination, index: 1, size });
-                        }
-                    }}
-                    onChange={(pagination) => {
-                        setPagination({ ...pagination, index: pagination.current, size: pagination.pageSize });
-                        handleList(pagination.current, pagination.pageSize);
-                    }}
-                    scroll={{
-                        y: height - 280, // 动态设置滚动高度
-                        x: 'max-content', // 水平滚动
-                    }}
-                    style={{
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                    }}
-                    rowKey={(record) => record.id} // 设置行唯一键
-                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
-                />
-            </div>
+            <TableWithPagination
+                columns={columns}
+                dataSource={list}
+                pagination={pagination}
+                onPageChange={(page, pageSize) => {
+                    setPagination({ ...pagination, index: page, size: pageSize });
+                    handleList(page, pageSize);
+                }}
+                onPageSizeChange={(current, size) => {
+                    setPagination({ ...pagination, index: current, size });
+                    handleList(current, size);
+                }}
+                scrollY={height - 280}
+                rowKey={record => record.id}
+                showTotal={HandleShowTotal}
+            />
         </>
     );
 };

@@ -368,7 +368,6 @@ export const NoticeRecords = () => {
                 locale={{
                     emptyText: <Empty description="暂无通知记录" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
                 }}
-                rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
             />
 
             {/* Detail Drawer */}

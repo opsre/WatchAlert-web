@@ -200,3 +200,9 @@ body {
 .ant-radio-group.ant-radio-group-block {
     display: block;
 }
+
+.columns-title {
+    font-size: 13px;
+    color: '#42464E';
+    font-weight: 500;
+}

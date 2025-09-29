@@ -15,7 +15,8 @@ import {
     Tooltip,
     Space,
     Switch,
-    Popconfirm
+    Popconfirm,
+    Pagination
 } from "antd"
 import {Link, useNavigate} from "react-router-dom"
 import { useParams } from "react-router-dom"
@@ -47,6 +48,7 @@ import VSCodeEditor from "../../../utils/VSCodeEditor";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
 import {HandleApiError, HandleShowTotal} from "../../../utils/lib";
 import {useAppContext} from "../../../context/RuleContext";
+import { TableWithPagination } from '../../../utils/TableWithPagination';
 
 export const AlertRuleList = () => {
     const { setCloneAlertRule } = useAppContext()
@@ -673,40 +675,23 @@ export const AlertRuleList = () => {
                 </div>
             </div>
 
-            <div style={{ marginTop: 10 }}>
-                <Table
-                    rowSelection={rowSelection}
-                    columns={columns}
-                    dataSource={list}
-                    pagination={{
-                        current: pagination.index ?? 1,
-                        pageSize: pagination.size ?? 10,
-                        total: pagination.total ?? 0,
-                        showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10', '30', '50', '100'],
-                        showSizeChanger: true,
-                        onShowSizeChange: (current, size) => {
-                            setPagination({ ...pagination, index: 1, size });
-                            handleList(id, 1, size);
-                        }
-                    }}
-                    onChange={(pagination) => {
-                        setPagination({ ...pagination, index: pagination.current, size: pagination.pageSize });
-                        handleList(id, pagination.current, pagination.pageSize);
-                    }}
-                    scroll={{
-                        y: height - 280, // 动态设置滚动高度
-                        x: "max-content", // 水平滚动
-                    }}
-                    style={{
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                    }}
-                    rowKey={(record) => record.ruleId} // 设置行唯一键
-                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
-                />
-            </div>
+            <TableWithPagination
+                columns={columns}
+                dataSource={list}
+                pagination={pagination}
+                onPageChange={(page, pageSize) => {
+                    setPagination({ ...pagination, index: page, size: pageSize });
+                    handleList(id, page, pageSize);
+                }}
+                onPageSizeChange={(current, pageSize) => {
+                    setPagination({ ...pagination, index: current, size: pageSize });
+                    handleList(id, current, pageSize);
+                }}
+                scrollY={height - 280}
+                rowKey={record => record.id}
+                showTotal={HandleShowTotal}
+            />
+
             {/* 导入抽屉 */}
             <Drawer
                 title="导入规则"

@@ -184,7 +184,6 @@ export const UserRole = () => {
                         showTotal: HandleShowTotal,
                         pageSizeOptions: ['10'],
                     }}
-                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                     rowKey={(record) => record.id} // 设置行唯一键
                 />
             </div>

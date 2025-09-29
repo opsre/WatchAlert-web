@@ -16,6 +16,7 @@ import {
     PlusOutlined
 } from "@ant-design/icons"
 import {HandleShowTotal} from "../../../utils/lib";
+import { TableWithPagination } from "../../../utils/TableWithPagination"
 
 const MyFormItemContext = React.createContext([])
 const { Search } = Input
@@ -492,40 +493,22 @@ export const RuleTemplate = () => {
                 ruleGroupName={ruleGroupName}
             />
 
-            <div style={{ overflowX: "auto", marginTop: 10 }}>
-                <Table
-                    rowSelection={rowSelection}
-                    columns={columns}
-                    dataSource={list}
-                    pagination={{
-                        current: pagination.index ?? 1,
-                        pageSize: pagination.size ?? 10,
-                        total: pagination.total ?? 0,
-                        showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10', '30', '50', '100'],
-                        showSizeChanger: true,
-                        onShowSizeChange: (current, size) => {
-                            setPagination({ ...pagination, index: 1, size });
-                            handleList(1, size);
-                        }
-                    }}
-                    onChange={(pagination) => {
-                        setPagination({ ...pagination, index: pagination.current, size: pagination.pageSize });
-                        handleList(pagination.current, pagination.pageSize);
-                    }}
-                    scroll={{
-                        y: height - 280, // 动态设置滚动高度
-                        x: "max-content", // 水平滚动
-                    }}
-                    style={{
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                    }}
-                    rowKey={(record) => `${record.ruleGroupName}-${record.ruleName}`} // 使用组合键作为唯一标识
-                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
-                />
-            </div>
+            <TableWithPagination
+                columns={columns}
+                dataSource={list}
+                pagination={pagination}
+                onPageChange={(page, pageSize) => {
+                    setPagination({ ...pagination, index: page, size: pageSize });
+                    handleList(page, pageSize);
+                }}
+                onPageSizeChange={(current, pageSize) => {
+                    setPagination({ ...pagination, index: current, pageSize });
+                    handleList(current, pageSize);
+                }}
+                scrollY={height - 280}
+                rowKey={record => record.id}
+                showTotal={HandleShowTotal}
+            />
         </>
     )
 }

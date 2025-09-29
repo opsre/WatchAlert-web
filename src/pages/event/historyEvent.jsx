@@ -728,7 +728,6 @@ export const AlertHistoryEvent = (props) => {
                     borderRadius: "8px",
                     overflow: "hidden",
                 }}
-                rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
                 rowKey={(record) => record.id}
                 scroll={{
                     y: height - 480,

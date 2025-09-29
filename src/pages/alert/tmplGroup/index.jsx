@@ -11,6 +11,7 @@ import { ReactComponent as Trace } from "../assets/trace.svg"
 import { ReactComponent as Event } from "../assets/event.svg"
 import { SearchOutlined, PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons"
 import {HandleShowTotal} from "../../../utils/lib";
+import { TableWithPagination } from "../../../utils/TableWithPagination"
 
 const { Search } = Input
 
@@ -300,38 +301,22 @@ export const RuleTemplateGroup = () => {
                     </Button>
                 </div>
 
-                {/* Table */}
-                <Table
+                <TableWithPagination
                     columns={columns}
                     dataSource={list}
                     loading={loading}
-                    pagination={{
-                        current: pagination.index ?? 1,
-                        pageSize: pagination.size ?? 10,
-                        total: pagination.total ?? 0,
-                        showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10', '30', '50', '100'],
-                        showSizeChanger: true,
-                        onShowSizeChange: (current, size) => {
-                            setPagination({ ...pagination, index: 1, size });
-                            handleList(1, size);
-                        }
+                    pagination={pagination}
+                    onPageChange={(page, pageSize) => {
+                        setPagination({ ...pagination, index: page, size: pageSize });
+                        handleList(page, pageSize);
                     }}
-                    onChange={(pagination) => {
-                        setPagination({ ...pagination, index: pagination.current, size: pagination.pageSize });
-                        handleList(pagination.current, pagination.pageSize);
+                    onPageSizeChange={(current, pageSize) => {
+                        setPagination({ ...pagination, index: current, size: pageSize });
+                        handleList(current, pageSize);
                     }}
-                    scroll={{
-                        y: height - 280,
-                    }}
-                    style={{
-                        marginTop: "10px",
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                    }}
-                    rowClassName={(record, index) => (index % 2 === 0 ? "bg-white" : "bg-gray-50")}
-                    rowKey={(record) => record.id || record.name}
+                    scrollY={height - 280}
+                    rowKey={record => record.id}
+                    showTotal={HandleShowTotal}
                     locale={{
                         emptyText: <Empty description="暂无模版组" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
                     }}
