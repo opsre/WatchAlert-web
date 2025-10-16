@@ -494,23 +494,31 @@ export const Probing = () => {
                 const endTime = record.probingEndpointValues?.pSsl?.expireTime;
 
                 if (!startTime || !endTime) {
-                    return '-'; // 数据不足时显示占位符
+                    return '-';
                 }
 
-                const totalDays = moment(endTime).diff(moment(startTime), 'days');
-                const remainingDays = moment(endTime).diff(moment(), 'days');
-                const progress = Math.max(0, Math.min(100, (remainingDays / totalDays) * 100)); // 进度百分比
+                // 以天为单位，使用 startOf/endOf 并向上取整
+                const msPerDay = 24 * 60 * 60 * 1000;
+                const startMs = moment(startTime).startOf('day').valueOf();
+                const endMs = moment(endTime).endOf('day').valueOf();
+                const nowMs = moment().startOf('day').valueOf();
+
+                const totalDays = Math.max(1, Math.ceil((endMs - startMs) / msPerDay));
+                const remainingDaysRaw = Math.ceil((endMs - nowMs) / msPerDay);
+                const remainingDays = Math.max(0, remainingDaysRaw);
+
+                const progress = Math.max(0, Math.min(100, (remainingDays / totalDays) * 100));
 
                 return (
                     <div>
                         <Progress
-                            percent={progress.toFixed(2)}
+                            percent={Number(progress.toFixed(2))}
                             status={progress > 20 ? 'active' : 'exception'}
                             strokeColor={progress > 20 ? '#52c41a' : '#ff4d4f'}
-                            showInfo={false} // 隐藏默认信息
+                            showInfo={false}
                         />
-                        <div style={{textAlign: 'center', fontSize: 12}}>
-                            剩余 {remainingDays > 0 ? remainingDays : 0} 天 / 总共 {totalDays} 天
+                        <div style={{ textAlign: 'center', fontSize: 12 }}>
+                            剩余 {remainingDays} 天 / 总共 {totalDays} 天
                         </div>
                     </div>
                 );
