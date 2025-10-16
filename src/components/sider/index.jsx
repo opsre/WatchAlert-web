@@ -356,6 +356,7 @@ export const ComponentSider = () => {
                     alignItems: 'flex-start',
                     overflowY: 'auto',
                     flex: 1,
+                    height: '76vh',
                     paddingBottom: 70, // 预留底部空间
                 }}
             >
