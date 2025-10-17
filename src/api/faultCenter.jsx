@@ -78,11 +78,22 @@ async function FaultCenterReset(params) {
     }
 }
 
+async function FaultCenterSlo(params) {
+    try {
+        const res = await http('get', '/api/w8t/faultCenter/slo', params);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
 export {
     FaultCenterList,
     FaultCenterSearch,
     FaultCenterCreate,
     FaultCenterUpdate,
     FaultCenterDelete,
-    FaultCenterReset
+    FaultCenterReset,
+    FaultCenterSlo
 }

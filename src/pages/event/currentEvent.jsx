@@ -1025,7 +1025,7 @@ export const AlertCurrentEvent = (props) => {
                 }}
                 rowKey={(record) => record.fingerprint}
                 scroll={{
-                    y: height - 480,
+                    y: height - 250,
                     x: "max-content", // 水平滚动
                 }}
                 locale={{

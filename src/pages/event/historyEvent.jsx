@@ -293,7 +293,7 @@ export const AlertHistoryEvent = (props) => {
                                     gap: "4px",
                                 }}
                             >
-                                {text.whoAreHandle || "无"}
+                                {text.whoAreHandle || "自动恢复"}
                             </Tag>
                         )) || (
                             <>
@@ -730,7 +730,7 @@ export const AlertHistoryEvent = (props) => {
                 }}
                 rowKey={(record) => record.id}
                 scroll={{
-                    y: height - 480,
+                    y: height - 250,
                     x: "max-content",
                 }}
             />
@@ -801,7 +801,7 @@ export const AlertHistoryEvent = (props) => {
                                                         gap: "4px",
                                                     }}
                                                 >
-                                                    {RenderTruncatedText(selectedEvent?.upgradeState?.whoAreHandle || "无")}
+                                                    {RenderTruncatedText(selectedEvent?.upgradeState?.whoAreHandle || "自动恢复")}
                                                 </Tag>
                                             )) || (
                                                 <>
