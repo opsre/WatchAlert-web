@@ -206,7 +206,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         if (type === 'create') {
             try {
                 await createRuleTmpl(params)
-                handleList(ruleGroupName)
+                handleList(1, 10)
             } catch (error) {
                 console.error(error)
             }
@@ -214,7 +214,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         if (type === 'update') {
             try {
                 await updateRuleTmpl(params)
-                handleList(ruleGroupName)
+                handleList(1, 10)
             } catch (error) {
                 console.error(error)
             }
