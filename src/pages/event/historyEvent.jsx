@@ -38,6 +38,16 @@ import {
     HandleShowTotal,
     RenderTruncatedText,
 } from "../../utils/lib"
+import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
+import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
+import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
+import { ReactComponent as AwsImg } from "../alert/rule/img/AWSlogo.svg"
+import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
+import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
+import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
+import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
+import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
+import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
 
 const { Title, Text } = Typography
 const { RangePicker } = DatePicker
@@ -93,6 +103,19 @@ export const AlertHistoryEvent = (props) => {
         P0: "P0",
         P1: "P1",
         P2: "P2",
+    }
+
+    const logoMap = {
+        Prometheus: <PrometheusImg style={{ width: 16, height: 16 }} />,
+        VictoriaMetrics: <VMImg style={{ width: 16, height: 16 }} />,
+        AliCloudSLS: <AlicloudImg style={{ width: 16, height: 16 }} />,
+        Jaeger: <JaegerImg style={{ width: 16, height: 16 }} />,
+        CloudWatch: <AwsImg style={{ width: 16, height: 16 }} />,
+        Loki: <LokiImg style={{ width: 16, height: 16 }} />,
+        ElasticSearch: <ESImg style={{ width: 16, height: 16 }} />,
+        VictoriaLogs: <VLogImg style={{ width: 16, height: 16 }} />,
+        ClickHouse: <CkImg style={{ width: 16, height: 16 }} />,
+        Kubernetes: <K8sImg style={{ width: 16, height: 16 }} />,
     }
 
     // Table Column Definitions
@@ -155,16 +178,27 @@ export const AlertHistoryEvent = (props) => {
                     contentString.length > maxLength ? contentString.substring(0, maxLength) + "..." : contentString
                 return (
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                        {/* 规则名称 */}
+                        {/* 规则名称（可点击打开详情） */}
                         <div
                             style={{
                                 fontSize: "11px",
                                 fontWeight: "500",
                                 lineHeight: "1.2",
+                                display: "flex", 
+                                gap: "4px" 
                             }}
                         >
-                            {record.datasource_type} / {record.rule_name}
+                            {logoMap[record.datasource_type]} <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => { e.stopPropagation(); showDrawer(record); }}
+                                onKeyPress={(e) => { if (e.key === 'Enter') { e.stopPropagation(); showDrawer(record); } }}
+                                style={{ cursor: 'pointer', color: 'rgb(22, 119, 255)', textDecoration: 'none', marginTop: '1px' }}
+                            >
+                                {record.rule_name}
+                            </span>
                         </div>
+
                         {/* 事件详情 */}
                         <div
                             style={{
@@ -330,23 +364,6 @@ export const AlertHistoryEvent = (props) => {
                             </>
                         )}
                     </>
-                )
-            },
-        },
-        {
-            title: "操作",
-            key: "action",
-            width: "100px",
-            render: (_, record) => {
-                const menu = (
-                    <Menu>
-                        <Menu.Item onClick={() => showDrawer(record)}>查看详情</Menu.Item>
-                    </Menu>
-                )
-                return (
-                    <Dropdown overlay={menu} trigger={["click"]}>
-                        <EllipsisOutlined style={{ fontSize: 20, cursor: "pointer" }} />
-                    </Dropdown>
                 )
             },
         },

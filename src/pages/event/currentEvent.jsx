@@ -39,7 +39,7 @@ import {
     SearchOutlined,
     FilterOutlined,
     EllipsisOutlined,
-    DownloadOutlined, CloseOutlined
+    DownloadOutlined
 } from "@ant-design/icons"
 import { CreateSilenceModal } from "../silence/SilenceRuleCreateModal";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -51,6 +51,16 @@ import {
     HandleShowTotal,
     RenderTruncatedText
 } from "../../utils/lib";
+import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
+import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
+import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
+import { ReactComponent as AwsImg } from "../alert/rule/img/AWSlogo.svg"
+import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
+import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
+import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
+import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
+import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
+import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
 
 const { Title, Text } = Typography
 
@@ -82,12 +92,6 @@ export const AlertCurrentEvent = (props) => {
     const [silenceVisible, setSilenceVisible] = useState(false)
     // 导出相关状态
     const [exportModalVisible, setExportModalVisible] = useState(false)
-    const [exportTimeRange, setExportTimeRange] = useState([null, null])
-    const [exportFilters, setExportFilters] = useState({
-        ruleName: "",
-        ruleType: "",
-        alertLevel: "",
-    })
     const [exportOptions, setExportOptions] = useState({
         timeRange: "all", // all, custom
         filterOptions: [], // ruleName, ruleType, alertLevel
@@ -125,6 +129,19 @@ export const AlertCurrentEvent = (props) => {
         onChange: (selectedKeys) => {
             setSelectedRowKeys(selectedKeys)
         },
+    }
+
+    const logoMap = {
+        Prometheus: <PrometheusImg style={{ width: 16, height: 16 }} />,
+        VictoriaMetrics: <VMImg style={{ width: 16, height: 16 }} />,
+        AliCloudSLS: <AlicloudImg style={{ width: 16, height: 16 }} />,
+        Jaeger: <JaegerImg style={{ width: 16, height: 16 }} />,
+        CloudWatch: <AwsImg style={{ width: 16, height: 16 }} />,
+        Loki: <LokiImg style={{ width: 16, height: 16 }} />,
+        ElasticSearch: <ESImg style={{ width: 16, height: 16 }} />,
+        VictoriaLogs: <VLogImg style={{ width: 16, height: 16 }} />,
+        ClickHouse: <CkImg style={{ width: 16, height: 16 }} />,
+        Kubernetes: <K8sImg style={{ width: 16, height: 16 }} />,
     }
 
     const columns = [
@@ -189,15 +206,25 @@ export const AlertCurrentEvent = (props) => {
 
                 return (
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                        {/* 规则名称 */}
+                        {/* 规则名称（可点击打开详情） */}
                         <div
                             style={{
                                 fontSize: "11px",
                                 fontWeight: "500",
                                 lineHeight: "1.2",
+                                display: "flex", 
+                                gap: "4px" 
                             }}
                         >
-                            {record.datasource_type} / {record.rule_name}
+                            {logoMap[record.datasource_type]} <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => { e.stopPropagation(); showDrawer(record); }}
+                                onKeyPress={(e) => { if (e.key === 'Enter') { e.stopPropagation(); showDrawer(record); } }}
+                                style={{ cursor: 'pointer', color: 'rgb(22, 119, 255)', textDecoration: 'none', marginTop: '1px' }}
+                            >
+                                {record.rule_name}
+                            </span>
                         </div>
 
                         {/* 事件详情 */}
@@ -331,12 +358,15 @@ export const AlertCurrentEvent = (props) => {
             render: (_, record) => {
                 const menu = (
                     <Menu>
-                        <Menu.Item onClick={() => showDrawer(record)}>
-                            查看详情
+                        <Menu.Item onClick={() => {handleClaimOne(record)}} >
+                            去认领
+                        </Menu.Item>
+                        <Menu.Item onClick={() => {handleProcessOne(record)}} >
+                            去处理
                         </Menu.Item>
                         {record.status !== "silenced" && (
                             <Menu.Item onClick={() => {handleSilenceModalOpen(record)}} >
-                                快捷静默
+                                去静默
                             </Menu.Item>
                         )}
                         <Menu.Item onClick={() => openAiAnalyze(record)} disabled={analyzeLoading}>
@@ -697,6 +727,56 @@ export const AlertCurrentEvent = (props) => {
         })
     }
 
+    // 单条去认领
+    const handleClaimOne = (record) => {
+        Modal.confirm({
+            title: "确认认领",
+            content: `确定要认领规则 "${record.rule_name}" 的该事件吗？`,
+            onOk: async () => {
+                try {
+                    setBatchProcessing(true)
+                    const params = {
+                        state: 1,
+                        faultCenterId: id,
+                        fingerprints: [record.fingerprint],
+                    }
+                    await ProcessAlertEvent(params)
+                    message.success("认领成功")
+                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
+                } catch (error) {
+                    message.error("认领失败: " + error.message)
+                } finally {
+                    setBatchProcessing(false)
+                }
+            },
+        })
+    }
+
+    // 单条去处理
+    const handleProcessOne = (record) => {
+        Modal.confirm({
+            title: "确认处理",
+            content: `确定要将该事件标记为已处理吗？`,
+            onOk: async () => {
+                try {
+                    setBatchProcessing(true)
+                    const params = {
+                        state: 2,
+                        faultCenterId: id,
+                        fingerprints: [record.fingerprint],
+                    }
+                    await ProcessAlertEvent(params)
+                    message.success("处理成功")
+                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
+                } catch (error) {
+                    message.error("处理失败: " + error.message)
+                } finally {
+                    setBatchProcessing(false)
+                }
+            },
+        })
+    }
+
     // 清除所有过滤条件
     const clearAllFilters = () => {
         setSearchQuery("")
@@ -722,12 +802,6 @@ export const AlertCurrentEvent = (props) => {
 
     // 打开导出对话框
     const openExportModal = () => {
-        // 使用当前筛选条件作为默认值
-        setExportFilters({
-            ruleName: searchQuery,
-            ruleType: selectedDataSource,
-            alertLevel: selectedAlertLevel,
-        })
         setExportOptions({
             ...exportOptions,
             filterOptions: [
@@ -791,7 +865,7 @@ export const AlertCurrentEvent = (props) => {
             ruleName: searchQuery,
             ruleType: selectedDataSource,
             alertLevel: selectedAlertLevel,
-        }, exportTimeRange);
+        });
 
         setExportModalVisible(false)
     }
