@@ -167,7 +167,6 @@ export const NoticeRecords = () => {
                     const date = new Date(text * 1000)
                     return (
                         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <Clock size={14} />
                             <span>{date.toLocaleString()}</span>
                         </div>
                     )

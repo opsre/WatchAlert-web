@@ -306,6 +306,7 @@ const handleGetSlo = async () => {
                   tick={{ fontSize: 11, fill: "#6b7280" }}
                   axisLine={{ stroke: "#cacacaff" }}
                   tickLine={{ stroke: "#cacacaff" }}
+                  tickFormatter={(value) => `${value}s`}
                   width={40}
                 />
                 <Tooltip
@@ -390,6 +391,7 @@ const handleGetSlo = async () => {
                   tick={{ fontSize: 11, fill: "#6b7280" }}
                   axisLine={{ stroke: "#cacacaff" }}
                   tickLine={{ stroke: "#cacacaff" }}
+                  tickFormatter={(value) => `${value}s`}
                   width={40}
                 />
                 <Tooltip

@@ -10,7 +10,6 @@ import {HandleShowTotal} from "../../utils/lib";
 import {Users} from "lucide-react";
 
 export const DutyManage = () => {
-    const [calendarVisible, setCalendarVisible] = useState(false);
     const [visible, setVisible] = useState(false);
     const [updateVisible, setUpdateVisible] = useState(false);
     const [list, setList] = useState([]);
@@ -75,7 +74,17 @@ export const DutyManage = () => {
             width: 'auto',
             render: (text) => {
                 if (!text || text.length === 0) {
-                    return '-';
+                    return <Tag style={{
+                                    borderRadius: "12px",
+                                    padding: "0 10px",
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                }}>
+                                    暂无
+                                </Tag>;
                 }
                 return (
                     <>
@@ -111,13 +120,37 @@ export const DutyManage = () => {
             },
         },
         {
-            title: '创建时间',
-            dataIndex: 'create_at',
-            key: 'create_at',
-            width: 'auto',
+            title: "更新时间",
+            dataIndex: "updateAt",
+            key: "updateAt",
+            width: "auto",
             render: (text) => {
                 const date = new Date(text * 1000)
-                return date.toLocaleString()
+                    return (
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span>{date.toLocaleString()}</span>
+                        </div>
+                    )
+            },
+        },
+        {
+            title: "更新人",
+            dataIndex: "updateBy",
+            key: "updateBy",
+            width: "auto",
+            render: (text) => {
+                return <Tag style={{
+                                borderRadius: "12px",
+                                padding: "0 10px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                            }}
+                        >
+                            {text || "未知用户"}
+                        </Tag>
             },
         },
         {
@@ -201,10 +234,6 @@ export const DutyManage = () => {
 
     const handleUpdateModalClose = () => {
         setUpdateVisible(false);
-    };
-
-    const handleCalendarModalClose = () => {
-        setCalendarVisible(false);
     };
 
     const handleUpdateModalOpen = (record) => {

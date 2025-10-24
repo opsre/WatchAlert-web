@@ -77,6 +77,20 @@ export const Tenants = () => {
             }
         },
         {
+            title: "更新时间",
+            dataIndex: "updateAt",
+            key: "updateAt",
+            width: "auto",
+            render: (text) => {
+                const date = new Date(text * 1000)
+                    return (
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span>{date.toLocaleString()}</span>
+                        </div>
+                    )
+            },
+        },
+        {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',

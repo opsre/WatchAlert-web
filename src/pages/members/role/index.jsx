@@ -54,13 +54,17 @@ export const UserRole = () => {
             render: (text) => (!text ? '-' : text),
         },
         {
-            title: '创建时间',
-            dataIndex: 'create_at',
-            key: 'create_at',
-            width: 'auto',
+            title: "更新时间",
+            dataIndex: "updateAt",
+            key: "updateAt",
+            width: "auto",
             render: (text) => {
-                const date = new Date(text * 1000);
-                return date.toLocaleString();
+                const date = new Date(text * 1000)
+                    return (
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span>{date.toLocaleString()}</span>
+                        </div>
+                    )
             },
         },
         {

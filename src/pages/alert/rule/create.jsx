@@ -510,6 +510,7 @@ export const AlertRule = ({ type }) => {
         const newValues= {
             ...values,
             externalLabels: formattedLabels,
+            evalInterval: Number(values.evalInterval),
             elasticSearchConfig: newEsConfig,
             effectiveTime: {
                 week: week,
@@ -1107,7 +1108,7 @@ export const AlertRule = ({ type }) => {
                                                     style={{width: '100%'}}
                                                 >
                                                     <Input
-                                                        placeholder='请输入有效的告警条件，例如：>80'
+                                                        placeholder='请输入有效的告警条件，例如：> 80'
                                                         value={label.expr}
                                                         onChange={(e) => handleExprChange(index, e.target.value)}
                                                         style={{width: '100%'}}
@@ -1876,7 +1877,8 @@ export const AlertRule = ({ type }) => {
                                 },
                             ]}
                         >
-                            <InputNumber
+                            <Input
+                                type={"number"} 
                                 style={{width: '100%'}}
                                 addonAfter={
                                     <Select

@@ -108,6 +108,40 @@ export const Datasources = () => {
             },
         },
         {
+            title: "更新时间",
+            dataIndex: "updateAt",
+            key: "updateAt",
+            width: "auto",
+            render: (text) => {
+                const date = new Date(text * 1000)
+                    return (
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span>{date.toLocaleString()}</span>
+                        </div>
+                    )
+            },
+        },
+        {
+            title: "更新人",
+            dataIndex: "updateBy",
+            key: "updateBy",
+            width: "auto",
+            render: (text) => {
+                return <Tag style={{
+                                borderRadius: "12px",
+                                padding: "0 10px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                            }}
+                        >
+                            {text || "未知用户"}
+                        </Tag>
+            },
+        },
+        {
             title: '状态',
             dataIndex: 'enabled',
             key: 'enabled',
