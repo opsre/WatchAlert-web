@@ -221,7 +221,7 @@ export const AlertCurrentEvent = (props) => {
                                 tabIndex={0}
                                 onClick={(e) => { e.stopPropagation(); showDrawer(record); }}
                                 onKeyPress={(e) => { if (e.key === 'Enter') { e.stopPropagation(); showDrawer(record); } }}
-                                style={{ cursor: 'pointer', color: 'rgb(22, 119, 255)', textDecoration: 'none', marginTop: '1px' }}
+                                style={{ cursor: 'pointer', color: 'rgba(22, 119, 255, 0.83)', textDecoration: 'none', marginTop: '1px' }}
                             >
                                 {record.rule_name}
                             </span>
@@ -346,7 +346,7 @@ export const AlertCurrentEvent = (props) => {
                             gap: "4px",
                         }}
                     >
-                        {text.whoAreConfirm || "暂无"}
+                        {text.whoAreConfirm || "未认领"}
                     </Tag>
                 )
             },
@@ -1175,7 +1175,7 @@ export const AlertCurrentEvent = (props) => {
                                                 gap: '4px',
                                             }}
                                         >
-                                            {RenderTruncatedText(selectedEvent?.upgradeState?.whoAreConfirm || '暂无')}
+                                            {RenderTruncatedText(selectedEvent?.upgradeState?.whoAreConfirm || '未认领')}
                                         </Tag>
                                     ),
                                 },

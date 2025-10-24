@@ -466,34 +466,6 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     </MyFormItem>
                 )}
 
-                {selectedNoticeCard === 5 && (
-                    <pre>
-                        <span>Request Body</span>
-                        <code>{`
-{
-    "tenantId": "租户ID",
-    "rule_name": "规则名称",
-    "datasource_type": "数据源类型",
-    "fingerprint": "告警指纹",
-    "severity": "告警等级",
-    "metric": {
-        "__name__": "up",   // 指标 label
-    },
-    "labels": {
-        "key": "value",     // 额外 label
-    },
-    "annotations": "告警详情",
-    "is_recovered": false,  // 是否恢复
-    "first_trigger_time": 1734100959,   // 首次触发时间
-    "first_trigger_time_format": "",
-    "recover_time": 0,      // 恢复时间
-    "recover_time_format": "",
-    "duty_user": "暂无"      // 值班人员
-}
-                        `}</code>
-                    </pre>
-                )}
-
                 <MyFormItem
                     name="routes"
                     label="路由策略"
@@ -659,6 +631,51 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                             </>
                         )}
                     </Form.List>
+
+                {selectedNoticeCard === 5 && (
+                    <pre>
+                        <span>请求体</span>
+                        <div style={{
+                            padding: 12,
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: 4
+                        }}>{`
+{
+  "metadata": {
+    "tenantId": "租户ID，通常为默认值 'default'",
+    "datasource_id": "数据源的唯一标识符",
+    "datasource_type": "数据源的类型，如 Prometheus",
+    "fingerprint": "告警指纹/唯一标识符，用于标识特定的告警实例",
+    "rule_id": "触发此告警的规则的唯一标识符",
+    "rule_name": "告警规则的名称",
+    "severity": "告警的严重等级，P0表示最高级别",
+    "eval_interval": "规则的评估间隔时间（秒）",
+    "annotations": "告警的附加信息或描述",
+    "first_trigger_time": "告警首次触发的时间戳（Unix时间，秒）",
+    "last_eval_time": "规则最后一次评估的时间戳（Unix时间，秒）",
+    "last_send_time": "最后一次发送通知的时间戳（Unix时间，秒）",
+    "recover_time": "告警恢复（解除）的时间戳（Unix时间，秒）",
+    "faultCenterId": "故障中心的唯一标识符",
+    "alarmDuration": "告警持续时间（秒）",
+    "labels": {
+      "__name__": "Prometheus指标名称",
+      ...
+    },
+    "upgradeState": {
+      "isConfirm": "是否已被确认（True/False）",
+      "confirmOkTime": "确认操作完成的时间戳（Unix时间，秒）",
+      "confirmSendTime": "确认通知发送的时间戳（Unix时间，秒）",
+      "whoAreConfirm": "执行确认操作的人员",
+      "isHandle": "是否已被处理/解决（True/False）",
+      "HandleOkTime": "处理操作完成的时间戳（Unix时间，秒）",
+      "handleSendTime": "处理通知发送的时间戳（Unix时间，秒）",
+      "whoAreHandle": "执行处理操作的人员"
+    }
+  }
+}
+                        `}</div>
+                    </pre>
+                )}
                 </MyFormItem>
             </Form>
         </Drawer>

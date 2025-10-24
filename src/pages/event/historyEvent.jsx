@@ -106,7 +106,7 @@ export const AlertHistoryEvent = (props) => {
     }
 
     const logoMap = {
-        Prometheus: <PrometheusImg style={{ width: 16, height: 16 }} />,
+        Prometheus: <PrometheusImg style={{ width: 18, height: 18 }} />,
         VictoriaMetrics: <VMImg style={{ width: 16, height: 16 }} />,
         AliCloudSLS: <AlicloudImg style={{ width: 16, height: 16 }} />,
         Jaeger: <JaegerImg style={{ width: 16, height: 16 }} />,
@@ -193,7 +193,7 @@ export const AlertHistoryEvent = (props) => {
                                 tabIndex={0}
                                 onClick={(e) => { e.stopPropagation(); showDrawer(record); }}
                                 onKeyPress={(e) => { if (e.key === 'Enter') { e.stopPropagation(); showDrawer(record); } }}
-                                style={{ cursor: 'pointer', color: 'rgb(22, 119, 255)', textDecoration: 'none', marginTop: '1px' }}
+                                style={{ cursor: 'pointer', color: 'rgba(22, 119, 255, 0.83)', textDecoration: 'none', marginTop: '2px' }}
                             >
                                 {record.rule_name}
                             </span>
