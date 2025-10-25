@@ -121,29 +121,6 @@ export const AlertHistoryEvent = (props) => {
     // Table Column Definitions
     const columns = [
         {
-            title: "告警等级",
-            dataIndex: "severity",
-            key: "severity",
-            width: "100px",
-            render: (text) => (
-                <Tag
-                    color={SEVERITY_COLORS[text]}
-                    style={{
-                        borderRadius: "12px",
-                        padding: "0 10px",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                    }}
-                >
-                    <AlertTriangle size={12} />
-                    {SEVERITY_LABELS[text] || text}
-                </Tag>
-            ),
-        },
-        {
             title: "事件信息",
             key: "rule_info",
             width: "300px",
@@ -750,7 +727,22 @@ export const AlertHistoryEvent = (props) => {
                     y: height - 250,
                     x: "max-content",
                 }}
+                rowClassName={(record) => `severity-row-${record.severity}`}
             />
+            <style>{`
+                .severity-row-P0 td:first-child {
+                    border-left: 6px solid #ff4d4f !important;
+                    padding-left: 10px !important;
+                }
+                .severity-row-P1 td:first-child {
+                    border-left: 6px solid #faad14 !important;
+                    padding-left: 10px !important;
+                }
+                .severity-row-P2 td:first-child {
+                    border-left: 6px solid #b0e1fb !important;
+                    padding-left: 10px !important;
+                }
+            `}</style>
 
             {/* Detail Drawer */}
             <Drawer

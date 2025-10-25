@@ -224,7 +224,6 @@ export const CreateProbingRule = ({ type }) => {
         try {
             const finalParams = {
                 ...values,
-                ruleName: type === "edit" ? selectedRow.ruleName : protocolType + " 拨测任务",
                 enabled: enabled,
                 recoverNotify: recoverNotify,
                 probingEndpointConfig: {
@@ -338,6 +337,9 @@ export const CreateProbingRule = ({ type }) => {
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                 <Divider orientation="left">基础配置</Divider>
                 <div style={{display: "flex", gap: "10px"}}>
+                    <MyFormItem name="ruleName" label="任务名称" style={{width: "100%"}} rules={[{required: true}]}>
+                        <Input placeholder="请输入任务名称" style={{flex: 1}}/>
+                    </MyFormItem>
                     <MyFormItem name="ruleType" label="拨测协议" style={{width: "100%"}} rules={[{required: true}]}>
                         <Select
                             placeholder="选择拨测协议"

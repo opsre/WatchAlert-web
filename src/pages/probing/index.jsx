@@ -24,18 +24,13 @@ export const Probing = () => {
     const [selectedRow, setSelectedRow] = useState(null)
     const HTTPColumns = [
         {
-            title: '任务类型',
-            key: '',
+            title: '任务名称',
+            dataIndex: 'name',
+            key: 'name',
             width: 'auto',
-            render: (record) => (
-                <>
-                    检测{
-                    (record.probingEndpointConfig?.strategy?.field === "StatusCode") && '状态码'
-                    || (record.probingEndpointConfig?.strategy?.field === "Latency") && '响应延迟'
-                    || '-'
-                }
-                </>
-            ),
+            render: (_, record) => (
+                <>{record.ruleName || '-'}</>
+            )
         },
         {
             title: '端点',
@@ -62,7 +57,7 @@ export const Probing = () => {
         {
             title: '状态码',
             key: 'statusCode',
-            width: 'auto',
+            width: "100px",
             render: (record) => {
                 const statusCode = record.probingEndpointValues?.pHttp?.statusCode;
                 const isSuccess = statusCode >= 200 && statusCode < 300;
@@ -80,7 +75,7 @@ export const Probing = () => {
         {
             title: '响应延迟',
             key: 'latency',
-            width: 'auto',
+            width: "100px",
             render: (record) => (
                 <>
                     {record.probingEndpointValues?.pHttp?.latency && record.probingEndpointValues?.pHttp?.latency+"ms" || '-'}
@@ -193,20 +188,13 @@ export const Probing = () => {
     ]
     const ICMPColumns = [
         {
-            title: '任务类型',
-            key: '',
+            title: '任务名称',
+            dataIndex: 'name',
+            key: 'name',
             width: 'auto',
-            render: (record) => (
-                <>
-                    检测{
-                    (record.probingEndpointConfig?.strategy?.field === "PacketLoss") && '丢包率'
-                    || (record.probingEndpointConfig?.strategy?.field === "MinRtt") && '最小耗时'
-                    || (record.probingEndpointConfig?.strategy?.field === "MaxRtt") && '最大耗时'
-                    || (record.probingEndpointConfig?.strategy?.field === "AvgRtt") && '平均耗时'
-                    || '-'
-                }
-                </>
-            ),
+            render: (_, record) => (
+                <>{record.ruleName || '-'}</>
+            )
         },
         {
             title: '端点',
@@ -385,14 +373,13 @@ export const Probing = () => {
     ]
     const TCPColumns = [
         {
-            title: '任务类型',
-            key: '',
+            title: '任务名称',
+            dataIndex: 'name',
+            key: 'name',
             width: 'auto',
-            render: (record) => (
-                <>
-                    检测连通性
-                </>
-            ),
+            render: (_, record) => (
+                <>{record.ruleName || '-'}</>
+            )
         },
         {
             title: '端点',
@@ -548,14 +535,13 @@ export const Probing = () => {
     ]
     const SSLColumns = [
         {
-            title: '任务类型',
-            key: '',
+            title: '任务名称',
+            dataIndex: 'name',
+            key: 'name',
             width: 'auto',
-            render: (record) => (
-                <>
-                    检测证书有效期
-                </>
-            ),
+            render: (_, record) => (
+                <>{record.ruleName || '-'}</>
+            )
         },
         {
             title: '端点',

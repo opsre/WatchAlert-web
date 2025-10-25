@@ -110,12 +110,6 @@ export const AlertCurrentEvent = (props) => {
         P2: "#b0e1fb",
     }
 
-    const SEVERITY_LABELS = {
-        P0: "P0",
-        P1: "P1",
-        P2: "P2",
-    }
-
     const statusMap = {
         "pre_alert": { color: "#ffe465", text: "预告警" },
         "alerting": { color: "red", text: "告警中" },
@@ -145,29 +139,6 @@ export const AlertCurrentEvent = (props) => {
     }
 
     const columns = [
-        {
-            title: "告警等级",
-            dataIndex: "severity",
-            key: "severity",
-            width: "100px",
-            render: (text) => (
-                <Tag
-                    color={SEVERITY_COLORS[text]}
-                    style={{
-                        borderRadius: "12px",
-                        padding: "0 10px",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                    }}
-                >
-                    <AlertTriangle size={12} />
-                    {SEVERITY_LABELS[text] || text}
-                </Tag>
-            ),
-        },
         {
             title: "事件信息",
             key: "rule_info",
@@ -1105,7 +1076,22 @@ export const AlertCurrentEvent = (props) => {
                 locale={{
                     emptyText: <Empty description="暂无告警事件" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
                 }}
+                rowClassName={(record) => `severity-row-${record.severity}`}
             />
+            <style>{`
+                .severity-row-P0 td:first-child {
+                    border-left: 6px solid #ff4d4f !important;
+                    padding-left: 10px !important;
+                }
+                .severity-row-P1 td:first-child {
+                    border-left: 6px solid #faad14 !important;
+                    padding-left: 10px !important;
+                }
+                .severity-row-P2 td:first-child {
+                    border-left: 6px solid #b0e1fb !important;
+                    padding-left: 10px !important;
+                }
+            `}</style>
 
             <CreateSilenceModal visible={silenceVisible} onClose={handleSilenceModalClose} type="create"
                                 selectedRow={selectedSilenceRow} faultCenterId={id}/>

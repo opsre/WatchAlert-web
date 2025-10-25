@@ -22,6 +22,18 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
     const [searchVisible, setSearchVisible] = useState(false)
     // 新增状态，用于记录当前正在向哪个组添加人员
     const [currentGroupIndexForUserSelection, setCurrentGroupIndexForUserSelection] = useState(null)
+    
+    // 定义值班组的颜色列表
+    const groupColors = [
+        "#E3F2FD", // 浅蓝色
+        "#F3E5F5", // 浅紫色
+        "#E8F5E9", // 浅绿色
+        "#FFF3E0", // 浅橙色
+        "#FCE4EC", // 浅粉色
+        "#F1F8E9", // 浅黄绿色
+        "#E0F2F1", // 浅青色
+        "#FBE9E7", // 浅珊瑚色
+    ]
 
     useEffect(() => {
         if (visible) {
@@ -46,15 +58,26 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
             if (res.data && Array.isArray(res.data) && res.data.length > 0) {
                 const loadedGroups = res.data
                     .filter((userList) => Array.isArray(userList)) // 确保每个 userList 都是数组
-                    .map((userList, index) => ({
-                        id: uuidv4(), // 为每个加载的组生成唯一ID
-                        name: `值班 ${index + 1} 组`, // 为加载的组设置默认名称
-                        users: userList, // 此时 userList 已经保证是数组了
-                    }))
+                    .map((userList, index) => {
+                        // 根据组内第一个用户的userid生成稳定的颜色索引
+                        let colorIndex = index
+                        if (userList.length > 0 && userList[0].userid) {
+                            const firstUserId = userList[0].userid
+                            const hashCode = firstUserId.split('').reduce((acc, char) => {
+                                return acc + char.charCodeAt(0)
+                            }, 0)
+                            colorIndex = hashCode % groupColors.length
+                        }
+                        return {
+                            id: uuidv4(), // 为每个加载的组生成唯一ID
+                            color: groupColors[colorIndex], // 为每个组分配颜色
+                            users: userList, // 此时 userList 已经保证是数组了
+                        }
+                    })
                 setSelectedGroups(loadedGroups)
             } else {
                 // 如果没有返回组数据，则初始化一个空的默认组
-                setSelectedGroups([{ id: uuidv4(), name: "值班 1 组", users: [] }])
+                setSelectedGroups([{ id: uuidv4(), color: groupColors[0], users: [] }])
             }
         } catch (error) {
             console.error(error)
@@ -121,7 +144,8 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
     }
 
     const handleAddGroup = () => {
-        setSelectedGroups([...selectedGroups, { id: uuidv4(), name: `值班 ${selectedGroups.length + 1} 组`, users: [] }])
+        const newColor = groupColors[selectedGroups.length % groupColors.length]
+        setSelectedGroups([...selectedGroups, { id: uuidv4(), color: newColor, users: [] }])
     }
 
     const handleDeleteGroup = (groupIndex) => {
@@ -199,19 +223,31 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
                                                 ref={providedGroup.innerRef}
                                                 {...providedGroup.draggableProps}
                                                 style={{
+                                                    position: "relative",
                                                     padding: "16px",
+                                                    paddingLeft: "24px",
                                                     marginBottom: "16px",
                                                     border: "1px solid #e0e0e0",
                                                     borderRadius: "8px",
                                                     backgroundColor: "#f9f9f9",
+                                                    overflow: "hidden",
                                                     ...providedGroup.draggableProps.style,
                                                 }}
                                             >
+                                                {/* 左侧颜色条 */}
+                                                <div style={{ 
+                                                    position: "absolute",
+                                                    left: 0,
+                                                    top: 0,
+                                                    bottom: 0,
+                                                    width: "6px", 
+                                                    backgroundColor: group.color,
+                                                }} />
                                                 <Space style={{ width: "100%", justifyContent: "space-between", marginBottom: "12px" }}>
-                                                  <span {...providedGroup.dragHandleProps}>
+                                                  <span {...providedGroup.dragHandleProps} style={{ cursor: "move" }}>
                                                     <MenuOutlined />
                                                   </span>
-                                                    <span>{group.name}</span>
+                                                    <div style={{ flex: 1 }} />
                                                     <Button
                                                         type="text"
                                                         danger
@@ -250,12 +286,16 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
                                                                                 ...providedUser.draggableProps.style,
                                                                             }}
                                                                         >
-                                                                            <Space>
-                                                                                <span {...providedUser.dragHandleProps}>
-                                                                                  <MenuOutlined />
-                                                                                </span>
-                                                                                <Avatar>{user.username[0]}</Avatar>
+                                                                            <Space style={{ width: "100%", justifyContent: "space-between" }}>
+                                                                                <Space>
+                                                                                    <span {...providedUser.dragHandleProps}>
+                                                                                      <MenuOutlined />
+                                                                                    </span>
+                                                                                    <Avatar style={{ backgroundColor: group.color, color: "#000" }}>
+                                                                                        {user.username[0]}
+                                                                                    </Avatar>
                                                                                     {user.username}
+                                                                                </Space>
                                                                                 <Button
                                                                                     type="text"
                                                                                     danger

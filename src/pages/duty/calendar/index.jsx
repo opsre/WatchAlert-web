@@ -40,6 +40,18 @@ export const CalendarApp = ({ tenantId }) => {
     const [height, setHeight] = useState(window.innerHeight)
     const [loading, setLoading] = useState(false)
     const [selectedDayDutyUsers, setSelectedDayDutyUsers] = useState(null)
+    
+    // 定义值班组的颜色列表（与 CreateCalendar 保持一致）
+    const groupColors = [
+        "#E3F2FD", // 浅蓝色
+        "#F3E5F5", // 浅紫色
+        "#E8F5E9", // 浅绿色
+        "#FFF3E0", // 浅橙色
+        "#FCE4EC", // 浅粉色
+        "#F1F8E9", // 浅黄绿色
+        "#E0F2F1", // 浅青色
+        "#FBE9E7", // 浅珊瑚色
+    ]
 
     const fetchData = useCallback(async () => {
         setLoading(true)
@@ -88,7 +100,7 @@ export const CalendarApp = ({ tenantId }) => {
                     ${isToday
                     ? "bg-black text-white shadow-lg"
                     : hasData
-                        ? "bg-gray-50 hover:bg-gray-100 hover:shadow-md"
+                        ? "hover:shadow-md"
                         : "bg-white hover:shadow-sm"}
                   `}
             >
@@ -97,25 +109,98 @@ export const CalendarApp = ({ tenantId }) => {
                         {dateFullCellRender(value)}
                     </div>
 
-                    {matchingDutyData && (
-                        <div
-                            className={`
-                                inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium
-                                ${isToday ? "bg-white text-black" : "bg-black text-white"}
-                            `}
-                            style={{ marginTop: "10px" }}
-                        >
-                            <Users size={10}/>
-                            {/* 遍历组内人员并显示他们的用户名 */}
-                            <span>
-                                {matchingDutyData.users.map((user, userIndex) => (
-                                    <span key={user.userid}>
-                                    <div>
-                                        {user.username}
-                                    </div>
-                                  </span>
-                                ))}
-                            </span>
+                    {matchingDutyData && matchingDutyData.users && matchingDutyData.users.length > 0 && (
+                        <div className="mt-2 space-y-1.5">
+                            {/* 检查是否为多组结构（二维数组）：判断第一个元素是否为数组 */}
+                            {Array.isArray(matchingDutyData.users[0]) ? (
+                                // 多组结构：[][]DutyUser
+                                matchingDutyData.users.map((userGroup, groupIndex) => {
+                                    if (Array.isArray(userGroup) && userGroup.length > 0) {
+                                        const groupColor = groupColors[groupIndex % groupColors.length]
+                                        return (
+                                            <div
+                                                key={groupIndex}
+                                                style={{
+                                                    position: "relative",
+                                                    paddingLeft: "8px",
+                                                    backgroundColor: isToday ? "rgba(255,255,255,0.1)" : "white",
+                                                    borderRadius: "4px",
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                {/* 左侧颜色条 */}
+                                                <div
+                                                    style={{
+                                                        position: "absolute",
+                                                        left: 0,
+                                                        top: 0,
+                                                        bottom: 0,
+                                                        width: "6px",
+                                                        backgroundColor: groupColor,
+                                                    }}
+                                                />
+                                                <div className="text-xs py-1">
+                                                    {userGroup.map((user, userIndex) => (
+                                                        <div
+                                                            key={user.userid}
+                                                            className={isToday ? "text-white" : "text-gray-700"}
+                                                        >
+                                                            {user.username}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )
+                                    }
+                                    return null
+                                })
+                            ) : (
+                                // 单组结构：[]DutyUser - users直接是用户对象数组
+                                (() => {
+                                    // 根据第一个用户的userid生成稳定的颜色索引
+                                    let colorIndex = 0
+                                    if (matchingDutyData.users.length > 0 && matchingDutyData.users[0].userid) {
+                                        const firstUserId = matchingDutyData.users[0].userid
+                                        const hashCode = firstUserId.split('').reduce((acc, char) => {
+                                            return acc + char.charCodeAt(0)
+                                        }, 0)
+                                        colorIndex = hashCode % groupColors.length
+                                    }
+                                    return (
+                                        <div
+                                            style={{
+                                                position: "relative",
+                                                paddingLeft: "8px",
+                                                backgroundColor: isToday ? "rgba(255,255,255,0.1)" : "white",
+                                                borderRadius: "4px",
+                                                overflow: "hidden",
+                                            }}
+                                        >
+                                            {/* 左侧颜色条 */}
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    left: 0,
+                                                    top: 0,
+                                                    bottom: 0,
+                                                    width: "6px",
+                                                    backgroundColor: groupColors[colorIndex],
+                                                }}
+                                            />
+                                            <div className="text-xs py-1">
+                                                {matchingDutyData.users.map((user, userIndex) => (
+                                                    <div
+                                                        key={user.userid}
+                                                        className={isToday ? "text-white" : "text-gray-700"}
+                                                    >
+                                                        {user.username}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )
+                                })()
+                            )}
                         </div>
                     )}
 
