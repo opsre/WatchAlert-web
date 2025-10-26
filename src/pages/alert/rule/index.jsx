@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react"
 import {
     Button,
     Input,
-    Table,
     Radio,
     Tag,
     Dropdown,
@@ -15,12 +14,11 @@ import {
     Tooltip,
     Space,
     Switch,
-    Popconfirm,
-    Pagination
+    Popconfirm
 } from "antd"
 import {Link, useNavigate} from "react-router-dom"
 import { useParams } from "react-router-dom"
-import {createRule, deleteRule, getRuleList, RuleChangeStatus, RuleImport} from "../../../api/rule"
+import {deleteRule, getRuleList, RuleChangeStatus, RuleImport} from "../../../api/rule"
 import { ReactComponent as PrometheusImg } from "./img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "./img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "./img/jaeger.svg"
@@ -49,6 +47,7 @@ import {copyToClipboard} from "../../../utils/copyToClipboard";
 import {HandleApiError, HandleShowTotal} from "../../../utils/lib";
 import {useAppContext} from "../../../context/RuleContext";
 import { TableWithPagination } from '../../../utils/TableWithPagination';
+import { RuleGroupSidebar } from './RuleGroupSidebar';
 
 export const AlertRuleList = () => {
     const { setCloneAlertRule } = useAppContext()
@@ -64,6 +63,8 @@ export const AlertRuleList = () => {
         total: 0,
     })
     const [selectedRowKeys, setSelectedRowKeys] = useState([])
+    // 规则组相关状态
+    const [selectedRuleGroupId, setSelectedRuleGroupId] = useState(id)
     // 导入相关状态
     const [importDrawerVisible, setImportDrawerVisible] = useState(false)
     const [importType, setImportType] = useState(1) // 1 'watchalert' 或 0 'prometheus'
@@ -89,7 +90,16 @@ export const AlertRuleList = () => {
             width: "auto",
             render: (text, record) => (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {text}
+                    <Tooltip title={text} placement="topLeft">
+                        <div style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '300px'
+                        }}>
+                            {text}
+                        </div>
+                    </Tooltip>
                     <Tooltip title="点击复制 ID">
                         <span
                             style={{
@@ -311,9 +321,15 @@ export const AlertRuleList = () => {
     }, [])
 
     useEffect(() => {
-        handleList(id, pagination.index, pagination.size)
+        handleList(selectedRuleGroupId, pagination.index, pagination.size)
         handleListDatasource()
     }, [])
+
+    useEffect(() => {
+        // 当 URL 参数 id 变化时，更新选中的规则组
+        setSelectedRuleGroupId(id)
+        handleList(id, 1, pagination.size)
+    }, [id])
 
     useEffect(() => {
         onSearch()
@@ -326,6 +342,14 @@ export const AlertRuleList = () => {
         } catch (error) {
             console.error(error)
         }
+    }
+
+    // 切换规则组
+    const handleRuleGroupChange = (groupId) => {
+        setSelectedRuleGroupId(groupId)
+        setPagination({ ...pagination, index: 1 })
+        // 直接刷新当前规则组的规则列表，不进行路由跳转
+        handleList(groupId, 1, pagination.size)
     }
 
     const GetSeverity = (data) => {
@@ -648,8 +672,31 @@ export const AlertRuleList = () => {
     }
 
     return (
-        <>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div style={{ display: 'flex' }}>
+            {/* 左侧规则组列表 */}
+            <div style={{ width: '180px', flexShrink: 0 }}>
+                <RuleGroupSidebar
+                    selectedRuleGroupId={selectedRuleGroupId}
+                    onRuleGroupChange={handleRuleGroupChange}
+                />
+            </div>
+
+            {/* 右侧内容区域 */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginLeft: '20px' }}>
+                <div style={{ 
+                    background: '#fff',
+                    borderRadius: '8px',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
+                }}>
+            <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between",
+                marginBottom: "20px",
+                alignItems: "center"
+            }}>
                 <div style={{ display: "flex", gap: "10px" }}>
                     <Radio.Group
                         options={[
@@ -721,7 +768,7 @@ export const AlertRuleList = () => {
                     setPagination({ ...pagination, index: current, size: pageSize });
                     handleList(id, current, pageSize);
                 }}
-                scrollY={height - 280}
+                scrollY={'calc(100vh - 300px)'}  // 动态计算表格高度
                 rowKey={record => record.id}
                 showTotal={HandleShowTotal}
             />
@@ -843,7 +890,9 @@ rules:
                     </div>
                 )}
             </Drawer>
-        </>
+                </div>
+            </div>
+        </div>
     )
 }
 
