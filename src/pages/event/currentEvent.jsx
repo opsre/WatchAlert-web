@@ -932,6 +932,7 @@ export const AlertCurrentEvent = (props) => {
             >
                 <div style={{ marginTop: "10px" }}>
                     <Descriptions
+                        labelStyle={{ width: '100px' }}
                         items={[
                             {
                                 key: "1",
@@ -1111,23 +1112,24 @@ export const AlertCurrentEvent = (props) => {
                         <Descriptions
                             title="基本信息"
                             bordered
-                            column={2}
+                            column={1}
                             style={{ marginBottom: '24px' }}
+                            labelStyle={{ width: '120px' }}
                             items={[
                                 {
                                     key: 'rule_name',
                                     label: '规则名称',
-                                    children: RenderTruncatedText(selectedEvent.rule_name),
+                                    children: selectedEvent.rule_name,
                                 },
                                 {
                                     key: 'fingerprint',
                                     label: '告警指纹',
-                                    children: RenderTruncatedText(selectedEvent.fingerprint),
+                                    children: selectedEvent.fingerprint,
                                 },
                                 {
                                     key: 'datasource',
                                     label: '数据源',
-                                    children: RenderTruncatedText(`${selectedEvent.datasource_type} (${selectedEvent.datasource_id})`),
+                                    children: selectedEvent.datasource_id
                                 },
                                 {
                                     key: 'severity',
@@ -1144,7 +1146,7 @@ export const AlertCurrentEvent = (props) => {
                                 {
                                     key: 'value',
                                     label: '触发时值',
-                                    children: RenderTruncatedText(selectedEvent?.labels["first_value"] || 0),
+                                    children: selectedEvent?.labels["first_value"] || 0,
                                 },
                                 {
                                     key: 'confirm',
@@ -1165,21 +1167,19 @@ export const AlertCurrentEvent = (props) => {
                                         </Tag>
                                     ),
                                 },
+                                {
+                                    key: 'labels',
+                                    label: '事件标签',
+                                    children: (
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "3px" }}>
+                                            {Object.entries(selectedEvent?.labels).map(([key, value]) => (
+                                                <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
+                                            ))}
+                                        </div>
+                                    ),
+                                },
                             ]}
                         />
-
-                        <Divider/>
-
-                        <div style={{ marginBottom: "16px" }}>
-                            <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
-                                事件标签
-                            </Title>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "15px" }}>
-                                {Object.entries(selectedEvent?.labels).map(([key, value]) => (
-                                    <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
-                                ))}
-                            </div>
-                        </div>
 
                         <Divider/>
 
