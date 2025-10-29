@@ -82,13 +82,12 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
             <Modal visible={visible} onCancel={onClose} footer={null}>
                 <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                     <strong style={{ fontSize: '15px' }}>基础信息</strong>
-                    <div style={{ display: 'flex' }}>
-                        <MyFormItem
+                    <MyFormItem
                             name="name"
                             label="租户名称"
                             style={{
                                 marginRight: '10px',
-                                width: '500px',
+                                width: '472px',
                             }}
                             rules={[
                                 {
@@ -98,11 +97,12 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
                         >
                             <Input />
                         </MyFormItem>
-                        <MyFormItem
+
+                    <MyFormItem
                             name="manager"
                             label="租户负责人"
                             style={{
-                                width: '500px',
+                                width: '472px',
                             }}
                             rules={[
                                 {
@@ -112,7 +112,6 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
                         >
                             <Input />
                         </MyFormItem>
-                    </div>
 
                     <MyFormItem
                         name="description"
@@ -126,7 +125,7 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
                             },
                         ]}
                     >
-                        <Input />
+                        <Input maxLength={30} />
                     </MyFormItem>
                     <Divider />
 

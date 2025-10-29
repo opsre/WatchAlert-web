@@ -68,7 +68,7 @@ export const Tenants = () => {
             title: '描述',
             dataIndex: 'description',
             key: 'description',
-            width: 'auto',
+            width: '500px',
             render: (text) => {
                 if (!text) {
                     return '-'

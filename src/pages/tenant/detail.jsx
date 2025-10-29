@@ -50,23 +50,18 @@ export const TenantDetail = ()=>{
         },
         {
             key: '3',
-            label: '负责人',
-            children: tenantInfo.manager,
-        },
-        {
-            key: '4',
             label: '描述',
             children: tenantInfo.description,
         },
         {
             key: '4',
-            label: '创建人',
-            children: tenantInfo.createBy,
+            label: '负责人',
+            children: tenantInfo.manager,
         },
         {
             key: '5',
-            label: '创建时间',
-            children: formatTimestamp(tenantInfo.createAt),
+            label: '更新时间',
+            children: formatTimestamp(tenantInfo.updateAt),
         },
     ];
 
