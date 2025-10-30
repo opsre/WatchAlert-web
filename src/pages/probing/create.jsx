@@ -5,17 +5,15 @@ import {
     Form,
     Input,
     Button,
-    Switch,
     Divider,
     Select,
     InputNumber,
     Typography,
-    Collapse,
     Space,
     message,
     Checkbox
 } from "antd" // Added message
-import {DownOutlined, MinusCircleOutlined, PlusOutlined, RightOutlined} from "@ant-design/icons"
+import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons"
 import { useParams } from "react-router-dom"
 import { getNoticeList } from "../../api/notice"
 import { ProbingCreate, ProbingSearch, ProbingUpdate } from "../../api/probing"
@@ -25,7 +23,6 @@ import VSCodeEditor from "../../utils/VSCodeEditor";
 import {useAppContext} from "../../context/RuleContext";
 
 const MyFormItemContext = React.createContext([])
-const { Panel } = Collapse
 
 function toArr(str) {
     return Array.isArray(str) ? str : [str]
@@ -57,7 +54,32 @@ export const CreateProbingRule = ({ type }) => {
     const [methodType, setMethodType] = useState("GET")
     const [calculate, setCalculate] = useState(">")
     const [submitLoading, setSubmitLoading] = useState(false)
-    const [requestHeaderExpanded, setRequestHeaderExpanded] = useState(false);
+
+    // 禁用所有 InputNumber 的滚轮事件
+    useEffect(() => {
+        const handleWheel = (e) => {
+            // 检查是否在 InputNumber 输入框内
+            const target = e.target;
+            if (target.classList.contains('ant-input-number-input') || 
+                target.closest('.ant-input-number')) {
+                e.preventDefault();
+                e.stopPropagation();
+                // 让输入框失焦
+                if (document.activeElement && 
+                    (document.activeElement.classList.contains('ant-input-number-input') ||
+                     document.activeElement.closest('.ant-input-number'))) {
+                    document.activeElement.blur();
+                }
+            }
+        };
+        
+        // 使用捕获阶段监听，优先级更高
+        document.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+        
+        return () => {
+            document.removeEventListener('wheel', handleWheel, { capture: true });
+        };
+    }, []);
 
     const httpOptions = [
         {
@@ -315,10 +337,6 @@ export const CreateProbingRule = ({ type }) => {
         }
     }
 
-    const toggleRequestHeader = () => {
-        setRequestHeaderExpanded(!requestHeaderExpanded);
-    };
-
     if (loading && type === "edit") {
         return <div>Loading...</div>
     }
@@ -338,7 +356,7 @@ export const CreateProbingRule = ({ type }) => {
                 <Divider orientation="left">基础配置</Divider>
                 <div style={{display: "flex", gap: "10px"}}>
                     <MyFormItem name="ruleName" label="任务名称" style={{width: "100%"}} rules={[{required: true}]}>
-                        <Input placeholder="请输入任务名称" style={{flex: 1}}/>
+                        <Input placeholder="请输入任务名称" style={{flex: 1}} onWheel={(e) => e.target.blur()}/>
                     </MyFormItem>
                     <MyFormItem name="ruleType" label="拨测协议" style={{width: "100%"}} rules={[{required: true}]}>
                         <Select
@@ -418,11 +436,23 @@ export const CreateProbingRule = ({ type }) => {
                             <div style={{display: "flex", gap: "10px"}}>
                                 <MyFormItem name="interval" label="请求间隔(s)" style={{width: "100%"}}
                                             rules={[{required: true}]}>
-                                    <InputNumber type="number" min={1} placeholder="1" style={{width: "100%"}}/>
+                                    <InputNumber 
+                                        type="number" 
+                                        min={1} 
+                                        placeholder="1" 
+                                        style={{width: "100%"}} 
+                                        onWheel={(e) => { e.preventDefault(); e.currentTarget.blur(); }}
+                                    />
                                 </MyFormItem>
                                 <MyFormItem name="count" label="请求总数(个)" style={{width: "100%"}}
                                             rules={[{required: true}]}>
-                                    <InputNumber type="number" min={1} placeholder="1" style={{width: "100%"}}/>
+                                    <InputNumber 
+                                        type="number" 
+                                        min={1} 
+                                        placeholder="1" 
+                                        style={{width: "100%"}} 
+                                        onWheel={(e) => { e.preventDefault(); e.currentTarget.blur(); }}
+                                    />
                                 </MyFormItem>
                             </div>
                         </MyFormItemGroup>
@@ -500,7 +530,12 @@ export const CreateProbingRule = ({ type }) => {
                                     },
                                 ]}
                             >
-                                <InputNumber type={"number"} min={1} style={{width: "100%"}}/>
+                                <InputNumber 
+                                    type={"number"} 
+                                    min={1} 
+                                    style={{width: "100%"}} 
+                                    onWheel={(e) => { e.preventDefault(); e.currentTarget.blur(); }}
+                                />
                             </MyFormItem>
                             <MyFormItem
                                 name="timeout"
@@ -514,7 +549,12 @@ export const CreateProbingRule = ({ type }) => {
                                     },
                                 ]}
                             >
-                                <InputNumber type={"number"} min={1} style={{width: "100%"}}/>
+                                <InputNumber 
+                                    type={"number"} 
+                                    min={1} 
+                                    style={{width: "100%"}} 
+                                    onWheel={(e) => { e.preventDefault(); e.currentTarget.blur(); }}
+                                />
                             </MyFormItem>
                         </div>
                         <MyFormItem
@@ -529,7 +569,13 @@ export const CreateProbingRule = ({ type }) => {
                                 },
                             ]}
                         >
-                            <InputNumber type={"number"} min={1} placeholder="1" style={{width: "100%"}}/>
+                            <InputNumber 
+                                type={"number"} 
+                                min={1} 
+                                placeholder="1" 
+                                style={{width: "100%"}} 
+                                onWheel={(e) => { e.preventDefault(); e.currentTarget.blur(); }}
+                            />
                         </MyFormItem>
                         {protocolType !== "TCP" && (
                             <div style={{display: "flex", gap: "10px"}}>
@@ -550,6 +596,7 @@ export const CreateProbingRule = ({ type }) => {
                                         min={1}
                                         placeholder="1"
                                         style={{width: "100%", borderRadius: "0"}}
+                                        onWheel={(e) => { e.preventDefault(); e.currentTarget.blur(); }}
                                         addonBefore={
                                             <Select
                                                 placeholder="运算"
@@ -624,7 +671,12 @@ export const CreateProbingRule = ({ type }) => {
                             },
                         ]}
                     >
-                        <InputNumber style={{width: "100%"}} addonAfter={<span>分钟</span>} min={1}/>
+                        <InputNumber 
+                            style={{width: "100%"}} 
+                            addonAfter={<span>分钟</span>} 
+                            min={1} 
+                            onWheel={(e) => { e.preventDefault(); e.currentTarget.blur(); }}
+                        />
                     </MyFormItem>
                 </div>
 
