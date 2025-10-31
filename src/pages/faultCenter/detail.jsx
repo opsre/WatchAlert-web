@@ -163,6 +163,11 @@ const handleGetSlo = async () => {
   const describeItems = [
     {
       key: "1",
+      label: "ID",
+      children: detail.id,
+    },
+    {
+      key: "2",
       label: "名称",
       children: (
         <div style={{ display: "flex", alignItems: "center", marginTop: "-5px" }}>
@@ -184,11 +189,6 @@ const handleGetSlo = async () => {
           )}
         </div>
       ),
-    },
-    {
-      key: "2",
-      label: "ID",
-      children: detail.id,
     },
     {
       key: "3",
@@ -245,7 +245,7 @@ const handleGetSlo = async () => {
 
   return (
     <div style={{ textAlign: "left" }}>
-      <Descriptions title="基础信息" items={describeItems} />
+      <Descriptions items={describeItems} />
 
       {/* 近7天 SLO 线性图看板 */}
       <Row gutter={16} style={{ marginTop: 8, marginBottom: 20 }}>
