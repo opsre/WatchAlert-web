@@ -758,7 +758,6 @@ export const AlertHistoryEvent = (props) => {
                 {selectedEvent && (
                     <div>
                         <Descriptions
-                            title="基本信息"
                             bordered
                             column={1}
                             style={{ marginBottom: "24px" }}
@@ -866,66 +865,54 @@ export const AlertHistoryEvent = (props) => {
                                         </div>
                                     ),
                                 },
+                                {
+                                    key: 'annotations',
+                                    label: '事件详情',
+                                    children: (
+                                        <div>
+                                            {((selectedEvent.datasource_type === "AliCloudSLS" ||
+                                                selectedEvent.datasource_type === "Loki" ||
+                                                selectedEvent.datasource_type === "ElasticSearch" ||
+                                                selectedEvent.datasource_type === "VictoriaLogs" ||
+                                                selectedEvent.datasource_type === "ClickHouse") && (
+                                                <TextArea
+                                                    value={JSON.stringify(
+                                                        selectedEvent?.labels
+                                                            ? Object.entries(selectedEvent.labels)
+                                                                .filter(([key]) => !["value", "rule_name", "severity", "fingerprint"].includes(key))
+                                                                .reduce((acc, [key, value]) => {
+                                                                    acc[key] = value
+                                                                    return acc
+                                                                }, {})
+                                                            : {},
+                                                        null,
+                                                        2,
+                                                    )}
+                                                    style={{
+                                                        height: 400,
+                                                        resize: "none",
+                                                    }}
+                                                    readOnly
+                                                />
+                                            )) || (
+                                                <TextArea
+                                                    value={selectedEvent.annotations}
+                                                    style={{
+                                                        height: 400,
+                                                        resize: "none",
+                                                    }}
+                                                    readOnly
+                                                />
+                                            )}
+                                        </div>
+                                    ),
+                                },
                             ]}
                         />
 
                         <Divider />
+
                         <div>
-                            <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
-                                事件详情
-                            </Title>
-                            {((selectedEvent.datasource_type === "AliCloudSLS" ||
-                                selectedEvent.datasource_type === "Loki" ||
-                                selectedEvent.datasource_type === "ElasticSearch" ||
-                                selectedEvent.datasource_type === "VictoriaLogs" ||
-                                selectedEvent.datasource_type === "ClickHouse") && (
-                                <TextArea
-                                    value={JSON.stringify(
-                                        selectedEvent?.labels
-                                            ? Object.entries(selectedEvent.labels)
-                                                .filter(([key]) => !["value", "rule_name", "severity", "fingerprint"].includes(key))
-                                                .reduce((acc, [key, value]) => {
-                                                    acc[key] = value
-                                                    return acc
-                                                }, {})
-                                            : {},
-                                        null,
-                                        2,
-                                    )}
-                                    style={{
-                                        height: 400,
-                                        resize: "none",
-                                        marginTop: "15px",
-                                    }}
-                                    readOnly
-                                />
-                            )) || (
-                                <TextArea
-                                    value={selectedEvent.annotations}
-                                    style={{
-                                        height: 400,
-                                        resize: "none",
-                                        marginTop: "15px",
-                                    }}
-                                    readOnly
-                                />
-                            )}
-                        </div>
-                        <Divider />
-                        <div>
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    marginBottom: "16px",
-                                    marginTop: "15px",
-                                }}
-                            >
-                                <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
-                                    事件评论
-                                </Title>
-                            </div>
                             {comments.length === 0 ? (
                                 <Card>
                                     <div
