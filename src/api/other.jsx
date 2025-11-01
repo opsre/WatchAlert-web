@@ -36,8 +36,19 @@ async function queryPromMetrics(params) {
     }
 }
 
+async function queryRangePromMetrics(params) {
+    try {
+        const res = await http('get', `/api/w8t/datasource/promQueryRange`, params);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
 export {
     getDashboardInfo,
     getJaegerService,
-    queryPromMetrics
+    queryPromMetrics,
+    queryRangePromMetrics
 }

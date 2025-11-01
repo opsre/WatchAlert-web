@@ -12,8 +12,8 @@ import {
     message,
     Modal,
     Descriptions,
-    Menu,
-    Dropdown,
+    Empty,
+    Spin,
     Tooltip,
     Divider,
     Typography,
@@ -48,6 +48,8 @@ import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
+import { EventMetricChart } from "../chart/eventMetricChart"
+import { queryRangePromMetrics } from "../../api/other"
 
 const { Title, Text } = Typography
 const { RangePicker } = DatePicker
@@ -92,6 +94,8 @@ export const AlertHistoryEvent = (props) => {
         filterOptions: [], // ruleName, ruleType, alertLevel
         itemsPerPage: 10, // 导出HTML的每页项目数
     })
+    const [metricData, setMetricData] = useState({})
+
 
     // Constants
     const SEVERITY_COLORS = {
@@ -644,8 +648,28 @@ export const AlertHistoryEvent = (props) => {
     useEffect(() => {
         if (drawerOpen && selectedEvent) {
             handleListComments()
+            fetchMetricData()
         }
     }, [drawerOpen, selectedEvent]) // Fetch comments when drawer opens or selected event changes
+
+    // 获取图表数据
+    const fetchMetricData = async () => {
+        try {
+            const parmas = {
+                datasourceIds: selectedEvent.datasource_id,
+                query: selectedEvent.searchQL,
+                startTime: selectedEvent.first_trigger_time - 300,
+                endTime: selectedEvent.recover_time,
+                step: 10,
+            }
+            const res = await queryRangePromMetrics(parmas)
+            setMetricData(res)
+        } catch (error) {
+            message.error("加载图表数据失败")
+            console.error("Failed to load metric data:", error)
+        }
+    }
+
 
     // Render JSX
     return (
@@ -757,6 +781,18 @@ export const AlertHistoryEvent = (props) => {
             >
                 {selectedEvent && (
                     <div>
+                        <div style={{
+                                padding: "5px",
+                                border: "1px solid #f0f0f0",
+                                borderRadius: "8px",
+                                marginBottom: "12px",
+                            }}
+                        >
+                            <Spin spinning={loading}>
+                                <EventMetricChart data={metricData.data} />
+                            </Spin>
+                        </div>
+
                         <Descriptions
                             bordered
                             column={1}

@@ -51,6 +51,8 @@ import {
     HandleShowTotal,
     RenderTruncatedText
 } from "../../utils/lib";
+import { EventMetricChart } from "../chart/eventMetricChart"
+import { queryRangePromMetrics } from "../../api/other"
 import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
@@ -102,6 +104,7 @@ export const AlertCurrentEvent = (props) => {
     const [comments, setComments] = useState( [])
     const [newComment, setNewComment] = useState("")
     const [sortOrder,setSortOrder] = useState(null)
+    const [metricData, setMetricData] = useState({})
 
     // Constants
     const SEVERITY_COLORS = {
@@ -909,8 +912,26 @@ export const AlertCurrentEvent = (props) => {
     useEffect(() => {
         if (drawerOpen && selectedEvent) {
             handleListComments();
+            fetchMetricData();
         }
     }, [drawerOpen, selectedEvent]);
+
+    // 获取图表数据
+    const fetchMetricData = async () => {
+        try {
+            const parmas = {
+                datasourceIds: selectedEvent.datasource_id,
+                query: selectedEvent.searchQL,
+                startTime: selectedEvent.first_trigger_time - 300,
+                step: 10,
+            }
+            const res = await queryRangePromMetrics(parmas)
+            setMetricData(res)
+        } catch (error) {
+            message.error("加载图表数据失败")
+            console.error("Failed to load metric data:", error)
+        }
+    }
 
     return (
         <div>
@@ -1109,6 +1130,18 @@ export const AlertCurrentEvent = (props) => {
             >
                 {selectedEvent && (
                     <div>
+                        <div style={{
+                                padding: "5px",
+                                border: "1px solid #f0f0f0",
+                                borderRadius: "8px",
+                                marginBottom: "12px",
+                            }}
+                        >
+                            <Spin spinning={loading}>
+                                <EventMetricChart data={metricData.data} />
+                            </Spin>
+                        </div>
+
                         <Descriptions
                             bordered
                             column={1}
