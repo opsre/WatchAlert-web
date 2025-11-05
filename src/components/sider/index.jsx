@@ -45,14 +45,7 @@ const adminMenuItems = [
             { key: '3-3', path: '/noticeRecords', label: '通知记录' }
         ]
     },
-    {
-        key: '4',
-        icon: <CalendarOutlined />,
-        label: '值班管理',
-        children: [
-            { key: '4-1', path: '/dutyManage', label: '值班日程' }
-        ]
-    },
+    { key: '4', path: '/dutyManage', icon: <CalendarOutlined />, label: '值班中心' },
     {
         key: '11',
         icon: <ApiOutlined />,

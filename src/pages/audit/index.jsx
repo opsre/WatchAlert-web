@@ -24,10 +24,26 @@ export const AuditLog = () => {
     })
     const columns = [
         {
+            title: "ID",
+            dataIndex: "id",
+            key: "id",
+            width: "200px",
+            render: (_, record) => (
+                <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => showDrawer(record.body)}
+                    style={{ cursor: 'pointer', color: 'rgb(22, 119, 255)', textDecoration: 'none', marginTop: '1px' }}
+                    >
+                        {record.id}
+                </span>
+            ),
+        },
+        {
             title: "时间",
             dataIndex: "createdAt",
             key: "createdAt",
-            width: "auto",
+            width: "200px",
             render: (text) => {
                 const dateInMilliseconds = text * 1000
                 return moment(dateInMilliseconds).format("YYYY-MM-DD HH:mm:ss")
@@ -43,7 +59,7 @@ export const AuditLog = () => {
             title: "来源IP",
             dataIndex: "ipAddress",
             key: "ipAddress",
-            width: "auto",
+            width: "200px",
         },
         {
             title: "事件名称",
@@ -55,46 +71,9 @@ export const AuditLog = () => {
             title: "操作状态",
             dataIndex: "statusCode",
             key: "statusCode",
-            width: "auto",
+            width: "150px",
             render: (text) => (
                 <span>{text === 200 ? <Tag color="success">{text}</Tag> : <Tag color="error">{text}</Tag>}</span>
-            ),
-        },
-        {
-            title: "事件ID",
-            dataIndex: "id",
-            key: "id",
-            width: "auto",
-        },
-        {
-            title: "事件Body详情",
-            dataIndex: "body",
-            key: "body",
-            width: 120,
-            render: (text, record) => (
-                <span>
-          {record.body && (
-              <Button
-                  type="primary"
-                  size="small"
-                  onClick={() => {
-                      showDrawer(record.body)
-                  }}
-                  style={{
-                      backgroundColor: "#000",
-                      borderRadius: "6px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                      padding: "0 12px",
-                      height: "28px",
-                  }}
-              >
-                  <FileText size={14} />
-                  详情
-              </Button>
-          )}
-        </span>
             ),
         },
     ]

@@ -151,7 +151,7 @@ export const CreateDutyModal = ({ visible, onClose, handleList, selectedRow, typ
                 >
                     <Select
                         showSearch
-                        placeholder="管理当前值班日程表的负责人"
+                        placeholder="管理当前值班值班表的负责人"
                         onChange={handleSelectChange}
                         onClick={handleSearchDutyUser}
                         style={{

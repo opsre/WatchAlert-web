@@ -84,11 +84,11 @@ export default [
     },
     {
         path: '/dutyManage',
-        element: <ComponentsContent name="值班日程" c={<DutyManage />} />
+        element: <ComponentsContent name="值班中心" c={<DutyManage />} />
     },
     {
         path: '/dutyManage/:id/calendar',
-        element: <ComponentsContent name="日程表" c={<CalendarApp />} />
+        element: <ComponentsContent name="值班表" c={<CalendarApp />} />
     },
     {
         path: '/user',

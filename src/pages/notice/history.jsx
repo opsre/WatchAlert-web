@@ -67,9 +67,16 @@ export const NoticeRecords = () => {
                 dataIndex: "ruleName",
                 key: "ruleName",
                 ellipsis: true,
-                render: (text) => (
-                    <Tooltip title={text}>
-                        <span>{text}</span>
+                render: (_, record) => (
+                    <Tooltip title={record.ruleName}>
+                        <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => showDrawer(record)}
+                            style={{ cursor: 'pointer', color: 'rgb(22, 119, 255)', textDecoration: 'none', marginTop: '1px' }}
+                            >
+                                {record.ruleName}
+                        </span>
                     </Tooltip>
                 ),
             },
@@ -171,29 +178,6 @@ export const NoticeRecords = () => {
                         </div>
                     )
                 },
-            },
-            {
-                title: "内容详情",
-                width: 100,
-                render: (_, record) => (
-                    <Button
-                        type="primary"
-                        size="small"
-                        onClick={() => showDrawer(record)}
-                        style={{
-                            backgroundColor: "#000",
-                            borderRadius: "6px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            padding: "0 12px",
-                            height: "28px",
-                        }}
-                    >
-                        <FileText size={14} />
-                        详情
-                    </Button>
-                ),
             },
         ],
         [],

@@ -59,7 +59,7 @@ async function createCalendar(params) {
         const res = await http('post', '/api/w8t/calendar/calendarCreate', params);
         message.open({
             type: 'success',
-            content: '日程表发布成功',
+            content: '值班表发布成功',
         });
         return res;
     } catch (error) {
@@ -73,7 +73,7 @@ async function updateCalendar(params) {
         const res = await http('post', '/api/w8t/calendar/calendarUpdate', params);
         message.open({
             type: 'success',
-            content: '日程表更新成功',
+            content: '值班表更新成功',
         });
         return res;
     } catch (error) {
