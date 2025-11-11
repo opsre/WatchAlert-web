@@ -16,7 +16,8 @@ import {
     Switch,
     Popconfirm
 } from "antd"
-import {Link, useNavigate, useParams } from "react-router-dom"
+import {Link, useNavigate} from "react-router-dom"
+import { useParams } from "react-router-dom"
 import {deleteRule, getRuleList, RuleChangeStatus, RuleImport} from "../../../api/rule"
 import { ReactComponent as PrometheusImg } from "./img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "./img/alicloud.svg"
@@ -347,8 +348,6 @@ export const AlertRuleList = () => {
     const handleRuleGroupChange = (groupId) => {
         setSelectedRuleGroupId(groupId)
         setPagination({ ...pagination, index: 1 })
-        // 更新浏览器URL
-        navigate(`/ruleGroup/${groupId}/rule/list`)
         // 直接刷新当前规则组的规则列表，不进行路由跳转
         handleList(groupId, 1, pagination.size)
     }

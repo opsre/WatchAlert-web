@@ -782,7 +782,7 @@ export const AlertHistoryEvent = (props) => {
                 {selectedEvent && (
                     <div>
                         <div style={{
-                                marginLeft: "10px",
+                                marginLeft: '-20px',
                             }}
                         >
                             <Spin spinning={loading}>
@@ -831,6 +831,16 @@ export const AlertHistoryEvent = (props) => {
                                             ))}
                                         </div>
                                     ),
+                                },
+                                {
+                                    key: "first_time",
+                                    label: "触发时间",
+                                    children: (new Date(selectedEvent.first_trigger_time * 1000).toLocaleString()),
+                                },
+                                {
+                                    key: "recover_time",
+                                    label: "恢复时间",
+                                    children: (new Date(selectedEvent.recover_time * 1000).toLocaleString()),
                                 },
                                 {
                                     key: "first_value",

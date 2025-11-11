@@ -1131,7 +1131,7 @@ export const AlertCurrentEvent = (props) => {
                 {selectedEvent && (
                     <div>
                         <div style={{
-                                marginLeft: "10px",
+                                marginLeft: '-20px',
                             }}
                         >
                             <Spin spinning={loading}>
@@ -1182,6 +1182,11 @@ export const AlertCurrentEvent = (props) => {
                                             ))}
                                         </div>
                                     ),
+                                },
+                                {
+                                    key: "first_time",
+                                    label: "触发时间",
+                                    children: (new Date(selectedEvent.first_trigger_time * 1000).toLocaleString()),
                                 },
                                 {
                                     key: 'value',

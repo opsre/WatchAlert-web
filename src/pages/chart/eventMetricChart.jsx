@@ -132,6 +132,16 @@ export const EventMetricChart = ({ data }) => {
                     axisLine={{ stroke: '#d9d9d9' }}
                     tickLine={false}
                     tick={{ fill: "#666", fontSize: 12 }}
+                    tickFormatter={(value) => {
+                        // 优化大数值显示，避免显示过多的0
+                        if (Math.abs(value) >= 1000000) {
+                            return `${(value / 1000000).toFixed(1)}M`;
+                        } else if (Math.abs(value) >= 1000) {
+                            return `${(value / 1000).toFixed(1)}K`;
+                        } else {
+                            return value;
+                        }
+                    }}
                 />
 
                 <Tooltip
