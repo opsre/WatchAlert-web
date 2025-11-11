@@ -173,7 +173,7 @@ export const AlertCurrentEvent = (props) => {
                     contentString = record.annotations;
                 }
 
-                const maxLength = 100;
+                const maxLength = 50;
                 const displayContent = contentString.length > maxLength
                     ? contentString.substring(0, maxLength) + '...'
                     : contentString;
@@ -522,12 +522,26 @@ export const AlertCurrentEvent = (props) => {
             content = record.annotations
         }
 
+        // 准备告警基本信息
+        const alertInfo = {
+            rule_name: record.rule_name,
+            rule_id: record.rule_id,
+            datasource_type: record.datasource_type,
+            fingerprint: record.fingerprint,
+            severity: record.severity,
+            status: record.status,
+            first_trigger_time: new Date(record.first_trigger_time * 1000).toLocaleString(),
+            annotations: record.annotations,
+            labels: record.labels
+        }
+
         // 添加表单字段
         formData.append("rule_name", record.rule_name)
         formData.append("rule_id", record.rule_id)
         formData.append("content", content)
         formData.append("search_ql", record.searchQL)
         formData.append("deep", "false")
+        formData.append("alert_info", JSON.stringify(alertInfo))
 
 
         const params = {
@@ -537,6 +551,7 @@ export const AlertCurrentEvent = (props) => {
             searchQL: record.searchQL,
             fingerprint: record.fingerprint,
             annotations: content,
+            alertInfo: alertInfo  // 添加告警信息到参数中
         }
         setAiAnalyzeContent(params)
 
@@ -574,6 +589,7 @@ export const AlertCurrentEvent = (props) => {
         formData.append("content", content)
         formData.append("search_ql", params.searchQL)
         formData.append("deep", "true")
+        formData.append("alert_info", JSON.stringify(params.alertInfo))
 
         setAiAnalyzeContent({
             ...params,
@@ -952,7 +968,7 @@ export const AlertCurrentEvent = (props) => {
                 placement="right"
                 onClose={handleCloseAiAnalyze}
                 open={aiAnalyze}
-                width={800}
+                width={1000}
                 styles={{
                     body: {
                         padding: "20px",
@@ -965,6 +981,71 @@ export const AlertCurrentEvent = (props) => {
                     borderRadius: '8px',
                     minHeight: '400px'
                 }}>
+                    {/* 告警基本信息展示 */}
+                    <div style={{ 
+                        marginBottom: '16px', 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        gap: '12px',
+                        justifyContent: 'flex-end'
+                    }}>
+                        <div>
+                            <div style={{ fontWeight: '500', color: '#000' }}>用户</div>
+                        </div>
+                        <div style={{ 
+                            width: '32px', 
+                            height: '32px', 
+                            borderRadius: '50%', 
+                            backgroundColor: '#ff4d4f', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 'bold'
+                        }}>
+                            U
+                        </div>
+                    </div>
+                    <div style={{ 
+                        marginRight: '44px',
+                        marginBottom: '20px',
+                        display: 'flex',
+                        justifyContent: 'flex-end'
+                    }}>
+                        <div style={{ 
+                            backgroundColor: '#f9f9f9', 
+                            padding: '15px', 
+                            borderRadius: '8px',
+                            maxWidth: '80%'
+                        }}>
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(1, 1fr)', 
+                                fontSize: '14px'
+                            }}>
+                                <span>你好 AI 助手，请根据你的理解帮我分析这条告警。</span>
+                                <br/>
+                                <div>
+                                    <span style={{ fontWeight: '500' }}>告警指纹：</span>
+                                    <span>{aiAnalyzeContent.fingerprint}</span>
+                                </div>
+                                <div>
+                                    <span style={{ fontWeight: '500' }}>规则名称：</span>
+                                    <span>{aiAnalyzeContent.ruleName}（{aiAnalyzeContent.ruleId}）</span>
+                                </div>
+                                <div>
+                                    <span style={{ fontWeight: '500' }}>查询条件：</span>
+                                    <span>{aiAnalyzeContent.searchQL}</span>
+                                </div>
+                                <div>
+                                    <span style={{ fontWeight: '500' }}>事件详情：</span>
+                                    <span>{aiAnalyzeContent.annotations}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* AI助手对话区域 */}
                     <div style={{ 
                         marginBottom: '16px', 
                         display: 'flex', 
