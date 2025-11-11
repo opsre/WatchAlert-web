@@ -277,11 +277,7 @@ export const NoticeRecords = () => {
                     marginBottom: "20px",
                 }}
             >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <FilterIcon size={16} />
-                    <Text strong>筛选：</Text>
-                </div>
-
+                
                 <Select
                     placeholder="告警等级"
                     allowClear

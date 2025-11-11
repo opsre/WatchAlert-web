@@ -1131,10 +1131,7 @@ export const AlertCurrentEvent = (props) => {
                 {selectedEvent && (
                     <div>
                         <div style={{
-                                padding: "5px",
-                                border: "1px solid #f0f0f0",
-                                borderRadius: "8px",
-                                marginBottom: "12px",
+                                marginLeft: "10px",
                             }}
                         >
                             <Spin spinning={loading}>
@@ -1176,6 +1173,17 @@ export const AlertCurrentEvent = (props) => {
                                     ),
                                 },
                                 {
+                                    key: 'labels',
+                                    label: '事件标签',
+                                    children: (
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "3px" }}>
+                                            {Object.entries(selectedEvent?.labels).map(([key, value]) => (
+                                                <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
+                                            ))}
+                                        </div>
+                                    ),
+                                },
+                                {
                                     key: 'value',
                                     label: '触发时值',
                                     children: selectedEvent?.labels["first_value"] || 0,
@@ -1197,17 +1205,6 @@ export const AlertCurrentEvent = (props) => {
                                         >
                                             {RenderTruncatedText(selectedEvent?.upgradeState?.whoAreConfirm || '未认领')}
                                         </Tag>
-                                    ),
-                                },
-                                {
-                                    key: 'labels',
-                                    label: '事件标签',
-                                    children: (
-                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "3px" }}>
-                                            {Object.entries(selectedEvent?.labels).map(([key, value]) => (
-                                                <Tag color="processing" key={key}>{`${key}: ${value}`}</Tag>
-                                            ))}
-                                        </div>
                                     ),
                                 },
                                 {
