@@ -935,44 +935,10 @@ export const AlertCurrentEvent = (props) => {
 
     return (
         <div>
-            <Modal
-                centered
-                open={aiAnalyze}
-                onCancel={handleCloseAiAnalyze}
-                width={1000}
-                footer={null} // 不显示底部按钮
-                styles={{
-                    body: {
-                        height: "700px", // 固定高度
-                        overflowY: "auto", // 支持垂直滚动
-                        padding: "20px",
-                        backgroundColor: "#f9f9f9", // 灰色背景
-                        borderRadius: "8px", // 圆角
-                    },
-                }}
-            >
-                <div style={{ marginTop: "10px" }}>
-                    <Descriptions
-                        labelStyle={{ width: '100px' }}
-                        items={[
-                            {
-                                key: "1",
-                                label: "规则名称",
-                                children: aiAnalyzeContent.ruleName,
-                            },
-                            {
-                                key: "2",
-                                label: "规则类型",
-                                children: aiAnalyzeContent.datasourceType,
-                            },
-                            {
-                                key: "3",
-                                label: "告警指纹",
-                                children: aiAnalyzeContent.fingerprint,
-                            },
-                        ]}
-                    />
-                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <Drawer
+                title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>AI 分析</span>
                         <Button
                             type="primary"
                             onClick={handleAiDeepAnalyze}
@@ -982,18 +948,55 @@ export const AlertCurrentEvent = (props) => {
                             深度分析
                         </Button>
                     </div>
-                </div>
-                <Divider />
-                {analyzeLoading ? (
-                    <div style={{ alignItems: "center", marginTop: "100px", textAlign: "center" }}>
-                        <Spin tip="Ai 分析中..." percent={percent}>
-                            <br />
-                        </Spin>
+                }
+                placement="right"
+                onClose={handleCloseAiAnalyze}
+                open={aiAnalyze}
+                width={800}
+                styles={{
+                    body: {
+                        padding: "20px",
+                        borderRadius: "8px",
+                    },
+                }}
+            >
+                <div style={{ 
+                    backgroundColor: '#fff', 
+                    borderRadius: '8px',
+                    minHeight: '400px'
+                }}>
+                    <div style={{ 
+                        marginBottom: '16px', 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        gap: '12px'
+                    }}>
+                        <div style={{ 
+                            width: '32px', 
+                            height: '32px', 
+                            borderRadius: '50%', 
+                            backgroundColor: '#1890ff', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 'bold'
+                        }}>
+                            AI
+                        </div>
+                        <div>
+                            <div style={{ fontWeight: '500', color: '#000' }}>AI 助手</div>
+                        </div>
                     </div>
-                ) : (
-                    <MarkdownRenderer data={aiAnalyzeContent.content} />
-                )}
-            </Modal>
+                    <div style={{ marginLeft: '44px' }}>
+                        {analyzeLoading ? (
+                            <MarkdownRenderer data={"正在分析中..."} />
+                        ) : (
+                            <MarkdownRenderer data={aiAnalyzeContent.content} />
+                        )}
+                    </div>
+                </div>
+            </Drawer>
 
             <div style={{ marginBottom: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
