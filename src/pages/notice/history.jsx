@@ -12,13 +12,13 @@ import {
     Select,
     Space,
     Typography,
-    Card,
+    Descriptions,
     Tooltip,
     Empty,
     Skeleton,
 } from "antd"
 import { noticeRecordList } from "../../api/notice"
-import VSCodeEditor from "../../utils/VSCodeEditor";
+import TextArea from "antd/es/input/TextArea"
 import { NotificationTypeIcon } from "./notification-type-icon"
 import { SearchIcon, FilterIcon, AlertTriangle, CheckCircle, XCircle, Clock, FileText, RefreshCw } from "lucide-react"
 import {HandleShowTotal} from "../../utils/lib";
@@ -98,7 +98,7 @@ export const NoticeRecords = () => {
                             gap: "4px",
                         }}
                     >
-                        <AlertTriangle size={12} />
+                        {/* <AlertTriangle size={12} /> */}
                         {SEVERITY_LABELS[text] || text}
                     </Tag>
                 ),
@@ -133,7 +133,7 @@ export const NoticeRecords = () => {
                 render: (status) =>
                     status === 0 ? (
                         <Tag
-                            icon={<CheckCircle size={12} />}
+                            // icon={<CheckCircle size={12} />}
                             color="success"
                             style={{
                                 borderRadius: "12px",
@@ -353,7 +353,6 @@ export const NoticeRecords = () => {
             <Drawer
                 title={
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <FileText size={18} />
                         <span>通知详情</span>
                     </div>
                 }
@@ -392,38 +391,61 @@ export const NoticeRecords = () => {
                 }
             >
                 {selectedRecord ? (
-                    <>
-                        <div style={{ marginBottom: "24px" }}>
-                            <Title level={5}>基本信息</Title>
-                            <div
-                                style={{
-                                    display: "grid",
-                                    gridTemplateColumns: "120px 1fr",
-                                    gap: "12px",
-                                    backgroundColor: "#f9f9f9",
-                                    padding: "16px",
-                                    borderRadius: "8px",
-                                }}
-                            >
-                                <Text type="secondary">规则名称：</Text>
-                                <Text strong>{selectedRecord.ruleName}</Text>
+                    <Descriptions
+                            bordered
+                            column={1}
+                            style={{ marginBottom: '24px' }}
+                            labelStyle={{ width: '120px' }}
+                            items={[
+                                {
+                                    label: '规则名称',
+                                    children: selectedRecord.ruleName,
+                                },
+                                {
+                                    label: '告警等级',
+                                    children: <Tag color={SEVERITY_COLORS[selectedRecord.severity]}>{selectedRecord.severity}</Tag>,
+                                },
+                                {
+                                    label: '通知对象',
+                                    children: selectedRecord.nObj,
+                                },
+                                {
+                                    label: 'Request',
+                                    children: (
+                                       <TextArea
+                                            value={selectedRecord.alarmMsg}
+                                            style={{
+                                                height: 250,
+                                                resize: "none",
+                                            }}
+                                            readOnly
+                                        />
+                                    ),
+                                },
+                                {
+                                    label: 'Response',
+                                    children: (
+                                       <TextArea
+                                            value={selectedRecord.errMsg || "Success"}
+                                            style={{
+                                                height: 250,
+                                                resize: "none",
+                                            }}
+                                            readOnly
+                                        />
+                                    ),
+                                },
+                            ]}
+                        />
 
-                                <Text type="secondary">通知对象：</Text>
-                                <Text>{selectedRecord.nObj}</Text>
+                    //     <Title level={5}>告警消息体</Title>
+                    //     <VSCodeEditor value={selectedRecord.alarmMsg} />
 
-                                <Text type="secondary">通知时间：</Text>
-                                <Text>{new Date(selectedRecord.createAt * 1000).toLocaleString()}</Text>
-                            </div>
-                        </div>
+                    //     <Divider style={{ margin: "24px 0" }} />
 
-                        <Title level={5}>告警消息体</Title>
-                        <VSCodeEditor value={selectedRecord.alarmMsg} />
-
-                        <Divider style={{ margin: "24px 0" }} />
-
-                        <Title level={5}>错误消息体</Title>
-                        <VSCodeEditor value={selectedRecord.errMsg || "null"} />
-                    </>
+                    //     <Title level={5}>错误消息体</Title>
+                    //     <VSCodeEditor value={selectedRecord.errMsg || "null"} />
+                    // </>
                 ) : (
                     <Skeleton active paragraph={{ rows: 10 }} />
                 )}
