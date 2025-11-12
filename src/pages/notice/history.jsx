@@ -437,15 +437,6 @@ export const NoticeRecords = () => {
                                 },
                             ]}
                         />
-
-                    //     <Title level={5}>告警消息体</Title>
-                    //     <VSCodeEditor value={selectedRecord.alarmMsg} />
-
-                    //     <Divider style={{ margin: "24px 0" }} />
-
-                    //     <Title level={5}>错误消息体</Title>
-                    //     <VSCodeEditor value={selectedRecord.errMsg || "null"} />
-                    // </>
                 ) : (
                     <Skeleton active paragraph={{ rows: 10 }} />
                 )}
