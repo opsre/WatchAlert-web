@@ -297,15 +297,23 @@ export const AlertCurrentEvent = (props) => {
             dataIndex: "status",
             key: "status",
             width: "100px",
-            render: (text) => {
+            render: (text, record) => {
                 const status = statusMap[text]
-                return status ? <Tag color={status.color}>{status.text}</Tag> : "未知"
+                return (
+                    <div>
+                        {(text === "alerting" && record.confirmState?.confirmUsername) && (
+                            <Tag style={{ color:"#980d9e", background:"#f6edff", borderColor: "rgb(204 121 208)" }}>处理中</Tag>
+                        ) || 
+                            <Tag color={status.color}>{status.text}</Tag>
+                        }
+                    </div>
+                )
             },
         },
         {
             title: "认领人",
-            dataIndex: "upgradeState",
-            key: "upgradeState",
+            dataIndex: "confirmState",
+            key: "confirmState",
             width: "100px",
             render: (text) => {
                 return (
@@ -320,7 +328,7 @@ export const AlertCurrentEvent = (props) => {
                             gap: "4px",
                         }}
                     >
-                        {text.whoAreConfirm || "未认领"}
+                        {text.confirmUsername || "未认领"}
                     </Tag>
                 )
             },
@@ -334,9 +342,6 @@ export const AlertCurrentEvent = (props) => {
                     <Menu>
                         <Menu.Item onClick={() => {handleClaimOne(record)}} >
                             去认领
-                        </Menu.Item>
-                        <Menu.Item onClick={() => {handleProcessOne(record)}} >
-                            去处理
                         </Menu.Item>
                         {record.status !== "silenced" && (
                             <Menu.Item onClick={() => {handleSilenceModalOpen(record)}} >
@@ -639,11 +644,6 @@ export const AlertCurrentEvent = (props) => {
                 label: "批量认领",
                 onClick: () => handleBatchClaim(),
             },
-            {
-                key: "batchProcess",
-                label: "批量处理",
-                onClick: () => handleBatchProcess(),
-            },
         ],
     }
 
@@ -682,46 +682,11 @@ export const AlertCurrentEvent = (props) => {
         })
     }
 
-    const handleBatchProcess = () => {
-        setBatchProcessing(true)
-        if (selectedRowKeys.length === 0) {
-            message.warning("请先选择要处理的事件")
-            setBatchProcessing(false)
-            return
-        }
-
-        Modal.confirm({
-            title: "确认批量处理",
-            content: `确定要处理选中的 ${selectedRowKeys.length} 个事件吗？`,
-            onOk: async () => {
-                try {
-                    const params = {
-                        state: 2,
-                        faultCenterId: id,
-                        fingerprints: selectedRowKeys
-                    }
-                    await ProcessAlertEvent(params)
-
-                    message.success(`成功处理 ${selectedRowKeys.length} 个事件`)
-                    setSelectedRowKeys([]) // 清空选择
-                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize) // 刷新列表
-                } catch (error) {
-                    message.error("处理失败: " + error.message)
-                } finally {
-                    setBatchProcessing(false)
-                }
-            },
-            onCancel: () => {
-                setBatchProcessing(false)
-            },
-        })
-    }
-
     // 单条去认领
     const handleClaimOne = (record) => {
         Modal.confirm({
             title: "确认认领",
-            content: `确定要认领规则 "${record.rule_name}" 的该事件吗？`,
+            content: `确定要认领规则 "${record.rule_name}" 的事件吗？`,
             onOk: async () => {
                 try {
                     setBatchProcessing(true)
@@ -735,31 +700,6 @@ export const AlertCurrentEvent = (props) => {
                     handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
                 } catch (error) {
                     message.error("认领失败: " + error.message)
-                } finally {
-                    setBatchProcessing(false)
-                }
-            },
-        })
-    }
-
-    // 单条去处理
-    const handleProcessOne = (record) => {
-        Modal.confirm({
-            title: "确认处理",
-            content: `确定要将该事件标记为已处理吗？`,
-            onOk: async () => {
-                try {
-                    setBatchProcessing(true)
-                    const params = {
-                        state: 2,
-                        faultCenterId: id,
-                        fingerprints: [record.fingerprint],
-                    }
-                    await ProcessAlertEvent(params)
-                    message.success("处理成功")
-                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
-                } catch (error) {
-                    message.error("处理失败: " + error.message)
                 } finally {
                     setBatchProcessing(false)
                 }
@@ -1232,7 +1172,20 @@ export const AlertCurrentEvent = (props) => {
                                 {
                                     key: 'rule_name',
                                     label: '规则名称',
-                                    children: selectedEvent.rule_name,
+                                    children: (
+                                        <a 
+                                            href={`/ruleGroup/${selectedEvent.rule_group_id}/rule/${selectedEvent.rule_id}/edit`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ 
+                                                color: '#1890ff', 
+                                                textDecoration: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {selectedEvent.rule_name}
+                                        </a>
+                                    ),
                                 },
                                 {
                                     key: 'fingerprint',
@@ -1253,7 +1206,13 @@ export const AlertCurrentEvent = (props) => {
                                     key: 'status',
                                     label: '事件状态',
                                     children: (
-                                        <Tag color={statusMap[selectedEvent.status].color}>{statusMap[selectedEvent.status].text}</Tag>
+                                        <>
+                                            {(selectedEvent.status === "alerting" && selectedEvent.confirmState?.confirmUsername) && (
+                                                <Tag style={{ color:"#980d9e", background:"#f6edff", borderColor: "rgb(204 121 208)" }}>处理中</Tag>
+                                            ) || 
+                                                <Tag color={statusMap[selectedEvent.status].color}>{statusMap[selectedEvent.status].text}</Tag>
+                                            }
+                                        </>
                                     ),
                                 },
                                 {
@@ -1266,6 +1225,11 @@ export const AlertCurrentEvent = (props) => {
                                             ))}
                                         </div>
                                     ),
+                                },
+                                {
+                                    key: 'searchQL',
+                                    label: '触发条件',
+                                    children: selectedEvent?.searchQL,
                                 },
                                 {
                                     key: "first_time",
@@ -1292,7 +1256,7 @@ export const AlertCurrentEvent = (props) => {
                                                 gap: '4px',
                                             }}
                                         >
-                                            {RenderTruncatedText(selectedEvent?.upgradeState?.whoAreConfirm || '未认领')}
+                                            {RenderTruncatedText(selectedEvent?.confirmState?.confirmUsername || '未认领')}
                                         </Tag>
                                     ),
                                 },

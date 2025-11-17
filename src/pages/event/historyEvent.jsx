@@ -154,7 +154,7 @@ export const AlertHistoryEvent = (props) => {
                 } else {
                     contentString = record.annotations
                 }
-                const maxLength = 80
+                const maxLength = 50
                 const displayContent =
                     contentString.length > maxLength ? contentString.substring(0, maxLength) + "..." : contentString
                 return (
@@ -290,61 +290,24 @@ export const AlertHistoryEvent = (props) => {
         },
         {
             title: "处理人",
-            dataIndex: "upgradeState",
-            key: "upgradeState",
+            dataIndex: "confirmState",
+            key: "confirmState",
             width: "100px",
             render: (text) => {
                 return (
-                    <>
-                        {(text.whoAreConfirm === text.whoAreHandle && (
-                            <Tag
-                                style={{
-                                    borderRadius: "12px",
-                                    padding: "0 10px",
-                                    fontSize: "12px",
-                                    fontWeight: "500",
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: "4px",
-                                }}
-                            >
-                                {text.whoAreHandle || "自动恢复"}
-                            </Tag>
-                        )) || (
-                            <>
-                                {text.whoAreConfirm !== "" && (
-                                    <Tag
-                                        style={{
-                                            borderRadius: "12px",
-                                            padding: "0 10px",
-                                            fontSize: "12px",
-                                            fontWeight: "500",
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                            gap: "4px",
-                                        }}
-                                    >
-                                        {text.whoAreConfirm}
-                                    </Tag>
-                                )}
-                                {text.whoAreHandle !== "" && (
-                                    <Tag
-                                        style={{
-                                            borderRadius: "12px",
-                                            padding: "0 10px",
-                                            fontSize: "12px",
-                                            fontWeight: "500",
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                            gap: "4px",
-                                        }}
-                                    >
-                                        {text.whoAreHandle}
-                                    </Tag>
-                                )}
-                            </>
-                        )}
-                    </>
+                    <Tag
+                        style={{
+                            borderRadius: "12px",
+                            padding: "0 10px",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                        }}
+                    >
+                        {text.confirmUsername || "自动恢复"}
+                    </Tag>
                 )
             },
         },
@@ -797,9 +760,22 @@ export const AlertHistoryEvent = (props) => {
                             labelStyle={{ width: '120px' }}
                             items={[
                                 {
-                                    key: "rule_name",
-                                    label: "规则名称",
-                                    children: selectedEvent.rule_name,
+                                    key: 'rule_name',
+                                    label: '规则名称',
+                                    children: (
+                                        <a 
+                                            href={`/ruleGroup/${selectedEvent?.rule_group_id}/rule/${selectedEvent.rule_id}/edit`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ 
+                                                color: '#1890ff', 
+                                                textDecoration: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {selectedEvent.rule_name}
+                                        </a>
+                                    ),
                                 },
                                 {
                                     key: "fingerprint",
@@ -833,6 +809,11 @@ export const AlertHistoryEvent = (props) => {
                                     ),
                                 },
                                 {
+                                    key: 'searchQL',
+                                    label: '触发条件',
+                                    children: selectedEvent?.searchQL,
+                                },
+                                {
                                     key: "first_time",
                                     label: "触发时间",
                                     children: (new Date(selectedEvent.first_trigger_time * 1000).toLocaleString()),
@@ -856,56 +837,19 @@ export const AlertHistoryEvent = (props) => {
                                     key: "handle",
                                     label: "处理人",
                                     children: (
-                                        <>
-                                            {(selectedEvent?.upgradeState?.whoAreConfirm === selectedEvent?.upgradeState?.whoAreHandle && (
-                                                <Tag
-                                                    style={{
-                                                        borderRadius: "12px",
-                                                        padding: "0 10px",
-                                                        fontSize: "12px",
-                                                        fontWeight: "500",
-                                                        display: "inline-flex",
-                                                        alignItems: "center",
-                                                        gap: "4px",
-                                                    }}
-                                                >
-                                                    {selectedEvent?.upgradeState?.whoAreHandle || "自动恢复"}
-                                                </Tag>
-                                            )) || (
-                                                <>
-                                                    {selectedEvent?.upgradeState?.whoAreConfirm !== "" && (
-                                                        <Tag
-                                                            style={{
-                                                                borderRadius: "12px",
-                                                                padding: "0 10px",
-                                                                fontSize: "12px",
-                                                                fontWeight: "500",
-                                                                display: "inline-flex",
-                                                                alignItems: "center",
-                                                                gap: "4px",
-                                                            }}
-                                                        >
-                                                            {selectedEvent?.upgradeState?.whoAreConfirm}
-                                                        </Tag>
-                                                    )}
-                                                    {selectedEvent?.upgradeState?.whoAreHandle !== "" && (
-                                                        <Tag
-                                                            style={{
-                                                                borderRadius: "12px",
-                                                                padding: "0 10px",
-                                                                fontSize: "12px",
-                                                                fontWeight: "500",
-                                                                display: "inline-flex",
-                                                                alignItems: "center",
-                                                                gap: "4px",
-                                                            }}
-                                                        >
-                                                            {selectedEvent?.upgradeState?.whoAreHandle}
-                                                        </Tag>
-                                                    )}
-                                                </>
-                                            )}
-                                        </>
+                                        <Tag
+                                            style={{
+                                                borderRadius: "12px",
+                                                padding: "0 10px",
+                                                fontSize: "12px",
+                                                fontWeight: "500",
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                gap: "4px",
+                                            }}
+                                        >
+                                            {selectedEvent?.confirmState?.confirmUsername || "自动恢复"}
+                                        </Tag>
                                     ),
                                 },
                                 {

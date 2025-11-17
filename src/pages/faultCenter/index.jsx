@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { Button, Input, Card, Row, Col, Dropdown, Menu, Modal, Empty, Typography } from "antd"
 import { useNavigate } from "react-router-dom"
 import { FaultCenterDelete, FaultCenterList } from "../../api/faultCenter"
-import { MoreOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons"
+import { MoreOutlined, DeleteOutlined, ExclamationCircleOutlined, PlusOutlined } from "@ant-design/icons"
 import { CreateFaultCenter } from "./create"
 
 const { confirm } = Modal
@@ -154,8 +154,8 @@ export const FaultCenter = () => {
                     </div>
 
                     <div>
-                        <Button type="primary" style={{ backgroundColor: "#000000" }} onClick={() => setVisible(true)}>
-                            创 建
+                        <Button type="primary" style={{ backgroundColor: "#000000" }} onClick={() => setVisible(true)} icon={<PlusOutlined />}>
+                            创建
                         </Button>
                     </div>
                 </div>

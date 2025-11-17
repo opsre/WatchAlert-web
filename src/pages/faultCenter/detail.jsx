@@ -5,7 +5,7 @@ import { Input, Descriptions, Tabs, Button, Row, Col, Typography } from "antd"
 import { EditOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons"
 import "./index.css"
 import { FaultCenterReset, FaultCenterSearch, FaultCenterSlo } from "../../api/faultCenter"
-import { useParams, useNavigate, useLocation } from "react-router-dom" // 新增
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { AlertCurrentEvent } from "../event/currentEvent"
 import { AlertHistoryEvent } from "../event/historyEvent"
 import { Silences } from "../silence"

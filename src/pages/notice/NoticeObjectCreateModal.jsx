@@ -243,9 +243,12 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
 
     const handleTestNotice = async () => {
         setTestLoading(true)
-        const values = form.getFieldsValue(['noticeType', 'hook', 'sign', 'routes', 'email']);
+        const params = {
+            ...form.getFieldsValue(),
+            noticeType: noticeType
+        }
         try {
-            const res = await noticeTest(values);
+            const res = await noticeTest(params);
         } catch (error) {
             console.log(error)
         }
@@ -661,15 +664,11 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
       "__name__": "Prometheus指标名称",
       ...
     },
-    "upgradeState": {
+    "confirmState": {
       "isConfirm": "是否已被确认（True/False）",
       "confirmOkTime": "确认操作完成的时间戳（Unix时间，秒）",
       "confirmSendTime": "确认通知发送的时间戳（Unix时间，秒）",
-      "whoAreConfirm": "执行确认操作的人员",
-      "isHandle": "是否已被处理/解决（True/False）",
-      "HandleOkTime": "处理操作完成的时间戳（Unix时间，秒）",
-      "handleSendTime": "处理通知发送的时间戳（Unix时间，秒）",
-      "whoAreHandle": "执行处理操作的人员"
+      "confirmUser": "执行确认操作的人员",
     }
   }
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import ReactECharts from "echarts-for-react"
-import { List, Row, Col, Statistic, Select, message, Typography, Badge, Spin, Empty } from "antd"
+import { List, Row, Col, Statistic, Select, message, Typography, Badge, Spin, Empty, Tag } from "antd"
 import { getDashboardInfo } from "../api/other"
 import { FaultCenterList } from "../api/faultCenter"
 import { noticeRecordMetric } from "../api/notice"
@@ -85,11 +85,22 @@ export const Home = () => {
   }
 
   // 渲染告警级别 badge
-  const getSeverityBadge = (text) => {
-    if (text.includes("P0")) return <Badge color={SEVERITY_COLORS.P0} text={text} />
-    if (text.includes("P1")) return <Badge color={SEVERITY_COLORS.P1} text={text} />
-    if (text.includes("P2")) return <Badge color={SEVERITY_COLORS.P2} text={text} />
-    return text
+  const getSeverityBadge = (severity, ruleName, faultCenterId) => {
+    return <>
+        <Tag color={SEVERITY_COLORS[severity]}>{severity}</Tag>
+        <a 
+          href={`/faultCenter/detail/${faultCenterId}?query=${ruleName}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ 
+              color: '#000', 
+              textDecoration: 'none',
+              cursor: 'pointer'
+          }}
+        >
+          {ruleName}
+        </a>
+      </>
   }
 
   const alarmDistributionOption = {
@@ -370,7 +381,7 @@ export const Home = () => {
                           width: "100%",
                         }}
                       >
-                        {getSeverityBadge(item)}
+                        {getSeverityBadge(item.severity, item.ruleName, item.faultCenterId)}
                       </div>
                     </List.Item>
                   )}
