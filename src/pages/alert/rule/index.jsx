@@ -350,6 +350,7 @@ export const AlertRuleList = () => {
         setPagination({ ...pagination, index: 1 })
         // 直接刷新当前规则组的规则列表，不进行路由跳转
         handleList(groupId, 1, pagination.size)
+        navigate(`/ruleGroup/${groupId}/rule/list`)
     }
 
     const GetSeverity = (data) => {
