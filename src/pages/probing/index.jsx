@@ -18,7 +18,7 @@ export const Probing = () => {
     const [icmpMonList, setIcmpMonList] = useState([]);
     const [tcpMonList, setTcpMonList] = useState([]);
     const [sslMonList, setSslMonList] = useState([]);
-    const [probingType, setprobingType] = useState('HTTP');
+    const [probingType, setprobingType] = useState(params.get('view')||'HTTP');
     const [searchQuery,setSearchQuery] = useState('')
     const [openDetailHistoryModal, setOpenDetailHistoryModal] = useState(false)
     const [selectedRow, setSelectedRow] = useState(null)
@@ -156,7 +156,7 @@ export const Probing = () => {
             render: (_, record) =>
                 httpMonList.length >= 1 ? (
                     <Space size="middle">
-                        <Link to={`/probing/${record.ruleId}/edit`}>
+                        <Link to={`/probing/${record.ruleId}/edit?type=${record.ruleType}`}>
                             <Button
                                 type="text"
                                 icon={<EditOutlined />}
@@ -341,7 +341,7 @@ export const Probing = () => {
             render: (_, record) =>
                 icmpMonList.length >= 1 ? (
                     <Space size="middle">
-                        <Link to={`/probing/${record.ruleId}/edit`}>
+                        <Link to={`/probing/${record.ruleId}/edit?type=${record.ruleType}`}>
                             <Button
                                 type="text"
                                 icon={<EditOutlined />}
@@ -503,7 +503,7 @@ export const Probing = () => {
             render: (_, record) =>
                 tcpMonList.length >= 1 ? (
                     <Space size="middle">
-                        <Link to={`/probing/${record.ruleId}/edit`}>
+                        <Link to={`/probing/${record.ruleId}/edit?type=${record.ruleType}`}>
                             <Button
                                 type="text"
                                 icon={<EditOutlined />}
@@ -696,7 +696,7 @@ export const Probing = () => {
             render: (_, record) =>
                 sslMonList.length >= 1 ? (
                     <Space size="middle">
-                        <Link to={`/probing/${record.ruleId}/edit`}>
+                        <Link to={`/probing/${record.ruleId}/edit?type=${record.ruleType}`}>
                             <Button
                                 type="text"
                                 icon={<EditOutlined />}
@@ -912,7 +912,7 @@ export const Probing = () => {
                         icon={<ReloadOutlined />}
                     >刷新</Button>
 
-                    <Link to={`/probing/create`}>
+                    <Link to={`/probing/create?type=${probingType}`}>
                         <Button
                             type="primary"
                             style={{

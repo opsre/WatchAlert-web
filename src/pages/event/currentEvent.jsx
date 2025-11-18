@@ -63,6 +63,8 @@ import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
+import { noticeRecordList } from "../../api/notice"
+import { NotificationTypeIcon } from "../notice/notification-type-icon"
 
 const { Title, Text } = Typography
 
@@ -105,6 +107,15 @@ export const AlertCurrentEvent = (props) => {
     const [newComment, setNewComment] = useState("")
     const [sortOrder,setSortOrder] = useState(null)
     const [metricData, setMetricData] = useState({})
+    const [noticeSelectEventId, setNoticeSelectEventId] = useState('')
+    const [noticeRecords, setNoticeRecords] = useState([])  
+    const [noticeDrawerOpen, setNoticeDrawerOpen] = useState(false)  
+    const [noticeLoading, setNoticeLoading] = useState(false)  
+    const [noticePagination, setNoticePagination] = useState({ 
+        pageIndex: 1,
+        pageSize: 10,
+        pageTotal: 0,
+    })
 
     // Constants
     const SEVERITY_COLORS = {
@@ -889,6 +900,52 @@ export const AlertCurrentEvent = (props) => {
         }
     }
 
+    // 获取通知记录
+    const fetchNoticeRecords = async (eventId, pageIndex = 1, pageSize = 10) => {
+        try {
+            setNoticeLoading(true)
+            const params = {
+                index: pageIndex,
+                size: pageSize,
+                eventId: eventId,
+            }
+            const res = await noticeRecordList(params)
+            setNoticeRecords(res.data.list || [])
+            setNoticePagination({
+                pageIndex: res.data.index,
+                pageSize: res.data.size,
+                pageTotal: res.data.total,
+            })
+        } catch (error) {
+            message.error("获取通知记录失败: " + error.message)
+        } finally {
+            setNoticeLoading(false)
+        }
+    }
+
+    // 打开通知记录抽屉
+    const openNoticeDrawer = (eventId) => {
+        setNoticeDrawerOpen(true)
+        fetchNoticeRecords(eventId, 1, 10)  // 打开时获取第一页数据
+        setNoticeSelectEventId(eventId)
+    }
+
+    // 关闭通知记录抽屉
+    const closeNoticeDrawer = () => {
+        setNoticeDrawerOpen(false)
+    }
+
+    // 处理分页变化
+    const handleNoticePageChange = (page) => {
+        const newPagination = {
+            ...noticePagination,
+            pageIndex: page.current,
+            pageSize: page.pageSize,
+        }
+        setNoticePagination(newPagination)
+        fetchNoticeRecords(noticeSelectEventId, page.current, page.pageSize)
+    }
+
     return (
         <div>
             <Drawer
@@ -1305,6 +1362,21 @@ export const AlertCurrentEvent = (props) => {
                                         </div>
                                     ),
                                 },
+                                {
+                                    label: '通知记录',
+                                    children: (
+                                        <a 
+                                            onClick={() => openNoticeDrawer(selectedEvent.eventId)}
+                                            style={{ 
+                                                color: '#1890ff', 
+                                                textDecoration: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            查看记录
+                                        </a>
+                                    ),
+                                },
                             ]}
                         />
 
@@ -1420,6 +1492,176 @@ export const AlertCurrentEvent = (props) => {
                         </div>
                     </div>
                 )}
+            </Drawer>
+
+            {/* 通知记录抽屉 */}
+            <Drawer
+                title="通知记录"
+                placement="right"
+                onClose={closeNoticeDrawer}
+                open={noticeDrawerOpen}
+                width={850}
+                styles={{
+                    body: { padding: "16px" },
+                }}
+            >
+                <Table
+                    columns={[
+                        {
+                            title: "通知类型",
+                            dataIndex: "nType",
+                            key: "nType",
+                            width: 120,
+                            render: (type) => (
+                                <div style={{ display: "flex" }}>
+                                    <NotificationTypeIcon type={type} />
+                                </div>
+                            ),
+                        },
+                        {
+                            title: "通知对象",
+                            dataIndex: "nObj",
+                            key: "nObj",
+                            ellipsis: true,
+                            render: (text) => (
+                                <Tooltip title={text}>
+                                    <span>{text}</span>
+                                </Tooltip>
+                            ),
+                        },
+                        {
+                            title: "Request",
+                            dataIndex: "alarmMsg",
+                            key: "alarmMsg",
+                            width: 100,
+                            render: (_, record) => (
+                                <Button 
+                                    type="link" 
+                                    size="small"
+                                    onClick={() => {
+                                        Modal.info({
+                                            title: 'Request 详情',
+                                            width: 800,
+                                            content: (
+                                                <TextArea
+                                                    value={record.alarmMsg}
+                                                    style={{
+                                                        height: 400,
+                                                        resize: "none",
+                                                    }}
+                                                    readOnly
+                                                />
+                                            ),
+                                            okText: '关闭',
+                                        });
+                                    }}
+                                >
+                                    查看详情
+                                </Button>
+                            ),
+                        },
+                        {
+                            title: "Response",
+                            dataIndex: "errMsg",
+                            key: "errMsg",
+                            width: 100,
+                            render: (_, record) => (
+                                <Button 
+                                    type="link" 
+                                    size="small"
+                                    onClick={() => {
+                                        Modal.info({
+                                            title: 'Response 详情',
+                                            width: 800,
+                                            content: (
+                                                <TextArea
+                                                    value={record.errMsg || "Success"}
+                                                    style={{
+                                                        height: 400,
+                                                        resize: "none",
+                                                    }}
+                                                    readOnly
+                                                />
+                                            ),
+                                            okText: '关闭',
+                                        });
+                                    }}
+                                >
+                                    查看详情
+                                </Button>
+                            ),
+                        },
+                        {
+                            title: "状态",
+                            dataIndex: "status",
+                            key: "status",
+                            width: 100,
+                            render: (status) =>
+                                status === 0 ? (
+                                    <Tag
+                                        color="success"
+                                        style={{
+                                            borderRadius: "12px",
+                                            padding: "0 10px",
+                                            fontSize: "12px",
+                                            fontWeight: "500",
+                                        }}
+                                    >
+                                        发送成功
+                                    </Tag>
+                                ) : (
+                                    <Tag
+                                        color="error"
+                                        style={{
+                                            borderRadius: "12px",
+                                            padding: "0 10px",
+                                            fontSize: "12px",
+                                            fontWeight: "500",
+                                        }}
+                                    >
+                                        发送失败
+                                    </Tag>
+                                ),
+                        },
+                        {
+                            title: "通知时间",
+                            dataIndex: "createAt",
+                            key: "createAt",
+                            width: 180,
+                            render: (text) => {
+                                const date = new Date(text * 1000)
+                                return (
+                                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                        <span>{date.toLocaleString()}</span>
+                                    </div>
+                                )
+                            },
+                        },
+                    ]}
+                    dataSource={noticeRecords}
+                    loading={noticeLoading}
+                    pagination={{
+                        current: noticePagination.pageIndex,
+                        pageSize: noticePagination.pageSize,
+                        total: noticePagination.pageTotal,
+                        showTotal: HandleShowTotal,
+                        showSizeChanger: true,
+                        pageSizeOptions: ["10", "20", "50"],
+                    }}
+                    onChange={handleNoticePageChange}
+                    scroll={{
+                        y: height - 200,
+                    }}
+                    style={{
+                        backgroundColor: "#fff",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                    }}
+                    rowKey={(record) => record.id}
+                    locale={{
+                        emptyText: <Empty description="暂无通知记录" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
+                    }}
+                />
             </Drawer>
 
             {/* 导出配置对话框 */}

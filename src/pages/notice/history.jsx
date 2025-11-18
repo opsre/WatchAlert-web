@@ -149,7 +149,6 @@ export const NoticeRecords = () => {
                         </Tag>
                     ) : (
                         <Tag
-                            icon={<XCircle size={12} />}
                             color="error"
                             style={{
                                 borderRadius: "12px",

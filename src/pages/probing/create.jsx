@@ -14,7 +14,7 @@ import {
     Checkbox
 } from "antd" // Added message
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { getNoticeList } from "../../api/notice"
 import { ProbingCreate, ProbingSearch, ProbingUpdate } from "../../api/probing"
 import TextArea from "antd/es/input/TextArea"
@@ -42,6 +42,7 @@ const MyFormItemGroup = ({ prefix, children }) => {
 
 export const CreateProbingRule = ({ type }) => {
     const { appState } = useAppContext()
+    const navigate = useNavigate()
     const searchParams = new URLSearchParams(window.location.search);
     const [form] = Form.useForm()
     const { id } = useParams()
@@ -50,7 +51,7 @@ export const CreateProbingRule = ({ type }) => {
     const [recoverNotify, setRecoverNotify] = useState(true)
     const [noticeOptions, setNoticeOptions] = useState([])
     const [loading, setLoading] = useState(true)
-    const [protocolType, setProtocolType] = useState("HTTP")
+    const [protocolType, setProtocolType] = useState(searchParams.get('type'))
     const [methodType, setMethodType] = useState("GET")
     const [calculate, setCalculate] = useState(">")
     const [submitLoading, setSubmitLoading] = useState(false)
@@ -286,8 +287,8 @@ export const CreateProbingRule = ({ type }) => {
             } else if (type === "edit") {
                 await handleUpdate(finalParams)
             }
-            // Only navigate back on successful submission
-            window.history.back()
+            
+            navigate(`/probing?view=${searchParams.get("type")}`)
         } catch (error) {
             HandleApiError(error)
         } finally {
