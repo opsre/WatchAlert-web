@@ -1,5 +1,5 @@
 import { createDatasource, DatasourcePing, updateDatasource } from "../../api/datasource"
-import {Form, Input, Button, Switch, Alert, Drawer, Steps, Card, Row, Col, Typography, Divider, Radio} from "antd"
+import {Form, Input, Button, Checkbox, Alert, Drawer, Steps, Card, Row, Col, Typography, Divider, Radio} from "antd"
 import React, { useState, useEffect } from "react"
 import {
     MinusCircleOutlined,
@@ -188,6 +188,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 url: values?.http?.url,
                 timeout: Number(values?.http?.timeout),
             },
+            enabled: enabled,
         }
 
         if (type === "create") {
@@ -611,9 +612,17 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                     <Input />
                 </MyFormItem>
 
-                <MyFormItem name="enabled" label={"状态"} tooltip="启用/禁用" valuePropName="checked">
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                    <span style={{marginRight: 8}}>启用/禁用</span>
+                    <Checkbox
+                        style={{marginTop: '0', marginRight: '10px'}}
+                        checked={enabled}
+                        onChange={(e) => setEnabled(e.target.checked)}
+                    />
+                </div>
+                {/* <MyFormItem name="enabled" label={"状态"} tooltip="启用/禁用" valuePropName="checked">
                     <Switch checked={enabled} onChange={setEnabled} />
-                </MyFormItem>
+                </MyFormItem> */}
             </Form>
         )
     }
