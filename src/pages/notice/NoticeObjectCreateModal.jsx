@@ -644,7 +644,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                             borderRadius: 4
                         }}>{`
 {
-  "metadata": {
+  "alarm": {
     "tenantId": "租户ID，通常为默认值 'default'",
     "datasource_id": "数据源的唯一标识符",
     "datasource_type": "数据源的类型，如 Prometheus",
@@ -670,7 +670,15 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
       "confirmSendTime": "确认通知发送的时间戳（Unix时间，秒）",
       "confirmUser": "执行确认操作的人员",
     }
-  }
+  },
+  dutyUsers: [
+    {
+      "username": "用户名称",
+      "email": "用户邮箱",
+      "phone": "用户手机号",
+      "dutyUserId": "用户标识"
+    }
+  ]
 }
                         `}</div>
                     </pre>
