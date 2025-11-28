@@ -41,6 +41,7 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
             form.setFieldsValue({
                 id: selectedRow.id,
                 name: selectedRow.name,
+                apiKey: selectedRow.apiKey,
                 grafanaVersion: selectedRow.grafanaVersion,
                 grafanaHost: selectedRow.grafanaHost,
                 grafanaFolderId: selectedRow.grafanaFolderId,
@@ -140,7 +141,11 @@ const CreateFolderModal = ({ visible, onClose, selectedRow, type, handleList }) 
                         message: '请输入正确的URL格式，且结尾不应包含"/"',
                     },
                 ]}>
-                    <Input placeholder="Grafana链接日志, 例如: https://xx.xx.xx"/>
+                    <Input placeholder="Grafana链接, 例如: https://xx.xx.xx 无需包含末尾的 URI 路径"/>
+                </MyFormItem>
+
+                <MyFormItem name="apiKey" label="ApiKey">
+                    <Input.Password style={{width:'100%'}} placeholder="Grafana ApiKey" min={1}/>
                 </MyFormItem>
 
                 <MyFormItem name="grafanaFolderId" label="Grafana FolderId"  rules={[{required: true}]}>
