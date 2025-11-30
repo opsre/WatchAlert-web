@@ -45,9 +45,9 @@ export const EventMetricChart = ({ data }) => {
 
     // 提取所有时间戳并去重排序
     const allTimestamps = new Set()
-    result.forEach(item => {
-        if (item.values && item.values.length > 0) {
-            item.values.forEach(([timestamp]) => {
+    result?.forEach(item => {
+        if (item?.values && item?.values?.length > 0) {
+            item?.values?.forEach(([timestamp]) => {
                 allTimestamps.add(timestamp)
             })
         }
@@ -58,7 +58,7 @@ export const EventMetricChart = ({ data }) => {
     const chartData = timestamps.map(timestamp => {
         const dataPoint = { timestamp }
         
-        result.forEach((item, index) => {
+        result?.forEach((item, index) => {
             // 构建包含所有 label 的名称
             const labels = Object.entries(item.metric)
                 .filter(([key]) => key !== '__name__' )
@@ -74,7 +74,7 @@ export const EventMetricChart = ({ data }) => {
     })
 
     // 获取所有系列名称
-    const seriesNames = result.map((item, index) => {
+    const seriesNames = result?.map((item, index) => {
         const labels = Object.entries(item.metric)
             .filter(([key]) => key !== '__name__')
             .map(([key, value]) => `${key}=${value}`)
@@ -87,7 +87,7 @@ export const EventMetricChart = ({ data }) => {
         <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
-                    {seriesNames.map((name, index) => (
+                    {seriesNames?.map((name, index) => (
                         <linearGradient 
                             key={`gradient-${index}`} 
                             id={`color-${index}`} 
@@ -195,7 +195,7 @@ export const EventMetricChart = ({ data }) => {
                     iconType="line"
                 /> */}
 
-                {seriesNames.map((name, index) => (
+                {seriesNames?.map((name, index) => (
                     <Line
                         key={name}
                         type="monotone"
