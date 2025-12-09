@@ -246,13 +246,13 @@ const Components = (props) => {
                             background: "#000000",
                         }}
                     >
-                        <div style={{ height: "100%", overflow: "auto", padding: "16px 0", marginLeft: "15px" }}>
+                        <div style={{ height: "100%", overflow: "auto", padding: "16px 0", marginLeft: "10px" }}>
                             <ComponentSider />
                         </div>
                     </div>
 
                     {/* 内容区域 */}
-                    <Layout style={{ background: "transparent", padding: "0 16px 0px 16px" }}>
+                    <Layout style={{ background: "transparent" }}>
                         <Content
                             style={{
                                 background: colorBgContainer,

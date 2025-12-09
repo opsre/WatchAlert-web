@@ -219,7 +219,6 @@ export const Silences = (props) => {
                         style={{ 
                             cursor: 'pointer', 
                             color: '#1890ff',
-                            fontWeight: 500
                         }}
                         onClick={() => {
                             setSelectedRow(record);

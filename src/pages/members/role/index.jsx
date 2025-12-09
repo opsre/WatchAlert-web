@@ -100,7 +100,6 @@ export const UserRole = () => {
     ];
 
     const [height, setHeight] = useState(window.innerHeight);
-
     useEffect(() => {
         // 定义一个处理窗口大小变化的函数
         const handleResize = () => {

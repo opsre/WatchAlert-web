@@ -11,15 +11,14 @@ import {
     FileDoneOutlined,
     SettingOutlined,
     ExceptionOutlined,
-    ApiOutlined, TeamOutlined, DownOutlined, LogoutOutlined
+    ApiOutlined, TeamOutlined, DownOutlined, LogoutOutlined, NodeIndexOutlined
 } from '@ant-design/icons';
 import {Link, useNavigate} from 'react-router-dom';
-import {Menu, Layout, Typography, Dropdown, Space, message, Spin, theme, Popover, Avatar, Divider} from 'antd';
+import {Menu, Layout, Typography, Dropdown, message, Spin, theme, Popover, Avatar, Divider} from 'antd';
 import logoIcon from "../../img/logo.svg";
 import {getUserInfo} from "../../api/user";
 import {getTenantList} from "../../api/tenant";
 
-const { SubMenu } = Menu;
 const { Sider } = Layout;
 
 const adminMenuItems = [
@@ -45,6 +44,7 @@ const adminMenuItems = [
             { key: '3-3', path: '/noticeRecords', label: '通知记录' }
         ]
     },
+    { key: '13', path: '/topology', icon: <NodeIndexOutlined />, label: '服务拓扑' },
     { key: '4', path: '/dutyManage', icon: <CalendarOutlined />, label: '值班中心' },
     {
         key: '11',
@@ -94,14 +94,8 @@ const userMenuItems = [
             { key: '3-3', path: '/noticeRecords', label: '通知记录' }
         ]
     },
-    {
-        key: '4',
-        icon: <CalendarOutlined />,
-        label: '值班管理',
-        children: [
-            { key: '4-1', path: '/dutyManage', label: '值班日程' }
-        ]
-    },
+    { key: '13', path: '/topology', icon: <NodeIndexOutlined />, label: '服务拓扑' },
+    { key: '4', path: '/dutyManage', icon: <CalendarOutlined />, label: '值班中心' },
     {
         key: '11',
         icon: <ApiOutlined />,
@@ -112,7 +106,7 @@ const userMenuItems = [
         ]
     },
     { key: '6', path: '/datasource', icon: <PieChartOutlined />, label: '数据源' },
-    { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' }
+    { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' },
 ];
 
 export const ComponentSider = () => {
@@ -124,7 +118,7 @@ export const ComponentSider = () => {
     const [getTenantStatus, setTenantStatus] = useState(null)
 
     const {
-        token: { colorBgContainer, borderRadiusLG },
+        token: { colorBgContainer },
     } = theme.useToken()
 
     const handleMenuClick = (key, path) => {
@@ -134,31 +128,26 @@ export const ComponentSider = () => {
         }
     };
 
-    const renderMenuItems = (items) => {
+    const convertToMenuItems = (items) => {
         return items.map(item => {
             if (item.children) {
-                return (
-                    <SubMenu key={item.key} icon={item.icon} title={item.label}>
-                        {item.children.map(child => (
-                            <Menu.Item
-                                key={child.key}
-                                onClick={() => handleMenuClick(child.key, child.path)}
-                            >
-                                {child.label}
-                            </Menu.Item>
-                        ))}
-                    </SubMenu>
-                );
+                return {
+                    key: item.key,
+                    icon: item.icon,
+                    label: item.label,
+                    children: item.children.map(child => ({
+                        key: child.key,
+                        label: child.label,
+                        onClick: () => handleMenuClick(child.key, child.path),
+                    })),
+                };
             }
-            return (
-                <Menu.Item
-                    key={item.key}
-                    icon={item.icon}
-                    onClick={() => handleMenuClick(item.key, item.path)}
-                >
-                    {item.label}
-                </Menu.Item>
-            );
+            return {
+                key: item.key,
+                icon: item.icon,
+                label: item.label,
+                onClick: () => handleMenuClick(item.key, item.path),
+            };
         });
     };
 
@@ -167,17 +156,23 @@ export const ComponentSider = () => {
         navigate("/login")
     }
 
-    const userMenu = (
-        <Menu mode="vertical">
-            <Menu.Item key="profile" icon={<UserOutlined />}>
-                <Link to="/profile">个人信息</Link>
-            </Menu.Item>
-            <Menu.Divider />
-            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout} danger>
-                退出登录
-            </Menu.Item>
-        </Menu>
-    )
+    const userPopoverMenuItems = [
+        {
+            key: 'profile',
+            icon: <UserOutlined />,
+            label: <Link to="/profile">个人信息</Link>,
+        },
+        {
+            type: 'divider',
+        },
+        {
+            key: 'logout',
+            icon: <LogoutOutlined />,
+            label: '退出登录',
+            danger: true,
+            onClick: handleLogout,
+        },
+    ]
 
     useEffect(() => {
         fetchUserInfo()
@@ -256,15 +251,12 @@ export const ComponentSider = () => {
         window.location.reload();
     }
 
-    const tenantMenu = (
-        <Menu selectable defaultSelectedKeys={[getTenantIndex()]} onSelect={changeTenant}>
-            {tenantList.map((item) => (
-                <Menu.Item key={item.index} name={item.label} value={item.value}>
-                    {item.label}
-                </Menu.Item>
-            ))}
-        </Menu>
-    )
+    const tenantMenuItems = tenantList.map((item) => ({
+        key: item.index.toString(),
+        label: item.label,
+        name: item.label,
+        value: item.value,
+    }))
 
     if (loading || !getTenantStatus) {
         return (
@@ -277,7 +269,9 @@ export const ComponentSider = () => {
                     background: colorBgContainer,
                 }}
             >
-                <Spin tip="加载中..." size="large" />
+                <Spin size="large">
+                    <div style={{ padding: '50px' }}>加载中...</div>
+                </Spin>
             </div>
         )
     }
@@ -291,7 +285,7 @@ export const ComponentSider = () => {
                 borderRadius: '12px',
                 display: 'flex',
                 flexDirection: 'column',
-                position: 'relative', 
+                position: 'relative',
             }}
             theme="dark"
         >
@@ -316,7 +310,16 @@ export const ComponentSider = () => {
                     />
                 </div>
 
-                <Dropdown overlay={tenantMenu} trigger={["click"]} placement="bottomLeft">
+                <Dropdown 
+                    menu={{ 
+                        items: tenantMenuItems, 
+                        selectable: true, 
+                        defaultSelectedKeys: [getTenantIndex()],
+                        onSelect: changeTenant 
+                    }} 
+                    trigger={["click"]} 
+                    placement="bottomLeft"
+                >
                     <div style={{
                         display: 'flex',
                         marginTop: '-40px',
@@ -358,9 +361,8 @@ export const ComponentSider = () => {
                     mode="inline"
                     selectedKeys={[selectedMenuKey]}
                     style={{ background: 'transparent'}}
-                >
-                    {renderMenuItems(userInfo?.role === 'admin' ? adminMenuItems : userMenuItems)}
-                </Menu>
+                    items={convertToMenuItems(userInfo?.role === 'admin' ? adminMenuItems : userMenuItems)}
+                />
             </div>
 
             {/* 绝对定位底部用户信息 */}
@@ -373,7 +375,11 @@ export const ComponentSider = () => {
                 borderTop: '1px solid rgba(255, 255, 255, 0.1)',
                 background: '#000',
             }}>
-                <Popover content={userMenu} trigger="click" placement="topRight">
+                <Popover 
+                    content={<Menu mode="vertical" items={userPopoverMenuItems} />} 
+                    trigger="click" 
+                    placement="topRight"
+                >
                     <div style={{
                         display: "flex",
                         alignItems: "center",

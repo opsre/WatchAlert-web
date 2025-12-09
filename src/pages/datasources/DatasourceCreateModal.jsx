@@ -620,9 +620,6 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                         onChange={(e) => setEnabled(e.target.checked)}
                     />
                 </div>
-                {/* <MyFormItem name="enabled" label={"状态"} tooltip="启用/禁用" valuePropName="checked">
-                    <Switch checked={enabled} onChange={setEnabled} />
-                </MyFormItem> */}
             </Form>
         )
     }

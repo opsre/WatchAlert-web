@@ -157,7 +157,7 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                 </MyFormItem>
 
                 <div style={{ marginBottom: "16px" }}>
-                    <span style={{ fontWeight: "bold" }}>静默条件</span>
+                    <span>静默条件</span>
                 </div>
 
                 <div

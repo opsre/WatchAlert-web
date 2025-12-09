@@ -28,11 +28,9 @@ export const DashboardFolder = () => {
                         to={`/folder/${record.id}/list`}
                         style={{
                             color: "#1677ff",
-                            fontWeight: "500",
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
-                            marginBottom: '4px'
                         }}
                     >
                         {text}

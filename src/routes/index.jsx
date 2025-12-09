@@ -31,6 +31,8 @@ import {OnceProbing} from "../pages/probing/once";
 import Profile from "../pages/profile";
 import {FaultCenter} from "../pages/faultCenter";
 import {FaultCenterDetail} from "../pages/faultCenter/detail";
+import List from "../pages/topology/list";
+import TopologyDetail from "../pages/topology/detail";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default [
@@ -165,6 +167,14 @@ export default [
     {
         path: '/faultCenter/detail/:id',
         element: <ComponentsContent name="故障中心详情" c={<FaultCenterDetail />} />
+    },
+    {
+        path: '/topology',
+        element: <ComponentsContent name="服务拓扑" c={<List />} />
+    },
+    {
+        path: '/topology/:id/detail',
+        element: <ComponentsContent name="拓扑详情" c={<TopologyDetail />} />
     },
     {
         path: '/*',

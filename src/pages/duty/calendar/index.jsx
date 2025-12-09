@@ -71,9 +71,18 @@ export const CalendarApp = ({ tenantId }) => {
     }, [fetchData])
 
     useEffect(() => {
-        const handleResize = () => setHeight(window.innerHeight)
+        // 定义一个处理窗口大小变化的函数
+        const handleResize = () => {
+            setHeight(window.innerHeight)
+        }
+
+        // 监听窗口的resize事件
         window.addEventListener("resize", handleResize)
-        return () => window.removeEventListener("resize", handleResize)
+
+        // 在组件卸载时移除监听器
+        return () => {
+            window.removeEventListener("resize", handleResize)
+        }
     }, [])
 
     const dateCellRender = (value) => {

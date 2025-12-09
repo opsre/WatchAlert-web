@@ -102,25 +102,65 @@ const VSCodeEditor = ({
 
     // Resize handling
     useEffect(() => {
-        const handleResize = debounce(() => {
-            if (editorRef.current) {
-                editorRef.current.layout()
+        // 使用类属性存储 RAF ID，避免污染全局 window 对象
+        let resizeRafId = null;
+        
+        const handleResize = () => {
+            // 使用防抖和 requestAnimationFrame 双重保护来避免 ResizeObserver 循环限制问题
+            // 先取消之前的动画帧请求
+            if (resizeRafId) {
+                cancelAnimationFrame(resizeRafId);
             }
-        }, 100)
+            
+            resizeRafId = requestAnimationFrame(() => {
+                if (editorRef.current) {
+                    editorRef.current.layout();
+                }
+            });
+        };
 
-        const resizeObserver = new ResizeObserver(handleResize)
-        if (containerRef.current) {
-            resizeObserver.observe(containerRef.current)
+        // 创建防抖函数，增加延迟时间以减少触发频率
+        const debouncedResize = debounce(handleResize, 200);
+
+        // 创建 ResizeObserver 实例
+        let resizeObserver;
+        try {
+            if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
+                resizeObserver = new ResizeObserver((entries) => {
+                    // 使用 setTimeout 包装以进一步降低触发频率
+                    setTimeout(() => {
+                        debouncedResize();
+                    }, 0);
+                });
+                resizeObserver.observe(containerRef.current);
+            }
+        } catch (e) {
+            console.warn('ResizeObserver not supported or failed to initialize:', e);
         }
 
-        window.addEventListener("resize", handleResize)
+        // 同时监听窗口 resize 事件作为备用方案
+        window.addEventListener("resize", debouncedResize);
 
         return () => {
-            resizeObserver.disconnect()
-            window.removeEventListener("resize", handleResize)
-            handleResize.cancel()
-        }
-    }, [])
+            // 清理动画帧
+            if (resizeRafId) {
+                cancelAnimationFrame(resizeRafId);
+            }
+            
+            // 清理 ResizeObserver
+            if (resizeObserver) {
+                try {
+                    resizeObserver.disconnect();
+                } catch (e) {
+                    console.warn('Error disconnecting ResizeObserver:', e);
+                }
+            }
+            
+            // 移除事件监听器
+            window.removeEventListener("resize", debouncedResize);
+            debouncedResize.cancel();
+        };
+    }, []);
 
     // Cleanup on unmount
     useEffect(() => {

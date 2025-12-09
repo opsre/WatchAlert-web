@@ -1180,6 +1180,7 @@ export const AlertRule = ({ type }) => {
                                         datasourceType={getSelectedTypeName(selectedType)}
                                         datasourceId={selectedItems}
                                         promQL={promQL}
+                                        displayMode='both'
                                     />
                                 </Modal>
                             </div>

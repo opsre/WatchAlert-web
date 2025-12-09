@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Button, Table, Popconfirm, message, Tooltip, Space} from 'antd';
+import {Button, Table, Popconfirm, message, Tooltip, Space, Tag} from 'antd';
 import { deleteTenant, getTenantList } from '../../api/tenant';
 import { CreateTenant } from './CreateTenant';
 import {Link} from "react-router-dom";
@@ -26,11 +26,9 @@ export const Tenants = () => {
                         to={`/tenants/detail/${record.id}`}
                         style={{
                             color: "#1677ff",
-                            fontWeight: "500",
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
-                            marginBottom: '4px'
                         }}
                     >
                         {text}
@@ -58,25 +56,6 @@ export const Tenants = () => {
             ),
         },
         {
-            title: '负责人',
-            dataIndex: 'manager',
-            key: 'manager',
-            width: 'auto'
-
-        },
-        {
-            title: '描述',
-            dataIndex: 'description',
-            key: 'description',
-            width: '500px',
-            render: (text) => {
-                if (!text) {
-                    return '-'
-                }
-                return text
-            }
-        },
-        {
             title: "更新时间",
             dataIndex: "updateAt",
             key: "updateAt",
@@ -88,6 +67,26 @@ export const Tenants = () => {
                             <span>{date.toLocaleString()}</span>
                         </div>
                     )
+            },
+        },
+        {
+            title: '负责人',
+            dataIndex: 'manager',
+            key: 'manager',
+            width: 'auto',
+            render: (text) => {
+                return <Tag style={{
+                                borderRadius: "12px",
+                                padding: "0 10px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                            }}
+                        >
+                            {text || "未知用户"}
+                        </Tag>
             },
         },
         {

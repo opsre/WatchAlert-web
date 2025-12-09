@@ -182,7 +182,6 @@ export const NoticeRecords = () => {
         [],
     )
 
-    // Initialize chart and fetch data
     useEffect(() => {
         const handleResize = () => {
             setHeight(window.innerHeight)

@@ -136,7 +136,7 @@ export const NoticeObjects = () => {
             },
         },
         {
-            title: "更新人",
+            title: "操作人",
             dataIndex: "updateBy",
             key: "updateBy",
             width: "auto",

@@ -40,7 +40,6 @@ export const RuleTemplateGroup = () => {
                     to={`/tmplType/${record.type}/${record.name}/templates`}
                     style={{
                         color: "#1677ff",
-                        fontWeight: "500",
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",

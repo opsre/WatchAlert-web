@@ -1,6 +1,7 @@
-import { Modal, Form, Input, Button, Divider } from 'antd'
-import React, { useEffect } from 'react'
+import { Modal, Form, Input, Button, Divider, Select } from 'antd'
+import React, { useEffect, useState } from 'react'
 import { createTenant, updateTenant } from '../../api/tenant'
+import { getUserList } from "../../api/user";
 
 const MyFormItemContext = React.createContext([])
 
@@ -17,6 +18,10 @@ const MyFormItem = ({ name, ...props }) => {
 
 export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }) => {
     const [form] = Form.useForm()
+    const { Option } = Select
+    const renderedOptions = new Set();
+    const [selectedItems, setSelectedItems] = useState({})
+    const [filteredOptions, setFilteredOptions] = useState([])
 
     useEffect(() => {
         if (selectedRow) {
@@ -77,6 +82,34 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
         onClose()
     }
 
+    const renderOption = (item) => {
+        if (!renderedOptions.has(item.username)) {
+            renderedOptions.add(item.username);
+            return <Option key={item.username} value={item.username} userid={item.userid}>{item.username}</Option>;
+        }
+        return null; // 如果选项已存在，不渲染
+    };
+
+    const handleSelectChange = (_, value) => {
+        setSelectedItems(value)
+    }
+
+    const handleSearchDutyUser = async () => {
+        try {
+            const params = {
+                joinDuty: "true",
+            }
+            const res = await getUserList(params)
+            const options = res.data.map((item) => ({
+                username: item.username,
+                userid: item.userid
+            }))
+            setFilteredOptions(options)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     return (
         <>
             <Modal visible={visible} onCancel={onClose} footer={null}>
@@ -99,23 +132,8 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
                         </MyFormItem>
 
                     <MyFormItem
-                            name="manager"
-                            label="租户负责人"
-                            style={{
-                                width: '472px',
-                            }}
-                            rules={[
-                                {
-                                    required: true,
-                                },
-                            ]}
-                        >
-                            <Input />
-                        </MyFormItem>
-
-                    <MyFormItem
-                        name="description"
-                        label="描述"
+                        name="manager"
+                        label="租户负责人"
                         style={{
                             width: '472px',
                         }}
@@ -125,8 +143,19 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
                             },
                         ]}
                     >
-                        <Input maxLength={30} />
+                        <Select
+                            showSearch
+                            placeholder="租户负责人"
+                            onChange={handleSelectChange}
+                            onClick={handleSearchDutyUser}
+                            style={{
+                                width: '100%',
+                            }}
+                        >
+                            {filteredOptions.map(renderOption)}
+                        </Select>
                     </MyFormItem>
+                    
                     <Divider />
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

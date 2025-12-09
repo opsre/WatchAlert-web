@@ -27,11 +27,9 @@ export const DutyManage = () => {
                         to={`/dutyManage/${record.id}/calendar?calendarName=${record.name}`}
                         style={{
                             color: "#1677ff",
-                            fontWeight: "500",
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
-                            marginBottom: '4px'
                         }}
                     >
                         {text}
@@ -108,18 +106,6 @@ export const DutyManage = () => {
             },
         },
         {
-            title: '描述',
-            dataIndex: 'description',
-            key: 'description',
-            width: 'auto',
-            render: (text) => {
-                if (!text) {
-                    return '没有留下任何描述~';
-                }
-                return text;
-            },
-        },
-        {
             title: "更新时间",
             dataIndex: "updateAt",
             key: "updateAt",
@@ -134,7 +120,7 @@ export const DutyManage = () => {
             },
         },
         {
-            title: "更新人",
+            title: "操作人",
             dataIndex: "updateBy",
             key: "updateBy",
             width: "auto",

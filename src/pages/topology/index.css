@@ -1,0 +1,7 @@
+/* src/index.css */
+@keyframes flow-dot-primary {
+  to { stroke-dashoffset: -30; }
+}
+@keyframes flow-dot-new {
+  to { stroke-dashoffset: -36; }
+}

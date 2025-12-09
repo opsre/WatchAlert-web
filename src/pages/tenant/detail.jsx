@@ -39,19 +39,9 @@ export const TenantDetail = ()=>{
 
     const itemsDescriptions = [
         {
-            key: '1',
-            label: '租户ID',
-            children: tenantInfo.id,
-        },
-        {
             key: '2',
             label: '租户名称',
-            children: tenantInfo.name,
-        },
-        {
-            key: '3',
-            label: '描述',
-            children: tenantInfo.description,
+            children: `${tenantInfo.name} (${tenantInfo.id})`,
         },
         {
             key: '4',

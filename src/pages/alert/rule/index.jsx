@@ -97,7 +97,16 @@ export const AlertRuleList = () => {
                             whiteSpace: 'nowrap',
                             maxWidth: '300px'
                         }}>
-                            {text}
+                            <Link 
+                                style={{
+                                    color: "#1677ff",
+                                    display: "flex",
+                                    alignItems: "center",
+                                }}
+                                to={`/ruleGroup/${record.ruleGroupId}/rule/${record.ruleId}/edit`}
+                            >
+                                {text}
+                            </Link>
                         </div>
                     </Tooltip>
                     <Tooltip title="点击复制 ID">
@@ -207,7 +216,7 @@ export const AlertRuleList = () => {
             },
         },
         {
-            title: "更新人",
+            title: "操作人",
             dataIndex: "updateBy",
             key: "updateBy",
             width: "auto",
@@ -264,18 +273,9 @@ export const AlertRuleList = () => {
             title: "操作",
             dataIndex: "operation",
             fixed: "right", // 设置操作列固定
-            width: 120,
+            width: 50,
             render: (_, record) => (
                 <Space size="middle">
-                    <Tooltip title="更新">
-                        <Link to={`/ruleGroup/${record.ruleGroupId}/rule/${record.ruleId}/edit`}>
-                            <Button
-                                type="link"
-                                icon={<EditOutlined />}
-                                style={{ color: "#1677ff" }}
-                            />
-                        </Link>
-                    </Tooltip>
                     <Tooltip title="克隆">
                         <Button
                             type="text"
