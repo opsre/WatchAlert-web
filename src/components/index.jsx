@@ -166,13 +166,16 @@ const Components = (props) => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 flexDirection: 'column',
-                backgroundColor: 'white',
+                background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 100%)',
                 zIndex: 9999,
                 transition: 'opacity 0.3s ease-out'
             }}
         >
-            <Spin indicator={<LoadingOutlined style={{ fontSize: 40 }} spin />} size="large" />
-            <Typography.Text type="secondary" style={{ marginTop: 16 }}>
+            <Spin 
+                indicator={<LoadingOutlined style={{ fontSize: 40, color: '#FF9900' }} spin />} 
+                size="large" 
+            />
+            <Typography.Text style={{ marginTop: 16, color: '#CCCCCC' }}>
                 {loading ? "正在验证用户信息..." : "页面准备中..."}
             </Typography.Text>
         </div>
@@ -186,13 +189,13 @@ const Components = (props) => {
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                background: "#f0f2f5",
+                background: "linear-gradient(135deg, #000000 0%, #1a1a1a 100%)",
             }}
         >
             <Result
                 status="error"
-                title={!authorization ? "用户无效" : "租户无效"}
-                subTitle={!authorization ? "请先登录系统" : "未获取到有效的租户"}
+                title={<span style={{ color: "#FFFFFF" }}>{!authorization ? "用户无效" : "租户无效"}</span>}
+                subTitle={<span style={{ color: "#CCCCCC" }}>{!authorization ? "请先登录系统" : "未获取到有效的租户"}</span>}
                 extra={[
                     <Button
                         type="primary"
@@ -200,6 +203,14 @@ const Components = (props) => {
                         onClick={() => {
                             localStorage.clear()
                             window.location.href = "/login"
+                        }}
+                        style={{
+                            background: "linear-gradient(135deg, #FF9900 0%, #FFB84D 100%)",
+                            borderColor: "#FF9900",
+                            color: "#000",
+                            fontWeight: "600",
+                            boxShadow: "0 4px 12px rgba(255, 153, 0, 0.3)",
+                            border: "none"
                         }}
                     >
                         返回登录
@@ -297,11 +308,14 @@ const Components = (props) => {
                         <div
                             style={{
                                 textAlign: "center",
-                                color: "#B1B1B1",
+                                color: "#999999",
                                 fontSize: "12px",
+                                padding: "12px",
+                                background: "rgba(0, 0, 0, 0.8)",
+                                borderTop: "1px solid rgba(255, 153, 0, 0.1)",
                             }}
                         >
-                            WatchAlert 提供轻量级一站式监控报警服务!
+                            <span style={{ color: "#FF9900" }}>WatchAlert</span> 提供轻量级一站式监控报警服务!
                         </div>
                     </Layout>
                 </Layout>

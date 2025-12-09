@@ -176,6 +176,120 @@ export const ComponentSider = () => {
 
     useEffect(() => {
         fetchUserInfo()
+        
+        // 添加现代化黑橙主题样式
+        const style = document.createElement('style');
+        style.textContent = `
+            /* 主菜单项样式 */
+            .ant-menu-dark .ant-menu-item {
+                color: #CCCCCC !important;
+                border-radius: 8px !important;
+                margin: 4px 8px !important;
+                padding: 0 16px !important;
+                height: 44px !important;
+                line-height: 44px !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+            
+            /* 选中状态 - 橙色渐变背景 */
+            .ant-menu-dark .ant-menu-item-selected {
+                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%) !important;
+                color: #000 !important;
+                font-weight: 600 !important;
+                box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3) !important;
+            }
+            
+            .ant-menu-dark .ant-menu-item-selected .ant-menu-item-icon {
+                color: #000 !important;
+            }
+            
+            /* 悬停效果 */
+            .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) {
+                background: rgba(255, 153, 0, 0.1) !important;
+                color: #FF9900 !important;
+                transform: translateX(4px) !important;
+            }
+            
+            .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) .ant-menu-item-icon {
+                color: #FF9900 !important;
+            }
+            
+            /* 子菜单样式 */
+            .ant-menu-dark .ant-menu-submenu-title {
+                color: #CCCCCC !important;
+                border-radius: 8px !important;
+                margin: 4px 8px !important;
+                padding: 0 16px !important;
+                height: 44px !important;
+                line-height: 44px !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+            
+            .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
+                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%) !important;
+                color: #000 !important;
+                font-weight: 600 !important;
+                box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3) !important;
+            }
+            
+            .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title .ant-menu-submenu-arrow {
+                color: #000 !important;
+            }
+            
+            .ant-menu-dark .ant-menu-submenu-title:hover:not(.ant-menu-submenu-selected) {
+                background: rgba(255, 153, 0, 0.1) !important;
+                color: #FF9900 !important;
+                transform: translateX(4px) !important;
+            }
+            
+            .ant-menu-dark .ant-menu-submenu-title:hover:not(.ant-menu-submenu-selected) .ant-menu-submenu-arrow {
+                color: #FF9900 !important;
+            }
+            
+            /* 子菜单内容 */
+            .ant-menu-dark .ant-menu-sub {
+                background: rgba(0, 0, 0, 0.8) !important;
+                border-radius: 8px !important;
+                margin: 4px 16px !important;
+                padding: 8px 0 !important;
+                backdrop-filter: blur(10px) !important;
+            }
+            
+            .ant-menu-dark .ant-menu-sub .ant-menu-item {
+                margin: 2px 8px !important;
+                padding-left: 24px !important;
+                height: 36px !important;
+                line-height: 36px !important;
+                font-size: 13px !important;
+            }
+            
+            /* 滚动条样式 */
+            .ant-layout-sider-children::-webkit-scrollbar {
+                width: 6px !important;
+            }
+            
+            .ant-layout-sider-children::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.1) !important;
+                border-radius: 3px !important;
+            }
+            
+            .ant-layout-sider-children::-webkit-scrollbar-thumb {
+                background: #FF9900 !important;
+                border-radius: 3px !important;
+            }
+            
+            .ant-layout-sider-children::-webkit-scrollbar-thumb:hover {
+                background: #FFB84D !important;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 清理函数
+        return () => {
+            if (document.head.contains(style)) {
+                document.head.removeChild(style);
+            }
+        };
     }, [])
 
     const fetchUserInfo = async () => {
@@ -304,9 +418,9 @@ export const ComponentSider = () => {
                     marginTop: '-70px',
                 }}>
                     <img
-                        src={logoIcon || "/placeholder.svg"}
+                        src={logoIcon}
                         alt="WatchAlert Logo"
-                        style={{ width: "160px", height: "140px", borderRadius: "8px" }}
+                        style={{ width: "160px", height: "140px", borderRadius: "8px", marginLeft: "6px" }}
                     />
                 </div>
 
@@ -343,7 +457,13 @@ export const ComponentSider = () => {
                 </Dropdown>
             </div>
 
-            <Divider style={{margin: '0', background: 'rgba(255, 255, 255, 0.1)'}}/>
+            <Divider style={{
+                margin: '0 16px 16px', 
+                background: 'linear-gradient(90deg, transparent 0%, #FF9900 50%, transparent 100%)',
+                height: '2px',
+                borderRadius: '1px',
+                marginLeft: '5px'
+            }}/>
 
             {/* 主内容，预留底部空间 */}
             <div
@@ -371,9 +491,10 @@ export const ComponentSider = () => {
                 left: 0,
                 bottom: 0,
                 width: '100%',
-                padding: '10px',
-                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                background: '#000',
+                padding: '16px',
+                borderTop: '1px solid rgba(255, 153, 0, 0.2)',
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, #000 100%)',
+                backdropFilter: 'blur(10px)',
             }}>
                 <Popover 
                     content={<Menu mode="vertical" items={userPopoverMenuItems} />} 
@@ -390,10 +511,14 @@ export const ComponentSider = () => {
                     }}>
                         <Avatar
                             style={{
-                                backgroundColor: "#7265e6",
+                                background: "linear-gradient(135deg, #FF9900 0%, #FFB84D 100%)",
+                                color: "#000",
+                                fontWeight: "bold",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
+                                border: "2px solid rgba(255, 153, 0, 0.3)",
+                                boxShadow: "0 2px 8px rgba(255, 153, 0, 0.3)"
                             }}
                             size="default"
                         >
