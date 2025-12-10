@@ -249,7 +249,7 @@ export const RuleTemplateGroup = () => {
     return (
         <div style={{ display: "flex", borderRadius: "8px" }}>
             {/* Sidebar */}
-            <div style={{ width: "200px" }}>
+            <div style={{ width: "150px" }}>
                 <Menu
                     onClick={handleClick}
                     mode="vertical"
