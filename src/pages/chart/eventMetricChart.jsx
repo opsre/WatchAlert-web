@@ -31,9 +31,10 @@ const METRIC_COLORS = [
 ]
 
 export const EventMetricChart = ({ data }) => {
-    console.log(data)
+    console.log('EventMetricChart 接收到的数据:', data)
     
     if (!data) {
+        console.log('EventMetricChart: 没有数据')
         return (
             <div style={{ textAlign: "center", padding: "40px" }}>
                 <Text type="secondary">暂无图表数据</Text>
@@ -41,18 +42,40 @@ export const EventMetricChart = ({ data }) => {
         )
     }
 
+    if (!data[0] || !data[0].data) {
+        console.log('EventMetricChart: 数据结构不正确', data)
+        return (
+            <div style={{ textAlign: "center", padding: "40px" }}>
+                <Text type="secondary">数据结构错误</Text>
+            </div>
+        )
+    }
+
     const result = data[0].data.result
+    console.log('EventMetricChart result:', result)
+
+    if (!result || !Array.isArray(result) || result.length === 0) {
+        console.log('EventMetricChart: result 为空或不是数组')
+        return (
+            <div style={{ textAlign: "center", padding: "40px" }}>
+                <Text type="secondary">暂无指标数据</Text>
+            </div>
+        )
+    }
 
     // 提取所有时间戳并去重排序
     const allTimestamps = new Set()
     result?.forEach(item => {
         if (item?.values && item?.values?.length > 0) {
             item?.values?.forEach(([timestamp]) => {
-                allTimestamps.add(timestamp)
+                // 确保时间戳是数字
+                const ts = typeof timestamp === 'string' ? parseFloat(timestamp) : timestamp
+                allTimestamps.add(ts)
             })
         }
     })
     const timestamps = Array.from(allTimestamps).sort((a, b) => a - b)
+    console.log('提取的时间戳:', timestamps)
 
     // 构建图表数据
     const chartData = timestamps.map(timestamp => {
@@ -65,13 +88,18 @@ export const EventMetricChart = ({ data }) => {
                 .map(([key, value]) => `${key}=${value}`)
                 .join(', ')
             
-            const seriesName = `{${labels}}`
-            const valueEntry = item.values?.find(([ts]) => ts === timestamp)
+            const seriesName = labels ? `{${labels}}` : `series-${index}`
+            const valueEntry = item.values?.find(([ts]) => {
+                const tsNum = typeof ts === 'string' ? parseFloat(ts) : ts
+                return tsNum === timestamp
+            })
             dataPoint[seriesName] = valueEntry ? parseFloat(valueEntry[1]) : null
         })
 
         return dataPoint
     })
+    
+    console.log('构建的图表数据:', chartData)
 
     // 获取所有系列名称
     const seriesNames = result?.map((item, index) => {

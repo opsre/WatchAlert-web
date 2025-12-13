@@ -1,14 +1,12 @@
 "use client"
 
 import React, { useEffect, useState, useContext, useMemo } from "react"
-import {Alert, Tabs, Form, Input, Select, Button, Collapse, Table, Tag, Progress, Spin, Typography, Space} from "antd"
+import {Alert, Tabs, Form, Input, Select, Button, Collapse, Table, Tag, Progress, Spin, Typography, Space, message} from "antd"
 import Marquee from "react-fast-marquee"
 import { ProbingOnce } from "../../api/probing"
-import moment from "moment/moment"
 import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
 
 const { Panel } = Collapse
-const { Title } = Typography
 
 // Context for managing nested form item names
 const MyFormItemContext = React.createContext([])
@@ -112,17 +110,93 @@ export const OnceProbing = () => {
         }
     }
 
+    // Helper function to parse metrics data
+    const parseMetricsData = (metricsArray) => {
+        if (!Array.isArray(metricsArray)) return null
+        
+        const result = {}
+        const firstMetric = metricsArray[0]
+        
+        // Get endpoint from labels
+        if (firstMetric?.labels?.endpoint) {
+            result.endpoint = firstMetric.labels.endpoint
+        }
+        
+        // Parse different metric types
+        metricsArray.forEach(metric => {
+            switch (metric.name) {
+                // HTTP metrics
+                case 'probe_http_status_code':
+                    result.statusCode = metric.value
+                    break
+                case 'probe_http_response_time_ms':
+                    result.responseTime = metric.value
+                    break
+                case 'probe_http_success':
+                    result.success = metric.value === 1
+                    break
+                    
+                // ICMP metrics
+                case 'probe_icmp_packet_loss_percent':
+                    result.packetLoss = metric.value
+                    break
+                case 'probe_icmp_rtt_min_ms':
+                    result.minRtt = metric.value
+                    break
+                case 'probe_icmp_rtt_max_ms':
+                    result.maxRtt = metric.value
+                    break
+                case 'probe_icmp_rtt_avg_ms':
+                    result.avgRtt = metric.value
+                    break
+                    
+                // TCP metrics
+                case 'probe_tcp_success':
+                    result.tcpSuccess = metric.value === 1
+                    break
+                case 'probe_tcp_response_time_ms':
+                    result.tcpResponseTime = metric.value
+                    break
+                    
+                // SSL metrics
+                case 'probe_ssl_certificate_expiry_days':
+                    result.sslExpiryDays = metric.value
+                    break
+                case 'probe_ssl_response_time_ms':
+                    result.sslResponseTime = metric.value
+                    break
+                case 'probe_ssl_certificate_valid':
+                    result.sslValid = metric.value === 1
+                    break
+            }
+        })
+        
+        return result
+    }
+
     const handleSubmit = async () => {
+        console.log('handleSubmit 函数被调用')
         try {
             setLoading(true)
-            const values = await form.validateFields() // Validate all fields, including advanced options
+            
+            // Get current form values
+            const values = form.getFieldsValue()
+            console.log('当前表单值:', values)
+            
+            // Check if endpoint exists
+            const endpoint = values.probingEndpointConfig?.endpoint
+            if (!endpoint) {
+                console.error('端点为空')
+                message.error('请输入端点')
+                return
+            }
 
             const params = {
                 ruleType: probingType,
                 probingEndpointConfig: {
-                    endpoint: values.probingEndpointConfig.endpoint,
+                    endpoint: endpoint,
                     strategy: {
-                        timeout: Number.parseInt(values.probingEndpointConfig.strategy.timeout, 10),
+                        timeout: Number.parseInt(values.probingEndpointConfig?.strategy?.timeout || 5, 10),
                     },
                 },
             }
@@ -134,7 +208,7 @@ export const OnceProbing = () => {
                 }
 
                 // Process header
-                if (values.probingEndpointConfig.http.header) {
+                if (values.probingEndpointConfig?.http?.header && Array.isArray(values.probingEndpointConfig.http.header)) {
                     const headerObject = {};
                     values.probingEndpointConfig.http.header.forEach((headerItem) => {
                         if (
@@ -146,11 +220,10 @@ export const OnceProbing = () => {
                             headerObject[headerItem.key.trim()] = headerItem.value || "";
                         }
                     });
-                    // Corrected: Assign back to 'header' (plural)
                     params.probingEndpointConfig.http.header = headerObject;
                 }
 
-                if (methodType === "POST" && values.probingEndpointConfig.http.body) {
+                if (methodType === "POST" && values.probingEndpointConfig?.http?.body) {
                     params.probingEndpointConfig.http.body = values.probingEndpointConfig.http.body;
                 }
             }
@@ -158,15 +231,23 @@ export const OnceProbing = () => {
             // Conditionally add ICMP specific configurations
             if (probingType === "ICMP") {
                 params.probingEndpointConfig.icmp = {
-                    interval: Number.parseInt(values.probingEndpointConfig.icmp.interval, 10),
-                    count: Number.parseInt(values.probingEndpointConfig.icmp.count, 10),
+                    interval: Number.parseInt(values.probingEndpointConfig?.icmp?.interval || 1, 10),
+                    count: Number.parseInt(values.probingEndpointConfig?.icmp?.count || 10, 10),
                 }
             }
 
+            console.log('发送拨测请求:', params)
             const res = await ProbingOnce(params)
-            setResponseData(res.data)
+            if (res && res.data) {
+                // Parse the new metrics data structure
+                const parsedData = parseMetricsData(res.data)
+                setResponseData(parsedData)
+                console.log('拨测响应:', res.data)
+                console.log('解析后数据:', parsedData)
+            }
         } catch (errorInfo) {
             console.error("请求失败:", errorInfo)
+            message.error('拨测请求失败，请检查输入参数')
         } finally {
             setLoading(false)
         }
@@ -177,14 +258,14 @@ export const OnceProbing = () => {
             title: "端点",
             key: "endpoint",
             width: "auto",
-            render: () => <div>{responseData.address || "-"}</div>,
+            render: () => <div>{responseData?.endpoint || "-"}</div>,
         },
         {
             title: "状态码",
             key: "statusCode",
             width: "auto",
             render: () => {
-                const statusCode = responseData.StatusCode
+                const statusCode = responseData?.statusCode
                 const isSuccess = statusCode >= 200 && statusCode < 300
                 return (
                     <span
@@ -193,16 +274,29 @@ export const OnceProbing = () => {
                             fontWeight: "bold",
                         }}
                     >
-            {statusCode || "-"}
-          </span>
+                        {statusCode || "-"}
+                    </span>
+                )
+            },
+        },
+        {
+            title: "探测状态",
+            key: "success",
+            width: "auto",
+            render: () => {
+                const success = responseData?.success
+                return (
+                    <Tag color={success ? "green" : "red"}>
+                        {success ? "成功" : "失败"}
+                    </Tag>
                 )
             },
         },
         {
             title: "响应延迟",
-            key: "latency",
+            key: "responseTime",
             width: "auto",
-            render: () => <>{(responseData.Latency && responseData.Latency + "ms") || "-"}</>,
+            render: () => <>{responseData.responseTime}ms</>,
         },
     ]
 
@@ -211,14 +305,14 @@ export const OnceProbing = () => {
             title: "端点",
             key: "endpoint",
             width: "auto",
-            render: () => <div>{responseData.address || "-"}</div>,
+            render: () => <div>{responseData?.endpoint || "-"}</div>,
         },
         {
             title: "丢包率",
             key: "packetLoss",
             width: "auto",
             render: () => {
-                const packetLoss = responseData.PacketLoss
+                const packetLoss = responseData?.packetLoss
                 if (packetLoss === undefined || packetLoss === null || packetLoss === "") {
                     return <Tag color="gray">未知</Tag>
                 }
@@ -226,22 +320,22 @@ export const OnceProbing = () => {
             },
         },
         {
-            title: "最短 RT",
+            title: "最短 RTT",
             key: "minRtt",
             width: "auto",
-            render: () => <>{(responseData.MinRtt && responseData.MinRtt + "ms") || "-"}</>,
+            render: () => <>{responseData?.minRtt ? `${responseData.minRtt}ms` : "-"}</>,
         },
         {
             title: "最长 RTT",
             key: "maxRtt",
             width: "auto",
-            render: () => <>{(responseData.MaxRtt && responseData.MaxRtt + "ms") || "-"}</>,
+            render: () => <>{responseData?.maxRtt ? `${responseData.maxRtt}ms` : "-"}</>,
         },
         {
             title: "平均 RTT",
             key: "avgRtt",
             width: "auto",
-            render: () => <>{(responseData.AvgRtt && responseData.AvgRtt + "ms") || "-"}</>,
+            render: () => <>{responseData?.avgRtt ? `${responseData.avgRtt}ms` : "-"}</>,
         },
     ]
 
@@ -250,30 +344,26 @@ export const OnceProbing = () => {
             title: "端点",
             key: "endpoint",
             width: "auto",
-            render: () => <div>{responseData.address || "-"}</div>,
+            render: () => <div>{responseData?.endpoint || "-"}</div>,
         },
         {
             title: "探测状态",
-            key: "isSuccessful",
+            key: "tcpSuccess",
             width: "auto",
             render: () => {
-                const status = responseData.IsSuccessful
-                const statusTag =
-                    status === true ? (
-                        <Tag color="green">成功</Tag>
-                    ) : status === false ? (
-                        <Tag color="red">失败</Tag>
-                    ) : (
-                        <Tag color="gray">未知</Tag>
-                    )
-                return statusTag
+                const status = responseData?.tcpSuccess
+                return (
+                    <Tag color={status ? "green" : "red"}>
+                        {status ? "成功" : "失败"}
+                    </Tag>
+                )
             },
         },
         {
-            title: "错误信息",
-            key: "errorMessage",
+            title: "响应延迟",
+            key: "tcpResponseTime",
             width: "auto",
-            render: () => <>{responseData.ErrorMessage || "-"}</>,
+            render: () => <>{responseData?.tcpResponseTime ? `${responseData.tcpResponseTime}ms` : "-"}</>,
         },
     ]
 
@@ -282,53 +372,43 @@ export const OnceProbing = () => {
             title: "端点",
             key: "endpoint",
             width: "auto",
-            render: () => <div>{responseData.address || "-"}</div>,
+            render: () => <div>{responseData?.endpoint || "-"}</div>,
         },
         {
-            title: "签发时间",
-            key: "startTime",
-            width: "auto",
-            render: () => <>{responseData.StartTime || "-"}</>,
-        },
-        {
-            title: "结束时间",
-            key: "expireTime",
-            width: "auto",
-            render: () => <>{responseData.ExpireTime || "-"}</>,
-        },
-        {
-            title: "有效时间",
-            key: "timeProgress",
+            title: "证书状态",
+            key: "sslValid",
             width: "auto",
             render: () => {
-                const startTime = responseData.StartTime
-                const endTime = responseData.ExpireTime
-                if (!startTime || !endTime) {
+                const valid = responseData?.sslValid
+                return (
+                    <Tag color={valid ? "green" : "red"}>
+                        {valid ? "有效" : "无效"}
+                    </Tag>
+                )
+            },
+        },
+        {
+            title: "剩余天数",
+            key: "sslExpiryDays",
+            width: "auto",
+            render: () => {
+                const expiryDays = responseData?.sslExpiryDays
+                if (expiryDays === undefined || expiryDays === null) {
                     return "-"
                 }
-                const totalDays = moment(endTime).diff(moment(startTime), "days")
-                const remainingDays = moment(endTime).diff(moment(), "days")
-                const progress = Math.max(0, Math.min(100, (remainingDays / totalDays) * 100))
+                const color = expiryDays > 30 ? "green" : expiryDays > 7 ? "orange" : "red"
                 return (
-                    <div>
-                        <Progress
-                            percent={Number.parseFloat(progress.toFixed(2))}
-                            status={progress > 20 ? "active" : "exception"}
-                            strokeColor={progress > 20 ? "#52c41a" : "#ff4d4f"}
-                            showInfo={false}
-                        />
-                        <div style={{ textAlign: "center", fontSize: 12 }}>
-                            剩余 {remainingDays > 0 ? remainingDays : 0} 天 / 总共 {totalDays} 天
-                        </div>
-                    </div>
+                    <Tag color={color}>
+                        {expiryDays} 天
+                    </Tag>
                 )
             },
         },
         {
             title: "响应延迟",
-            key: "avgRtt",
+            key: "sslResponseTime",
             width: "auto",
-            render: () => <>{responseData.ResponseTime + "ms" || "-"}</>,
+            render: () => <>{responseData?.sslResponseTime ? `${responseData.sslResponseTime}ms` : "-"}</>,
         },
     ]
 
@@ -346,7 +426,7 @@ export const OnceProbing = () => {
         },
     }
 
-    const message = {
+    const placeholderMessages = {
         HTTP: "请输入端点，如：https://github.com",
         ICMP: "请输入端点，如：127.0.0.1 / github.com",
         TCP: "请输入端点，如：127.0.0.1:80",
@@ -385,7 +465,7 @@ export const OnceProbing = () => {
                         <MyFormItem
                             name="endpoint"
                             label=""
-                            rules={[{ required: true, message: message[probingType] }, { validator: validateInput }]}
+                            rules={[{ required: true, message: placeholderMessages[probingType] }, { validator: validateInput }]}
                         >
                             <Input
                                 addonBefore={
@@ -400,11 +480,14 @@ export const OnceProbing = () => {
                                         />
                                     ) : null
                                 }
-                                placeholder={message[probingType]}
+                                placeholder={placeholderMessages[probingType]}
                                 addonAfter={
                                     <Button
                                         type="link"
-                                        onClick={handleSubmit}
+                                        onClick={() => {
+                                            console.log('拨测按钮被点击')
+                                            handleSubmit()
+                                        }}
                                         style={{
                                             borderLeft: "none",
                                             borderTopRightRadius: "0px",
@@ -483,7 +566,7 @@ export const OnceProbing = () => {
                                         </div>
 
                                         {methodType === "POST" && (
-                                            <MyFormItem name={["body"]} label="请求体" rules={[{ validator: validateJson }]}>
+                                            <MyFormItem name="body" label="请求体" rules={[{ validator: validateJson }]}>
                                                 <Input.TextArea placeholder='请输入请求体，格式为 JSON，例如 {"key": "value"}' rows={5} />
                                             </MyFormItem>
                                         )}

@@ -106,6 +106,16 @@ async function SearchViewLogsContent(params) {
     }
 }
 
+async function QueryMetrics(params) {
+    try {
+        const res = await http('get', `/api/w8t/datasource/queryMetrics`, params);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
 export {
     getDatasourceList,
     createDatasource,
@@ -114,5 +124,6 @@ export {
     getDatasource,
     DatasourcePing,
     ElasticSearchData,
-    SearchViewLogsContent
+    SearchViewLogsContent,
+    QueryMetrics
 }

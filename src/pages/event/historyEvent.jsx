@@ -22,11 +22,11 @@ import {
     Avatar,
     Popconfirm,
 } from "antd"
-import { DownloadOutlined, EllipsisOutlined, ReloadOutlined } from "@ant-design/icons"
+import { DownloadOutlined, ReloadOutlined } from "@ant-design/icons"
 import dayjs from "dayjs"
 import { AddEventComment, DeleteEventComment, getHisEventList, ListEventComments } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
-import { AlertTriangle, Clock } from "lucide-react"
+import { Clock } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { exportAlarmRecordToHTML } from "../../utils/exportAlarmRecordToHTML"
 import {
@@ -36,7 +36,6 @@ import {
     GetDurationGradient,
     HandleApiError,
     HandleShowTotal,
-    RenderTruncatedText,
 } from "../../utils/lib"
 import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
@@ -53,7 +52,7 @@ import { queryRangePromMetrics } from "../../api/other"
 import { noticeRecordList } from "../../api/notice"
 import { NotificationTypeIcon } from "../notice/notification-type-icon"
 
-const { Title, Text } = Typography
+const {  Text } = Typography
 const { RangePicker } = DatePicker
 const { Search } = Input
 

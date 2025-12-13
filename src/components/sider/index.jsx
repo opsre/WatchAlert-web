@@ -52,7 +52,7 @@ const adminMenuItems = [
         label: '网络分析',
         children: [
             { key: '11-1', path: '/probing', label: '拨测任务' },
-            { key: '11-2', path: '/onceProbing', label: '及时拨测' }
+            { key: '11-2', path: '/onceProbing', label: '即时拨测' }
         ]
     },
     { key: '6', path: '/datasource', icon: <PieChartOutlined />, label: '数据源' },
@@ -102,7 +102,7 @@ const userMenuItems = [
         label: '网络分析',
         children: [
             { key: '11-1', path: '/probing', label: '拨测任务' },
-            { key: '11-2', path: '/onceProbing', label: '及时拨测' }
+            { key: '11-2', path: '/onceProbing', label: '即时拨测' }
         ]
     },
     { key: '6', path: '/datasource', icon: <PieChartOutlined />, label: '数据源' },

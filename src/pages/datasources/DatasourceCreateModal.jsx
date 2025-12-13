@@ -6,7 +6,7 @@ import {
     PlusOutlined,
     DatabaseOutlined,
     CloudOutlined,
-    ApartmentOutlined, CloseOutlined, CheckOutlined,
+    ApartmentOutlined, 
 } from "@ant-design/icons"
 import VSCodeEditor from "../../utils/VSCodeEditor";
 const { TextArea } = Input
@@ -103,6 +103,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
     const [spaceValue, setSpaceValue] = useState("")
     const [disableStep, setDisableStep] = useState(false)
     const [authState, setAuthState] = useState("Off")
+    const [writeState, setWriteState] = useState("Off")
 
     const handleInputChange = (e) => {
         const newValue = e.target.value.replace(/\s/g, "")
@@ -130,6 +131,10 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 http: {
                     url: selectedRow.http.url,
                     timeout: Number(selectedRow.http.timeout)
+                },
+                write: {
+                    enabled: selectedRow.enabled,
+                    url: selectedRow.write.url,
                 },
                 alicloudEndpoint: selectedRow.alicloudEndpoint,
                 alicloudAk: selectedRow.alicloudAk,
@@ -187,6 +192,10 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             http: {
                 url: values?.http?.url,
                 timeout: Number(values?.http?.timeout),
+            },
+            write: {
+                enabled: writeState,
+                url: values?.write?.url,
             },
             enabled: enabled,
         }
@@ -266,6 +275,18 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             value: 'Off',
         },
     ];
+
+    const writeRadioOptions = [
+        {
+            label: '启用',
+            value: 'On',
+        },
+        {
+            label: '禁用',
+            value: 'Off',
+        },
+    ];
+
 
     // 渲染数据源类型选择卡片
     const renderDatasourceTypeCards = () => {
@@ -501,6 +522,44 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                 </>
                             )}
                         </MyFormItemGroup>
+
+                        {(selectedType === "Prometheus" || selectedType === "VictoriaMetrics") && (
+                            <MyFormItemGroup prefix={["write"]}>
+                                <Divider orientation="left">Write</Divider>
+                                <Alert
+                                    message="提示：用于拨测任务向该数据源写入指标数据。"
+                                    type="info"
+                                    showIcon
+                                    style={{ marginBottom: 20, marginTop: "10px" }}
+                                />
+                                <Radio.Group
+                                    block
+                                    options={writeRadioOptions}
+                                    defaultValue="Off"
+                                    value={writeState}
+                                    onChange={(e)=>setWriteState(e.target.value)}
+                                />
+                                {writeState === "On" && (
+                                    <>
+                                        <MyFormItem
+                                            name="url"
+                                            label="URL"
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                },
+                                                {
+                                                    pattern: /^(http|https):\/\/.*[^/]$/,
+                                                    message: '请输入正确的URL格式，且结尾不应包含"/"',
+                                                },
+                                            ]}
+                                        >
+                                            <Input placeholder="例如: http://localhost:9090/api/v1/write"/>
+                                        </MyFormItem>
+                                    </>
+                                )}
+                            </MyFormItemGroup>
+                        )}
                     </>
                 )}
 

@@ -1,185 +1,300 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import ReactECharts from "echarts-for-react";
-import { Spin, Empty, Modal, Select } from "antd";
-import { ProbingGetHistory } from "../../api/probing";
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
+import { Spin, Select, message } from 'antd';
+import { ProbingList } from '../../api/probing';
+import { queryRangePromMetrics } from '../../api/other';
+import { EventMetricChart } from '../chart/eventMetricChart';
 
 const { Option } = Select;
 
-// 支持的图表类型
-const CHART_TYPES = {
-    line: "line",
-    bar: "bar",
-};
 
-// 支持的时间范围选项（秒）
+// 时间范围选项
 const TIME_RANGES = [
-    { label: "最近1小时", value: 3600 },
-    { label: "最近6小时", value: 6 * 3600 },
-    { label: "最近24小时", value: 24 * 3600 },
+    { label: '最近1小时', value: '1h', seconds: 3600 },
+    { label: '最近6小时', value: '6h', seconds: 6 * 3600 },
 ];
 
-// 支持的字段类型定义
-const FIELD_CONFIG = {
-    Latency: {
-        title: "延迟 (ms)",
-        yAxisName: "延迟 (ms)",
-        chartType: CHART_TYPES.line,
-        dataKey: "Latency",
-        formatTooltip: (val) => `${val} ms`,
-        color: "#4096ff"
-    },
-    StatusCode: {
-        title: "HTTP 状态码",
-        yAxisName: "状态码",
-        chartType: CHART_TYPES.bar,
-        dataKey: "StatusCode",
-        formatTooltip: (val) => `状态码: ${val}`,
-        color: "#a6f6a2"
-    },
-    Telnet: {
-        title: "TCP 连通性",
-        yAxisName: "是否成功 (1=成功, 0=失败)",
-        chartType: CHART_TYPES.bar,
-        dataKey: "IsSuccessful",
-        formatTooltip: (val) => val === true ? "成功" : "失败",
-        color: "#a6f6a2"
-    },
-    PacketLoss: {
-        title: "ICMP 丢包率",
-        yAxisName: "丢包率",
-        chartType: CHART_TYPES.line,
-        dataKey: "PacketLoss",
-        formatTooltip: (val) => `${val} %`,
-        color: "#4096ff"
-    },
-    MinRtt: {
-        title: "ICMP 最小耗时",
-        yAxisName: "最小耗时",
-        chartType: CHART_TYPES.line,
-        dataKey: "MinRtt",
-        formatTooltip: (val) => `${val} ms`,
-        color: "#4096ff"
-    },
-    MaxRtt: {
-        title: "ICMP 最大耗时",
-        yAxisName: "最大耗时",
-        chartType: CHART_TYPES.line,
-        dataKey: "MaxRtt",
-        formatTooltip: (val) => `${val} ms`,
-        color: "#4096ff"
-    },
-    AvgRtt: {
-        title: "ICMP 平均耗时",
-        yAxisName: "平均耗时",
-        chartType: CHART_TYPES.line,
-        dataKey: "AvgRtt",
-        formatTooltip: (val) => `${val} ms`,
-        color: "#4096ff"
-    },
+// 不同拨测类型的指标配置
+const METRICS_CONFIG = {
+    HTTP: [
+        {
+            title: 'HTTP状态码',
+            query: 'probe_http_status_code',
+            description: 'HTTP响应状态码'
+        },
+        {
+            title: '响应时间',
+            query: 'probe_http_response_time_ms',
+            description: 'HTTP请求响应时间（毫秒）'
+        },
+        {
+            title: 'HTTP请求状态',
+            query: 'probe_http_success',
+            description: 'HTTP请求状态（1=成功，0=失败）'
+        }
+    ],
+    ICMP: [
+        {
+            title: '丢包率',
+            query: 'probe_icmp_packet_loss_percent',
+            description: 'ICMP包丢失百分比'
+        },
+        {
+            title: '最小RTT',
+            query: 'probe_icmp_rtt_min_ms',
+            description: 'ICMP最小往返时间（毫秒）'
+        },
+        {
+            title: '最大RTT',
+            query: 'probe_icmp_rtt_max_ms',
+            description: 'ICMP最大往返时间（毫秒）'
+        },
+        {
+            title: '平均RTT',
+            query: 'probe_icmp_rtt_avg_ms',
+            description: 'ICMP平均往返时间（毫秒）'
+        },
+        {
+            title: '发送包数',
+            query: 'probe_icmp_packets_sent_total',
+            description: 'ICMP发送包总数'
+        },
+        {
+            title: '接收包数',
+            query: 'probe_icmp_packets_received_total',
+            description: 'ICMP接收包总数'
+        }
+    ],
+    TCP: [
+        {
+            title: 'TCP连通性',
+            query: 'probe_tcp_success',
+            description: 'TCP连接成功率（1=成功，0=失败）'
+        },
+        {
+            title: '连接时间',
+            query: 'probe_tcp_response_time_ms',
+            description: 'TCP连接响应时间（毫秒）'
+        }
+    ],
+    SSL: [
+        {
+            title: 'SSL证书有效期',
+            query: 'probe_ssl_certificate_expiry_days',
+            description: 'SSL证书剩余有效天数'
+        },
+        {
+            title: 'SSL响应时间',
+            query: 'probe_ssl_response_time_ms',
+            description: 'SSL响应时间（毫秒）'
+        },
+        {
+            title: 'SSL证书状态',
+            query: 'probe_ssl_certificate_valid',
+            description: 'SSL证书有效性（1=有效，0=无效）'
+        }
+    ]
 };
 
-export const DetailProbingHistory = ({ visible, onClose, row }) => {
+export const ProbingMetrics = () => {
+    const { id } = useParams();
     const [loading, setLoading] = useState(true);
-    const [chartData, setChartData] = useState({ timestamps: [], values: [] });
-    const [selectedRange, setSelectedRange] = useState(3600); // 默认时间范围
+    const [taskInfo, setTaskInfo] = useState(null);
+    const [metricsData, setMetricsData] = useState({});
+    const [timeRange, setTimeRange] = useState('1h');
 
-    const field = row?.probingEndpointConfig?.strategy?.field || "Latency";
-    const config = FIELD_CONFIG[field] || FIELD_CONFIG.Latency;
-
-    // 获取拨测历史数据
-    const fetchProbingHistory = async () => {
+    // 获取任务信息
+    const fetchTaskInfo = useCallback(async () => {
         try {
-            setLoading(true);
-
-            const params = {
-                ruleId: row?.ruleId,
-                dateRange: selectedRange,
-            };
-
-            const response = await ProbingGetHistory(params);
-
-            if (response.code === 200 && Array.isArray(response.data)) {
-                const sortedData = response.data.sort((a, b) => a.timestamp - b.timestamp);
-
-                const timestamps = sortedData.map(item =>
-                    new Date(item.timestamp * 1000).toLocaleTimeString()
-                );
-
-                const values = sortedData.map(item => item.value[config.dataKey]);
-
-                setChartData({ timestamps, values });
-            } else {
-                setChartData({ timestamps: [], values: [] });
+            const res = await ProbingList({});
+            
+            if (res.data && res.data.length > 0) {
+                const task = res.data.find(item => item.ruleId === id);
+                
+                if (task) {
+                    setTaskInfo(task);
+                } else {
+                    message.error('未找到对应的拨测任务');
+                }
             }
         } catch (error) {
-            console.error("获取拨测历史失败", error);
+            message.error('获取任务信息失败');
+            console.error(error);
+        }
+    }, [id]);
+
+    // 获取指标数据
+    const fetchMetricData = useCallback(async (metric) => {
+        if (!taskInfo) return null;
+
+        try {
+            const timeRangeConfig = TIME_RANGES.find(range => range.value === timeRange);
+            const now = Math.floor(Date.now() / 1000);
+            const startTime = now - timeRangeConfig.seconds;
+            
+            // 构建查询参数
+            const query = `${metric.query}{rule_id="${taskInfo.ruleId}"}`;
+            
+            const params = {
+                datasourceIds: taskInfo.datasourceId,
+                query: query,
+                startTime: startTime,
+                endTime: now,
+                step: Math.max(Math.floor(timeRangeConfig.seconds / 100), 10) // 动态计算步长
+            };
+
+            console.log(`查询参数 ${metric.title}:`, params);
+
+            const result = await queryRangePromMetrics(params);
+            console.log(`获取指标 ${metric.title} 数据:`, result);
+            
+            // 处理API响应数据结构
+            if (result && result.data) {
+                if (Array.isArray(result.data) && result.data.length > 0) {
+                    // API返回格式: { data: [{ status: "success", data: { result: [...] } }] }
+                    const responseData = result.data[0];
+                    if (responseData && responseData.status === 'success' && responseData.data) {
+                        return responseData.data;
+                    }
+                } else if (result.data.result) {
+                    // 直接返回格式: { data: { result: [...] } }
+                    return result.data;
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error(`获取指标 ${metric.title} 失败:`, error);
+            return null;
+        }
+    }, [taskInfo, timeRange]);
+
+    // 获取所有指标数据
+    const fetchMetricsData = useCallback(async () => {
+        if (!taskInfo) return;
+
+        const metrics = METRICS_CONFIG[taskInfo.ruleType] || [];
+        
+        if (metrics.length === 0) {
+            console.warn('No metrics found for rule type:', taskInfo.ruleType);
+            return;
+        }
+        
+        const metricsResults = {};
+
+        try {
+            setLoading(true);
+            
+            // 并行获取所有指标数据
+            const promises = metrics.map(async (metric) => {
+                const data = await fetchMetricData(metric);
+                return { metric, data };
+            });
+
+            const results = await Promise.all(promises);
+            
+            results.forEach(({ metric, data }) => {
+                console.log(`处理指标 ${metric.title}:`, data);
+                console.log(`指标 ${metric.title} 数据结构检查:`, {
+                    hasData: !!data,
+                    hasResult: !!(data && data.result),
+                    resultLength: data && data.result ? data.result.length : 0,
+                    resultType: data && data.resultType
+                });
+                metricsResults[metric.title] = {
+                    ...metric,
+                    data: data
+                };
+            });
+
+            setMetricsData(metricsResults);
+        } catch (error) {
+            message.error('获取指标数据失败');
+            console.error(error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [taskInfo, fetchMetricData]);
 
-    // 每次打开 Modal 或切换时间范围时刷新数据
     useEffect(() => {
-        if (visible) {
-            fetchProbingHistory();
-        }
-    }, [visible, selectedRange, field]);
+        fetchTaskInfo();
+    }, [fetchTaskInfo]);
 
-    // 构造 ECharts 配置项
-    const getOption = () => {
-        return {
-            tooltip: {
-                trigger: "axis",
-                formatter: (params) => {
-                    return `${params[0].axisValue}<br/>${config.title}: ${config.formatTooltip(params[0].value)}`;
-                },
-            },
-            xAxis: {
-                type: "category",
-                data: chartData.timestamps,
-                name: "时间",
-                axisLabel: {
-                    rotate: 45
-                }
-            },
-            yAxis: {
-                type: "value",
-                name: config.yAxisName,
-            },
-            series: [
-                {
-                    name: config.title,
-                    type: config.chartType,
-                    data: chartData.values,
-                    smooth: config.chartType === CHART_TYPES.line,
-                    itemStyle: { color: config.color },
-                    lineStyle: { color: config.color },
-                    showSymbol: config.chartType === CHART_TYPES.line,
-                },
-            ],
-            grid: {
-                left: "10%",
-                right: "10%",
-                bottom: "15%",
-                top: "20%",
-            }
-        };
-    };
+    useEffect(() => {
+        if (taskInfo) {
+            fetchMetricsData();
+        }
+    }, [fetchMetricsData, taskInfo, timeRange]);
+
+
+
+    if (!taskInfo) {
+        return (
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+                <Spin size="large" />
+                <p style={{ marginTop: '16px', color: '#666' }}>
+                    正在加载任务信息...
+                </p>
+            </div>
+        );
+    }
+
+    // 检查是否有有效的拨测类型
+    const availableMetrics = METRICS_CONFIG[taskInfo.ruleType];
+    if (!availableMetrics) {
+        return (
+            <div style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+                    <div>
+                        <h2 style={{ margin: 0 }}>{taskInfo.ruleName}</h2>
+                        <p style={{ margin: '4px 0 0 0', color: '#666' }}>
+                            {taskInfo.probingEndpointConfig?.endpoint && taskInfo.probingEndpointConfig.endpoint.length > 150 
+                                ? `${taskInfo.probingEndpointConfig.endpoint.substring(0, 150)}...`
+                                : taskInfo.probingEndpointConfig?.endpoint}
+                        </p>
+                    </div>
+                </div>
+                
+                <div style={{
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    color: '#999',
+                    backgroundColor: '#fafafa',
+                    borderRadius: '8px'
+                }}>
+                    <p style={{ fontSize: '16px', marginBottom: '8px' }}>
+                        不支持的拨测类型: {taskInfo.ruleType}
+                    </p>
+                    <p style={{ fontSize: '14px' }}>
+                        支持的类型: {Object.keys(METRICS_CONFIG).join(', ')}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <Modal
-            visible={visible}
-            onCancel={onClose}
-            footer={null}
-            title="拨测历史记录"
-            width={1000}
-        >
-            <div style={{ marginBottom: 16 }}>
+        <div>
+            {/* 头部 */}
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                marginBottom: '20px'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div>
+                        <h2 style={{ margin: 0 }}>{taskInfo.ruleName}</h2>
+                        <p style={{ margin: '4px 0 0 0', color: '#666' }}>
+                            {taskInfo.probingEndpointConfig?.endpoint && taskInfo.probingEndpointConfig.endpoint.length > 150 
+                                ? `${taskInfo.probingEndpointConfig.endpoint.substring(0, 150)}...`
+                                : taskInfo.probingEndpointConfig?.endpoint}
+                        </p>
+                    </div>
+                </div>
+                
                 <Select
-                    value={selectedRange}
-                    onChange={(value) => setSelectedRange(value)}
+                    value={timeRange}
+                    onChange={setTimeRange}
                     style={{ width: 150 }}
                 >
                     {TIME_RANGES.map(range => (
@@ -190,15 +305,86 @@ export const DetailProbingHistory = ({ visible, onClose, row }) => {
                 </Select>
             </div>
 
+            {/* 指标图表 */}
             <Spin spinning={loading}>
-                {chartData.timestamps.length > 0 ? (
-                    <ReactECharts option={getOption()} style={{ height: 400 }} />
-                ) : (
-                    <div style={{ textAlign: "center", padding: "80px 0" }}>
-                        <Empty description="暂无拨测历史数据" />
-                    </div>
-                )}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+                    gap: '20px'
+                }}>
+                    {Object.entries(metricsData).map(([title, metric]) => (
+                        <div
+                            key={title}
+                            style={{
+                                background: '#fff',
+                                borderRadius: '8px',
+                                padding: '20px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                border: '1px solid #f0f0f0'
+                            }}
+                        >
+                            <div style={{
+                                marginBottom: '16px'
+                            }}>
+                                <h3 style={{ 
+                                    margin: 0, 
+                                    fontSize: '16px',
+                                    color: '#262626',
+                                    marginBottom: '4px'
+                                }}>
+                                    {title}
+                                </h3>
+                                <p style={{
+                                    margin: 0,
+                                    fontSize: '12px',
+                                    color: '#8c8c8c'
+                                }}>
+                                    {metric.description}
+                                </p>
+                            </div>
+                            
+                            <div style={{ height: '200px' }}>
+                                {metric.data && metric.data.result && metric.data.result.length > 0 ? (
+                                    <EventMetricChart data={[{ data: metric.data }]} />
+                                ) : (
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        height: '100%',
+                                        color: '#8c8c8c'
+                                    }}>
+                                        暂无数据
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </Spin>
-        </Modal>
+            
+            {Object.keys(metricsData).length === 0 && !loading && (
+                <div style={{
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    color: '#999',
+                    backgroundColor: '#fafafa',
+                    borderRadius: '8px'
+                }}>
+                    <p style={{ fontSize: '16px', marginBottom: '8px' }}>
+                        暂无指标数据
+                    </p>
+                    <p style={{ fontSize: '14px', marginBottom: '4px' }}>
+                        拨测类型: {taskInfo?.ruleType || '未知'}
+                    </p>
+                    <p style={{ fontSize: '14px', marginBottom: '4px' }}>
+                        支持的类型: {Object.keys(METRICS_CONFIG).join(', ')}
+                    </p>
+                    <p style={{ fontSize: '14px' }}>
+                        请确认数据源配置正确且任务正在运行
+                    </p>
+                </div>
+            )}
+        </div>
     );
 };
