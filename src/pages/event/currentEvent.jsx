@@ -886,6 +886,10 @@ export const AlertCurrentEvent = (props) => {
     // 获取图表数据
     const fetchMetricData = async () => {
         try {
+            if (selectedEvent.datasource_type !== "Prometheus" || selectedEvent.datasource_type !== "VictoriaMetrics") {
+                return
+            }
+            
             const parmas = {
                 datasourceIds: selectedEvent.datasource_id,
                 query: selectedEvent.searchQL,
@@ -1211,14 +1215,16 @@ export const AlertCurrentEvent = (props) => {
             >
                 {selectedEvent && (
                     <div>
-                        <div style={{
-                                marginLeft: '-20px',
-                            }}
-                        >
-                            <Spin spinning={loading}>
-                                <EventMetricChart data={metricData.data} />
-                            </Spin>
-                        </div>
+                        {(selectedEvent.datasource_type === "Prometheus" || selectedEvent.datasource_type === "VictoriaMetrics") && (
+                            <div style={{
+                                    marginLeft: '-20px',
+                                }}
+                            >
+                                <Spin spinning={loading}>
+                                    <EventMetricChart data={metricData.data} />
+                                </Spin>
+                            </div>
+                        )}
 
                         <Descriptions
                             bordered

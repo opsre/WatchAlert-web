@@ -4,7 +4,7 @@ import {HandleApiError} from "../utils/lib";
 
 async function TopologyList() {
     try {
-        const res = await http('get', `/api/w8t/topology/list`);
+        const res = await http('get', `/api/w8t/topology/listTopology`);
         return res;
     } catch (error) {
         HandleApiError(error)
@@ -14,7 +14,7 @@ async function TopologyList() {
 
 async function TopologyGetDetail(params) {
     try {
-        const res = await http('get', `/api/w8t/topology/getDetail`, params);
+        const res = await http('get', `/api/w8t/topology/getTopologyDetail`, params);
         return res;
     } catch (error) {
         HandleApiError(error)
@@ -24,7 +24,7 @@ async function TopologyGetDetail(params) {
 
 async function TopologyCreate(params) {
     try {
-        const res = await http('post', `/api/w8t/topology/create`, params);
+        const res = await http('post', `/api/w8t/topology/createTopology`, params);
         message.open({
             type: 'success',
             content: '创建成功',
@@ -38,7 +38,7 @@ async function TopologyCreate(params) {
 
 async function TopologyUpdate(params) {
     try {
-        const res = await http('post', `/api/w8t/topology/update`, params);
+        const res = await http('post', `/api/w8t/topology/updateTopology`, params);
         message.open({
             type: 'success',
             content: '更新成功',
@@ -52,7 +52,7 @@ async function TopologyUpdate(params) {
 
 async function TopologyDelete(params) {
     try {
-        const res = await http('post', `/api/w8t/topology/delete`,params);
+        const res = await http('post', `/api/w8t/topology/deleteTopology`,params);
         message.open({
             type: 'success',
             content: '删除成功',

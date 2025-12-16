@@ -35,7 +35,7 @@ import {
     ExportOutlined,
     DownOutlined,
     ImportOutlined,
-    EditOutlined,
+
     CopyOutlined, 
     PlusOutlined,
     CheckSquareOutlined,
@@ -75,12 +75,10 @@ export const AlertRuleList = () => {
     const [yamlContent, setYamlContent] = useState("")
     const [jsonContent, setJsonContent] = useState("")
 
-    // 行选择配置
-    const rowSelection = {
-        selectedRowKeys,
-        onChange: (selectedKeys) => {
-            setSelectedRowKeys(selectedKeys)
-        },
+    // 行选择变化处理
+    const handleSelectChange = (selectedKeys, selectedRows) => {
+        setSelectedRowKeys(selectedKeys)
+        console.log('选中的规则:', selectedKeys, selectedRows)
     }
     const columns = [
         {
@@ -303,22 +301,7 @@ export const AlertRuleList = () => {
             ),
         },
     ]
-    const [height, setHeight] = useState(window.innerHeight)
 
-    useEffect(() => {
-        // 定义一个处理窗口大小变化的函数
-        const handleResize = () => {
-            setHeight(window.innerHeight)
-        }
-
-        // 监听窗口的resize事件
-        window.addEventListener("resize", handleResize)
-
-        // 在组件卸载时移除监听器
-        return () => {
-            window.removeEventListener("resize", handleResize)
-        }
-    }, [])
 
     useEffect(() => {
         handleList(selectedRuleGroupId, pagination.index, pagination.size)
@@ -600,7 +583,7 @@ export const AlertRuleList = () => {
                 datasourceIdList: [selectedDatasource] || undefined,
                 faultCenterId: selectedFaultCenter || undefined,
                 importType: importType,
-                rules: (importType===0 && yamlContent || jsonContent),
+                rules: (importType === 0 ? yamlContent : jsonContent),
             }
             await RuleImport(params)
             setImportDrawerVisible(false)
@@ -698,7 +681,7 @@ export const AlertRuleList = () => {
                 marginBottom: "20px",
                 alignItems: "center"
             }}>
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <Radio.Group
                         options={[
                             {
@@ -720,6 +703,16 @@ export const AlertRuleList = () => {
                     />
 
                     <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
+                    
+                    {/* 选择状态显示 */}
+                    {selectedRowKeys.length > 0 && (
+                        <div style={{ 
+                            color: '#1677ff', 
+                            fontSize: '14px',
+                        }}>
+                            已选择 {selectedRowKeys.length} 项
+                        </div>
+                    )}
                 </div>
                 <div style={{ display: "flex", gap: "10px" }}>
                     {/* 批量操作按钮 */}
@@ -770,8 +763,12 @@ export const AlertRuleList = () => {
                     handleList(id, current, pageSize);
                 }}
                 scrollY={'calc(100vh - 300px)'}  // 动态计算表格高度
-                rowKey={record => record.id}
+                rowKey="ruleId"  // 使用 ruleId 作为唯一标识
                 showTotal={HandleShowTotal}
+                // 启用多选功能
+                selectedRowKeys={selectedRowKeys}
+                onSelectChange={handleSelectChange}
+                selectAll={true}  // 支持全选
             />
 
             {/* 导入抽屉 */}

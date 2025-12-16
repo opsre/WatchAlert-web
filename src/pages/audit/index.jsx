@@ -27,7 +27,7 @@ export const AuditLog = () => {
             title: "ID",
             dataIndex: "id",
             key: "id",
-            width: "200px",
+            width: "250px",
             render: (_, record) => (
                 <span
                     role="button"
@@ -40,14 +40,10 @@ export const AuditLog = () => {
             ),
         },
         {
-            title: "时间",
-            dataIndex: "createdAt",
-            key: "createdAt",
+            title: "事件名称",
+            dataIndex: "auditType",
+            key: "auditType",
             width: "200px",
-            render: (text) => {
-                const dateInMilliseconds = text * 1000
-                return moment(dateInMilliseconds).format("YYYY-MM-DD HH:mm:ss")
-            },
         },
         {
             title: "用户名",
@@ -62,12 +58,6 @@ export const AuditLog = () => {
             width: "200px",
         },
         {
-            title: "事件名称",
-            dataIndex: "auditType",
-            key: "auditType",
-            width: "auto",
-        },
-        {
             title: "操作状态",
             dataIndex: "statusCode",
             key: "statusCode",
@@ -75,6 +65,16 @@ export const AuditLog = () => {
             render: (text) => (
                 <span>{text === 200 ? <Tag color="success">{text}</Tag> : <Tag color="error">{text}</Tag>}</span>
             ),
+        },
+        {
+            title: "时间",
+            dataIndex: "createdAt",
+            key: "createdAt",
+            width: "180px",
+            render: (text) => {
+                const dateInMilliseconds = text * 1000
+                return moment(dateInMilliseconds).format("YYYY-MM-DD HH:mm:ss")
+            },
         },
     ]
     const [height, setHeight] = useState(window.innerHeight)

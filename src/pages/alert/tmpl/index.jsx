@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
-import {Button, Input, Table, message, Modal, Select, Form, Dropdown, Tooltip, Space} from "antd"
+import {Button, Input, message, Modal, Select, Form, Dropdown, Tooltip, Space} from "antd"
 import RuleTemplateCreateModal from "./RuleTemplateCreateModal"
 import { useParams, useNavigate } from "react-router-dom"
 import { deleteRuleTmpl, getRuleTmplList, createRuleTmpl } from "../../../api/ruleTmpl"
@@ -39,7 +39,7 @@ export const RuleTemplate = () => {
     const [openSelectedRuleGroupVisible, setOpenSelectedRuleGroupVisible] = useState(false)
     const [list, setList] = useState([])
     const { tmplType, ruleGroupName } = useParams()
-    const [height, setHeight] = useState(window.innerHeight)
+    const [height] = useState(window.innerHeight)
     const [ruleGroupOptions, setRuleGroupOptions] = useState([])
     const [selectedRuleGroup, setSelectedRuleGroup] = useState(null)
     const navigate = useNavigate()
@@ -54,12 +54,10 @@ export const RuleTemplate = () => {
         total: 0,
     })
 
-    // 行选择配置
-    const rowSelection = {
-        selectedRowKeys,
-        onChange: (selectedKeys) => {
-            setSelectedRowKeys(selectedKeys)
-        },
+    // 行选择变化处理
+    const handleSelectChange = (selectedKeys, selectedRows) => {
+        setSelectedRowKeys(selectedKeys)
+        console.log('选中的模板:', selectedKeys, selectedRows)
     }
 
     const columns = useMemo(
@@ -118,11 +116,7 @@ export const RuleTemplate = () => {
         [list],
     )
 
-    useEffect(() => {
-        const handleResize = () => setHeight(window.innerHeight)
-        window.addEventListener("resize", handleResize)
-        return () => window.removeEventListener("resize", handleResize)
-    }, [])
+
 
     useEffect(() => {
         handleList(pagination.index, pagination.size)
@@ -219,7 +213,7 @@ export const RuleTemplate = () => {
         // 跳转到创建页面
         navigate(`/ruleGroup/${selectedRuleGroup}/rule/add`)
         handleCloseSelectedRuleGroup()
-    }, [selectedRuleGroup, selectedRow, setRuleTemplate, navigate])
+    }, [selectedRuleGroup, selectedRow, setRuleTemplate, navigate, handleCloseSelectedRuleGroup])
 
     // 批量删除
     const handleBatchDelete = async () => {
@@ -326,6 +320,7 @@ export const RuleTemplate = () => {
 
                 if (exists) {
                     message.warning(`模版 ${template.ruleName} 已存在,跳过导入`)
+                    return Promise.resolve()
                 } else {
                     // 如果不存在，则创建新的
                     return createRuleTmpl(template)
@@ -375,8 +370,18 @@ export const RuleTemplate = () => {
     return (
         <>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
+                    
+                    {/* 选择状态显示 */}
+                    {selectedRowKeys.length > 0 && (
+                        <div style={{ 
+                            color: '#1677ff', 
+                            fontSize: '14px',
+                        }}>
+                            已选择 {selectedRowKeys.length} 项
+                        </div>
+                    )}
                 </div>
                 <div style={{ display: "flex", gap: "10px" }}>
                     {/* 批量操作按钮 */}
@@ -502,12 +507,16 @@ export const RuleTemplate = () => {
                     handleList(page, pageSize);
                 }}
                 onPageSizeChange={(current, pageSize) => {
-                    setPagination({ ...pagination, index: current, pageSize });
+                    setPagination({ ...pagination, index: current, size: pageSize });
                     handleList(current, pageSize);
                 }}
                 scrollY={height - 280}
-                rowKey={record => record.id}
+                rowKey={record => `${record.ruleGroupName}-${record.ruleName}`}  // 使用组合键作为唯一标识
                 showTotal={HandleShowTotal}
+                // 启用多选功能
+                selectedRowKeys={selectedRowKeys}
+                onSelectChange={handleSelectChange}
+                selectAll={true}  // 支持全选
             />
         </>
     )
