@@ -41,7 +41,6 @@ const adminMenuItems = [
         children: [
             { key: '3-1', path: '/noticeObjects', label: '通知对象' },
             { key: '3-2', path: '/noticeTemplate', label: '通知模版' },
-            { key: '3-3', path: '/noticeRecords', label: '通知记录' }
         ]
     },
     { key: '13', path: '/topology', icon: <NodeIndexOutlined />, label: '服务拓扑' },
@@ -91,7 +90,6 @@ const userMenuItems = [
         children: [
             { key: '3-1', path: '/noticeObjects', label: '通知对象' },
             { key: '3-2', path: '/noticeTemplate', label: '通知模版' },
-            { key: '3-3', path: '/noticeRecords', label: '通知记录' }
         ]
     },
     { key: '13', path: '/topology', icon: <NodeIndexOutlined />, label: '服务拓扑' },

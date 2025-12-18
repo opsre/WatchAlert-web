@@ -20,11 +20,10 @@ import {
 import { noticeRecordList } from "../../api/notice"
 import TextArea from "antd/es/input/TextArea"
 import { NotificationTypeIcon } from "./notification-type-icon"
-import { SearchIcon, FilterIcon, AlertTriangle, CheckCircle, XCircle, Clock, FileText, RefreshCw } from "lucide-react"
+import { SearchIcon, AlertTriangle } from "lucide-react"
 import {HandleShowTotal} from "../../utils/lib";
 import {ReloadOutlined} from "@ant-design/icons";
 
-const { Title, Text } = Typography
 const { Search } = Input
 
 // Constants
@@ -42,7 +41,7 @@ const SEVERITY_LABELS = {
 
 const ITEMS_PER_PAGE = 10
 
-export const NoticeRecords = () => {
+export const NoticeRecords = ({ noticeObjectId }) => {
     const [height, setHeight] = useState(window.innerHeight)
     const [loading, setLoading] = useState(false)
     const [list, setList] = useState([])
@@ -67,6 +66,7 @@ export const NoticeRecords = () => {
                 dataIndex: "ruleName",
                 key: "ruleName",
                 ellipsis: true,
+                width: "130px",
                 render: (_, record) => (
                     <Tooltip title={record.ruleName}>
                         <span
@@ -75,7 +75,9 @@ export const NoticeRecords = () => {
                             onClick={() => showDrawer(record)}
                             style={{ cursor: 'pointer', color: 'rgb(22, 119, 255)', textDecoration: 'none', marginTop: '1px' }}
                             >
-                                {record.ruleName}
+                                {record.ruleName && record.ruleName.length > 25
+                                ? `${record.ruleName.substring(0, 25)}...`
+                                : record.ruleName}
                         </span>
                     </Tooltip>
                 ),
@@ -115,17 +117,6 @@ export const NoticeRecords = () => {
                 ),
             },
             {
-                title: "通知对象",
-                dataIndex: "nObj",
-                key: "nObj",
-                ellipsis: true,
-                render: (text) => (
-                    <Tooltip title={text}>
-                        <span>{text}</span>
-                    </Tooltip>
-                ),
-            },
-            {
                 title: "状态",
                 dataIndex: "status",
                 key: "status",
@@ -133,7 +124,6 @@ export const NoticeRecords = () => {
                 render: (status) =>
                     status === 0 ? (
                         <Tag
-                            // icon={<CheckCircle size={12} />}
                             color="success"
                             style={{
                                 borderRadius: "12px",
@@ -168,7 +158,7 @@ export const NoticeRecords = () => {
                 title: "通知时间",
                 dataIndex: "createAt",
                 key: "createAt",
-                width: 180,
+                width: 140,
                 render: (text) => {
                     const date = new Date(text * 1000)
                     return (
@@ -211,6 +201,7 @@ export const NoticeRecords = () => {
                 severity: filters.severity,
                 status: filters.status,
                 query: filters.query || undefined,
+                uuid: noticeObjectId,
             }
 
             const res = await noticeRecordList(params)
@@ -239,9 +230,6 @@ export const NoticeRecords = () => {
         setPagination(newPagination)
         fetchRecords(page.current, page.pageSize)
     }
-
-    // Format pagination display
-    const handleShowTotal = (total, range) => `第 ${range[0]} - ${range[1]} 条 共 ${total} 条`
 
     // Show drawer with record details
     const showDrawer = (record) => {
@@ -354,7 +342,7 @@ export const NoticeRecords = () => {
                         <span>通知详情</span>
                     </div>
                 }
-                size="large"
+                width={800}
                 onClose={() => setDrawerOpen(false)}
                 open={drawerOpen}
                 styles={{
@@ -402,10 +390,6 @@ export const NoticeRecords = () => {
                                 {
                                     label: '告警等级',
                                     children: <Tag color={SEVERITY_COLORS[selectedRecord.severity]}>{selectedRecord.severity}</Tag>,
-                                },
-                                {
-                                    label: '通知对象',
-                                    children: selectedRecord.nObj,
                                 },
                                 {
                                     label: 'Request',

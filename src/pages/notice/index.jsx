@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip} from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip, Drawer, Select} from 'antd';
 import { CreateNoticeObjectModal } from './NoticeObjectCreateModal';
 import { deleteNotice, getNoticeList } from '../../api/notice';
-import { ReactComponent as FeiShuIcon } from './img/feishu.svg'
-import { ReactComponent as DingdingIcon } from './img/dingding.svg'
-import { ReactComponent as EmailIcon } from './img/Email.svg'
-import { ReactComponent as WeChatIcon } from './img/qywechat.svg'
-import { ReactComponent as CustomHookIcon } from './img/customhook.svg'
-import { ReactComponent as SlackIcon } from './img/slack.svg'
 import {getDutyManagerList} from "../../api/duty";
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
+import { noticeRecordList } from '../../api/notice';
+import { NoticeRecords } from './history';
 
 export const NoticeObjects = () => {
     const { Search } = Input
@@ -21,6 +17,8 @@ export const NoticeObjects = () => {
     const [list, setList] = useState([]);
     const [dutyList, setDutyList] = useState([])
     const [height, setHeight] = useState(window.innerHeight);
+    const [historyDrawerVisible, setHistoryDrawerVisible] = useState(false);
+    const [selectedNoticeObject, setSelectedNoticeObject] = useState(null);
     const columns = [
         {
             title: '名称',
@@ -29,7 +27,16 @@ export const NoticeObjects = () => {
             width: 'auto',
             render: (text, record) => (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {text}
+                    <span 
+                        style={{ 
+                            cursor: 'pointer', 
+                            color: '#1677ff',
+                            textDecoration: 'none'
+                        }}
+                        onClick={() => handleShowHistory(record)}
+                    >
+                        {text}
+                    </span>
                     <Tooltip title="点击复制 ID">
                         <span
                             style={{
@@ -53,58 +60,6 @@ export const NoticeObjects = () => {
             ),
         },
         {
-            title: '通知类型',
-            dataIndex: 'noticeType',
-            key: 'noticeType',
-            width: 'auto',
-            render: (text, record) => {
-                if (record.noticeType === 'FeiShu') {
-                    return (
-                       <div style={{display: 'flex'}}>
-                           <FeiShuIcon style={{height: '25px', width: '25px'}}/>
-                           <div style={{marginLeft: "5px",marginTop: '5px', fontSize:'12px' }}>飞书</div>
-                       </div>
-                    )
-                } else if (record.noticeType === 'DingDing') {
-                    return (
-                        <div style={{display: 'flex'}}>
-                            <DingdingIcon style={{height: '25px', width: '25px'}}/>
-                            <div style={{marginLeft: "5px",marginTop: '5px', fontSize:'12px' }}>钉钉</div>
-                        </div>
-                    )
-                } else if (record.noticeType === 'Email') {
-                    return (
-                        <div style={{display: 'flex'}}>
-                            <EmailIcon style={{height: '25px', width: '25px'}}/>
-                            <div style={{marginLeft: "5px",marginTop: '5px', fontSize:'12px' }}>邮件</div>
-                        </div>
-                    )
-                } else if (record.noticeType === 'WeChat') {
-                    return (
-                        <div style={{display: 'flex'}}>
-                            <WeChatIcon style={{height: '25px', width: '25px'}}/>
-                            <div style={{marginLeft: "5px",marginTop: '5px', fontSize:'12px' }}>企业微信</div>
-                        </div>
-                    )
-                } else if (record.noticeType === 'CustomHook') {
-                    return (
-                        <div style={{display: 'flex'}}>
-                            <CustomHookIcon style={{height: '25px', width: '25px'}}/>
-                            <div style={{marginLeft: "5px",marginTop: '5px', fontSize:'12px' }}>自定义Hook</div>
-                        </div>
-                    )
-                } else if (record.noticeType === 'Slack') {
-                    return (
-                        <div style={{display: 'flex'}}>
-                            <SlackIcon style={{height: '25px', width: '25px'}}/>
-                            <div style={{marginLeft: "5px",marginTop: '5px', fontSize:'12px' }}>Slack</div>
-                        </div>
-                    )
-                }
-                return '-'
-            },
-        },
-        {
             title: '值班表',
             dataIndex: 'dutyId',
             key: 'dutyId',
@@ -125,7 +80,7 @@ export const NoticeObjects = () => {
             title: "更新时间",
             dataIndex: "updateAt",
             key: "updateAt",
-            width: "auto",
+            width: "180px",
             render: (text) => {
                 const date = new Date(text * 1000)
                     return (
@@ -159,7 +114,7 @@ export const NoticeObjects = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 120,
+            width: 100,
             render: (_, record) =>
                 list.length >= 1 ? (
                     <Space size="middle">
@@ -202,11 +157,7 @@ export const NoticeObjects = () => {
         };
     }, []);
 
-    useEffect(() => {
-        handleList();
-    }, []);
-
-    const handleList = async () => {
+    const handleList = useCallback(async () => {
         handleDutyManagerList()
 
         try {
@@ -215,7 +166,11 @@ export const NoticeObjects = () => {
         } catch (error) {
             message.error(error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        handleList();
+    }, [handleList]);
 
     const handleDutyManagerList = async () => {
         try {
@@ -268,6 +223,16 @@ export const NoticeObjects = () => {
         }
     }
 
+    const handleShowHistory = (record) => {
+        setSelectedNoticeObject(record);
+        setHistoryDrawerVisible(true);
+    };
+
+    const handleHistoryDrawerClose = () => {
+        setHistoryDrawerVisible(false);
+        setSelectedNoticeObject(null);
+    };
+
     return (
         <>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -312,6 +277,19 @@ export const NoticeObjects = () => {
                     rowKey={(record) => record.id} // 设置行唯一键
                 />
             </div>
+
+            {/* 通知历史记录 Drawer */}
+            <Drawer
+                title={`通知记录 - ${selectedNoticeObject?.name || ''}`}
+                open={historyDrawerVisible}
+                onClose={handleHistoryDrawerClose}
+                width={1000}
+                destroyOnClose={true}
+            >
+                {selectedNoticeObject && (
+                    <NoticeRecords noticeObjectId={selectedNoticeObject.uuid} />
+                )}
+            </Drawer>
         </>
     );
 };

@@ -1,5 +1,5 @@
-import {Modal, Form, Input, Button, Select, Card, Drawer, Divider} from 'antd'
-import React, { useState, useEffect } from 'react'
+import {Form, Input, Button, Select, Card, Drawer, Checkbox} from 'antd'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createNotice, updateNotice } from '../../api/notice'
 import { getDutyManagerList } from '../../api/duty'
 import FeiShuImg from "./img/feishu.svg";
@@ -7,7 +7,7 @@ import EmailImg from "./img/Email.svg";
 import DingDingImg from "./img/dingding.svg";
 import WeChatImg from "./img/qywechat.svg"
 import SlackImg from "./img/slack.svg"
-import CustomHook from "./img/customhook.svg"
+import WebHook from "./img/webhook.svg"
 import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
 import {getNoticeTmplList} from "../../api/noticeTmpl";
 import {getUserList} from "../../api/user";
@@ -19,12 +19,6 @@ function toArr(str) {
     return Array.isArray(str) ? str : [str]
 }
 
-const MyFormItemGroup = ({ prefix, children }) => {
-    const prefixPath = React.useContext(MyFormItemContext)
-    const concatPath = React.useMemo(() => [...prefixPath, ...toArr(prefix)], [prefixPath, prefix])
-    return <MyFormItemContext.Provider value={concatPath}>{children}</MyFormItemContext.Provider>
-}
-
 const MyFormItem = ({ name, ...props }) => {
     const prefixPath = React.useContext(MyFormItemContext)
     const concatName = name !== undefined ? [...prefixPath, ...toArr(name)] : undefined
@@ -34,54 +28,190 @@ const MyFormItem = ({ name, ...props }) => {
 export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, handleList }) => {
     const { Option } = Select
     const [form] = Form.useForm()
+    
+    // 基础状态
     const [dutyList, setDutyList] = useState([])
-    const [selectedDutyItem, setSelectedDutyItem] = useState([])
-    const [submitLoading,setSubmitLoading] = useState(false)
-    const [testLoading, setTestLoading] = useState(false)
-    const [subjectValue,setSubjectValue] = useState('')
-    const [selectedNoticeCard, setSelectedNoticeCard] = useState(null)
-    const [noticeType,setNoticeType] = useState('')
-    const [noticeTmplItems,setNoticeTmplItems] = useState([])
-    const [selectNoticeTmpl,setSelectNoticeTmpl] = useState('')
-    const [selectedToItems, setSelectedToItems] = useState([])
-    const [selectedCcItems, setSelectedCcItems] = useState([])
-    const [filteredOptions, setFilteredOptions] = useState([])
-    const [spaceValue, setSpaceValue] = useState('')
+    const [submitLoading, setSubmitLoading] = useState(false)
+    const [testLoadingRoutes, setTestLoadingRoutes] = useState({})
+    const [selectedNoticeCard, setSelectedNoticeCard] = useState(0)
+    const [noticeType, setNoticeType] = useState('FeiShu')
 
-    const PRIORITY_OPTIONS = [
+    const [filteredOptions, setFilteredOptions] = useState([])
+    
+    // 数据加载状态
+    const [dataLoaded, setDataLoaded] = useState(false)
+    const [templateCache, setTemplateCache] = useState({})
+    const templateCacheRef = useRef({})
+    const loadingTemplatesRef = useRef(new Set()) // 跟踪正在加载的模板类型
+
+    const PRIORITY_OPTIONS = useMemo(() => [
         { label: 'P0 紧急', value: 'P0' },
         { label: 'P1 重要', value: 'P1' },
         { label: 'P2 一般', value: 'P2' }
-    ]
+    ], [])
 
-    const PRIORITY_COLORS = {
-        P0: '#ff4d4f',
-        P1: '#faad14',
-        P2: '#b0e1fb'
-    }
-
-    const cards = [
+    const cards = useMemo(() => [
         { imgSrc: FeiShuImg, text: '飞书', value: 'FeiShu' },
         { imgSrc: EmailImg, text: '邮件', value: 'Email' },
         { imgSrc: DingDingImg, text: '钉钉', value: 'DingDing' },
         { imgSrc: WeChatImg, text: '企业微信', value: 'WeChat' },
         { imgSrc: SlackImg, text: 'Slack', value: 'Slack' },
-        { imgSrc: CustomHook, text: '自定义Hook', value: 'CustomHook' },
-    ]
+        { imgSrc: WebHook, text: 'WebHook', value: 'WebHook' },
+    ], [])
 
-    const handleInputEmailChange = (name, value) => {
-        switch (name) {
-            case 'subject':
-                setSubjectValue(value)
-                break
-            default:
-                break
+    // API 调用函数
+    const loadDutyList = useCallback(async () => {
+        try {
+            const res = await getDutyManagerList()
+            if (res?.data && Array.isArray(res.data)) {
+                const newData = res.data.map((item) => ({
+                    label: item.name,
+                    value: item.id
+                }))
+                setDutyList(newData)
+            }
+        } catch (error) {
+            console.error('获取值班表列表失败:', error)
+            setDutyList([])
         }
-    }
+    }, [])
 
+    const loadUserList = useCallback(async () => {
+        try {
+            const res = await getUserList({ joinDuty: "true" })
+            if (res?.data && Array.isArray(res.data)) {
+                const options = res.data.map((item) => ({
+                    userName: item.username,
+                    userEmail: item.email
+                }))
+                setFilteredOptions(options)
+            }
+        } catch (error) {
+            console.error('获取用户列表失败:', error)
+            setFilteredOptions([])
+        }
+    }, [])
+
+    const loadNoticeTemplates = useCallback(async (noticeTypeParam) => {
+        // 检查缓存
+        if (templateCacheRef.current[noticeTypeParam]) {
+            return templateCacheRef.current[noticeTypeParam]
+        }
+
+        // 检查是否正在加载，避免重复请求
+        if (loadingTemplatesRef.current.has(noticeTypeParam)) {
+            return []
+        }
+
+        loadingTemplatesRef.current.add(noticeTypeParam)
+
+        try {
+            const res = await getNoticeTmplList({ noticeType: noticeTypeParam })
+            if (res?.data && Array.isArray(res.data)) {
+                const newData = res.data.map((item) => ({
+                    label: item.name,
+                    value: item.id
+                }))
+                // 缓存结果
+                templateCacheRef.current[noticeTypeParam] = newData
+                setTemplateCache(prev => ({
+                    ...prev,
+                    [noticeTypeParam]: newData
+                }))
+                return newData
+            }
+            return []
+        } catch (error) {
+            console.error('获取通知模板列表失败:', error)
+            return []
+        } finally {
+            loadingTemplatesRef.current.delete(noticeTypeParam)
+        }
+    }, [])
+
+    // 初始化数据加载 - 只在模态框首次打开时执行
+    useEffect(() => {
+        if (visible && !dataLoaded) {
+            const loadInitialData = async () => {
+                try {
+                    await Promise.all([
+                        loadDutyList(),
+                        loadUserList(),
+                        loadNoticeTemplates('FeiShu')
+                    ])
+                } finally {
+                    setDataLoaded(true)
+                }
+            }
+            loadInitialData()
+        }
+    }, [visible, dataLoaded, loadDutyList, loadUserList, loadNoticeTemplates])
+
+    // 表单初始化 - 根据编辑/创建模式设置表单值
+    useEffect(() => {
+        if (!visible) {
+            // 模态框关闭时重置状态
+            setDataLoaded(false)
+            setSelectedNoticeCard(0)
+            setNoticeType('FeiShu')
+            setTemplateCache({})
+            setTestLoadingRoutes({})
+            templateCacheRef.current = {}
+            loadingTemplatesRef.current.clear()
+            form.resetFields()
+            return
+        }
+
+        if (selectedRow) {
+            // 编辑模式
+            const routes = selectedRow.routes?.length > 0 
+                ? selectedRow.routes.map(route => ({
+                    ...route,
+                    severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0'])
+                }))
+                : [{
+                    severitys: ['P0'],
+                    noticeType: selectedRow.noticeType || 'FeiShu',
+                    noticeTmplId: selectedRow.noticeTmplId || '',
+                    hook: selectedRow.hook || '',
+                    sign: selectedRow.sign || '',
+                    subject: selectedRow.email?.subject || '',
+                    to: selectedRow.email?.to || [],
+                    cc: selectedRow.email?.cc || []
+                }]
+
+            form.setFieldsValue({
+                name: selectedRow.name,
+                dutyId: selectedRow.dutyId,
+                routes: routes
+            })
+
+            const cardIndex = cards.findIndex(card => card.value === (selectedRow.noticeType || 'FeiShu'))
+            setSelectedNoticeCard(cardIndex >= 0 ? cardIndex : 0)
+            setNoticeType(selectedRow.noticeType || 'FeiShu')
+        } else {
+            // 创建模式
+            form.setFieldsValue({
+                routes: [{
+                    severitys: ['P0'],
+                    noticeType: 'FeiShu',
+                    noticeTmplId: '',
+                    hook: '',
+                    sign: '',
+                    subject: '',
+                    to: [],
+                    cc: []
+                }]
+            })
+            setSelectedNoticeCard(0)
+            setNoticeType('FeiShu')
+        }
+    }, [visible, selectedRow, form, cards])
+
+    // 表单处理函数
     const handleInputChange = (e) => {
         const newValue = e.target.value.replace(/\s/g, '')
-        setSpaceValue(newValue)
+        form.setFieldValue('name', newValue)
     }
 
     const handleKeyPress = (e) => {
@@ -90,62 +220,25 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         }
     }
 
-    useEffect(() => {
-        handleSearchUser()
-        handleDutyManageList()
-        handleGetNoticeTmpl()
 
-        if (selectedRow) {
-            form.setFieldsValue({
-                uuid: selectedRow.uuid,
-                name: selectedRow.name,
-                dutyId: selectedRow.dutyId,
-                env: selectedRow.env,
-                noticeType: selectedRow.noticeType,
-                hook: selectedRow.hook,
-                noticeTmplId: selectedRow.noticeTmplId,
-                sign: selectedRow.sign,
-                email: {
-                    subject: selectedRow.email.subject,
-                    to: selectedRow.email.to,
-                    cc: selectedRow.email.cc,
-                },
-                routes: selectedRow.routes || []
-            })
 
-            const cardIndex = cards.findIndex(card => card.value === selectedRow.noticeType)
-            setSubjectValue(selectedRow.email.subject)
-            setSelectedToItems(selectedRow.email.to)
-            setSelectedCcItems(selectedRow.email.cc)
-            setSelectedNoticeCard(cardIndex)
-            setNoticeType(selectedRow.noticeType)
-            setSelectNoticeTmpl(selectedRow.noticeTmplId)
-        }
-    }, [selectedRow, form])
-
-    const handleDutyManageList = async () => {
-        try {
-            const res = await getDutyManagerList()
-            const newData = res.data.map((item) => ({
-                label: item.name,
-                value: item.id
-            }))
-            setDutyList(newData)
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
+    // 业务逻辑函数
     const handleCreate = async (data) => {
         try {
             const params = {
-                ...data,
-                noticeType: noticeType,
-                email: {
-                    subject: subjectValue,
-                    to: selectedToItems,
-                    cc: selectedCcItems,
-                }
+                tenantId: 'default',
+                name: data.name,
+                dutyId: data.dutyId || null,
+                routes: data.routes?.map(route => ({
+                    noticeType: route.noticeType || noticeType,
+                    noticeTmplId: route.noticeTmplId || '',
+                    severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
+                    hook: route.hook || '',
+                    sign: route.sign || '',
+                    subject: route.subject || '',
+                    to: route.to || [],
+                    cc: route.cc || []
+                })) || [],
             }
             await createNotice(params)
             handleList()
@@ -157,15 +250,21 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
     const handleUpdate = async (data) => {
         try {
             const params = {
-                ...data,
-                noticeType: noticeType,
-                tenantId: selectedRow.tenantId,
-                uuid: selectedRow.uuid,
-                email: {
-                    subject: subjectValue,
-                    to: selectedToItems,
-                    cc: selectedCcItems,
-                }
+                tenantId: selectedRow.tenantId || 'default',
+                name: data.name,
+                dutyId: data.dutyId || null,
+                routes: data.routes?.map(route => ({
+                    noticeType: route.noticeType || noticeType,
+                    noticeTmplId: route.noticeTmplId || '',
+                    severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
+                    hook: route.hook || '',
+                    sign: route.sign || '',
+                    subject: route.subject || '',
+                    to: route.to || [],
+                    cc: route.cc || []
+                })) || [],
+                updateBy: 'current_user',
+                uuid: selectedRow.uuid
             }
             await updateNotice(params)
             handleList()
@@ -183,106 +282,62 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         onClose()
     }
 
-    useEffect(() => {
-        if (selectedNoticeCard === null) {
-            setSelectedNoticeCard(0)
-            setNoticeType("FeiShu")
-        }
-    }, [])
-
-    const handleCardClick = (index) => {
-        setNoticeType(cards[index].value)
-        setSelectedNoticeCard(index)
-    }
-
-    const handleGetNoticeTmpl = async () => {
-        const params = { noticeType: noticeType }
-        const res = await getNoticeTmplList(params)
-        const newData = res.data.map((item) => ({
-            label: item.name,
-            value: item.id
-        }))
-        setNoticeTmplItems(newData)
-    }
-
-    const handleSelectChangeTo = (value) => {
-        setSelectedToItems(value)
-    }
-
-    const handleSelectChangeCc = (value) => {
-        setSelectedCcItems(value)
-    }
-
-    const handleSearchUser = async () => {
-        try {
-            const params = {
-                joinDuty: "true",
-            }
-            const res = await getUserList(params)
-            const options = res.data.map((item) => ({
-                userName: item.username,
-                userEmail: item.email
-            }))
-            setFilteredOptions(options)
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
     const handleSubmit = async () => {
         setSubmitLoading(true)
-        const values = form.getFieldsValue()
         try {
-            await form.validateFields()
+            const values = await form.validateFields()
             await handleFormSubmit(values)
         } catch (error) {
-            console.log(error)
+            console.log('表单验证失败:', error)
+        } finally {
+            setSubmitLoading(false)
         }
-        setSubmitLoading(false)
     }
 
-    const handleTestNotice = async () => {
-        setTestLoading(true)
-        const params = {
-            ...form.getFieldsValue(),
-            noticeType: noticeType
-        }
+    const handleTestNotice = async (routeIndex) => {
+        setTestLoadingRoutes(prev => ({ ...prev, [routeIndex]: true }))
         try {
-            const res = await noticeTest(params);
+            const formValues = form.getFieldsValue()
+            const route = formValues.routes?.[routeIndex]
+            
+            if (!route) {
+                console.error('Route not found')
+                return
+            }
+
+            const params = {
+                noticeType: route.noticeType || 'FeiShu',
+                hook: route.hook || '',
+                sign: route.sign || '',
+                email: {
+                    subject: route.subject || '',
+                    to: route.to || [],
+                    cc: route.cc || []
+                }
+            }
+            
+            await noticeTest(params)
         } catch (error) {
             console.log(error)
+        } finally {
+            setTestLoadingRoutes(prev => ({ ...prev, [routeIndex]: false }))
         }
-        setTestLoading(false)
-    };
-
-    const getAvailablePriorityOptions = (fields) => {
-        const usedPriorities = fields.map(field =>
-            form.getFieldValue(['routes', field.name, 'severity'])
-        )
-        return PRIORITY_OPTIONS.filter(
-            option => !usedPriorities.includes(option.value)
-        )
     }
+
+
 
     return (
         <Drawer
-            title="创建通知对象"
+            title={type === 'create' ? '创建通知对象' : '编辑通知对象'}
             open={visible}
             onClose={onClose}
             width={820}
             footer={
                 <div style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
+                    justifyContent: 'flex-end',
                     alignItems: 'center'
                 }}>
-                    <Button
-                        type="default"
-                        onClick={handleTestNotice}
-                        loading={testLoading}
-                    >
-                        通知测试
-                    </Button>
                     <Button
                         type="primary"
                         htmlType="submit"
@@ -304,10 +359,9 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                         rules={[{ required: true }]}
                     >
                         <Input
-                            value={spaceValue}
                             onChange={handleInputChange}
                             onKeyPress={handleKeyPress}
-                            disabled={type === 'update'}
+                            placeholder="请输入通知对象名称"
                         />
                     </MyFormItem>
 
@@ -321,296 +375,282 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                             allowClear
                             placeholder="请选择值班表"
                             options={dutyList}
-                            value={selectedDutyItem}
-                            tokenSeparators={[',']}
-                            onChange={setSelectedDutyItem}
                         />
                     </MyFormItem>
                 </div>
-
-                <div style={{display: 'flex'}}>
-                    <MyFormItem name="" label="通知类型">
-                        <div style={{display: 'flex', gap: '10px'}}>
-                            {cards.map((card, index) => (
-                                <Card
-                                    key={index}
-                                    style={{
-                                        height: 100,
-                                        width: 120,
-                                        position: 'relative',
-                                        cursor: type === 'update' ? 'not-allowed' : 'pointer',
-                                        border: selectedNoticeCard === index ? '2px solid #1890ff' : '1px solid #d9d9d9',
-                                        pointerEvents: type === 'update' ? 'none' : 'auto',
-                                    }}
-                                    onClick={() => handleCardClick(index)}
-                                >
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        height: '100%',
-                                        marginTop: '-10px'
-                                    }}>
-                                        <img
-                                            src={card.imgSrc}
-                                            style={{height: '50px', width: '100px', objectFit: 'contain'}}
-                                            alt={card.text}
-                                        />
-                                        <p style={{
-                                            fontSize: '12px',
-                                            textAlign: 'center',
-                                            marginTop: '5px'
-                                        }}>
-                                            {card.text}
-                                        </p>
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-                    </MyFormItem>
-                </div>
-
-                <div>
-                    {noticeType === "Email" ? (
-                        <MyFormItemGroup prefix={['email']}>
-                            <MyFormItem name="subject" label="邮件主题" rules={[{required: true}]}>
-                                <Input
-                                    onChange={(e) => handleInputEmailChange('subject', e.target.value)}
-                                    placeholder="WatchAlert监控报警平台"
-                                    style={{width: '100%'}}
-                                />
-                            </MyFormItem>
-
-                            <MyFormItem name="to" label="收件人" rules={[{ required: true }]}>
-                                <Select
-                                    mode="multiple"
-                                    placeholder="请选择需要通知的人员"
-                                    onChange={handleSelectChangeTo}
-                                    style={{ width: '100%' }}
-                                >
-                                    {filteredOptions.map((item) => (
-                                        <Option
-                                            key={item.userName}
-                                            value={item.userEmail}
-                                            userName={item.userName}
-                                            userEmail={item.userEmail}
-                                        >
-                                            {item.userName} ({item.userEmail})
-                                        </Option>
-                                    ))}
-                                </Select>
-                            </MyFormItem>
-
-                            <MyFormItem name="cc" label="抄送人">
-                                <Select
-                                    mode="multiple"
-                                    placeholder="请选择需要抄送的人员"
-                                    onChange={handleSelectChangeCc}
-                                    style={{ width: '100%' }}
-                                >
-                                    {filteredOptions.map((item) => (
-                                        <Option
-                                            key={item.userName}
-                                            value={item.userEmail}
-                                            userName={item.userName}
-                                            userEmail={item.userEmail}
-                                            disabled={(selectedToItems.some(toItem => toItem === item.userEmail) || item.userEmail === "")}
-                                        >
-                                            {item.userName} ({item.userEmail})
-                                        </Option>
-                                    ))}
-                                </Select>
-                            </MyFormItem>
-                        </MyFormItemGroup>
-                    ) : (
-                        <MyFormItem
-                            name="hook"
-                            label="默认Hook"
-                            tooltip="客户端机器人的 Hook 地址"
-                            style={{ marginRight: '10px', width: '100%' }}
-                            rules={[
-                                { required: true },
-                                { pattern: /^(http|https):\/\//, message: '输入正确的URL格式' },
-                            ]}
-                        >
-                            <Input/>
-                        </MyFormItem>
-                    )}
-                </div>
-
-                {selectedNoticeCard === 0 && (
-                    <MyFormItem
-                        name="sign"
-                        label="默认签名"
-                        tooltip="飞书客户端机器人的签名校验"
-                        style={{ marginRight: '10px', width: '100%' }}
-                    >
-                        <Input.Password />
-                    </MyFormItem>
-                )}
-
-                {selectedNoticeCard !== 5 && (
-                    <MyFormItem
-                        name="noticeTmplId"
-                        label="通知模版"
-                        rules={[{ required: true }]}
-                    >
-                        <Select
-                            showSearch
-                            allowClear
-                            placeholder="请选择通知模版"
-                            options={noticeTmplItems}
-                            value={selectNoticeTmpl}
-                            tokenSeparators={[',']}
-                            onChange={setSelectNoticeTmpl}
-                            onClick={handleGetNoticeTmpl}
-                        />
-                    </MyFormItem>
-                )}
 
                 <MyFormItem
                     name="routes"
-                    label="路由策略"
-                    tooltip="如果不匹配如下任何策略, 则会走默认Hook"
+                    label="通知路由"
                     style={{marginRight: '10px', width: '100%'}}
                 >
-
-                    <div style={{
-                        position: 'absolute',
-                        right: 8,
-                        top: 8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12
-                    }}>
-                        <span style={{
-                            display: 'inline-block',
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            backgroundColor: PRIORITY_COLORS["P0"] || PRIORITY_COLORS.P0,
-                            marginRight: 1
-                        }}/> P0
-
-                        <span style={{
-                            display: 'inline-block',
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            backgroundColor: PRIORITY_COLORS["P1"] || PRIORITY_COLORS.P0,
-                            marginRight: 1
-                        }}/> P1
-
-                        <span style={{
-                            display: 'inline-block',
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            backgroundColor: PRIORITY_COLORS["P2"] || PRIORITY_COLORS.P0,
-                            marginRight: 1
-                        }}/> P2
-                    </div>
-
                     <Form.List name="routes">
                         {(fields, {add, remove}) => (
                             <>
                                 {fields.map(({key, name, ...restField}) => {
-                                    const currentSeverity = form.getFieldValue(['routes', name, 'severity'])
                                     return (
                                         <div
                                             key={key}
                                             style={{
                                                 marginBottom: 16,
                                                 padding: 12,
-                                                borderLeft: `4px solid ${PRIORITY_COLORS[currentSeverity] || PRIORITY_COLORS.P0}`,
-                                                background: '#f4f4f4',
-                                                borderRadius: 4
+                                                border: '1px solid #d9d9d9',
+                                                background: '#ffffffff',
+                                                borderRadius: 8,
+                                                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                                             }}
                                         >
                                             <div style={{display: 'flex', gap: 8}}>
                                                 <div style={{width: '100%'}}>
-                                                    {selectedNoticeCard !== 1 && (
-                                                        <Form.Item
-                                                            {...restField}
-                                                            name={[name, "hook"]}
-                                                            label="Hook"
-                                                            rules={[{required: true, pattern: /^(http|https):\/\//}]}
-                                                        >
-                                                            <Input placeholder="http(s)://xxx.xxx"/>
-                                                        </Form.Item>
-                                                    ) || (
-                                                        <>
-                                                            <Form.Item
-                                                                {...restField}
-                                                                name={[name, "to"]}
-                                                                label="收件人"
-                                                                rules={[{required: true}]}
-                                                            >
-                                                                <Select
-                                                                    mode="multiple"
-                                                                    placeholder="请选择需要通知的人员"
-                                                                    onChange={handleSelectChangeTo}
-                                                                    style={{ width: '100%' }}
-                                                                >
-                                                                    {filteredOptions.map((item) => (
-                                                                        <Option
-                                                                            key={item.userName}
-                                                                            value={item.userEmail}
-                                                                            userName={item.userName}
-                                                                            userEmail={item.userEmail}
-                                                                        >
-                                                                            {item.userName} ({item.userEmail})
-                                                                        </Option>
-                                                                    ))}
-                                                                </Select>
-                                                            </Form.Item>
-
-                                                            <Form.Item
-                                                                {...restField}
-                                                                name={[name, "cc"]}
-                                                                label="抄送人"
-                                                                rules={[{required: true}]}
-                                                            >
-                                                                <Select
-                                                                    mode="multiple"
-                                                                    placeholder="请选择需要抄送的人员"
-                                                                    onChange={handleSelectChangeCc}
-                                                                    style={{ width: '100%' }}
-                                                                >
-                                                                    {filteredOptions.map((item) => (
-                                                                        <Option
-                                                                            key={item.userName}
-                                                                            value={item.userEmail}
-                                                                            userName={item.userName}
-                                                                            userEmail={item.userEmail}
-                                                                            disabled={(selectedToItems.some(toItem => toItem === item.userEmail) || item.userEmail === "")}
-                                                                        >
-                                                                            {item.userName} ({item.userEmail})
-                                                                        </Option>
-                                                                    ))}
-                                                                </Select>
-                                                            </Form.Item>
-                                                        </>
+                                                    {fields.length > 1 && (
+                                                        <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+                                                            <MinusCircleOutlined
+                                                                onClick={() => remove(name)}
+                                                                style={{color: '#ff4d4f', cursor: 'pointer'}}
+                                                            />
+                                                        </div>
                                                     )}
-
-                                                    {/*非飞书Robot不需要Sign*/}
-                                                    {selectedNoticeCard === 0 && (
-                                                        <Form.Item
-                                                            {...restField}
-                                                            name={[name, "sign"]}
-                                                            label="签名"
-                                                        >
-                                                            <Input placeholder="选填签名信息"/>
+                                                    {/* 通知类型选择 */}
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "noticeType"]}
+                                                        label="通知类型"
+                                                        rules={[{required: true}]}
+                                                    >
+                                                        <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => {
+                                                            const prevNoticeType = prevValues?.routes?.[name]?.noticeType
+                                                            const currentNoticeType = currentValues?.routes?.[name]?.noticeType
+                                                            return prevNoticeType !== currentNoticeType
+                                                        }}>
+                                                            {({ getFieldValue, setFieldsValue }) => {
+                                                                const currentNoticeType = getFieldValue(['routes', name, 'noticeType']) || 'FeiShu'
+                                                                const selectedCardIndex = cards.findIndex(card => card.value === currentNoticeType)
+                                                                
+                                                                const handleRouteCardClick = async (cardIndex) => {
+                                                                    const selectedCard = cards[cardIndex]
+                                                                    const routes = getFieldValue('routes') || []
+                                                                    const newRoutes = [...routes]
+                                                                    if (newRoutes[name]) {
+                                                                        newRoutes[name] = {
+                                                                            ...newRoutes[name],
+                                                                            noticeType: selectedCard.value,
+                                                                            noticeTmplId: '' // 清空模板选择
+                                                                        }
+                                                                    }
+                                                                    setFieldsValue({ routes: newRoutes })
+                                                                    // 预加载新通知类型的模板（不阻塞UI）
+                                                                    if (!templateCacheRef.current[selectedCard.value]) {
+                                                                        loadNoticeTemplates(selectedCard.value)
+                                                                    }
+                                                                }
+                                                                
+                                                                return (
+                                                                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                                                                        {cards.map((card, cardIndex) => (
+                                                                            <Card
+                                                                                key={cardIndex}
+                                                                                style={{
+                                                                                    height: 90,
+                                                                                    width: 110,
+                                                                                    position: 'relative',
+                                                                                    cursor: 'pointer',
+                                                                                    border: selectedCardIndex === cardIndex ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                                                                                }}
+                                                                                onClick={() => handleRouteCardClick(cardIndex)}
+                                                                            >
+                                                                                <div style={{
+                                                                                    display: 'flex',
+                                                                                    flexDirection: 'column',
+                                                                                    alignItems: 'center',
+                                                                                    justifyContent: 'center',
+                                                                                    height: '100%',
+                                                                                    marginTop: '-10px'
+                                                                                }}>
+                                                                                    <img
+                                                                                        src={card.imgSrc}
+                                                                                        style={{height: '45px', width: '80px', objectFit: 'contain'}}
+                                                                                        alt={card.text}
+                                                                                    />
+                                                                                    <p style={{
+                                                                                        fontSize: '10px',
+                                                                                        textAlign: 'center',
+                                                                                        marginTop: '3px',
+                                                                                        marginBottom: 0
+                                                                                    }}>
+                                                                                        {card.text}
+                                                                                    </p>
+                                                                                </div>
+                                                                            </Card>
+                                                                        ))}
+                                                                    </div>
+                                                                )
+                                                            }}
                                                         </Form.Item>
-                                                    )}
+                                                    </Form.Item>
+
+                                                    {/* 根据通知类型显示不同的配置 */}
+                                                    <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => {
+                                                        const prevNoticeType = prevValues?.routes?.[name]?.noticeType
+                                                        const currentNoticeType = currentValues?.routes?.[name]?.noticeType
+                                                        return prevNoticeType !== currentNoticeType
+                                                    }}>
+                                                        {({ getFieldValue }) => {
+                                                            const currentNoticeType = getFieldValue(['routes', name, 'noticeType']) || 'FeiShu'
+                                                            
+                                                            if (currentNoticeType === 'Email') {
+                                                                return (
+                                                                    <>
+                                                                        <Form.Item
+                                                                            {...restField}
+                                                                            name={[name, "subject"]}
+                                                                            label="邮件主题"
+                                                                            rules={[{required: true}]}
+                                                                        >
+                                                                            <Input placeholder="邮件主题"/>
+                                                                        </Form.Item>
+
+                                                                        <Form.Item
+                                                                            {...restField}
+                                                                            name={[name, "to"]}
+                                                                            label="收件人"
+                                                                            rules={[{required: true}]}
+                                                                        >
+                                                                            <Select
+                                                                                mode="multiple"
+                                                                                placeholder="请选择需要通知的人员"
+                                                                                style={{ width: '100%' }}
+                                                                            >
+                                                                                {filteredOptions.map((item) => (
+                                                                                    <Option
+                                                                                        key={item.userName}
+                                                                                        value={item.userEmail}
+                                                                                    >
+                                                                                        {item.userName} ({item.userEmail})
+                                                                                    </Option>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </Form.Item>
+
+                                                                        <Form.Item
+                                                                            {...restField}
+                                                                            name={[name, "cc"]}
+                                                                            label="抄送人"
+                                                                        >
+                                                                            <Select
+                                                                                mode="multiple"
+                                                                                placeholder="请选择需要抄送的人员"
+                                                                                style={{ width: '100%' }}
+                                                                            >
+                                                                                {filteredOptions.map((item) => (
+                                                                                    <Option
+                                                                                        key={item.userName}
+                                                                                        value={item.userEmail}
+                                                                                    >
+                                                                                        {item.userName} ({item.userEmail})
+                                                                                    </Option>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </Form.Item>
+                                                                    </>
+                                                                )
+                                                            } else {
+                                                                return (
+                                                                    <>
+                                                                        <Form.Item
+                                                                            {...restField}
+                                                                            name={[name, "hook"]}
+                                                                            label="Hook地址"
+                                                                            rules={[{required: true, pattern: /^(http|https):\/\//}]}
+                                                                        >
+                                                                            <Input placeholder="http(s)://xxx.xxx"/>
+                                                                        </Form.Item>
+
+                                                                        {currentNoticeType === 'FeiShu' && (
+                                                                            <Form.Item
+                                                                                {...restField}
+                                                                                name={[name, "sign"]}
+                                                                                label="签名"
+                                                                            >
+                                                                                <Input placeholder="选填签名信息"/>
+                                                                            </Form.Item>
+                                                                        )}
+                                                                    </>
+                                                                )
+                                                            }
+                                                        }}
+                                                    </Form.Item>
+
+
+                                                    {/* 通知模板选择 */}
+                                                    <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => {
+                                                        const prevNoticeType = prevValues?.routes?.[name]?.noticeType
+                                                        const currentNoticeType = currentValues?.routes?.[name]?.noticeType
+                                                        return prevNoticeType !== currentNoticeType
+                                                    }}>
+                                                        {({ getFieldValue }) => {
+                                                            const currentNoticeType = getFieldValue(['routes', name, 'noticeType']) || 'FeiShu'
+                                                            
+                                                            // 当通知类型为 WebHook 时，不显示通知模板选项
+                                                            if (currentNoticeType === 'WebHook') {
+                                                                return null
+                                                            }
+                                                            
+                                                            // 获取当前通知类型对应的模板选项
+                                                            const currentTemplateOptions = templateCacheRef.current[currentNoticeType] || templateCache[currentNoticeType] || []
+                                                            
+                                                            return (
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, "noticeTmplId"]}
+                                                                    label="通知模板"
+                                                                    rules={[{required: true}]}
+                                                                >
+                                                                    <Select
+                                                                        placeholder="请选择通知模板"
+                                                                        options={currentTemplateOptions}
+                                                                        onFocus={async () => {
+                                                                            if (!templateCacheRef.current[currentNoticeType]) {
+                                                                                const templates = await loadNoticeTemplates(currentNoticeType)
+                                                                                // 强制更新当前选项
+                                                                                if (templates && templates.length > 0) {
+                                                                                    // 触发重新渲染
+                                                                                    form.setFieldValue(['routes', name, 'noticeTmplId'], form.getFieldValue(['routes', name, 'noticeTmplId']))
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </Form.Item>
+                                                            )
+                                                        }}
+                                                    </Form.Item>
+
+                                                    {/* 告警等级选择 */}
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "severitys"]}
+                                                        label="适用级别"
+                                                        rules={[{required: true, message: '请至少选择一个告警等级'}]}
+                                                    >
+                                                        <Checkbox.Group
+                                                            options={PRIORITY_OPTIONS}
+                                                        />
+                                                    </Form.Item>
+
+                                                    <div style={{ marginTop: "-20px" ,marginBottom: "-20px"}}>
+                                                        {/* 通知测试按钮 */}
+                                                        <Form.Item>
+                                                            <Button
+                                                                type="default"
+                                                                onClick={() => handleTestNotice(name)}
+                                                                loading={testLoadingRoutes[name]}
+                                                                style={{ marginTop: 8 }}
+                                                            >
+                                                                通知测试
+                                                            </Button>
+                                                        </Form.Item>
+                                                    </div>
                                                 </div>
-                                                <MinusCircleOutlined
-                                                    onClick={() => remove(name)}
-                                                    style={{color: PRIORITY_COLORS.P0}}
-                                                />
                                             </div>
-
                                         </div>
                                     )
                                 })}
@@ -619,14 +659,19 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                     <Button
                                         type="dashed"
                                         onClick={() => {
-                                            const availableOptions = getAvailablePriorityOptions(fields)
-                                            if (availableOptions.length > 0) {
-                                                add({severity: availableOptions[0].value})
-                                            }
+                                            add({
+                                                severitys: ['P0'],
+                                                noticeType: 'FeiShu',
+                                                noticeTmplId: '',
+                                                hook: '',
+                                                sign: '',
+                                                subject: '',
+                                                to: [],
+                                                cc: []
+                                            })
                                         }}
                                         block
                                         icon={<PlusOutlined/>}
-                                        disabled={fields.length >= PRIORITY_OPTIONS.length}
                                     >
                                         添加策略
                                     </Button>
@@ -634,55 +679,6 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                             </>
                         )}
                     </Form.List>
-
-                {selectedNoticeCard === 5 && (
-                    <pre>
-                        <span>请求体</span>
-                        <div style={{
-                            padding: 12,
-                            backgroundColor: '#f8f9fa',
-                            borderRadius: 4
-                        }}>{`
-{
-  "alarm": {
-    "tenantId": "租户ID，通常为默认值 'default'",
-    "datasource_id": "数据源的唯一标识符",
-    "datasource_type": "数据源的类型，如 Prometheus",
-    "fingerprint": "告警指纹/唯一标识符，用于标识特定的告警实例",
-    "rule_id": "触发此告警的规则的唯一标识符",
-    "rule_name": "告警规则的名称",
-    "severity": "告警的严重等级，P0表示最高级别",
-    "eval_interval": "规则的评估间隔时间（秒）",
-    "annotations": "告警的附加信息或描述",
-    "first_trigger_time": "告警首次触发的时间戳（Unix时间，秒）",
-    "last_eval_time": "规则最后一次评估的时间戳（Unix时间，秒）",
-    "last_send_time": "最后一次发送通知的时间戳（Unix时间，秒）",
-    "recover_time": "告警恢复（解除）的时间戳（Unix时间，秒）",
-    "faultCenterId": "故障中心的唯一标识符",
-    "alarmDuration": "告警持续时间（秒）",
-    "labels": {
-      "__name__": "Prometheus指标名称",
-      ...
-    },
-    "confirmState": {
-      "isConfirm": "是否已被确认（True/False）",
-      "confirmOkTime": "确认操作完成的时间戳（Unix时间，秒）",
-      "confirmSendTime": "确认通知发送的时间戳（Unix时间，秒）",
-      "confirmUser": "执行确认操作的人员",
-    }
-  },
-  dutyUsers: [
-    {
-      "username": "用户名称",
-      "email": "用户邮箱",
-      "phone": "用户手机号",
-      "dutyUserId": "用户标识"
-    }
-  ]
-}
-                        `}</div>
-                    </pre>
-                )}
                 </MyFormItem>
             </Form>
         </Drawer>

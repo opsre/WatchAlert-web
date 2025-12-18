@@ -263,7 +263,7 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
                                                         setSearchVisible(true)
                                                     }}
                                                     style={{ marginBottom: 12, width: "100%" }}
-                                                    disabled={group.users.length >= 2} // 当成员数达到2时禁用按钮
+                                                    disabled={group.users.length >= 3} // 当成员数达到3时禁用按钮
                                                 >
                                                     + 添加组内人员
                                                 </Button>

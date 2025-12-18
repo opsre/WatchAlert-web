@@ -2,7 +2,7 @@ import { ReactComponent as FeiShuIcon } from "./img/feishu.svg"
 import { ReactComponent as DingdingIcon } from "./img/dingding.svg"
 import { ReactComponent as EmailIcon } from "./img/Email.svg"
 import { ReactComponent as WeChatIcon } from "./img/qywechat.svg"
-import { ReactComponent as CustomHookIcon } from "./img/customhook.svg"
+import { ReactComponent as WebHookIcon } from "./img/webhook.svg"
 import { ReactComponent as SlackIcon } from "./img/slack.svg"
 
 
@@ -23,9 +23,9 @@ const NOTIFICATION_TYPES = {
         icon: WeChatIcon,
         label: "企业微信",
     },
-    CustomHook: {
-        icon: CustomHookIcon,
-        label: "自定义Hook",
+    WebHook: {
+        icon: WebHookIcon,
+        label: "WebHook",
     },
     Slack: {
         icon: SlackIcon,
