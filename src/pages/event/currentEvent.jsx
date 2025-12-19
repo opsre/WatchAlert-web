@@ -32,7 +32,7 @@ import {
 import TextArea from "antd/es/input/TextArea"
 import { ReqAiAnalyze } from "../../api/ai"
 import MarkdownRenderer from "../../utils/MarkdownRenderer"
-import { AlertTriangle, Clock } from "lucide-react"
+import { Clock } from "lucide-react"
 import {
     DownOutlined,
     ReloadOutlined,
@@ -66,7 +66,7 @@ import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
 import { noticeRecordList } from "../../api/notice"
 import { NotificationTypeIcon } from "../notice/notification-type-icon"
 
-const { Title, Text } = Typography
+const { Text } = Typography
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -886,7 +886,8 @@ export const AlertCurrentEvent = (props) => {
     // 获取图表数据
     const fetchMetricData = async () => {
         try {
-            if (selectedEvent.datasource_type !== "Prometheus" || selectedEvent.datasource_type !== "VictoriaMetrics") {
+            console.log("datasource_type ->",selectedEvent.datasource_type)
+            if (selectedEvent.datasource_type !== "Prometheus" && selectedEvent.datasource_type !== "VictoriaMetrics") {
                 return
             }
             
