@@ -104,7 +104,7 @@ export const User = () => {
                                     cancelText="取消"
                                     placement="left"
                                 >
-                                    <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
+                                    <Button disabled={record.userid === "admin"} type="text" icon={<DeleteOutlined />} style={{ color: record.userid === "admin" ? "#gray" : "#ff4d4f" }} />
                                 </Popconfirm>
                             </Tooltip>
                         </Space>
