@@ -20,6 +20,52 @@ export const Home = () => {
   const [metricData, setMetricData] = useState({})
   const [currentTime, setCurrentTime] = useState(new Date())
 
+  // 添加样式
+  const selectStyles = `
+    .ant-select-selector {
+      background-color: rgba(40,40,40,0.95) !important;
+      border: 1px solid rgba(80,80,80,0.3) !important;
+      color: #ffffff !important;
+    }
+    .ant-select-selector:hover {
+      border-color: rgba(255,153,0,0.5) !important;
+    }
+    .ant-select-focused .ant-select-selector {
+      border-color: #FF9900 !important;
+      box-shadow: 0 0 0 2px rgba(255,153,0,0.2) !important;
+    }
+    .ant-select-selection-placeholder {
+      color: rgba(255,255,255,0.5) !important;
+    }
+    .ant-select-selection-item {
+      color: #ffffff !important;
+    }
+    .ant-select-arrow {
+      color: rgba(255,255,255,0.7) !important;
+    }
+    .dark-select-dropdown .ant-select-item {
+      background-color: rgba(40,40,40,0.95) !important;
+      color: #ffffff !important;
+    }
+    .dark-select-dropdown .ant-select-item:hover {
+      background-color: rgba(255,153,0,0.1) !important;
+    }
+    .dark-select-dropdown .ant-select-item-option-selected {
+      background-color: rgba(255,153,0,0.2) !important;
+    }
+  `
+
+  // 在组件挂载时添加样式
+  useEffect(() => {
+    const styleElement = document.createElement('style')
+    styleElement.textContent = selectStyles
+    document.head.appendChild(styleElement)
+    
+    return () => {
+      document.head.removeChild(styleElement)
+    }
+  }, [selectStyles])
+
   // 更新时间
   useEffect(() => {
     const timer = setInterval(() => {
@@ -849,7 +895,7 @@ export const Home = () => {
             }}>
               <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
                 <div>
-                  <div style={{ fontSize: "18px", fontWeight: "700", color: "#ffffff" }}>最近告警</div>
+                  <div style={{ fontSize: "18px", fontWeight: "700", color: "#ffffff" }}>最近活跃告警</div>
                   <div style={{ fontSize: "12px", color: "#a0a0a0" }}>实时事件监控</div>
                 </div>
               </div>
@@ -869,8 +915,11 @@ export const Home = () => {
                   maxHeight: 400, 
                   overflow: "auto",
                   borderRadius: "12px",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.1)"
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                  backgroundColor: "rgba(40,40,40,0.95)",
+                  border: "1px solid rgba(80,80,80,0.3)"
                 }}
+                popupClassName="dark-select-dropdown"
               >
                 {faultCenters.length === 0 && <Option disabled>暂无可用故障中心</Option>}
                 {faultCenters.map((center) => (
