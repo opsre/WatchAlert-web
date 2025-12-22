@@ -264,45 +264,47 @@ const Components = (props) => {
 
                     {/* 内容区域 */}
                     <Layout style={{ background: "transparent" }}>
-                        <Content
-                            style={{
-                                background: colorBgContainer,
-                                borderRadius: borderRadiusLG,
-                                padding: "0",
-                                height: "calc(100vh - 32px)",
-                                overflow: "hidden",
-                                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
-                            }}
-                        >
-                            {/* 页面头部 */}
-                            {name !== "off" && (
-                                <div
-                                    style={{
-                                        padding: "16px 24px",
-                                        borderBottom: "1px solid #f0f0f0",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
-                                    }}
-                                >
-                                    <Button type="text" icon={<LeftOutlined />} onClick={goBackPage} style={{ padding: "4px" }} />
-                                    <Typography.Title level={4} style={{ margin: 0, fontSize: "16px" }}>
-                                        {name}
-                                    </Typography.Title>
-                                </div>
-                            )}
-
-                            {/* 主内容 */}
-                            <div
+                        <div style={{ marginRight: "16px"}}>
+                            <Content
                                 style={{
-                                    padding: name !== "off" ? "24px" : "0",
-                                    height: name !== "off" ? "calc(100% - 53px)" : "100%",
-                                    overflow: "auto",
+                                    background: colorBgContainer,
+                                    borderRadius: borderRadiusLG,
+                                    padding: "0",
+                                    height: "calc(100vh - 42px)",
+                                    overflow: "hidden",
+                                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
                                 }}
                             >
-                                {c}
-                            </div>
-                        </Content>
+                                {/* 页面头部 */}
+                                {name !== "off" && (
+                                    <div
+                                        style={{
+                                            padding: "16px 24px",
+                                            borderBottom: "1px solid #f0f0f0",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "8px",
+                                        }}
+                                    >
+                                        <Button type="text" icon={<LeftOutlined />} onClick={goBackPage} style={{ padding: "4px" }} />
+                                        <Typography.Title level={4} style={{ margin: 0, fontSize: "16px" }}>
+                                            {name}
+                                        </Typography.Title>
+                                    </div>
+                                )}
+
+                                {/* 主内容 */}
+                                <div
+                                    style={{
+                                        padding: name !== "off" ? "24px" : "0",
+                                        height: name !== "off" ? "calc(100% - 53px)" : "100%",
+                                        overflow: "auto",
+                                    }}
+                                >
+                                    {c}
+                                </div>
+                            </Content>
+                        </div>
 
                         {/* 页脚 */}
                         <div
@@ -310,7 +312,7 @@ const Components = (props) => {
                                 textAlign: "center",
                                 color: "#999999",
                                 fontSize: "12px",
-                                padding: "12px",
+                                padding: "2px",
                                 background: "rgba(0, 0, 0, 0.8)",
                                 borderTop: "1px solid rgba(255, 153, 0, 0.1)",
                             }}
