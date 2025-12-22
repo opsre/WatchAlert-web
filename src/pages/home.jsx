@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import ReactECharts from "echarts-for-react"
-import { List, Row, Col, Select, message, Typography, Spin, Empty, Tag, Card, Progress, Avatar } from "antd"
+import { List, Row, Col, Select, message, Typography, Spin, Empty, Tag, Card } from "antd"
 import { getDashboardInfo } from "../api/other"
 import { FaultCenterList } from "../api/faultCenter"
 import { noticeRecordMetric } from "../api/notice"
-import { AlertTriangle, BarChart2, Users, Bell, Server, TrendingUp, Shield, Zap, Clock } from "lucide-react"
+import { BarChart2, Users, Server, Shield, Clock } from "lucide-react"
 import { NoticeMetricChart } from "./chart/noticeMetricChart"
 import { FormatTime } from "../utils/lib"
 
@@ -260,11 +259,11 @@ export const Home = () => {
           <Card
             bordered={false}
             style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)",
+              background: "linear-gradient(135deg, rgba(40,40,40,0.95) 0%, rgba(30,30,30,0.98) 100%)",
               backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)",
-              border: "1px solid rgba(255,255,255,0.2)",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)",
+              border: "1px solid rgba(80,80,80,0.3)",
               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
               overflow: "hidden",
               position: "relative",
@@ -273,13 +272,13 @@ export const Home = () => {
             bodyStyle={{ padding: "28px 24px", height: "100%" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-12px) scale(1.03)"
-              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.12), 0 8px 32px rgba(255,153,0,0.15)"
+              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.4), 0 8px 32px rgba(255,153,0,0.15)"
               e.currentTarget.style.borderColor = "rgba(255,153,0,0.3)"
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0) scale(1)"
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)"
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)"
+              e.currentTarget.style.borderColor = "rgba(80,80,80,0.3)"
             }}
           >
             {/* 装饰性背景元素 */}
@@ -289,7 +288,7 @@ export const Home = () => {
               right: "-20px", 
               width: "120px", 
               height: "120px", 
-              background: "linear-gradient(135deg, rgba(255,153,0,0.08), rgba(0,0,0,0.04))", 
+              background: "linear-gradient(135deg, rgba(255,153,0,0.15), rgba(60,60,60,0.1))", 
               borderRadius: "50%",
               filter: "blur(1px)"
             }}></div>
@@ -299,7 +298,7 @@ export const Home = () => {
               left: "-30px", 
               width: "80px", 
               height: "80px", 
-              background: "linear-gradient(45deg, rgba(0,0,0,0.03), rgba(255,153,0,0.05))", 
+              background: "linear-gradient(45deg, rgba(60,60,60,0.08), rgba(255,153,0,0.1))", 
               borderRadius: "50%",
               filter: "blur(2px)"
             }}></div>
@@ -328,7 +327,7 @@ export const Home = () => {
                 </div>
                 <div>
                   <Text style={{ 
-                    color: "#595959", 
+                    color: "#a0a0a0", 
                     fontSize: "13px", 
                     fontWeight: "500",
                     textTransform: "uppercase",
@@ -339,7 +338,7 @@ export const Home = () => {
                     Alert Rules
                   </Text>
                   <Text style={{ 
-                    color: "#262626", 
+                    color: "#ffffff", 
                     fontSize: "16px", 
                     fontWeight: "600",
                     display: "block"
@@ -352,7 +351,7 @@ export const Home = () => {
               {/* 数值区域 */}
               <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
                 <Text style={{ 
-                  color: "#262626", 
+                  color: "#ffffff", 
                   fontSize: "42px", 
                   fontWeight: "800", 
                   lineHeight: "1",
@@ -388,11 +387,11 @@ export const Home = () => {
           <Card
             bordered={false}
             style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)",
+              background: "linear-gradient(135deg, rgba(40,40,40,0.95) 0%, rgba(30,30,30,0.98) 100%)",
               backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)",
-              border: "1px solid rgba(255,255,255,0.2)",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)",
+              border: "1px solid rgba(80,80,80,0.3)",
               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
               overflow: "hidden",
               position: "relative",
@@ -401,13 +400,13 @@ export const Home = () => {
             bodyStyle={{ padding: "28px 24px", height: "100%" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-12px) scale(1.03)"
-              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.12), 0 8px 32px rgba(0,0,0,0.15)"
+              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.15)"
               e.currentTarget.style.borderColor = "rgba(0,0,0,0.15)"
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0) scale(1)"
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)"
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)"
+              e.currentTarget.style.borderColor = "rgba(80,80,80,0.3)"
             }}
           >
             {/* 装饰性背景元素 */}
@@ -417,7 +416,7 @@ export const Home = () => {
               right: "-20px", 
               width: "120px", 
               height: "120px", 
-              background: "linear-gradient(135deg, rgba(0,0,0,0.06), rgba(255,153,0,0.04))", 
+              background: "linear-gradient(135deg, rgba(60,60,60,0.15), rgba(255,153,0,0.08))", 
               borderRadius: "50%",
               filter: "blur(1px)"
             }}></div>
@@ -446,7 +445,7 @@ export const Home = () => {
                 </div>
                 <div>
                   <Text style={{ 
-                    color: "#595959", 
+                    color: "#a0a0a0", 
                     fontSize: "13px", 
                     fontWeight: "500",
                     textTransform: "uppercase",
@@ -457,7 +456,7 @@ export const Home = () => {
                     Fault Centers
                   </Text>
                   <Text style={{ 
-                    color: "#262626", 
+                    color: "#ffffff", 
                     fontSize: "16px", 
                     fontWeight: "600",
                     display: "block"
@@ -470,7 +469,7 @@ export const Home = () => {
               {/* 数值区域 */}
               <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
                 <Text style={{ 
-                  color: "#262626", 
+                  color: "#ffffff", 
                   fontSize: "42px", 
                   fontWeight: "800", 
                   lineHeight: "1",
@@ -506,11 +505,11 @@ export const Home = () => {
           <Card
             bordered={false}
             style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)",
+              background: "linear-gradient(135deg, rgba(40,40,40,0.95) 0%, rgba(30,30,30,0.98) 100%)",
               backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)",
-              border: "1px solid rgba(255,255,255,0.2)",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)",
+              border: "1px solid rgba(80,80,80,0.3)",
               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
               overflow: "hidden",
               position: "relative",
@@ -519,13 +518,13 @@ export const Home = () => {
             bodyStyle={{ padding: "28px 24px", height: "100%" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-12px) scale(1.03)"
-              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.12), 0 8px 32px rgba(82,196,26,0.15)"
+              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.4), 0 8px 32px rgba(82,196,26,0.15)"
               e.currentTarget.style.borderColor = "rgba(82,196,26,0.3)"
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0) scale(1)"
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)"
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)"
+              e.currentTarget.style.borderColor = "rgba(80,80,80,0.3)"
             }}
           >
             {/* 装饰性背景元素 */}
@@ -535,7 +534,7 @@ export const Home = () => {
               right: "-20px", 
               width: "120px", 
               height: "120px", 
-              background: "linear-gradient(135deg, rgba(82,196,26,0.08), rgba(135,208,104,0.04))", 
+              background: "linear-gradient(135deg, rgba(82,196,26,0.15), rgba(60,60,60,0.1))", 
               borderRadius: "50%",
               filter: "blur(1px)"
             }}></div>
@@ -564,7 +563,7 @@ export const Home = () => {
                 </div>
                 <div>
                   <Text style={{ 
-                    color: "#595959", 
+                    color: "#a0a0a0", 
                     fontSize: "13px", 
                     fontWeight: "500",
                     textTransform: "uppercase",
@@ -575,7 +574,7 @@ export const Home = () => {
                     Active Users
                   </Text>
                   <Text style={{ 
-                    color: "#262626", 
+                    color: "#ffffff", 
                     fontSize: "16px", 
                     fontWeight: "600",
                     display: "block"
@@ -588,7 +587,7 @@ export const Home = () => {
               {/* 数值区域 */}
               <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
                 <Text style={{ 
-                  color: "#262626", 
+                  color: "#ffffff", 
                   fontSize: "42px", 
                   fontWeight: "800", 
                   lineHeight: "1",
@@ -625,11 +624,11 @@ export const Home = () => {
           <Card
             bordered={false}
             style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)",
+              background: "linear-gradient(135deg, rgba(40,40,40,0.95) 0%, rgba(30,30,30,0.98) 100%)",
               backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)",
-              border: "1px solid rgba(255,255,255,0.2)",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)",
+              border: "1px solid rgba(80,80,80,0.3)",
               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
               overflow: "hidden",
               position: "relative",
@@ -638,13 +637,13 @@ export const Home = () => {
             bodyStyle={{ padding: "28px 24px", height: "100%" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-12px) scale(1.03)"
-              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.12), 0 8px 32px rgba(255,77,79,0.15)"
+              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.4), 0 8px 32px rgba(255,77,79,0.15)"
               e.currentTarget.style.borderColor = "rgba(255,77,79,0.3)"
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0) scale(1)"
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)"
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)"
+              e.currentTarget.style.borderColor = "rgba(80,80,80,0.3)"
             }}
           >
             {/* 装饰性背景元素 */}
@@ -654,7 +653,7 @@ export const Home = () => {
               right: "-20px", 
               width: "120px", 
               height: "120px", 
-              background: "linear-gradient(135deg, rgba(255,77,79,0.08), rgba(250,173,20,0.04))", 
+              background: "linear-gradient(135deg, rgba(255,77,79,0.15), rgba(60,60,60,0.1))", 
               borderRadius: "50%",
               filter: "blur(1px)"
             }}></div>
@@ -683,7 +682,7 @@ export const Home = () => {
                 </div>
                 <div>
                   <Text style={{ 
-                    color: "#595959", 
+                    color: "#a0a0a0", 
                     fontSize: "13px", 
                     fontWeight: "500",
                     textTransform: "uppercase",
@@ -694,7 +693,7 @@ export const Home = () => {
                     Alert Distribution
                   </Text>
                   <Text style={{ 
-                    color: "#262626", 
+                    color: "#ffffff", 
                     fontSize: "16px", 
                     fontWeight: "600",
                     display: "block"
@@ -717,8 +716,8 @@ export const Home = () => {
                         background: SEVERITY_COLORS.P0,
                         marginRight: "8px"
                       }}></div>
-                      <Text style={{ fontSize: "12px", color: "#595959", marginRight: "8px" }}>P0</Text>
-                      <Text style={{ fontSize: "14px", fontWeight: "600", color: "#262626" }}>
+                      <Text style={{ fontSize: "12px", color: "#a0a0a0", marginRight: "8px" }}>P0</Text>
+                      <Text style={{ fontSize: "14px", fontWeight: "600", color: "#ffffff" }}>
                         {dashboardInfo?.alarmDistribution?.P0 || 0}
                       </Text>
                     </div>
@@ -730,8 +729,8 @@ export const Home = () => {
                         background: SEVERITY_COLORS.P1,
                         marginRight: "8px"
                       }}></div>
-                      <Text style={{ fontSize: "12px", color: "#595959", marginRight: "8px" }}>P1</Text>
-                      <Text style={{ fontSize: "14px", fontWeight: "600", color: "#262626" }}>
+                      <Text style={{ fontSize: "12px", color: "#a0a0a0", marginRight: "8px" }}>P1</Text>
+                      <Text style={{ fontSize: "14px", fontWeight: "600", color: "#ffffff" }}>
                         {dashboardInfo?.alarmDistribution?.P1 || 0}
                       </Text>
                     </div>
@@ -743,8 +742,8 @@ export const Home = () => {
                         background: SEVERITY_COLORS.P2,
                         marginRight: "8px"
                       }}></div>
-                      <Text style={{ fontSize: "12px", color: "#595959", marginRight: "8px" }}>P2</Text>
-                      <Text style={{ fontSize: "14px", fontWeight: "600", color: "#262626" }}>
+                      <Text style={{ fontSize: "12px", color: "#a0a0a0", marginRight: "8px" }}>P2</Text>
+                      <Text style={{ fontSize: "14px", fontWeight: "600", color: "#ffffff" }}>
                         {dashboardInfo?.alarmDistribution?.P2 || 0}
                       </Text>
                     </div>
@@ -752,7 +751,7 @@ export const Home = () => {
                   
                   {/* 总计 */}
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <Text style={{ fontSize: "12px", color: "#8c8c8c", marginRight: "8px" }}>总计:</Text>
+                    <Text style={{ fontSize: "12px", color: "#a0a0a0", marginRight: "8px" }}>总计:</Text>
                     <Text style={{ 
                       fontSize: "18px", 
                       fontWeight: "700", 
@@ -774,10 +773,10 @@ export const Home = () => {
         <Col xs={24} lg={16}>
           <div
             style={{
-              background: "rgba(255,255,255,0.95)",
+              background: "rgba(40,40,40,0.95)",
               backdropFilter: "blur(10px)",
               borderRadius: "24px",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
               height: "500px",
               overflow: "hidden"
             }}
@@ -787,11 +786,11 @@ export const Home = () => {
               display: "flex", 
               alignItems: "center", 
               padding: "24px 24px 8px 24px",
-              borderBottom: "1px solid rgba(0,0,0,0.06)"
+              borderBottom: "1px solid rgba(80,80,80,0.3)"
             }}>
               <div>
-                <div style={{ fontSize: "20px", fontWeight: "700", color: "#262626" }}>告警通知趋势</div>
-                <div style={{ fontSize: "14px", color: "#8c8c8c" }}>实时监控告警数据变化</div>
+                <div style={{ fontSize: "20px", fontWeight: "700", color: "#ffffff" }}>告警通知趋势</div>
+                <div style={{ fontSize: "14px", color: "#a0a0a0" }}>实时监控告警数据变化</div>
               </div>
             </div>
             
@@ -833,10 +832,10 @@ export const Home = () => {
         <Col xs={24} lg={8}>
           <div
             style={{
-              background: "rgba(255,255,255,0.95)",
+              background: "rgba(40,40,40,0.95)",
               backdropFilter: "blur(10px)",
               borderRadius: "24px",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
               height: "500px",
               overflow: "hidden"
             }}
@@ -846,12 +845,12 @@ export const Home = () => {
               display: "flex", 
               flexDirection: "column",
               padding: "24px 24px 8px 24px",
-              borderBottom: "1px solid rgba(0,0,0,0.06)"
+              borderBottom: "1px solid rgba(80,80,80,0.3)"
             }}>
               <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
                 <div>
-                  <div style={{ fontSize: "18px", fontWeight: "700", color: "#262626" }}>最近告警</div>
-                  <div style={{ fontSize: "12px", color: "#8c8c8c" }}>实时事件监控</div>
+                  <div style={{ fontSize: "18px", fontWeight: "700", color: "#ffffff" }}>最近告警</div>
+                  <div style={{ fontSize: "12px", color: "#a0a0a0" }}>实时事件监控</div>
                 </div>
               </div>
               <Select
@@ -900,7 +899,7 @@ export const Home = () => {
                           margin: "6px 0",
                           borderRadius: "12px",
                           border: "none",
-                          background: index % 2 === 0 ? "rgba(255, 153, 0, 0.03)" : "rgba(0, 0, 0, 0.03)"
+                          background: index % 2 === 0 ? "rgba(255, 153, 0, 0.08)" : "rgba(60, 60, 60, 0.08)"
                         }}
                       >
                         <div style={{ width: "100%" }}>
@@ -921,7 +920,7 @@ export const Home = () => {
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{ 
-                                color: '#262626', 
+                                color: '#ffffff', 
                                 textDecoration: 'none',
                                 cursor: 'pointer',
                                 fontSize: '13px',
@@ -931,11 +930,11 @@ export const Home = () => {
                                 lineHeight: "1.4"
                               }}
                               onMouseEnter={(e) => e.target.style.color = '#FF9900'}
-                              onMouseLeave={(e) => e.target.style.color = '#262626'}
+                              onMouseLeave={(e) => e.target.style.color = '#ffffff'}
                             >
                               {item.ruleName}
                             </a>
-                            <div style={{ display: "flex", alignItems: "center", color: "#8c8c8c", fontSize: "10px" }}>
+                            <div style={{ display: "flex", alignItems: "center", color: "#a0a0a0", fontSize: "10px" }}>
                               <Clock size={12} style={{ marginRight: "4px" }} />
                               {FormatTime(item.tiggerTime)}
                             </div>
