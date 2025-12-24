@@ -252,7 +252,40 @@ export const Home = () => {
         background: "linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)",
         padding: "32px",
       }}
-    >
+    >      
+      {/* 金色粒子效果 */}
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        background: `
+          radial-gradient(2px 2px at 20px 30px, rgba(255, 215, 0, 0.4), transparent),
+          radial-gradient(2px 2px at 40px 70px, rgba(255, 193, 7, 0.3), transparent),
+          radial-gradient(1px 1px at 90px 40px, rgba(255, 215, 0, 0.5), transparent),
+          radial-gradient(1px 1px at 130px 80px, rgba(255, 193, 7, 0.4), transparent),
+          radial-gradient(2px 2px at 160px 30px, rgba(255, 215, 0, 0.3), transparent)
+        `,
+        backgroundRepeat: "repeat",
+        backgroundSize: "200px 100px",
+        animation: "sparkle 20s linear infinite",
+        zIndex: 0,
+        pointerEvents: "none"
+      }}></div>
+      
+      <style jsx>{`
+        @keyframes sparkle {
+          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+          50% { transform: translateY(-10px) rotate(180deg); opacity: 0.8; }
+        }
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+          50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 193, 7, 0.4); }
+        }
+      `}</style>
+      
+      <div style={{ position: "relative", zIndex: 1 }}>
       {/* 页面头部 */}
       <div style={{ 
         marginBottom: "32px", 
@@ -264,21 +297,25 @@ export const Home = () => {
       }}>
         <div>
           <h1 style={{ 
-            color: "#ffffff", 
+            // color: "#FFD700", 
+            color: "linear-gradient(135deg, #FF9900 0%, #FFB84D 100%) !important",
             fontSize: "32px", 
             fontWeight: "700", 
             margin: 0,
-            textShadow: "0 2px 4px rgba(0,0,0,0.1)"
+            background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FFB300 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text"
           }}>
-            Overview
+            ✦ Overview Dashboard ✦
           </h1>
           <Text style={{ 
             color: "rgba(255,255,255,0.8)", 
-            fontSize: "16px",
+            fontSize: "14px",
             display: "block",
-            marginTop: "8px"
+            marginTop: "12px",
           }}>
-            实时监控系统状态，智能告警管理
+            🔥 实时监控系统状态，智能告警管理
           </Text>
         </div>
         <div style={{ 
@@ -305,26 +342,24 @@ export const Home = () => {
           <Card
             bordered={false}
             style={{
-              background: "linear-gradient(135deg, rgba(40,40,40,0.95) 0%, rgba(30,30,30,0.98) 100%)",
+              background: "linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(26,26,26,0.95) 50%, rgba(0,0,0,0.9) 100%)",
               backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)",
-              border: "1px solid rgba(80,80,80,0.3)",
               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
               overflow: "hidden",
               position: "relative",
-              height: "200px"
+              height: "180px"
             }}
             bodyStyle={{ padding: "28px 24px", height: "100%" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-12px) scale(1.03)"
-              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.4), 0 8px 32px rgba(255,153,0,0.15)"
-              e.currentTarget.style.borderColor = "rgba(255,153,0,0.3)"
+              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.8), 0 8px 32px rgba(255,215,0,0.3)"
+              e.currentTarget.style.borderColor = "rgba(255,215,0,0.6)"
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0) scale(1)"
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)"
-              e.currentTarget.style.borderColor = "rgba(80,80,80,0.3)"
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.6), 0 4px 16px rgba(255,215,0,0.1), inset 0 1px 0 rgba(255,215,0,0.2)"
+              e.currentTarget.style.borderColor = "rgba(255, 215, 0, 0.3)"
             }}
           >
             {/* 装饰性背景元素 */}
@@ -359,17 +394,16 @@ export const Home = () => {
               {/* 图标和标题区域 */}
               <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{
-                  width: "56px",
-                  height: "56px",
-                  background: "linear-gradient(135deg, #FF9900, #000000)",
-                  borderRadius: "16px",
+                  width: "50px",
+                  height: "50px",
+                  background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FF8F00 100%)",
+                  borderRadius: "20px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   marginRight: "16px",
-                  boxShadow: "0 8px 24px rgba(255,153,0,0.25)"
                 }}>
-                  <Shield size={24} color="#ffffff" strokeWidth={2.5} />
+                  <Shield size={28} color="#000000" strokeWidth={2.5} />
                 </div>
                 <div>
                   <Text style={{ 
@@ -381,7 +415,7 @@ export const Home = () => {
                     display: "block",
                     marginBottom: "2px"
                   }}>
-                    Alert Rules
+                    ALERT RULES
                   </Text>
                   <Text style={{ 
                     color: "#ffffff", 
@@ -401,28 +435,12 @@ export const Home = () => {
                   fontSize: "42px", 
                   fontWeight: "800", 
                   lineHeight: "1",
-                  marginBottom: "8px",
-                  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif"
+                  marginBottom: "12px",
+                  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+                  textShadow: "0 4px 8px rgba(0,0,0,0.3), 0 0 20px rgba(255,215,0,0.3)"
                 }}>
                   {dashboardInfo?.countAlertRules || 0}
                 </Text>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <div style={{
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    background: "#FF9900",
-                    marginRight: "8px"
-                  }}></div>
-                  <Text style={{ 
-                    color: "#FF9900", 
-                    fontSize: "13px", 
-                    fontWeight: "600",
-                    letterSpacing: "0.3px"
-                  }}>
-                    规则可用性
-                  </Text>
-                </div>
               </div>
             </div>
           </Card>
@@ -433,26 +451,24 @@ export const Home = () => {
           <Card
             bordered={false}
             style={{
-              background: "linear-gradient(135deg, rgba(40,40,40,0.95) 0%, rgba(30,30,30,0.98) 100%)",
+              background: "linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(26,26,26,0.95) 50%, rgba(0,0,0,0.9) 100%)",
               backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)",
-              border: "1px solid rgba(80,80,80,0.3)",
               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
               overflow: "hidden",
               position: "relative",
-              height: "200px"
+              height: "180px"
             }}
             bodyStyle={{ padding: "28px 24px", height: "100%" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-12px) scale(1.03)"
-              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.15)"
-              e.currentTarget.style.borderColor = "rgba(0,0,0,0.15)"
+              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.8), 0 8px 32px rgba(255,215,0,0.3)"
+              e.currentTarget.style.borderColor = "rgba(255,215,0,0.6)"
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0) scale(1)"
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)"
-              e.currentTarget.style.borderColor = "rgba(80,80,80,0.3)"
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.6), 0 4px 16px rgba(255,215,0,0.1), inset 0 1px 0 rgba(255,215,0,0.2)"
+              e.currentTarget.style.borderColor = "rgba(255, 215, 0, 0.3)"
             }}
           >
             {/* 装饰性背景元素 */}
@@ -462,7 +478,7 @@ export const Home = () => {
               right: "-20px", 
               width: "120px", 
               height: "120px", 
-              background: "linear-gradient(135deg, rgba(60,60,60,0.15), rgba(255,153,0,0.08))", 
+              background: "radial-gradient(circle, rgba(255,215,0,0.12) 0%, rgba(255,193,7,0.06) 50%, transparent 100%)", 
               borderRadius: "50%",
               filter: "blur(1px)"
             }}></div>
@@ -477,29 +493,28 @@ export const Home = () => {
               {/* 图标和标题区域 */}
               <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{
-                  width: "56px",
-                  height: "56px",
-                  background: "linear-gradient(135deg, #FF9900, #000000)",
-                  borderRadius: "16px",
+                  width: "50px",
+                  height: "50px",
+                  background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FF8F00 100%)",
+                  borderRadius: "20px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   marginRight: "16px",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.2)"
                 }}>
-                  <Server size={24} color="#ffffff" strokeWidth={2.5} />
+                  <Server size={28} color="#000000" strokeWidth={2.5} />
                 </div>
                 <div>
                   <Text style={{ 
                     color: "#a0a0a0", 
                     fontSize: "13px", 
-                    fontWeight: "500",
+                    fontWeight: "600",
                     textTransform: "uppercase",
-                    letterSpacing: "0.5px",
+                    letterSpacing: "1px",
                     display: "block",
-                    marginBottom: "2px"
+                    marginBottom: "4px"
                   }}>
-                    Fault Centers
+                    FAULT CENTERS
                   </Text>
                   <Text style={{ 
                     color: "#ffffff", 
@@ -519,28 +534,12 @@ export const Home = () => {
                   fontSize: "42px", 
                   fontWeight: "800", 
                   lineHeight: "1",
-                  marginBottom: "8px",
-                  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif"
+                  marginBottom: "12px",
+                  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+                  textShadow: "0 4px 8px rgba(0,0,0,0.3), 0 0 20px rgba(255,215,0,0.3)"
                 }}>
                   {dashboardInfo?.faultCenterNumber || 0}
                 </Text>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <div style={{
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    background: "#FF9900",
-                    marginRight: "8px"
-                  }}></div>
-                  <Text style={{ 
-                    color: "#FF9900", 
-                    fontSize: "13px", 
-                    fontWeight: "600",
-                    letterSpacing: "0.3px"
-                  }}>
-                    事件接收渠道
-                  </Text>
-                </div>
               </div>
             </div>
           </Card>
@@ -551,26 +550,24 @@ export const Home = () => {
           <Card
             bordered={false}
             style={{
-              background: "linear-gradient(135deg, rgba(40,40,40,0.95) 0%, rgba(30,30,30,0.98) 100%)",
+              background: "linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(26,26,26,0.95) 50%, rgba(0,0,0,0.9) 100%)",
               backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)",
-              border: "1px solid rgba(80,80,80,0.3)",
               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
               overflow: "hidden",
               position: "relative",
-              height: "200px"
+              height: "180px"
             }}
             bodyStyle={{ padding: "28px 24px", height: "100%" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-12px) scale(1.03)"
-              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.4), 0 8px 32px rgba(82,196,26,0.15)"
-              e.currentTarget.style.borderColor = "rgba(82,196,26,0.3)"
+              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.8), 0 8px 32px rgba(255,215,0,0.3)"
+              e.currentTarget.style.borderColor = "rgba(255,215,0,0.6)"
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0) scale(1)"
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)"
-              e.currentTarget.style.borderColor = "rgba(80,80,80,0.3)"
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.6), 0 4px 16px rgba(255,215,0,0.1), inset 0 1px 0 rgba(255,215,0,0.2)"
+              e.currentTarget.style.borderColor = "rgba(255, 215, 0, 0.3)"
             }}
           >
             {/* 装饰性背景元素 */}
@@ -580,7 +577,7 @@ export const Home = () => {
               right: "-20px", 
               width: "120px", 
               height: "120px", 
-              background: "linear-gradient(135deg, rgba(82,196,26,0.15), rgba(60,60,60,0.1))", 
+              background: "radial-gradient(circle, rgba(255,215,0,0.12) 0%, rgba(255,193,7,0.06) 50%, transparent 100%)", 
               borderRadius: "50%",
               filter: "blur(1px)"
             }}></div>
@@ -595,27 +592,26 @@ export const Home = () => {
               {/* 图标和标题区域 */}
               <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{
-                  width: "56px",
-                  height: "56px",
-                  background: "linear-gradient(135deg, #FF9900, #000000)",
-                  borderRadius: "16px",
+                  width: "50px",
+                  height: "50px",
+                  background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FF8F00 100%)",
+                  borderRadius: "20px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   marginRight: "16px",
-                  boxShadow: "0 8px 24px rgba(82,196,26,0.25)"
                 }}>
-                  <Users size={24} color="#ffffff" strokeWidth={2.5} />
+                  <Users size={28} color="#000000" strokeWidth={2.5} />
                 </div>
                 <div>
                   <Text style={{ 
                     color: "#a0a0a0", 
                     fontSize: "13px", 
-                    fontWeight: "500",
+                    fontWeight: "600",
                     textTransform: "uppercase",
-                    letterSpacing: "0.5px",
+                    letterSpacing: "1px",
                     display: "block",
-                    marginBottom: "2px"
+                    marginBottom: "4px"
                   }}>
                     Active Users
                   </Text>
@@ -637,29 +633,12 @@ export const Home = () => {
                   fontSize: "42px", 
                   fontWeight: "800", 
                   lineHeight: "1",
-                  marginBottom: "8px",
-                  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif"
+                  marginBottom: "12px",
+                  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+                  textShadow: "0 4px 8px rgba(0,0,0,0.3), 0 0 20px rgba(255,215,0,0.3)"
                 }}>
                   {dashboardInfo?.userNumber || 0}
                 </Text>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <div style={{
-                    width: "0",
-                    height: "0",
-                    borderLeft: "4px solid transparent",
-                    borderRight: "4px solid transparent",
-                    borderBottom: "6px solid #FF9900",
-                    marginRight: "8px"
-                  }}></div>
-                  <Text style={{ 
-                    color: "#FF9900", 
-                    fontSize: "13px", 
-                    fontWeight: "600",
-                    letterSpacing: "0.3px"
-                  }}>
-                    用户活跃度
-                  </Text>
-                </div>
               </div>
             </div>
           </Card>
@@ -670,26 +649,24 @@ export const Home = () => {
           <Card
             bordered={false}
             style={{
-              background: "linear-gradient(135deg, rgba(40,40,40,0.95) 0%, rgba(30,30,30,0.98) 100%)",
+              background: "linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(26,26,26,0.95) 50%, rgba(0,0,0,0.9) 100%)",
               backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)",
-              border: "1px solid rgba(80,80,80,0.3)",
               transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
               overflow: "hidden",
               position: "relative",
-              height: "200px"
+              height: "180px"
             }}
             bodyStyle={{ padding: "28px 24px", height: "100%" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-12px) scale(1.03)"
-              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.4), 0 8px 32px rgba(255,77,79,0.15)"
-              e.currentTarget.style.borderColor = "rgba(255,77,79,0.3)"
+              e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.8), 0 8px 32px rgba(255,215,0,0.3)"
+              e.currentTarget.style.borderColor = "rgba(255,215,0,0.6)"
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0) scale(1)"
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2)"
-              e.currentTarget.style.borderColor = "rgba(80,80,80,0.3)"
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.6), 0 4px 16px rgba(255,215,0,0.1), inset 0 1px 0 rgba(255,215,0,0.2)"
+              e.currentTarget.style.borderColor = "rgba(255, 215, 0, 0.3)"
             }}
           >
             {/* 装饰性背景元素 */}
@@ -699,7 +676,7 @@ export const Home = () => {
               right: "-20px", 
               width: "120px", 
               height: "120px", 
-              background: "linear-gradient(135deg, rgba(255,77,79,0.15), rgba(60,60,60,0.1))", 
+              background: "radial-gradient(circle, rgba(255,215,0,0.12) 0%, rgba(255,193,7,0.06) 50%, transparent 100%)", 
               borderRadius: "50%",
               filter: "blur(1px)"
             }}></div>
@@ -714,35 +691,35 @@ export const Home = () => {
               {/* 图标和标题区域 */}
               <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{
-                  width: "56px",
-                  height: "56px",
-                  background: "linear-gradient(135deg, #FF9900, #000000)",
-                  borderRadius: "16px",
+                  width: "50px",
+                  height: "50px",
+                  background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FF8F00 100%)",
+                  borderRadius: "20px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   marginRight: "16px",
-                  boxShadow: "0 8px 24px rgba(255,77,79,0.25)"
                 }}>
-                  <BarChart2 size={24} color="#ffffff" strokeWidth={2.5} />
+                  <BarChart2 size={28} color="#000000" strokeWidth={2.5} />
                 </div>
                 <div>
                   <Text style={{ 
                     color: "#a0a0a0", 
                     fontSize: "13px", 
-                    fontWeight: "500",
+                    fontWeight: "600",
                     textTransform: "uppercase",
-                    letterSpacing: "0.5px",
+                    letterSpacing: "1px",
                     display: "block",
-                    marginBottom: "2px"
+                    marginBottom: "4px"
                   }}>
-                    Alert Distribution
+                    ALERT DISTRIBUTION
                   </Text>
                   <Text style={{ 
                     color: "#ffffff", 
                     fontSize: "16px", 
                     fontWeight: "600",
-                    display: "block"
+                    display: "block",
+                    textShadow: "0 2px 4px rgba(0,0,0,0.3)"
                   }}>
                     告警分布
                   </Text>
@@ -794,18 +771,6 @@ export const Home = () => {
                       </Text>
                     </div>
                   </div>
-                  
-                  {/* 总计 */}
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <Text style={{ fontSize: "12px", color: "#a0a0a0", marginRight: "8px" }}>总计:</Text>
-                    <Text style={{ 
-                      fontSize: "18px", 
-                      fontWeight: "700", 
-                      color: totalAlerts > 0 ? "#ff4d4f" : "#52c41a"
-                    }}>
-                      {totalAlerts}
-                    </Text>
-                  </div>
                 </div>
               </div>
             </div>
@@ -819,11 +784,10 @@ export const Home = () => {
         <Col xs={24} lg={16}>
           <div
             style={{
-              background: "rgba(40,40,40,0.95)",
-              backdropFilter: "blur(10px)",
+              background: "linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(26,26,26,0.95) 50%, rgba(0,0,0,0.9) 100%)",
+              backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-              height: "500px",
+              height: "520px",
               overflow: "hidden"
             }}
           >
@@ -831,8 +795,8 @@ export const Home = () => {
             <div style={{ 
               display: "flex", 
               alignItems: "center", 
-              padding: "24px 24px 8px 24px",
-              borderBottom: "1px solid rgba(80,80,80,0.3)"
+              padding: "28px 28px 12px 28px",
+              borderBottom: "1px solid rgba(255, 215, 0, 0.2)"
             }}>
               <div>
                 <div style={{ fontSize: "20px", fontWeight: "700", color: "#ffffff" }}>告警通知趋势</div>
@@ -849,7 +813,7 @@ export const Home = () => {
                     padding: "16px",
                     height: "100%",
                     display: "flex",
-                    alignItems: "center"
+                    alignItems: "center",
                   }}>
                     <div style={{ width: "100%", height: "500px" }}>
                       <NoticeMetricChart data={metricData} />
@@ -861,10 +825,14 @@ export const Home = () => {
                     alignItems: "center",
                     justifyContent: "center",
                     height: "100%",
-                    borderRadius: "16px"
+                    borderRadius: "16px",
                   }}>
                     <Empty 
-                      description="暂无告警趋势数据" 
+                      description={
+                        <span style={{ color: "rgba(255,215,0,0.7)" }}>
+                          暂无告警趋势数据
+                        </span>
+                      }
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
                     />
                   </div>
@@ -878,11 +846,10 @@ export const Home = () => {
         <Col xs={24} lg={8}>
           <div
             style={{
-              background: "rgba(40,40,40,0.95)",
-              backdropFilter: "blur(10px)",
+              background: "linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(26,26,26,0.95) 50%, rgba(0,0,0,0.9) 100%)",
+              backdropFilter: "blur(20px)",
               borderRadius: "24px",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-              height: "500px",
+              height: "520px",
               overflow: "hidden"
             }}
           >
@@ -944,15 +911,28 @@ export const Home = () => {
                     renderItem={(item, index) => (
                       <List.Item
                         style={{
-                          padding: "16px 20px",
-                          margin: "6px 0",
-                          borderRadius: "12px",
-                          border: "none",
-                          background: index % 2 === 0 ? "rgba(255, 153, 0, 0.08)" : "rgba(60, 60, 60, 0.08)"
+                          padding: "18px 24px",
+                          margin: "8px 0",
+                          borderRadius: "16px",
+                          background: index % 2 === 0 
+                            ? "linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(255, 193, 7, 0.05) 100%)" 
+                            : "linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(26, 26, 26, 0.2) 100%)",
+                          backdropFilter: "blur(10px)",
+                          transition: "all 0.3s ease"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "translateX(8px)"
+                          e.currentTarget.style.borderColor = "rgba(255, 215, 0, 0.4)"
+                          e.currentTarget.style.boxShadow = "0 8px 24px rgba(255,215,0,0.15)"
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateX(0)"
+                          e.currentTarget.style.borderColor = "rgba(255, 215, 0, 0.2)"
+                          e.currentTarget.style.boxShadow = "none"
                         }}
                       >
                         <div style={{ width: "100%" }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: "8px" }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: "10px" }}>
                             <Tag 
                               color={SEVERITY_COLORS[item.severity]} 
                               style={{ 
@@ -999,11 +979,16 @@ export const Home = () => {
                     justifyContent: "center", 
                     height: "100%",
                     margin: "16px",
-                    borderRadius: "16px"
+                    borderRadius: "16px",
+                    background: "rgba(255,215,0,0.02)",
                   }}>
                     <Empty 
                       image={Empty.PRESENTED_IMAGE_SIMPLE} 
-                      description="暂无告警数据" 
+                      description={
+                        <span style={{ color: "rgba(255,215,0,0.7)" }}>
+                          暂无告警数据
+                        </span>
+                      }
                       imageStyle={{ height: 40 }}
                     />
                   </div>
@@ -1013,6 +998,7 @@ export const Home = () => {
           </div>
         </Col>
       </Row>
+      </div>
     </div>
   )
 }
