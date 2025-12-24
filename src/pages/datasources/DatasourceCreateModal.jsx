@@ -526,12 +526,21 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                         {(selectedType === "Prometheus" || selectedType === "VictoriaMetrics") && (
                             <MyFormItemGroup prefix={["write"]}>
                                 <Divider orientation="left">Write</Divider>
-                                <Alert
-                                    message="提示：用于拨测任务向该数据源写入指标数据。"
+                                {selectedType === "Prometheus" && (
+                                    <Alert
+                                    message="提示：用于向该数据源写入指标数据，Prometheus需配置 --web.enable-remote-write-receive 参数。"
                                     type="info"
                                     showIcon
                                     style={{ marginBottom: 20, marginTop: "10px" }}
                                 />
+                                ) || (
+                                    <Alert
+                                    message="提示：用于向该数据源写入指标数据。"
+                                    type="info"
+                                    showIcon
+                                    style={{ marginBottom: 20, marginTop: "10px" }}
+                                />
+                                )}
                                 <Radio.Group
                                     block
                                     options={writeRadioOptions}
