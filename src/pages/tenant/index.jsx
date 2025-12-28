@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {Button, Table, Popconfirm, message, Tooltip, Space, Tag} from 'antd';
 import { deleteTenant, getTenantList } from '../../api/tenant';
 import { CreateTenant } from './CreateTenant';
@@ -10,10 +10,35 @@ import {HandleShowTotal} from "../../utils/lib";
 
 
 export const Tenants = () => {
+    // 从 sessionStorage 恢复页码状态
+    const getStoredPagination = useCallback(() => {
+        const stored = sessionStorage.getItem('tenant_pagination')
+        if (stored) {
+            try {
+                return JSON.parse(stored)
+            } catch (e) {
+                console.error('Failed to parse stored pagination:', e)
+            }
+        }
+        return { current: 1, pageSize: 10, total: 0 }
+    }, [])
+
     const [selectedRow, setSelectedRow] = useState(null);
     const [updateVisible, setUpdateVisible] = useState(false);
     const [visible, setVisible] = useState(false);
     const [list, setList] = useState([]);
+    const [pagination, setPagination] = useState(() => getStoredPagination());
+    // 保存页码状态到 sessionStorage
+    const savePaginationToStorage = useCallback((newPagination) => {
+        sessionStorage.setItem('tenant_pagination', JSON.stringify(newPagination))
+    }, [])
+
+    // 更新页码状态并保存
+    const updatePagination = useCallback((newPagination) => {
+        setPagination(newPagination)
+        savePaginationToStorage(newPagination)
+    }, [savePaginationToStorage])
+
     const [columns] = useState([
         {
             title: '租户名称',
@@ -140,10 +165,11 @@ export const Tenants = () => {
 
     useEffect(() => {
         handleList();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // 获取所有数据
-    const handleList = async () => {
+    const handleList = useCallback(async () => {
         let userid = ""
         try {
             const userRes = await getUserInfo()
@@ -161,10 +187,17 @@ export const Tenants = () => {
                 message.error("该用户没有可用租户")
             }
             setList(res.data);
+            
+            // 更新总数
+            const newPagination = {
+                ...pagination,
+                total: res.data ? res.data.length : 0
+            }
+            updatePagination(newPagination)
         } catch (error) {
             console.error(error)
         }
-    }
+    }, [pagination, updatePagination])
 
     const handleDelete = async (record) => {
         try {
@@ -191,6 +224,26 @@ export const Tenants = () => {
         setSelectedRow(record)
         setUpdateVisible(true)
     };
+
+    // 处理页码变化
+    const handlePageChange = (page, pageSize) => {
+        const newPagination = {
+            ...pagination,
+            current: page,
+            pageSize: pageSize
+        }
+        updatePagination(newPagination)
+    }
+
+    // 处理页面大小变化
+    const handlePageSizeChange = (current, size) => {
+        const newPagination = {
+            ...pagination,
+            current: 1, // 改变页面大小时重置到第一页
+            pageSize: size
+        }
+        updatePagination(newPagination)
+    }
 
     return (
         <>
@@ -219,8 +272,14 @@ export const Tenants = () => {
                         x: 'max-content', // 水平滚动
                     }}
                     pagination={{
+                        current: pagination.current,
+                        pageSize: pagination.pageSize,
+                        total: pagination.total,
                         showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10'],
+                        pageSizeOptions: ['10', '20', '50', '100'],
+                        showSizeChanger: true,
+                        onChange: handlePageChange,
+                        onShowSizeChange: handlePageSizeChange,
                     }}
                     style={{
                         backgroundColor: "#fff",

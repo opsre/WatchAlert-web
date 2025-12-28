@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback, useRef } from "react"
 import {
     Button,
     Input,
@@ -57,14 +57,26 @@ export const AlertRuleList = () => {
     const [datasourceList, setDatasourceList] = useState([])
     const { id } = useParams()
     const [selectRuleStatus, setSelectRuleStatus] = useState("all")
-    const [pagination, setPagination] = useState({
-        index: 1,
-        size: 10,
-        total: 0,
-    })
+    // 从 sessionStorage 恢复页码状态
+    const getStoredPagination = useCallback(() => {
+        const stored = sessionStorage.getItem(`alertRule_pagination_${id}`)
+        if (stored) {
+            try {
+                return JSON.parse(stored)
+            } catch (e) {
+                console.error('Failed to parse stored pagination:', e)
+            }
+        }
+        return { index: 1, size: 10, total: 0 }
+    }, [id])
+
+    const [pagination, setPagination] = useState(() => getStoredPagination())
     const [selectedRowKeys, setSelectedRowKeys] = useState([])
     // 规则组相关状态
     const [selectedRuleGroupId, setSelectedRuleGroupId] = useState(id)
+    
+    // 使用 ref 来避免依赖循环
+    const isInitialMount = useRef(true)
     // 导入相关状态
     const [importDrawerVisible, setImportDrawerVisible] = useState(false)
     const [importType, setImportType] = useState(1) // 1 'watchalert' 或 0 'prometheus'
@@ -303,20 +315,95 @@ export const AlertRuleList = () => {
     ]
 
 
+    // 保存页码状态到 sessionStorage
+    const savePaginationToStorage = useCallback((newPagination) => {
+        sessionStorage.setItem(`alertRule_pagination_${id}`, JSON.stringify(newPagination))
+    }, [id])
+
+    // 更新页码状态并保存
+    const updatePagination = useCallback((newPagination) => {
+        setPagination(newPagination)
+        savePaginationToStorage(newPagination)
+    }, [savePaginationToStorage])
+
+    const handleList = useCallback(async (ruleGroupId, index, size) => {
+        try {
+            const params = {
+                index: index,
+                size: size,
+                status: selectRuleStatus,
+                ruleGroupId: ruleGroupId,
+            }
+            const res = await getRuleList(params)
+
+            const newPagination = {
+                index: res.data.index,
+                size: res.data.size,
+                total: res.data.total,
+            }
+            
+            updatePagination(newPagination)
+            setList(res.data.list)
+            setSelectedRowKeys([])
+        } catch (error) {
+            console.error(error)
+        }
+    }, [selectRuleStatus, updatePagination])
+
     useEffect(() => {
-        handleList(selectedRuleGroupId, pagination.index, pagination.size)
-        handleListDatasource()
-    }, [])
+        const initializeData = async () => {
+            await handleListDatasource()
+            handleList(selectedRuleGroupId, pagination.index, pagination.size)
+        }
+        
+        if (isInitialMount.current) {
+            initializeData()
+            isInitialMount.current = false
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []) // 只在组件挂载时执行一次
+
+    const onSearch = useCallback(async (value) => {
+        try {
+            const params = {
+                index: pagination.index,
+                size: pagination.size,
+                ruleGroupId: id,
+                status: selectRuleStatus,
+                query: value,
+            }
+
+            const res = await getRuleList(params)
+
+            const newPagination = {
+                index: res?.data?.index,
+                size: res?.data?.size,
+                total: res?.data?.total,
+            }
+            
+            updatePagination(newPagination)
+            setList(res.data.list)
+            setSelectedRowKeys([])
+        } catch (error) {
+            console.error(error)
+        }
+    }, [pagination.index, pagination.size, id, selectRuleStatus, updatePagination])
 
     useEffect(() => {
         // 当 URL 参数 id 变化时，更新选中的规则组
         setSelectedRuleGroupId(id)
-        handleList(id, 1, pagination.size)
-    }, [id])
+        // 获取新规则组的存储页码状态
+        const storedPagination = getStoredPagination()
+        updatePagination(storedPagination)
+        handleList(id, storedPagination.index, storedPagination.size)
+    }, [id, getStoredPagination, updatePagination, handleList])
 
     useEffect(() => {
-        onSearch()
-    }, [selectRuleStatus])
+        if (!isInitialMount.current) {
+            onSearch()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectRuleStatus]) // 当状态改变时搜索
 
     const handleListDatasource = async () => {
         try {
@@ -330,7 +417,8 @@ export const AlertRuleList = () => {
     // 切换规则组
     const handleRuleGroupChange = (groupId) => {
         setSelectedRuleGroupId(groupId)
-        setPagination({ ...pagination, index: 1 })
+        const newPagination = { ...pagination, index: 1 }
+        updatePagination(newPagination)
         // 直接刷新当前规则组的规则列表，不进行路由跳转
         handleList(groupId, 1, pagination.size)
         navigate(`/ruleGroup/${groupId}/rule/list`)
@@ -361,56 +449,9 @@ export const AlertRuleList = () => {
         return matchedNames.join(", ") || "Unknown" // Join multiple names with commas
     }
 
-    const handleList = async (id, index, size) => {
-        try {
-            const params = {
-                index: index,
-                size: size,
-                status: selectRuleStatus,
-                ruleGroupId: id,
-            }
-            const res = await getRuleList(params)
-
-            setPagination({
-                index: res.data.index,
-                size: res.data.size,
-                total: res.data.total,
-            })
-
-            setList(res.data.list)
-            setSelectedRowKeys([])
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
-    const onSearch = async (value) => {
-        try {
-            const params = {
-                index: pagination.index,
-                size: pagination.size,
-                ruleGroupId: id,
-                status: selectRuleStatus,
-                query: value,
-            }
-
-            const res = await getRuleList(params)
-
-            setPagination({
-                index: res?.data?.index,
-                size: res?.data?.size,
-                total: res?.data?.total,
-            })
-
-            setList(res.data.list)
-            setSelectedRowKeys([])
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
     const changeStatus = async ({ target: { value } }) => {
-        setPagination({ ...pagination, index: 1, size: pagination.size })
+        const newPagination = { ...pagination, index: 1, size: pagination.size }
+        updatePagination(newPagination)
         setSelectRuleStatus(value)
     }
 
@@ -755,12 +796,14 @@ export const AlertRuleList = () => {
                 dataSource={list}
                 pagination={pagination}
                 onPageChange={(page, pageSize) => {
-                    setPagination({ ...pagination, index: page, size: pageSize });
-                    handleList(id, page, pageSize);
+                    const newPagination = { ...pagination, index: page, size: pageSize }
+                    updatePagination(newPagination)
+                    handleList(id, page, pageSize)
                 }}
                 onPageSizeChange={(current, pageSize) => {
-                    setPagination({ ...pagination, index: current, size: pageSize });
-                    handleList(id, current, pageSize);
+                    const newPagination = { ...pagination, index: current, size: pageSize }
+                    updatePagination(newPagination)
+                    handleList(id, current, pageSize)
                 }}
                 scrollY={'calc(100vh - 300px)'}  // 动态计算表格高度
                 rowKey="ruleId"  // 使用 ruleId 作为唯一标识
