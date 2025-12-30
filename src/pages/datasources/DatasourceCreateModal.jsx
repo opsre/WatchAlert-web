@@ -124,6 +124,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             }));
 
             setSelectedType(selectedRow.type)
+            setWriteState(selectedRow.write.enabled)
             form.setFieldsValue({
                 name: selectedRow.name,
                 type: selectedRow.type,
@@ -496,7 +497,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                 onChange={(e)=>setAuthState(e.target.value)}
                             />
                             {authState === "On" && (
-                                <>
+                                <div style={{marginTop: "10px"}}>
                                     <MyFormItem
                                         name="user"
                                         label="User"
@@ -519,7 +520,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                     >
                                         <Input.Password />
                                     </MyFormItem>
-                                </>
+                                </div>
                             )}
                         </MyFormItemGroup>
 
@@ -549,7 +550,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                     onChange={(e)=>setWriteState(e.target.value)}
                                 />
                                 {writeState === "On" && (
-                                    <>
+                                    <div style={{marginTop: "10px"}}>
                                         <MyFormItem
                                             name="url"
                                             label="URL"
@@ -565,7 +566,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                         >
                                             <Input placeholder="例如: http://localhost:9090/api/v1/write"/>
                                         </MyFormItem>
-                                    </>
+                                    </div>
                                 )}
                             </MyFormItemGroup>
                         )}

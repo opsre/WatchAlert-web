@@ -92,7 +92,6 @@ export const FaultCenter = () => {
             overflow: "hidden", // 防止整个页面滚动
         },
         headerSection: {
-            padding: "10px",
             backgroundColor: "#fff",
             zIndex: 10,
         },

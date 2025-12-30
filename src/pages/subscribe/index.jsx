@@ -179,7 +179,7 @@ export const Subscribe = () => {
 
     return (
         <>
-            <div style={{display: 'flex', marginTop: '10px', justifyContent: 'space-between'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between'}}>
                 <div style={{display: 'flex', gap: '10px'}}>
                     <Search
                         allowClear
