@@ -133,7 +133,7 @@ export const ProbingMetrics = () => {
             const startTime = now - timeRangeConfig.seconds;
             
             // 构建查询参数
-            const query = `${metric.query}`;
+            const query = `${metric.query}{probe_id="${taskInfo.ruleId}"}`;
             
             const params = {
                 datasourceIds: taskInfo.datasourceId,
