@@ -130,6 +130,10 @@ async function RuleImport(params) {
     return await http('post', `/api/w8t/rule/import`,params);
 }
 
+async function RuleChange(params) {
+    return await http('post', `/api/w8t/rule/change`,params);
+}
+
 export {
     getRuleList,
     createRule,
@@ -141,5 +145,6 @@ export {
     updateRuleGroup,
     deleteRuleGroup,
     RuleChangeStatus,
-    RuleImport
+    RuleImport,
+    RuleChange
 } 
