@@ -94,6 +94,7 @@ export const AlertRuleList = () => {
     const [batchModifyForm, setBatchModifyForm] = useState({
         rule_group_id: null,
         datasource_ids: null,
+        datasource_type: null, // 新增：数据源类型
         eval_interval: null,
         eval_time_type: null,
         severity: null,
@@ -624,30 +625,100 @@ export const AlertRuleList = () => {
             return
         }
 
-        try {
-            // 构建 change 对象
-            let changeParams = {}
-            if (field === 'datasource_ids' && typeof value === 'string') {
-                changeParams[field] = [value]
-            } else {
-                changeParams[field] = value
+        // 特殊处理：当修改数据源时，检查类型匹配
+        if (field === 'datasource_ids' && batchModifyForm.datasource_type) {
+            // 获取选中的规则
+            const selectedRules = list.filter(item => selectedRowKeys.includes(item.ruleId));
+            
+            // 检查是否存在类型不匹配的规则
+            const mismatchedRules = selectedRules.filter(rule => 
+                rule.datasourceType !== batchModifyForm.datasource_type
+            );
+            
+            if (mismatchedRules.length > 0) {
+                // 显示警告信息
+                Modal.confirm({
+                    title: '数据源类型不匹配',
+                    content: (
+                        <div>
+                            <p>以下规则的数据源类型与选择的类型不匹配，修改将不生效：</p>
+                            <ul style={{ maxHeight: '200px', overflowY: 'auto', paddingLeft: '20px' }}>
+                                {mismatchedRules.map(rule => (
+                                    <li key={rule.ruleId} style={{ marginBottom: '4px' }}>
+                                        <strong>{rule.ruleName}</strong> (当前类型: {rule.datasourceType})
+                                    </li>
+                                ))}
+                            </ul>
+                            <p style={{ marginTop: '10px' }}>是否继续修改其他匹配的规则？</p>
+                        </div>
+                    ),
+                    okText: '继续修改',
+                    cancelText: '取消',
+                    okType: 'default',
+                    onOk: async () => {
+                        // 继续执行修改，只对类型匹配的规则进行修改
+                        await performBatchModify();
+                    },
+                    onCancel: () => {
+                        return; // 取消操作
+                    }
+                });
+                return;
             }
+        }
 
-            const firstRule = list.find(item => selectedRowKeys.includes(item.ruleId))
-            const tenantId = firstRule?.tenantId || 'default'
-            const params = {
-                tenantId,
-                rule_ids: selectedRowKeys,
-                change: changeParams
+        // 执行修改操作
+        await performBatchModify();
+
+        async function performBatchModify() {
+            try {
+                // 构建 change 对象
+                let changeParams = {}
+                if (field === 'datasource_ids') {
+                    // 如果指定了数据源类型，验证选中的数据源是否与类型匹配
+                    if (batchModifyForm.datasource_type && Array.isArray(value)) {
+                        // 过滤出与指定类型匹配的数据源ID
+                        const filteredDatasourceIds = datasourceList
+                            .filter(ds => value.includes(ds.id) && ds.type === batchModifyForm.datasource_type)
+                            .map(ds => ds.id);
+                        
+                        if (filteredDatasourceIds.length !== value.length) {
+                            message.warning(`部分选择的数据源类型与指定类型不匹配，仅修改匹配的数据源`);
+                        }
+                        
+                        changeParams[field] = filteredDatasourceIds.length > 0 ? filteredDatasourceIds : value;
+                    } else if (batchModifyForm.datasource_type && typeof value === 'string') {
+                        // 单个数据源ID的情况
+                        const datasourceInfo = datasourceList.find(ds => ds.id === value);
+                        if (datasourceInfo && datasourceInfo.type === batchModifyForm.datasource_type) {
+                            changeParams[field] = [value];
+                        } else {
+                            message.warning(`选择的数据源类型与指定类型不匹配`);
+                            return;
+                        }
+                    } else {
+                        changeParams[field] = Array.isArray(value) ? value : [value];
+                    }
+                } else {
+                    changeParams[field] = value
+                }
+
+                const firstRule = list.find(item => selectedRowKeys.includes(item.ruleId))
+                const tenantId = firstRule?.tenantId || 'default'
+                const params = {
+                    tenantId,
+                    rule_ids: selectedRowKeys,
+                    change: changeParams
+                }
+
+                await RuleChange(params)
+                message.success(`成功修改了 ${selectedRowKeys.length} 条规则`)
+                setBatchModifyVisible(false)
+                setSelectedRowKeys([])
+                handleList(id, pagination.index, pagination.size)
+            } catch (error) {
+                HandleApiError(error)
             }
-
-            await RuleChange(params)
-            message.success(`成功修改了 ${selectedRowKeys.length} 条规则`)
-            setBatchModifyVisible(false)
-            setSelectedRowKeys([])
-            handleList(id, pagination.index, pagination.size)
-        } catch (error) {
-            HandleApiError(error)
         }
     }
 
@@ -882,6 +953,7 @@ rules:
                         width={600}
                         okText="确认修改"
                         cancelText="取消"
+                        okType="default"
                     >
                         <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
                             <Form layout="vertical">
@@ -928,19 +1000,83 @@ rules:
                                 )}
 
                                 {batchModifyFields === 'datasource_ids' && (
-                                    <Form.Item label="数据源">
-                                        <Select
-                                            mode="multiple"
-                                            placeholder="选择新的数据源"
-                                            allowClear
-                                            value={batchModifyForm.datasource_ids}
-                                            onChange={(value) => handleBatchModifyFieldChange('datasource_ids', value)}
-                                            options={datasourceList.map(ds => ({
-                                                label: ds.name,
-                                                value: ds.id
-                                            }))}
-                                        />
-                                    </Form.Item>
+                                    <div>
+                                        <Form.Item label="数据源">
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <Select
+                                                        placeholder="选择数据源类型"
+                                                        allowClear
+                                                        value={batchModifyForm.datasource_type}
+                                                        onChange={(value) => {
+                                                            handleBatchModifyFieldChange('datasource_type', value);
+                                                            // 当数据源类型改变时，清空已选择的数据源
+                                                            handleBatchModifyFieldChange('datasource_ids', null);
+                                                        }}
+                                                        options={
+                                                            [
+                                                                {
+                                                                    label: 'Prometheus',
+                                                                    value: 'Prometheus'
+                                                                },
+                                                                {
+                                                                    label: 'VictoriaMetrics',
+                                                                    value: 'VictoriaMetrics'
+                                                                },
+                                                                {
+                                                                    label: 'Loki',
+                                                                    value: 'Loki'
+                                                                },
+                                                                {
+                                                                    label: 'ElasticSearch',
+                                                                    value: 'ElasticSearch'
+                                                                },
+                                                                {
+                                                                    label: 'VictoriaLogs',
+                                                                    value: 'VictoriaLogs'
+                                                                },
+                                                                {
+                                                                    label: 'ClickHouse',
+                                                                    value: 'ClickHouse'
+                                                                },
+                                                                {
+                                                                    label: 'AliCloudSLS',
+                                                                    value: 'AliCloudSLS'
+                                                                },
+                                                                {
+                                                                    label: 'Jaeger',
+                                                                    value: 'Jaeger'
+                                                                },
+                                                                {
+                                                                    label: 'Kubernetes',
+                                                                    value: 'Kubernetes'
+                                                                },
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                                <div style={{ flex: 2 }}>
+                                                    <Select
+                                                        mode="multiple"
+                                                        placeholder="选择新的数据源"
+                                                        allowClear
+                                                        value={batchModifyForm.datasource_ids}
+                                                        onChange={(value) => handleBatchModifyFieldChange('datasource_ids', value)}
+                                                        options={datasourceList
+                                                            .filter(ds => batchModifyForm.datasource_type ? ds.type === batchModifyForm.datasource_type : true)
+                                                            .map(ds => ({
+                                                                label: ds.name,
+                                                                value: ds.id
+                                                            }))
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div style={{ marginTop: '8px', fontSize: '12px', color: '#ff4d4f' }}>
+                                                注意：如果当前规则的数据源类型与选择的类型不匹配，修改将不生效
+                                            </div>
+                                        </Form.Item>
+                                    </div>
                                 )}
 
                                 {batchModifyFields === 'fault_center_id' && (
