@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useParams } from 'react';
 import { Table, Card, Button, Popconfirm, Tag, message, Modal, Form, Input, Tooltip } from 'antd';
 import { Link } from 'react-router-dom'
 import { EditOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons"
 import { CopyOutlined, DeleteOutlined,PlusOutlined } from '@ant-design/icons';
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import { TopologyList, TopologyDelete, TopologyCreate, TopologyUpdate } from '../../api/topology';
+import { TableWithPagination } from '../../utils/TableWithPagination';
+import { HandleShowTotal } from "../../utils/lib";
 
 const List = () => {
   const [data, setData] = useState([]);
@@ -13,37 +15,56 @@ const List = () => {
   const [editingRecordId, setEditingRecordId] = useState(null)
   const [tempValue, setTempValue] = useState("")
   const [hoveredRecordId, setHoveredRecordId] = useState(null)
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  });
+  // 从 sessionStorage 恢复页码状态
+  const getStoredPagination = useCallback(() => {
+      const stored = sessionStorage.getItem(`topology_pagination`)
+      if (stored) {
+          try {
+              return JSON.parse(stored)
+          } catch (e) {
+              console.error('Failed to parse stored pagination:', e)
+          }
+      }
+      return { index: 1, size: 10, total: 0 }
+  }, [])
+
+  const savePaginationToStorage = useCallback((newPagination) => {
+    sessionStorage.setItem(`topology_pagination`, JSON.stringify(newPagination))
+  }, [])
+
+  const updatePagination = useCallback((newPagination) => {
+    setPagination(newPagination)
+    savePaginationToStorage(newPagination)
+  }, [savePaginationToStorage])
+
+  const [pagination, setPagination] = useState(() => getStoredPagination())
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
 
-  const fetchData = async (params = {}) => {
+  const handleList = useCallback(async (index, size) => {
     setLoading(true);
     try {
-      const res = await TopologyList();
-      if (res.code === 200) {
-        setData(res.data || []);
-        setPagination({
-          ...pagination,
-          total: res.data?.length || 0,
-        });
-      } else {
-        message.error(res.message || '获取数据失败');
-      }
+        const params = {
+            index: index,
+            size: size,
+        }
+        const res = await TopologyList(params)
+        const newPagination = {
+            index: res.data.index,
+            size: res.data.size,
+            total: res.data.total,
+        }
+        updatePagination(newPagination)
+        setData(res.data.list)
     } catch (error) {
-      console.error('获取拓扑列表失败:', error);
-      message.error('获取数据失败');
+        console.error(error)
     } finally {
       setLoading(false);
     }
-  };
+  }, [updatePagination])
 
   useEffect(() => {
-    fetchData();
+    handleList(pagination.index, pagination.size);
   }, []);
 
   const handleDelete = (record) => {
@@ -55,7 +76,7 @@ const List = () => {
       onOk: async () => {
         try {
           await TopologyDelete({ id: record.id });
-          fetchData();
+          handleList(pagination.index, pagination.size);
         } catch (error) {
           console.error('删除失败:', error);
         }
@@ -88,7 +109,7 @@ const List = () => {
       if (res.code === 200) {
         setIsModalVisible(false);
         form.resetFields();
-        fetchData(); // 重新加载数据
+        handleList(1, pagination.size); // 创建后返回第一页
       }
     } catch (error) {
       console.error('创建失败:', error);
@@ -236,10 +257,10 @@ const List = () => {
     },
   ];
 
-  const handleEdit = (field, recordId, currentValue) => {
+  const handleEdit = (field, recordId, indexValue) => {
     setEditingField(field);
     setEditingRecordId(recordId);
-    setTempValue(currentValue || "");
+    setTempValue(indexValue || "");
   };
 
   const handleSave = async (field, recordId) => {
@@ -259,7 +280,7 @@ const List = () => {
         setEditingField(null);
         setEditingRecordId(null);
         setTempValue("");
-        fetchData(); // 重新加载数据
+        handleList(pagination.index, pagination.size); // 重新加载数据
       }
     } catch (error) {
       console.error("保存失败:", error);
@@ -282,19 +303,25 @@ const List = () => {
             </Button>       
         </div>
         <div style={{ overflowX: 'auto', marginTop: 10 }}>
-            <Table
+            <TableWithPagination
                 columns={columns}
                 dataSource={data}
                 loading={loading}
                 pagination={pagination}
-                rowKey="id"
-                onChange={(pagination) => {
-                    setPagination(pagination);
-                    fetchData({
-                    page: pagination.current,
-                    pageSize: pagination.pageSize,
-                    });
+                onPageChange={(page, size) => {
+                    const newPagination = { ...pagination, index: page, size: size }
+                    updatePagination(newPagination)
+                    handleList(page, size);
                 }}
+                onsizeChange={(index, size) => {
+                    const newPagination = { ...pagination, index: index, size: size }
+                    updatePagination(newPagination)
+                    handleList(index, size);
+                }}
+                scrollY={'calc(100vh - 300px)'}
+                rowKey="id"
+                showTotal={HandleShowTotal}
+                selectAll={true}
             />
         </div>
 
