@@ -208,6 +208,13 @@ export const AlertRule = ({ type }) => {
                 const copyData = appState?.cloneAlertRule
                 initBasicInfo(copyData)
             }
+            // 如果不是编辑模式也不是克隆模式，则为创建模式，设置默认值
+            if (type !== "edit" && searchParams.get("isClone") !== "1") {
+                // 设置执行频率默认值为5
+                form.setFieldsValue({
+                    evalInterval: 5
+                });
+            }
         }
     }, [])
 
@@ -490,6 +497,12 @@ export const AlertRule = ({ type }) => {
 
     // 创建
     const handleFormSubmit = async (values) => {
+        // 验证执行频率，确保不低于5秒
+        if (values.evalInterval && Number(values.evalInterval) < 5) {
+            message.error('执行频率不能低于5秒');
+            return;
+        }
+        
         const formattedLabels = values.externalLabels?.reduce((acc, { key, value }) => {
             if (key) {
                 acc[key] = value
@@ -1881,25 +1894,8 @@ export const AlertRule = ({ type }) => {
                             <Input
                                 type={"number"} 
                                 style={{width: '100%'}}
-                                addonAfter={
-                                    <Select
-                                        style={{width: '70px'}}
-                                        value={evalTimeType}
-                                        defaultValue={'second'}
-                                        onChange={setEvalTimeType}
-                                        options={[
-                                            {
-                                                label: '秒',
-                                                value: 'second'
-                                            },
-                                            {
-                                                label: '毫秒',
-                                                value: 'millisecond'
-                                            }
-                                        ]}
-                                    />
-                                }
-                                placeholder="10"
+                                addonAfter="秒"
+                                placeholder="5"
                                 min={1}
                             />
                         </MyFormItem>
