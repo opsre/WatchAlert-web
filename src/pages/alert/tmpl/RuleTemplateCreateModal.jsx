@@ -18,13 +18,15 @@ import PrometheusImg from "../rule/img/Prometheus.svg";
 import LokiImg from "../rule/img/L.svg";
 import AlicloudImg from "../rule/img/alicloud.svg";
 import JaegerImg from "../rule/img/jaeger.svg";
-import VMImg from "../rule/img/victoriametrics.svg";
+
 import K8sImg from "../rule/img/Kubernetes.svg";
 import ESImg from "../rule/img/ElasticSearch.svg";
 import VLogImg from "../rule/img/victorialogs.svg"
+import CKImg from "../rule/img/clickhouse.svg"
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
 import {PlusOutlined} from "@ant-design/icons";
+import SqlEditor from "../../../utils/sqlEditor";
 
 const MyFormItemContext = React.createContext([])
 const { Option } = Select;
@@ -67,10 +69,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
             imgSrc: JaegerImg,
             text: 'Jaeger',
         },
-        {
-            imgSrc: VMImg,
-            text: 'VictoriaMetrics',
-        },
+
         {
             imgSrc: K8sImg,
             text: 'KubernetesEvent',
@@ -82,6 +81,10 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         {
             imgSrc: VLogImg,
             text: 'VictoriaLogs',
+        },
+        {
+            imgSrc: CKImg,
+            text: 'ClickHouse',
         }
     ];
     const [selectedCard, setSelectedCard] = useState(0);
@@ -104,10 +107,10 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         Loki: 1,
         AliCloudSLS: 2,
         Jaeger: 3,
-        VictoriaMetrics: 4,
-        KubernetesEvent: 5,
-        ElasticSearch: 6,
-        VictoriaLogs: 7
+        KubernetesEvent: 4,
+        ElasticSearch: 5,
+        VictoriaLogs: 6,
+        ClickHouse: 7,
     };
 
     const datasourceCardMap = {
@@ -115,10 +118,10 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         1: "Loki",
         2: "AliCloudSLS",
         3: "Jaeger",
-        4: "VictoriaMetrics",
-        5: "KubernetesEvent",
-        6: "ElasticSearch",
-        7: "VictoriaLogs",
+        4: "KubernetesEvent",
+        5: "ElasticSearch",
+        6: "VictoriaLogs",
+        7: "ClickHouse",
     };
 
     const handleInputChange = (e) => {
@@ -438,7 +441,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
 
                     <br/>
 
-                    {(selectedType === 0 || selectedType === 4) &&
+                    {selectedType === 0 &&
                         <>
                             <div className="rule-config-container">
                                 <MyFormItemGroup prefix={['prometheusConfig']}>
@@ -533,6 +536,33 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </>
                     }
 
+                    {selectedType === 1 &&
+                        <MyFormItemGroup prefix={['lokiConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <MyFormItem
+                                    name="logQL"
+                                    label="LogQL"
+                                    rules={[{required: true}]}
+                                >
+                                    <Input/>
+                                </MyFormItem>
+                                <MyFormItem
+                                    name="logScope"
+                                    label="查询区间"
+                                    rules={[{required: true}]}
+                                >
+                                    <InputNumber
+                                        style={{width: '100%'}}
+                                        addonAfter={'分钟'}
+                                        placeholder="10"
+                                        min={1}
+                                    />
+                                </MyFormItem>
+                            </div>
+                        </MyFormItemGroup>
+                    }
+
                     {selectedType === 2 &&
                         <MyFormItemGroup prefix={['alicloudSLSConfig']}>
                             <span>规则配置</span>
@@ -585,33 +615,6 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 1 &&
-                        <MyFormItemGroup prefix={['lokiConfig']}>
-                            <span>规则配置</span>
-                            <div className="log-rule-config-container">
-                                <MyFormItem
-                                    name="logQL"
-                                    label="LogQL"
-                                    rules={[{required: true}]}
-                                >
-                                    <Input/>
-                                </MyFormItem>
-                                <MyFormItem
-                                    name="logScope"
-                                    label="查询区间"
-                                    rules={[{required: true}]}
-                                >
-                                    <InputNumber
-                                        style={{width: '100%'}}
-                                        addonAfter={'分钟'}
-                                        placeholder="10"
-                                        min={1}
-                                    />
-                                </MyFormItem>
-                            </div>
-                        </MyFormItemGroup>
-                    }
-
                     {selectedType === 3 &&
                         <MyFormItemGroup prefix={['jaegerConfig']}>
                             <div style={{display: 'flex', gap: '10px'}}>
@@ -646,7 +649,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 5 &&
+                    {selectedType === 4 &&
                         <MyFormItemGroup prefix={['kubernetesConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -739,7 +742,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 6 &&
+                    {selectedType === 5 &&
                         <MyFormItemGroup prefix={['elasticSearchConfig']}>
                             {/*<div style={{display: 'flex', gap: '10px'}}>*/}
                                 {/*<MyFormItem*/}
@@ -904,7 +907,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 7 &&
+                    {selectedType === 6 &&
                         <MyFormItemGroup prefix={['victoriaLogsConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -927,6 +930,24 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                         min={1}
                                     />
                                 </MyFormItem>
+                            </div>
+                        </MyFormItemGroup>
+                    }
+
+                    {selectedType === 7 &&
+                        <MyFormItemGroup prefix={['clickhouseConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px'}}>
+                                    <MyFormItem
+                                        name="logQL"
+                                        label="查询语句"
+                                        rules={[{required: true}]}
+                                        style={{width: '100%', height: '100%'}}
+                                    >
+                                        <SqlEditor/>
+                                    </MyFormItem>
+                                </div>
                             </div>
                         </MyFormItemGroup>
                     }

@@ -7,7 +7,7 @@ import LokiImg from "../alert/rule/img/L.svg";
 import AlicloudImg from "../alert/rule/img/alicloud.svg";
 import JaegerImg from "../alert/rule/img/jaeger.svg";
 import AwsImg from "../alert/rule/img/AWSlogo.svg";
-import VMImg from "../alert/rule/img/victoriametrics.svg";
+
 import K8sImg from "../alert/rule/img/Kubernetes.svg";
 import ESImg from "../alert/rule/img/ElasticSearch.svg";
 import VLogImg from "../alert/rule/img/victorialogs.svg"
@@ -60,10 +60,7 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
             imgSrc: AwsImg,
             text: 'CloudWatch',
         },
-        {
-            imgSrc: VMImg,
-            text: 'VictoriaMetrics',
-        },
+
         {
             imgSrc: K8sImg,
             text: 'KubernetesEvent',
@@ -129,8 +126,6 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
             t = "Jaeger"
         } else if (index === 4){
             t = "CloudWatch"
-        } else if (index === 5){
-            t = "VictoriaMetrics"
         } else if (index === 6){
             t = "KubernetesEvent"
         } else if (index === 7){

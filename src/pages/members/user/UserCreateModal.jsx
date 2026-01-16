@@ -124,7 +124,33 @@ const UserCreateModal = ({ visible, onClose, selectedRow, type, handleList }) =>
                     name="username"
                     label="用户名"
                     style={{ flex: 1 }}
-                    rules={[{ required: true, message: "请输入用户名！" }]}
+                    rules={[{ required: true, message: "请输入用户名！" }, {
+                        validator: (_, value) => {
+                            if (!value) return Promise.resolve();
+                            
+                            // 计算中文字符数量（包括中文标点符号）
+                            const chineseChars = value.match(/[\u4e00-\u9fa5]/g);
+                            const chineseCount = chineseChars ? chineseChars.length : 0;
+                            
+                            // 计算英文字母数量
+                            const englishChars = value.match(/[a-zA-Z]/g);
+                            const englishCount = englishChars ? englishChars.length : 0;
+                            
+                            // 如果包含中文字符，则至少需要2个中文字符
+                            if (chineseCount > 0) {
+                                if (chineseCount < 2) {
+                                    return Promise.reject(new Error("用户名至少包含2个中文字符"));
+                                }
+                            } else {
+                                // 如果没有中文字符，则至少需要3个英文字母
+                                if (englishCount < 3) {
+                                    return Promise.reject(new Error("用户名至少包含3个英文字母"));
+                                }
+                            }
+                            
+                            return Promise.resolve();
+                        },
+                    }]}
                 >
                     <Input
                         value={spaceValue}
@@ -139,7 +165,10 @@ const UserCreateModal = ({ visible, onClose, selectedRow, type, handleList }) =>
                         name="password"
                         label="密码"
                         style={{ flex: 1 }}
-                        rules={[{ required: true, message: "请输入密码！" }]}
+                        rules={[{ required: true, message: "请输入密码！" }, {
+                            min: 6,
+                            message: "密码至少需要6位字符！"
+                        }]}
                         hasFeedback
                     >
                         <Input.Password />

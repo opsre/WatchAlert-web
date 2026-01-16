@@ -58,7 +58,7 @@ import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
 import { ReactComponent as AwsImg } from "../alert/rule/img/AWSlogo.svg"
 import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
-import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
+
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
@@ -141,7 +141,7 @@ export const AlertCurrentEvent = (props) => {
 
     const logoMap = {
         Prometheus: <PrometheusImg style={{ width: 16, height: 16 }} />,
-        VictoriaMetrics: <VMImg style={{ width: 16, height: 16 }} />,
+
         AliCloudSLS: <AlicloudImg style={{ width: 16, height: 16 }} />,
         Jaeger: <JaegerImg style={{ width: 16, height: 16 }} />,
         CloudWatch: <AwsImg style={{ width: 16, height: 16 }} />,
@@ -887,7 +887,7 @@ export const AlertCurrentEvent = (props) => {
     const fetchMetricData = async () => {
         try {
             console.log("datasource_type ->",selectedEvent.datasource_type)
-            if (selectedEvent.datasource_type !== "Prometheus" && selectedEvent.datasource_type !== "VictoriaMetrics") {
+            if (selectedEvent.datasource_type !== "Prometheus") {
                 return
             }
             
@@ -1101,7 +1101,6 @@ export const AlertCurrentEvent = (props) => {
                             onChange={handleDataSourceChange}
                             options={[
                                 { value: "Prometheus", label: "Prometheus" },
-                                { value: "VictoriaMetrics", label: "VictoriaMetrics" },
                                 { value: "AliCloudSLS", label: "AliCloudSLS" },
                                 { value: "Jaeger", label: "Jaeger" },
                                 { value: "Loki", label: "Loki" },
@@ -1216,7 +1215,7 @@ export const AlertCurrentEvent = (props) => {
             >
                 {selectedEvent && (
                     <div>
-                        {(selectedEvent.datasource_type === "Prometheus" || selectedEvent.datasource_type === "VictoriaMetrics") && (
+                        {selectedEvent.datasource_type === "Prometheus" && (
                             <div style={{
                                     marginLeft: '-20px',
                                 }}

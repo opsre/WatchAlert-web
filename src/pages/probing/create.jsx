@@ -190,9 +190,9 @@ export const CreateProbingRule = ({ type }) => {
         try {
             setDatasourceLoading(true)
             const res = await getDatasourceList()
-            // Filter for Prometheus and VictoriaMetrics data sources
+            // Filter for Prometheus data sources
             const filteredData = res.data.filter(item => 
-                (item.type === "Prometheus" || item.type === "VictoriaMetrics") && item.write.enabled === "On"
+                item.type === "Prometheus" && item.write.enabled === "On"
             )
             const newData = filteredData.map((item) => ({
                 label: `${item.name} (${item.type})`,
@@ -549,7 +549,7 @@ export const CreateProbingRule = ({ type }) => {
                         >
                             <Select 
                                 allowClear 
-                                placeholder="选择数据源 (支持 Prometheus 和 VictoriaMetrics)" 
+                                placeholder="选择数据源 (支持 Prometheus)" 
                                 options={datasourceOptions}
                                 showSearch
                                 optionFilterProp="label"

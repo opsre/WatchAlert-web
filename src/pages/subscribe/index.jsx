@@ -7,7 +7,6 @@ import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
 import { ReactComponent as AwsImg } from "../alert/rule/img/AWSlogo.svg"
 import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
-import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
@@ -45,9 +44,6 @@ export const Subscribe = () => {
                         )}
                         {text === "AliCloudSLS" && (
                             <AlicloudImg style={{ height: "25px", width: "25px" }} />
-                        )}
-                        {text === "VictoriaMetrics" && (
-                            <VMImg style={{ height: "25px", width: "25px" }} />
                         )}
                         {text === "KubernetesEvent" && (
                             <K8sImg style={{ height: "25px", width: "25px" }} />

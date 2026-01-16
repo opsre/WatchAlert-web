@@ -896,7 +896,7 @@ const FlowContent = ({ detailData, topologyId }) => {
   const handleGetDatasourceList = useCallback(async (nodeToEdit) => {
     try {
       const params = {
-        type: 'Prometheus,VictoriaMetrics'
+        type: 'Prometheus'
       };
       const res = await getDatasourceList(params);
       const newData = res.data?.map((item) => ({

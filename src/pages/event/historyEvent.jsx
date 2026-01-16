@@ -42,7 +42,7 @@ import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
 import { ReactComponent as AwsImg } from "../alert/rule/img/AWSlogo.svg"
 import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
-import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
+
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
@@ -112,7 +112,6 @@ export const AlertHistoryEvent = (props) => {
 
     const logoMap = {
         Prometheus: <PrometheusImg style={{ width: 18, height: 18 }} />,
-        VictoriaMetrics: <VMImg style={{ width: 16, height: 16 }} />,
         AliCloudSLS: <AlicloudImg style={{ width: 16, height: 16 }} />,
         Jaeger: <JaegerImg style={{ width: 16, height: 16 }} />,
         CloudWatch: <AwsImg style={{ width: 16, height: 16 }} />,
@@ -714,7 +713,6 @@ export const AlertHistoryEvent = (props) => {
                     onChange={handleDataSourceChange}
                     options={[
                         { value: "Prometheus", label: "Prometheus" },
-                        { value: "VictoriaMetrics", label: "VictoriaMetrics" },
                         { value: "AliCloudSLS", label: "AliCloudSLS" },
                         { value: "Jaeger", label: "Jaeger" },
                         { value: "Loki", label: "Loki" },

@@ -33,7 +33,7 @@ import AlicloudImg from "./img/alicloud.svg"
 import JaegerImg from "./img/jaeger.svg"
 import AwsImg from "./img/AWSlogo.svg"
 import LokiImg from "./img/L.svg"
-import VMImg from "./img/victoriametrics.svg"
+
 import K8sImg from "./img/Kubernetes.svg"
 import ESImg from "./img/ElasticSearch.svg"
 import VLogImg from "./img/victorialogs.svg"
@@ -155,11 +155,10 @@ export const AlertRule = ({ type }) => {
         AliCloudSLS: 2,
         Jaeger: 3,
         CloudWatch: 4,
-        VictoriaMetrics: 5,
-        KubernetesEvent: 6,
-        ElasticSearch: 7,
-        VictoriaLogs: 8,
-        ClickHouse: 9,
+        KubernetesEvent: 5,
+        ElasticSearch: 6,
+        VictoriaLogs: 7,
+        ClickHouse: 8,
     };
     const datasourceCardMap = {
         0: "Prometheus",
@@ -167,11 +166,10 @@ export const AlertRule = ({ type }) => {
         2: "AliCloudSLS",
         3: "Jaeger",
         4: "CloudWatch",
-        5: "VictoriaMetrics",
-        6: "KubernetesEvent",
-        7: "ElasticSearch",
-        8: "VictoriaLogs",
-        9: "ClickHouse",
+        5: "KubernetesEvent",
+        6: "ElasticSearch",
+        7: "VictoriaLogs",
+        8: "ClickHouse",
     }
 
     useEffect(() => {
@@ -582,10 +580,7 @@ export const AlertRule = ({ type }) => {
             imgSrc: AwsImg,
             text: 'CloudWatch',
         },
-        {
-            imgSrc: VMImg,
-            text: 'VictoriaMetrics',
-        },
+
         {
             imgSrc: K8sImg,
             text: 'KubernetesEvent',
@@ -1057,7 +1052,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItem>
                     </div>
 
-                    {(selectedType === 0 || selectedType === 5) &&
+                    {selectedType === 0 &&
                         <>
                             <span>规则配置</span>
                             <div className="rule-config-container">
@@ -1200,6 +1195,33 @@ export const AlertRule = ({ type }) => {
                         </>
                     }
 
+                    {selectedType === 1 &&
+                        <MyFormItemGroup prefix={['lokiConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <MyFormItem
+                                    name="logQL"
+                                    label="查询语句"
+                                    rules={[{required: true}]}
+                                >
+                                    <Input/>
+                                </MyFormItem>
+                                <MyFormItem
+                                    name="logScope"
+                                    label="查询区间"
+                                    rules={[{required: true}]}
+                                >
+                                    <InputNumber
+                                        style={{width: '100%'}}
+                                        addonAfter={'分钟'}
+                                        placeholder="10"
+                                        min={1}
+                                    />
+                                </MyFormItem>
+                            </div>
+                        </MyFormItemGroup>
+                    }
+
                     {selectedType === 2 &&
                         <MyFormItemGroup prefix={['alicloudSLSConfig']}>
                             <span>规则配置</span>
@@ -1309,33 +1331,6 @@ export const AlertRule = ({ type }) => {
                                 />
                             </MyFormItem>
 
-                        </MyFormItemGroup>
-                    }
-
-                    {selectedType === 1 &&
-                        <MyFormItemGroup prefix={['lokiConfig']}>
-                            <span>规则配置</span>
-                            <div className="log-rule-config-container">
-                                <MyFormItem
-                                    name="logQL"
-                                    label="查询语句"
-                                    rules={[{required: true}]}
-                                >
-                                    <Input/>
-                                </MyFormItem>
-                                <MyFormItem
-                                    name="logScope"
-                                    label="查询区间"
-                                    rules={[{required: true}]}
-                                >
-                                    <InputNumber
-                                        style={{width: '100%'}}
-                                        addonAfter={'分钟'}
-                                        placeholder="10"
-                                        min={1}
-                                    />
-                                </MyFormItem>
-                            </div>
                         </MyFormItemGroup>
                     }
 
@@ -1468,7 +1463,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 6 &&
+                    {selectedType === 5 &&
                         <MyFormItemGroup prefix={['kubernetesConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -1561,7 +1556,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 7 &&
+                    {selectedType === 6 &&
                         <MyFormItemGroup prefix={['elasticSearchConfig']}>
                             {/*<div style={{display: 'flex', gap: '10px'}}>*/}
                                 {/*<MyFormItem*/}
@@ -1739,7 +1734,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 8 &&
+                    {selectedType === 7 &&
                         <MyFormItemGroup prefix={['victoriaLogsConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -1782,7 +1777,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 9 &&
+                    {selectedType === 8 &&
                         <MyFormItemGroup prefix={['clickhouseConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">

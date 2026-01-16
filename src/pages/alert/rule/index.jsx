@@ -24,7 +24,6 @@ import { ReactComponent as AlicloudImg } from "./img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "./img/jaeger.svg"
 import { ReactComponent as AwsImg } from "./img/AWSlogo.svg"
 import { ReactComponent as LokiImg } from "./img/L.svg"
-import { ReactComponent as VMImg } from "./img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "./img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "./img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "./img/victorialogs.svg"
@@ -189,7 +188,6 @@ export const AlertRuleList = () => {
                         {text === "Loki" && <LokiImg style={{ height: "25px", width: "25px" }} />}
                         {text === "Jaeger" && <JaegerImg style={{ height: "25px", width: "25px" }} />}
                         {text === "AliCloudSLS" && <AlicloudImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "VictoriaMetrics" && <VMImg style={{ height: "25px", width: "25px" }} />}
                         {text === "VictoriaLogs" && <VLogImg style={{ height: "25px", width: "25px" }} />}
                         {text === "KubernetesEvent" && <K8sImg style={{ height: "25px", width: "25px" }} />}
                         {text === "ElasticSearch" && <ESImg style={{ height: "25px", width: "25px" }} />}

@@ -61,12 +61,7 @@ const datasourceTypes = [
         icon: <CloudOutlined />,
         description: "AWS 监控和可观测性服务",
     },
-    {
-        value: "VictoriaMetrics",
-        label: "VictoriaMetrics",
-        icon: <DatabaseOutlined />,
-        description: "高性能时间序列数据库",
-    },
+    
     {
         value: "Kubernetes",
         label: "Kubernetes",
@@ -123,6 +118,13 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 value,
             }));
 
+            // 处理HTTP Headers
+            const headersArray = selectedRow.http?.headers ? 
+                Object.entries(selectedRow.http.headers).map(([key, value]) => ({
+                    key,
+                    value,
+                })) : [];
+
             setSelectedType(selectedRow.type)
             setWriteState(selectedRow.write.enabled)
             form.setFieldsValue({
@@ -131,7 +133,8 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 labels: labelsArray,
                 http: {
                     url: selectedRow.http.url,
-                    timeout: Number(selectedRow.http.timeout)
+                    timeout: Number(selectedRow.http.timeout),
+                    headers: headersArray  // 添加headers字段
                 },
                 write: {
                     enabled: selectedRow.enabled,
@@ -183,6 +186,14 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             return acc
         }, {})
 
+        // 格式化HTTP Headers
+        const formattedHttpHeaders = values?.http?.headers?.reduce((acc, { key, value }) => {
+            if (key) {
+                acc[key] = value
+            }
+            return acc
+        }, {})
+
         const params = {
             ...values,
             labels: formattedLabels,
@@ -193,6 +204,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             http: {
                 url: values?.http?.url,
                 timeout: Number(values?.http?.timeout),
+                headers: formattedHttpHeaders,  // 添加headers支持
             },
             write: {
                 enabled: writeState,
@@ -242,6 +254,14 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             return acc
         }, {})
 
+        // 格式化HTTP Headers
+        const formattedHttpHeaders = values?.http?.headers?.reduce((acc, { key, value }) => {
+            if (key) {
+                acc[key] = value
+            }
+            return acc
+        }, {})
+
         try {
             const params = {
                 ...values,
@@ -253,6 +273,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 http: {
                     url: values?.http?.url,
                     timeout: Number(values?.http?.timeout),
+                    headers: formattedHttpHeaders,  // 添加headers支持
                 },
             }
             await DatasourcePing(params)
@@ -421,7 +442,6 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 {(selectedType === "Prometheus" ||
                     selectedType === "Loki" ||
                     selectedType === "VictoriaLogs" ||
-                    selectedType === "VictoriaMetrics" ||
                     selectedType === "Jaeger" ||
                     selectedType === "ElasticSearch" ||
                     selectedType === "ClickHouse"
@@ -484,6 +504,65 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                 >
                                     <Input type={"number"} style={{ width: "100%" }} addonAfter={<span>秒</span>} placeholder="10" min={1} />
                                 </MyFormItem>
+
+                                {(selectedType !== "ElasticSearch") && (
+                                    <Form.List name={["http", "headers"]}>
+                                        {(fields, { add, remove }) => (
+                                            <>
+                                                <label style={{ display: "block", marginTop: "16px", marginBottom: "8px" }}>请求头</label>
+                                                {fields.map(({ key, name, ...restField }) => (
+                                                    <div
+                                                        key={key}
+                                                        style={{
+                                                            display: "flex",
+                                                            marginBottom: 8,
+                                                            gap: "8px",
+                                                            alignItems: "center",
+                                                        }}
+                                                    >
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, "key"]}
+                                                            style={{ flex: 1, width: "300px" }}
+                                                            rules={[{ required: true, message: "请输入请求头键" }]}
+                                                        >
+                                                            <Input placeholder="键 (例如: Content-Type)" />
+                                                        </Form.Item>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, "value"]}
+                                                            style={{ flex: 1, width: "300px" }}
+                                                            rules={[{ required: true, message: "请输入请求头值" }]}
+                                                        >
+                                                            <Input placeholder="值 (例如: application/json)" />
+                                                        </Form.Item>
+                                                        <MinusCircleOutlined
+                                                            style={{
+                                                                marginTop: "-25px",
+                                                                display: "flex",
+                                                                justifyContent: "center",
+                                                                alignItems: "center",
+                                                                cursor: "pointer",
+                                                            }}
+                                                            onClick={() => remove(name)}
+                                                        />
+                                                    </div>
+                                                ))}
+                                                <Form.Item>
+                                                    <Button
+                                                        type="dashed"
+                                                        onClick={() => add()}
+                                                        block
+                                                        icon={<PlusOutlined />}
+                                                        disabled={fields.length >= 10}
+                                                    >
+                                                        添加请求头
+                                                    </Button>
+                                                </Form.Item>
+                                            </>
+                                        )}
+                                    </Form.List>
+                                )}
                             </MyFormItemGroup>
                         )}
 
@@ -524,24 +603,15 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                             )}
                         </MyFormItemGroup>
 
-                        {(selectedType === "Prometheus" || selectedType === "VictoriaMetrics") && (
+                        {selectedType === "Prometheus" && (
                             <MyFormItemGroup prefix={["write"]}>
                                 <Divider orientation="left">Write</Divider>
-                                {selectedType === "Prometheus" && (
-                                    <Alert
-                                    message="提示：用于向该数据源写入指标数据，Prometheus需配置 --web.enable-remote-write-receive 参数。"
-                                    type="info"
-                                    showIcon
-                                    style={{ marginBottom: 20, marginTop: "10px" }}
-                                />
-                                ) || (
-                                    <Alert
-                                    message="提示：用于向该数据源写入指标数据。"
-                                    type="info"
-                                    showIcon
-                                    style={{ marginBottom: 20, marginTop: "10px" }}
-                                />
-                                )}
+                                <Alert
+                                message="提示：用于向该数据源写入指标数据，Prometheus需配置 --web.enable-remote-write-receive 参数。"
+                                type="info"
+                                showIcon
+                                style={{ marginBottom: 20, marginTop: "10px" }}
+                            />
                                 <Radio.Group
                                     block
                                     options={writeRadioOptions}
