@@ -205,8 +205,6 @@ export const ComponentSider = () => {
             
             /* 悬停效果 */
             .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) {
-                background: rgba(255, 153, 0, 0.1);
-                color: #FF9900;
                 transform: translateX(4px);
             }
             
