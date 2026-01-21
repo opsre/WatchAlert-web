@@ -286,7 +286,7 @@ const Components = (props) => {
                                             gap: "8px",
                                         }}
                                     >
-                                        <Button type="text" icon={<LeftOutlined />} onClick={goBackPage} style={{ padding: "4px" }} />
+                                        <Button type="text" icon={<LeftOutlined />} onClick={goBackPage} style={{ padding: "4px", color: "#8c8c8c" }} />
                                         <span style={{ fontSize: "14px", color: "#8c8c8c" }}>
                                             <HomeOutlined /> / {name}
                                         </span>
