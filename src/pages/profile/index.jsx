@@ -87,7 +87,7 @@ export default function Profile() {
                 title: '确认删除',
                 content: `确定要删除API密钥 "${record.name}" 吗？`,
                 onOk: async () => {
-                    await deleteAPIKey(record.id);
+                    await deleteAPIKey({ id: record.id });
                     message.success('API密钥删除成功');
                     fetchApiKeys();
                 },

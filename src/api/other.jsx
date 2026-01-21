@@ -67,9 +67,9 @@ async function updateAPIKey(params) {
     }
 }
 
-async function deleteAPIKey(id) {
+async function deleteAPIKey(params) {
     try {
-        const res = await http('post', `/api/w8t/apikey/delete/${id}`);
+        const res = await http('post', `/api/w8t/apikey/delete`, params);
         return res;
     } catch (error) {
         HandleApiError(error)
