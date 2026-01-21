@@ -418,7 +418,7 @@ export const ComponentSider = () => {
                     <img
                         src={logoIcon}
                         alt="WatchAlert Logo"
-                        style={{ width: "160px", height: "140px", borderRadius: "8px", marginLeft: "6px" }}
+                        style={{ width: "160px", height: "140px", borderRadius: "8px", marginLeft: "14px" }}
                     />
                 </div>
 
@@ -441,6 +441,7 @@ export const ComponentSider = () => {
                         cursor: 'pointer',
                         background: 'rgba(255, 255, 255, 0.1)',
                         marginBottom: '16px',
+                        marginLeft: '8px'
                     }}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';

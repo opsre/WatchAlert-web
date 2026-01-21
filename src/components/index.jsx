@@ -249,7 +249,7 @@ const Components = (props) => {
                     {/* 侧边栏 */}
                     <div
                         style={{
-                            width: "220px",
+                            width: "210px",
                             borderRadius: borderRadiusLG,
                             overflow: "hidden",
                             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
@@ -257,7 +257,7 @@ const Components = (props) => {
                             background: "#000000",
                         }}
                     >
-                        <div style={{ height: "100%", overflow: "auto", padding: "16px 0", marginLeft: "10px" }}>
+                        <div style={{ height: "100%", overflow: "auto", padding: "16px 0" }}>
                             <ComponentSider />
                         </div>
                     </div>
