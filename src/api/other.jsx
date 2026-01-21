@@ -46,9 +46,54 @@ async function queryRangePromMetrics(params) {
     }
 }
 
+// API Key Management Functions
+async function createAPIKey(params) {
+    try {
+        const res = await http('post', '/api/w8t/apikey/create', params);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
+async function updateAPIKey(params) {
+    try {
+        const res = await http('post', '/api/w8t/apikey/update', params);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
+async function deleteAPIKey(id) {
+    try {
+        const res = await http('post', `/api/w8t/apikey/delete/${id}`);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
+async function listAPIKeys(params) {
+    try {
+        const res = await http('get', '/api/w8t/apikey/list', params);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
 export {
     getDashboardInfo,
     getJaegerService,
     queryPromMetrics,
-    queryRangePromMetrics
+    queryRangePromMetrics,
+    createAPIKey,
+    updateAPIKey,
+    deleteAPIKey,
+    listAPIKeys
 }
