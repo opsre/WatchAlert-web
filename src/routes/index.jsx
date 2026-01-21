@@ -47,19 +47,19 @@ export default [
     },
     {
         path: '/ruleGroup',
-        element: <ComponentsContent name="告警规则组" c={<AlertRuleGroup />} />,
+        element: <ComponentsContent name="告警管理 / 告警规则组" c={<AlertRuleGroup />} />,
     },
     {
         path: '/ruleGroup/:id/rule/list',
-        element: <ComponentsContent name="告警规则" c={<AlertRuleList />} />
+        element: <ComponentsContent name="告警管理 / 告警规则" c={<AlertRuleList />} />
     },
     {
         path: '/ruleGroup/:id/rule/add',
-        element: <ComponentsContent name="添加告警规则" c={<AlertRule type="add"/>} />
+        element: <ComponentsContent name="告警管理 / 添加告警规则" c={<AlertRule type="add"/>} />
     },
     {
         path: '/ruleGroup/:id/rule/:ruleId/edit',
-        element: <ComponentsContent name="编辑告警规则" c={<AlertRule type="edit"/>} />
+        element: <ComponentsContent name="告警管理 / 编辑告警规则" c={<AlertRule type="edit"/>} />
     },
     {
         path: '/silenceRules',
@@ -67,23 +67,23 @@ export default [
     },
     {
         path: '/tmplType/:tmplType/group',
-        element: <ComponentsContent name="规则模版组" c={<RuleTemplateGroup />} />,
+        element: <ComponentsContent name="告警管理 / 规则模版组" c={<RuleTemplateGroup />} />,
     },
     {
         path: '/tmplType/:tmplType/:ruleGroupName/templates',
-        element: <ComponentsContent name="规则模版" c={<RuleTemplate />} />
+        element: <ComponentsContent name="告警管理 / 规则模版" c={<RuleTemplate />} />
     },
     {
         path: '/noticeObjects',
-        element: <ComponentsContent name="通知对象" c={<NoticeObjects />} />
+        element: <ComponentsContent name="通知管理 / 通知对象" c={<NoticeObjects />} />
     },
     {
         path: '/noticeTemplate',
-        element: <ComponentsContent name="通知模版" c={<NoticeTemplate />} />
+        element: <ComponentsContent name="通知管理 / 通知模版" c={<NoticeTemplate />} />
     },
     {
         path: '/noticeRecords',
-        element: <ComponentsContent name="通知记录" c={<NoticeRecords />} />
+        element: <ComponentsContent name="通知管理 / 通知记录" c={<NoticeRecords />} />
     },
     {
         path: '/dutyManage',
@@ -91,15 +91,15 @@ export default [
     },
     {
         path: '/dutyManage/:id/calendar',
-        element: <ComponentsContent name="值班表" c={<CalendarApp />} />
+        element: <ComponentsContent name="值班中心 / 值班表" c={<CalendarApp />} />
     },
     {
         path: '/user',
-        element: <ComponentsContent name="用户管理" c={<User />} />
+        element: <ComponentsContent name="人员组织 / 用户管理" c={<User />} />
     },
     {
         path: '/userRole',
-        element: <ComponentsContent name="角色管理" c={<UserRole />} />
+        element: <ComponentsContent name="人员组织 / 角色管理" c={<UserRole />} />
     },
     {
         path: '/tenants',
@@ -107,7 +107,7 @@ export default [
     },
     {
         path: '/tenants/detail/:id',
-        element: <ComponentsContent name="租户" c={<TenantDetail/>} />
+        element: <ComponentsContent name="租户管理 / 租户" c={<TenantDetail/>} />
     },
     {
         path: '/datasource',
@@ -115,15 +115,15 @@ export default [
     },
     {
         path: '/folders',
-        element: <ComponentsContent name="仪表盘目录" c={<DashboardFolder />} />
+        element: <ComponentsContent name="仪表盘" c={<DashboardFolder />} />
     },
     {
         path: '/folder/:id/list',
-        element: <ComponentsContent name="仪表盘" c={<Dashboards />} />
+        element: <ComponentsContent name="仪表盘 / 目录" c={<Dashboards />} />
     },
     {
         path: 'dashboard/f/:fid/g/:did/info',
-        element: <ComponentsContent name="仪表盘详情" c={<GrafanaDashboardComponent />} />
+        element: <ComponentsContent name="仪表盘 / 详情" c={<GrafanaDashboardComponent />} />
     },
     {
         path: '/auditLog',
@@ -135,31 +135,31 @@ export default [
     },
     {
         path: '/onceProbing',
-        element: <ComponentsContent name="即时拨测" c={<OnceProbing/>} />
+        element: <ComponentsContent name="网络分析 / 即时拨测" c={<OnceProbing/>} />
     },
     {
         path: '/probing',
-        element: <ComponentsContent name="拨测任务" c={<Probing/>} />
+        element: <ComponentsContent name="网络分析 / 拨测任务" c={<Probing/>} />
     },
     {
         path: '/probing/create',
-        element: <ComponentsContent name="创建拨测规则" c={<CreateProbingRule type="add"/>} />
+        element: <ComponentsContent name="网络分析 / 创建拨测规则" c={<CreateProbingRule type="add"/>} />
     },
     {
         path: '/probing/:id/edit',
-        element: <ComponentsContent name="编辑拨测规则" c={<CreateProbingRule type="edit"/>} />
+        element: <ComponentsContent name="网络分析 / 编辑拨测规则" c={<CreateProbingRule type="edit"/>} />
     },
     {
         path: '/probing/:id/detail',
-        element: <ComponentsContent name="拨测详情" c={<ProbingMetrics />} />
+        element: <ComponentsContent name="网络分析 / 拨测详情" c={<ProbingMetrics />} />
     },
     {
         path: '/subscribes',
-        element: <ComponentsContent name="告警订阅" c={<Subscribe />} />
+        element: <ComponentsContent name="告警管理 / 告警订阅" c={<Subscribe />} />
     },
     {
         path: '/subscribe/create',
-        element: <ComponentsContent name="添加订阅" c={<CreateSubscribeModel />} />
+        element: <ComponentsContent name="告警管理 / 添加订阅" c={<CreateSubscribeModel />} />
     },
     {
         path: '/profile',
@@ -171,7 +171,7 @@ export default [
     },
     {
         path: '/faultCenter/detail/:id',
-        element: <ComponentsContent name="故障中心详情" c={<FaultCenterDetail />} />
+        element: <ComponentsContent name="故障中心 / 详情" c={<FaultCenterDetail />} />
     },
     {
         path: '/topology',
@@ -179,7 +179,7 @@ export default [
     },
     {
         path: '/topology/:id/detail',
-        element: <ComponentsContent name="拓扑详情" c={<TopologyDetail />} />
+        element: <ComponentsContent name="服务拓扑 / 拓扑详情" c={<TopologyDetail />} />
     },
     {
         path: '/*',

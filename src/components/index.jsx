@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import {Layout, theme, Button, Typography, Spin, Result} from "antd"
-import { LeftOutlined, LoadingOutlined } from "@ant-design/icons"
+import { LeftOutlined, LoadingOutlined, HomeOutlined } from "@ant-design/icons"
 import "./index.css"
 import { ComponentSider } from "./sider"
 import Auth from "../utils/Auth"
@@ -287,9 +287,9 @@ const Components = (props) => {
                                         }}
                                     >
                                         <Button type="text" icon={<LeftOutlined />} onClick={goBackPage} style={{ padding: "4px" }} />
-                                        <Typography.Title level={4} style={{ margin: 0, fontSize: "16px" }}>
-                                            {name}
-                                        </Typography.Title>
+                                        <span style={{ fontSize: "14px", color: "#8c8c8c" }}>
+                                            <HomeOutlined /> / {name}
+                                        </span>
                                     </div>
                                 )}
 
