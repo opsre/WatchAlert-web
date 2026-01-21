@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { message } from "antd"
 import axios from "axios"
@@ -11,8 +11,7 @@ const Auth = (WrappedComponent) => {
     // Return a new component
     return function WithAuthComponent(props) {
         const navigate = useNavigate()
-        const [errorCount, setErrorCount] = useState(0)
-
+        
         // Check if user is logged in
         useEffect(() => {
             const checkUser = async () => {
@@ -34,21 +33,21 @@ const Auth = (WrappedComponent) => {
             checkUser()
         }, [navigate])
 
-        // Set global request headers
+        // Set global request headers and response interceptor
         useEffect(() => {
             const token = localStorage.getItem("Authorization")
             if (token) {
                 axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
             }
-        }, [])
-
-        // Response interceptor
-        useEffect(() => {
+            
             const interceptor = axios.interceptors.response.use(
                 (response) => response,
                 (error) => {
                     if (error.response?.status === 401) {
-                        setErrorCount((prevCount) => prevCount + 1)
+                        // Clear local storage and redirect to login
+                        localStorage.clear()
+                        navigate("/login")
+                        message.error("登录已过期，请重新登录")
                     }
                     return Promise.reject(error)
                 }
@@ -57,16 +56,7 @@ const Auth = (WrappedComponent) => {
             return () => {
                 axios.interceptors.response.eject(interceptor) // Clean up interceptor
             }
-        }, [])
-
-        // Check error count and show message
-        useEffect(() => {
-            if (errorCount > 0) {
-                localStorage.clear()
-                navigate("/login") // Redirect to login page
-                message.error("登录已过期，请重新登录")
-            }
-        }, [errorCount, navigate])
+        }, [navigate])
 
         // Render the wrapped component with all props
         return <WrappedComponent {...props} />
