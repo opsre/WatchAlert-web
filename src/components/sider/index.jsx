@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
     UserOutlined,
     BellOutlined,
@@ -119,14 +119,14 @@ export const ComponentSider = () => {
         token: { colorBgContainer },
     } = theme.useToken()
 
-    const handleMenuClick = (key, path) => {
+    const handleMenuClick = useCallback((key, path) => {
         if (path) {
             setSelectedMenuKey(key);
             navigate(path);
         }
-    };
+    }, [navigate]);
 
-    const convertToMenuItems = (items) => {
+    const convertToMenuItems = useCallback((items) => {
         return items.map(item => {
             if (item.children) {
                 return {
@@ -147,7 +147,9 @@ export const ComponentSider = () => {
                 onClick: () => handleMenuClick(item.key, item.path),
             };
         });
-    };
+    }, [handleMenuClick]);
+
+    const menuItems = useMemo(() => convertToMenuItems(userInfo?.role === 'admin' ? adminMenuItems : userMenuItems), [userInfo, convertToMenuItems]);
 
     const handleLogout = () => {
         localStorage.clear()
@@ -180,104 +182,104 @@ export const ComponentSider = () => {
         style.textContent = `
             /* 主菜单项样式 */
             .ant-menu-dark .ant-menu-item {
-                color: #CCCCCC !important;
-                border-radius: 8px !important;
-                margin: 4px 8px !important;
-                padding: 0 16px !important;
-                height: 44px !important;
-                line-height: 44px !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                color: #CCCCCC;
+                border-radius: 8px;
+                margin: 4px 8px;
+                padding: 0 16px;
+                height: 44px;
+                line-height: 44px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
             /* 选中状态 - 橙色渐变背景 */
             .ant-menu-dark .ant-menu-item-selected {
-                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%) !important;
-                color: #000 !important;
-                font-weight: 600 !important;
-                box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3) !important;
+                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%);
+                color: #000;
+                font-weight: 600;
+                box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
             }
             
             .ant-menu-dark .ant-menu-item-selected .ant-menu-item-icon {
-                color: #000 !important;
+                color: #000;
             }
             
             /* 悬停效果 */
             .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) {
-                background: rgba(255, 153, 0, 0.1) !important;
-                color: #FF9900 !important;
-                transform: translateX(4px) !important;
+                background: rgba(255, 153, 0, 0.1);
+                color: #FF9900;
+                transform: translateX(4px);
             }
             
             .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) .ant-menu-item-icon {
-                color: #FF9900 !important;
+                color: #FF9900;
             }
             
             /* 子菜单样式 */
             .ant-menu-dark .ant-menu-submenu-title {
-                color: #CCCCCC !important;
-                border-radius: 8px !important;
-                margin: 4px 8px !important;
-                padding: 0 16px !important;
-                height: 44px !important;
-                line-height: 44px !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                color: #CCCCCC;
+                border-radius: 8px;
+                margin: 4px 8px;
+                padding: 0 16px;
+                height: 44px;
+                line-height: 44px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
             .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
-                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%) !important;
-                color: #000 !important;
-                font-weight: 600 !important;
-                box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3) !important;
+                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%);
+                color: #000;
+                font-weight: 600;
+                box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
             }
             
             .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title .ant-menu-submenu-arrow {
-                color: #000 !important;
+                color: #000;
             }
             
             .ant-menu-dark .ant-menu-submenu-title:hover:not(.ant-menu-submenu-selected) {
-                background: rgba(255, 153, 0, 0.1) !important;
-                color: #FF9900 !important;
-                transform: translateX(4px) !important;
+                background: rgba(255, 153, 0, 0.1);
+                color: #FF9900;
+                transform: translateX(4px);
             }
             
             .ant-menu-dark .ant-menu-submenu-title:hover:not(.ant-menu-submenu-selected) .ant-menu-submenu-arrow {
-                color: #FF9900 !important;
+                color: #FF9900;
             }
             
             /* 子菜单内容 */
             .ant-menu-dark .ant-menu-sub {
-                background: rgba(0, 0, 0, 0.8) !important;
-                border-radius: 8px !important;
-                margin: 4px 16px !important;
-                padding: 8px 0 !important;
-                backdrop-filter: blur(10px) !important;
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 8px;
+                margin: 4px 16px;
+                padding: 8px 0;
+                backdrop-filter: blur(10px);
             }
             
             .ant-menu-dark .ant-menu-sub .ant-menu-item {
-                margin: 2px 8px !important;
-                padding-left: 24px !important;
-                height: 36px !important;
-                line-height: 36px !important;
-                font-size: 13px !important;
+                margin: 2px 8px;
+                padding-left: 24px;
+                height: 36px;
+                line-height: 36px;
+                font-size: 13px;
             }
             
             /* 滚动条样式 */
             .ant-layout-sider-children::-webkit-scrollbar {
-                width: 6px !important;
+                width: 6px;
             }
             
             .ant-layout-sider-children::-webkit-scrollbar-track {
-                background: rgba(255, 255, 255, 0.1) !important;
-                border-radius: 3px !important;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 3px;
             }
             
             .ant-layout-sider-children::-webkit-scrollbar-thumb {
-                background: #FF9900 !important;
-                border-radius: 3px !important;
+                background: #FF9900;
+                border-radius: 3px;
             }
             
             .ant-layout-sider-children::-webkit-scrollbar-thumb:hover {
-                background: #FFB84D !important;
+                background: #FFB84D;
             }
         `;
         document.head.appendChild(style);
@@ -441,10 +443,14 @@ export const ComponentSider = () => {
                         cursor: 'pointer',
                         background: 'rgba(255, 255, 255, 0.1)',
                         marginBottom: '16px',
-                        ':hover': {
-                            background: 'rgba(255, 255, 255, 0.2)',
-                        }
-                    }}>
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    >
                         <TeamOutlined style={{color: '#fff', fontSize: '14px', marginRight: '8px'}}/>
                         <Typography.Text
                             style={{color: '#fff', fontSize: '14px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis'}}>
@@ -479,7 +485,7 @@ export const ComponentSider = () => {
                     mode="inline"
                     selectedKeys={[selectedMenuKey]}
                     style={{ background: 'transparent'}}
-                    items={convertToMenuItems(userInfo?.role === 'admin' ? adminMenuItems : userMenuItems)}
+                    items={menuItems}
                 />
             </div>
 
