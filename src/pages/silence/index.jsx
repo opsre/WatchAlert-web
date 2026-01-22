@@ -400,7 +400,7 @@ export const Silences = (props) => {
                     columns={columns}
                     dataSource={list}
                     loading={loading}
-                    scroll={{ y: height - 300 }}
+                    scroll={{ y: height - 250 }}
                     pagination={{
                         current: pagination.index,
                         pageSize: pagination.size,

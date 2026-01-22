@@ -313,7 +313,7 @@ export const Probing = () => {
                     dataSource={dataList}
                     loading={loading}
                     scroll={{
-                        y: height - 280,
+                        y: height - 250,
                         x: 'max-content',
                     }}
                     style={{

@@ -311,7 +311,7 @@ export const NoticeRecords = ({ noticeObjectId }) => {
                 dataSource={list}
                 loading={loading}
                 scroll={{
-                    y: height - 280,
+                    y: height - 250,
                     x: "max-content",
                 }}
                 pagination={{

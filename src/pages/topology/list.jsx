@@ -321,7 +321,7 @@ const List = () => {
                     updatePagination(newPagination)
                     handleList(index, size);
                 }}
-                scrollY={'calc(100vh - 300px)'}
+                scrollY={'calc(100vh - 270px)'}
                 rowKey="id"
                 showTotal={HandleShowTotal}
                 selectAll={true}

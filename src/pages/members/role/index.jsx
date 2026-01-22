@@ -179,7 +179,7 @@ export const UserRole = () => {
                     columns={columns}
                     dataSource={list}
                     scroll={{
-                        y: height - 280, // 动态设置滚动高度
+                        y: height - 250, // 动态设置滚动高度
                         x: 'max-content', // 水平滚动
                     }}
                     style={{
