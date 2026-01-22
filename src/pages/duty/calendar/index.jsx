@@ -8,6 +8,8 @@ import { searchCalendar } from "../../../api/duty"
 import { useParams } from "react-router-dom"
 import {CreateCalendarModal} from "./CreateCalendar";
 import {PlusOutlined, ReloadOutlined} from "@ant-design/icons";
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
 
 export const fetchDutyData = async (dutyId, year, month) => {
     try {
@@ -279,6 +281,7 @@ export const CalendarApp = ({ tenantId }) => {
 
     return (
         <div>
+            <Breadcrumb items={['值班中心', '详情']} />
             <Spin spinning={loading} tip="加载中..." className="custom-spin">
                 {/* Header Section */}
                 <div className="flex items-center justify-between mb-8">

@@ -7,6 +7,8 @@ import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-des
 import {HandleShowTotal} from "../../../utils/lib";
 import {Link} from "react-router-dom";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
 
 const { Search } = Input;
 
@@ -172,6 +174,7 @@ export const User = () => {
 
     return (
         <>
+            <Breadcrumb items={['人员组织', '用户管理']} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Search
                     allowClear

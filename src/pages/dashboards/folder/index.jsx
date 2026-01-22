@@ -10,6 +10,8 @@ import CreateFolderModal from './create';
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
 
 export const DashboardFolder = () => {
     const { Search } = Input
@@ -181,6 +183,7 @@ export const DashboardFolder = () => {
 
     return (
         <>
+            <Breadcrumb items={['仪表盘']} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
                     <Search

@@ -4,6 +4,7 @@ import "./index.css";
 import { getSystemSetting, saveSystemSetting } from "../../api/settings";
 import TextArea from "antd/es/input/TextArea";
 import {getRoleList} from "../../api/role";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 // 表单上下文
 const MyFormItemContext = React.createContext([]);
@@ -276,322 +277,325 @@ export const SystemSettings = () => {
     const segmentedOptions = ['系统认证', 'LDAP 认证', 'OIDC 认证'];
 
     return (
-        <div style={{ display: 'flex', width: '100%' }}>
-            <div style={{ width: '90%', alignItems: 'flex-start', textAlign: 'start', marginTop: '-20px', height: '90%', overflowY: 'auto' }}>
-                <Form form={form} name="form_item_path" layout="vertical" onFinish={handleSave}>
-                    <section id="email">
-                        <Typography.Title level={5}>邮箱配置</Typography.Title>
-                        <p style={helpTextStyle}>• 用于推送邮件告警消息；</p>
-                        <MyFormItemGroup prefix={['emailConfig']}>
-                            <MyFormItem
-                                name="serverAddress"
-                                label="邮箱服务器"
-                                rules={[
-                                    { type: 'host', message: '请输入有效的服务器地址' }
-                                ]}
-                            >
-                                <Input placeholder="请输入邮箱所属服务器地址，如：smtp.gmail.com"/>
-                            </MyFormItem>
-                            <MyFormItem
-                                name="port"
-                                label="邮箱服务器端口"
-                                rules={[
-                                    { pattern: /^\d+$/, message: '端口必须为数字' }
-                                ]}
-                            >
-                                <Input
-                                    type="number"
-                                    min={1}
-                                    max={65535}
-                                    placeholder="请输入端口号，如：587 或 465"
-                                    style={formItemStyle}
-                                />
-                            </MyFormItem>
-                            <MyFormItem
-                                name="email"
-                                label="邮箱账号"
-                                rules={[
-                                    { type: 'email', message: '请输入有效的邮箱地址' }
-                                ]}
-                            >
-                                <Input placeholder="请输入邮箱地址，如：user@example.com"/>
-                            </MyFormItem>
-                            <MyFormItem name="token" label="授权码">
-                                <Input.Password placeholder="请输入邮箱授权码"/>
-                            </MyFormItem>
-                        </MyFormItemGroup>
-                    </section>
+        <>
+            <Breadcrumb items={['系统设置']} />
+            <div style={{ display: 'flex', width: '100%' }}>
+                <div style={{ width: '90%', alignItems: 'flex-start', textAlign: 'start', height: '90%', overflowY: 'auto' }}>
+                    <Form form={form} name="form_item_path" layout="vertical" onFinish={handleSave}>
+                        <section id="email">
+                            <Typography.Title level={5}>邮箱配置</Typography.Title>
+                            <p style={helpTextStyle}>• 用于推送邮件告警消息；</p>
+                            <MyFormItemGroup prefix={['emailConfig']}>
+                                <MyFormItem
+                                    name="serverAddress"
+                                    label="邮箱服务器"
+                                    rules={[
+                                        { type: 'host', message: '请输入有效的服务器地址' }
+                                    ]}
+                                >
+                                    <Input placeholder="请输入邮箱所属服务器地址，如：smtp.gmail.com"/>
+                                </MyFormItem>
+                                <MyFormItem
+                                    name="port"
+                                    label="邮箱服务器端口"
+                                    rules={[
+                                        { pattern: /^\d+$/, message: '端口必须为数字' }
+                                    ]}
+                                >
+                                    <Input
+                                        type="number"
+                                        min={1}
+                                        max={65535}
+                                        placeholder="请输入端口号，如：587 或 465"
+                                        style={formItemStyle}
+                                    />
+                                </MyFormItem>
+                                <MyFormItem
+                                    name="email"
+                                    label="邮箱账号"
+                                    rules={[
+                                        { type: 'email', message: '请输入有效的邮箱地址' }
+                                    ]}
+                                >
+                                    <Input placeholder="请输入邮箱地址，如：user@example.com"/>
+                                </MyFormItem>
+                                <MyFormItem name="token" label="授权码">
+                                    <Input.Password placeholder="请输入邮箱授权码"/>
+                                </MyFormItem>
+                            </MyFormItemGroup>
+                        </section>
 
-                    <section id="ai">
-                        <Typography.Title level={5}>AI 能力</Typography.Title>
-                        <MyFormItemGroup prefix={['aiConfig']}>
-                            <MyFormItem name="enable">
-                                <Radio.Group
-                                    block
-                                    options={radioOptions}
-                                    value={enableAi}
-                                    onChange={handleAiEnableChange}
-                                />
-                            </MyFormItem>
+                        <section id="ai">
+                            <Typography.Title level={5}>AI 能力</Typography.Title>
+                            <MyFormItemGroup prefix={['aiConfig']}>
+                                <MyFormItem name="enable">
+                                    <Radio.Group
+                                        block
+                                        options={radioOptions}
+                                        value={enableAi}
+                                        onChange={handleAiEnableChange}
+                                    />
+                                </MyFormItem>
 
-                            {enableAi === true && (
-                                <>
-                                    <MyFormItem
-                                        name="url"
-                                        label="接口地址"
-                                        rules={[
-                                            { required: true, message: '请输入AI接口地址' },
-                                            { type: 'url', message: '请输入有效的URL地址' }
-                                        ]}
-                                    >
-                                        <Input placeholder="AI 接口地址，必须包含 http(s)://"/>
-                                    </MyFormItem>
-                                    <MyFormItem
-                                        name="appKey"
-                                        label="密钥"
-                                        rules={[{ required: true, message: '请输入API密钥' }]}
-                                    >
-                                        <Input.Password placeholder="请输入API密钥"/>
-                                    </MyFormItem>
-                                    <MyFormItem
-                                        name="model"
-                                        label="模型"
-                                        rules={[{ required: true, message: '请输入AI模型名称' }]}
-                                    >
-                                        <Input
-                                            style={{width: '100%'}}
-                                            placeholder="请输入AI模型名称，如：gpt-3.5-turbo"
-                                        />
-                                    </MyFormItem>
-                                    <MyFormItem
-                                        name="timeout"
-                                        label="超时时间（秒）"
-                                        rules={[
-                                            { required: true, message: '请输入超时时间' },
-                                            { pattern: /^\d+$/, message: '超时时间必须为正整数' }
-                                        ]}
-                                    >
-                                        <Input type="number" min={1} placeholder="请输入超时时间"/>
-                                    </MyFormItem>
-                                    <MyFormItem
-                                        name="maxTokens"
-                                        label="最大 Token 数"
-                                        rules={[
-                                            { required: true, message: '请输入最大Token数' },
-                                            { pattern: /^\d+$/, message: 'Token数必须为正整数' }
-                                        ]}
-                                    >
-                                        <Input type="number" min={1} placeholder="请输入最大Token数"/>
-                                    </MyFormItem>
-                                    <MyFormItem
-                                        name="prompt"
-                                        label="自定义提示词"
-                                        rules={[{ required: true, message: '请输入提示词' }]}
-                                    >
-                                        <TextArea rows={15} placeholder="请输入自定义提示词"/>
-                                    </MyFormItem>
-                                </>
+                                {enableAi === true && (
+                                    <>
+                                        <MyFormItem
+                                            name="url"
+                                            label="接口地址"
+                                            rules={[
+                                                { required: true, message: '请输入AI接口地址' },
+                                                { type: 'url', message: '请输入有效的URL地址' }
+                                            ]}
+                                        >
+                                            <Input placeholder="AI 接口地址，必须包含 http(s)://"/>
+                                        </MyFormItem>
+                                        <MyFormItem
+                                            name="appKey"
+                                            label="密钥"
+                                            rules={[{ required: true, message: '请输入API密钥' }]}
+                                        >
+                                            <Input.Password placeholder="请输入API密钥"/>
+                                        </MyFormItem>
+                                        <MyFormItem
+                                            name="model"
+                                            label="模型"
+                                            rules={[{ required: true, message: '请输入AI模型名称' }]}
+                                        >
+                                            <Input
+                                                style={{width: '100%'}}
+                                                placeholder="请输入AI模型名称，如：gpt-3.5-turbo"
+                                            />
+                                        </MyFormItem>
+                                        <MyFormItem
+                                            name="timeout"
+                                            label="超时时间（秒）"
+                                            rules={[
+                                                { required: true, message: '请输入超时时间' },
+                                                { pattern: /^\d+$/, message: '超时时间必须为正整数' }
+                                            ]}
+                                        >
+                                            <Input type="number" min={1} placeholder="请输入超时时间"/>
+                                        </MyFormItem>
+                                        <MyFormItem
+                                            name="maxTokens"
+                                            label="最大 Token 数"
+                                            rules={[
+                                                { required: true, message: '请输入最大Token数' },
+                                                { pattern: /^\d+$/, message: 'Token数必须为正整数' }
+                                            ]}
+                                        >
+                                            <Input type="number" min={1} placeholder="请输入最大Token数"/>
+                                        </MyFormItem>
+                                        <MyFormItem
+                                            name="prompt"
+                                            label="自定义提示词"
+                                            rules={[{ required: true, message: '请输入提示词' }]}
+                                        >
+                                            <TextArea rows={15} placeholder="请输入自定义提示词"/>
+                                        </MyFormItem>
+                                    </>
+                                )}
+                            </MyFormItemGroup>
+                        </section>
+
+                        <section id="auth">
+                            <Typography.Title level={5}>认证</Typography.Title>
+                            <Segmented
+                                value={alignValue}
+                                style={{ marginBottom: 8 }}
+                                onChange={setAlignValue}
+                                options={segmentedOptions}
+                            />
+
+                            {alignValue === 'LDAP 认证' && (
+                                <div
+                                    style={{
+                                        padding: "24px",
+                                        background: "#fff",
+                                        borderRadius: "12px",
+                                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
+                                        border: "1px solid #f0f0f0",
+                                        minHeight: "300px"
+                                    }}
+                                >
+                                    <MyFormItemGroup prefix={['ldapConfig']}>
+                                        <MyFormItem
+                                            name="address"
+                                            label="LDAP服务地址"
+                                            rules={[{required: true, message: '请输入LDAP服务地址'}]}
+                                        >
+                                            <Input placeholder="例如: 192.168.1.100:389 或 ldap.example.com:636"/>
+                                        </MyFormItem>
+
+                                        <MyFormItem
+                                            name="baseDN"
+                                            label="基础DN"
+                                            rules={[{required: true, message: '请输入基础DN'}]}
+                                        >
+                                            <Input placeholder="例如: dc=example,dc=com"/>
+                                        </MyFormItem>
+
+                                        <MyFormItem
+                                            name="adminUser"
+                                            label="管理员DN"
+                                            rules={[{required: true, message: '请输入管理员DN'}]}
+                                        >
+                                            <Input placeholder="例如: cn=admin,dc=example,dc=com"/>
+                                        </MyFormItem>
+
+                                        <MyFormItem
+                                            name="adminPass"
+                                            label="管理员密码"
+                                            rules={[{required: true, message: '请输入管理员密码'}]}
+                                        >
+                                            <Input.Password placeholder="请输入管理员密码"/>
+                                        </MyFormItem>
+
+                                        <MyFormItem
+                                            name="userDN"
+                                            label="用户DN"
+                                            rules={[{required: true, message: '请输入用户DN'}]}
+                                        >
+                                            <Input placeholder="例如: ou=users,dc=example,dc=com"/>
+                                        </MyFormItem>
+
+                                        <MyFormItem
+                                            name="userPrefix"
+                                            label="用户DN前缀"
+                                            rules={[{required: true, message: '请输入用户DN前缀'}]}
+                                        >
+                                            <Input placeholder="例如: uid 或 cn"/>
+                                        </MyFormItem>
+
+                                        <MyFormItem
+                                            name="defaultUserRole"
+                                            label="默认用户角色"
+                                            rules={[{required: true, message: '请选择默认用户角色'}]}
+                                        >
+                                            <Select
+                                                style={{width: '100%'}}
+                                                placeholder="请选择默认用户角色"
+                                                options={roleList}
+                                                loading={roleList.length === 0}
+                                            />
+                                        </MyFormItem>
+
+                                        <MyFormItem
+                                            name="cronjob"
+                                            label="定时任务"
+                                            rules={[{required: true, message: '请输入Cron表达式'}]}
+                                        >
+                                            <Input placeholder="例如: */30 * * * * (每30分钟执行一次)"/>
+                                        </MyFormItem>
+                                        <div style={helpTextStyle}>
+                                            <strong>格式:</strong> 分钟 小时 日期 月份 星期<br/>
+                                            <strong>常用示例:</strong><br/>
+                                            • */30 * * * * - 每30分钟执行一次<br/>
+                                            • 0 */2 * * * - 每2小时执行一次<br/>
+                                            • 0 9 * * 1-5 - 工作日上午9点执行<br/>
+                                            • 0 0 1 * * - 每月1号午夜执行
+                                        </div>
+
+                                    </MyFormItemGroup>
+                                </div>
                             )}
-                        </MyFormItemGroup>
-                    </section>
 
-                    <section id="auth">
-                        <Typography.Title level={5}>认证</Typography.Title>
-                        <Segmented
-                            value={alignValue}
-                            style={{ marginBottom: 8 }}
-                            onChange={setAlignValue}
-                            options={segmentedOptions}
-                        />
+                            {alignValue === 'OIDC 认证' && (
+                                <div 
+                                    style={{
+                                        padding: "24px",
+                                        background: "#fff",
+                                        borderRadius: "12px",
+                                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
+                                        border: "1px solid #f0f0f0",
+                                        minHeight: "300px"
+                                    }}
+                                >
+                                    <MyFormItemGroup prefix={['oidcConfig']}>
+                                        <MyFormItem
+                                            name="clientID"
+                                            label="客户端ID"
+                                            rules={[{required: true, message: '请输入客户端ID'}]}
+                                        >
+                                            <Input placeholder="例如: oidc"/>
+                                        </MyFormItem>
 
-                        {alignValue === 'LDAP 认证' && (
-                            <div
-                                style={{
-                                    padding: "24px",
-                                    background: "#fff",
-                                    borderRadius: "12px",
-                                    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
-                                    border: "1px solid #f0f0f0",
-                                    minHeight: "300px"
-                                }}
-                            >
-                                <MyFormItemGroup prefix={['ldapConfig']}>
-                                    <MyFormItem
-                                        name="address"
-                                        label="LDAP服务地址"
-                                        rules={[{required: true, message: '请输入LDAP服务地址'}]}
-                                    >
-                                        <Input placeholder="例如: 192.168.1.100:389 或 ldap.example.com:636"/>
-                                    </MyFormItem>
+                                        <MyFormItem
+                                            name="upperURI"
+                                            label="认证地址"
+                                            rules={[{required: true, message: '请输入跳转认证平台地址'}]}
+                                        >
+                                            <Input placeholder="例如: https://upper.watchalert.tech:5005"/>
+                                        </MyFormItem>
 
-                                    <MyFormItem
-                                        name="baseDN"
-                                        label="基础DN"
-                                        rules={[{required: true, message: '请输入基础DN'}]}
-                                    >
-                                        <Input placeholder="例如: dc=example,dc=com"/>
-                                    </MyFormItem>
+                                        <MyFormItem
+                                            name="redirectURI"
+                                            label="回调地址"
+                                            rules={[{required: true, message: '请输入CallBack地址'}]}
+                                        >
+                                            <Input placeholder="例如: http://w8t.watchalert.tech:3000/api/oidc/callback"/>
+                                        </MyFormItem>
+                                        
+                                        <MyFormItem
+                                            name="domain"
+                                            label="域名"
+                                            rules={[{required: true, message: '请输入统一域名'}]}
+                                        >
+                                            <Input placeholder="例如: watchalert.tech"/>
+                                        </MyFormItem>
+                                    </MyFormItemGroup>
+                                </div>
+                            )}
+                        </section>
 
-                                    <MyFormItem
-                                        name="adminUser"
-                                        label="管理员DN"
-                                        rules={[{required: true, message: '请输入管理员DN'}]}
-                                    >
-                                        <Input placeholder="例如: cn=admin,dc=example,dc=com"/>
-                                    </MyFormItem>
-
-                                    <MyFormItem
-                                        name="adminPass"
-                                        label="管理员密码"
-                                        rules={[{required: true, message: '请输入管理员密码'}]}
-                                    >
-                                        <Input.Password placeholder="请输入管理员密码"/>
-                                    </MyFormItem>
-
-                                    <MyFormItem
-                                        name="userDN"
-                                        label="用户DN"
-                                        rules={[{required: true, message: '请输入用户DN'}]}
-                                    >
-                                        <Input placeholder="例如: ou=users,dc=example,dc=com"/>
-                                    </MyFormItem>
-
-                                    <MyFormItem
-                                        name="userPrefix"
-                                        label="用户DN前缀"
-                                        rules={[{required: true, message: '请输入用户DN前缀'}]}
-                                    >
-                                        <Input placeholder="例如: uid 或 cn"/>
-                                    </MyFormItem>
-
-                                    <MyFormItem
-                                        name="defaultUserRole"
-                                        label="默认用户角色"
-                                        rules={[{required: true, message: '请选择默认用户角色'}]}
-                                    >
-                                        <Select
-                                            style={{width: '100%'}}
-                                            placeholder="请选择默认用户角色"
-                                            options={roleList}
-                                            loading={roleList.length === 0}
-                                        />
-                                    </MyFormItem>
-
-                                    <MyFormItem
-                                        name="cronjob"
-                                        label="定时任务"
-                                        rules={[{required: true, message: '请输入Cron表达式'}]}
-                                    >
-                                        <Input placeholder="例如: */30 * * * * (每30分钟执行一次)"/>
-                                    </MyFormItem>
-                                    <div style={helpTextStyle}>
-                                        <strong>格式:</strong> 分钟 小时 日期 月份 星期<br/>
-                                        <strong>常用示例:</strong><br/>
-                                        • */30 * * * * - 每30分钟执行一次<br/>
-                                        • 0 */2 * * * - 每2小时执行一次<br/>
-                                        • 0 9 * * 1-5 - 工作日上午9点执行<br/>
-                                        • 0 0 1 * * - 每月1号午夜执行
-                                    </div>
-
-                                </MyFormItemGroup>
+                        <section id="version">
+                            <Typography.Title level={5}>系统版本</Typography.Title>
+                            <div style={{
+                                padding: '8px 12px',
+                                background: '#f5f5f5',
+                                borderRadius: '4px',
+                                fontFamily: 'monospace'
+                            }}>
+                                {version || 'Unknown'}
                             </div>
-                        )}
+                        </section>
 
-                        {alignValue === 'OIDC 认证' && (
-                            <div 
-                                style={{
-                                    padding: "24px",
-                                    background: "#fff",
-                                    borderRadius: "12px",
-                                    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
-                                    border: "1px solid #f0f0f0",
-                                    minHeight: "300px"
-                                }}
+                        <section id="option"
+                                style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px'}}>
+                            <Popconfirm
+                                title="确认取消？"
+                                description="取消后修改的配置将不会保存！"
+                                onConfirm={handleCancel}
+                                okText="确认"
+                                cancelText="继续编辑"
                             >
-                                <MyFormItemGroup prefix={['oidcConfig']}>
-                                    <MyFormItem
-                                        name="clientID"
-                                        label="客户端ID"
-                                        rules={[{required: true, message: '请输入客户端ID'}]}
-                                    >
-                                        <Input placeholder="例如: oidc"/>
-                                    </MyFormItem>
+                                <Button type="dashed" disabled={loading}>取消</Button>
+                            </Popconfirm>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={loading}
+                                style={{ backgroundColor: '#000000' }}
+                            >
+                                {loading ? '保存中...' : '保存'}
+                            </Button>
+                        </section>
+                    </Form>
+                </div>
 
-                                    <MyFormItem
-                                        name="upperURI"
-                                        label="认证地址"
-                                        rules={[{required: true, message: '请输入跳转认证平台地址'}]}
-                                    >
-                                        <Input placeholder="例如: https://upper.watchalert.tech:5005"/>
-                                    </MyFormItem>
-
-                                    <MyFormItem
-                                        name="redirectURI"
-                                        label="回调地址"
-                                        rules={[{required: true, message: '请输入CallBack地址'}]}
-                                    >
-                                        <Input placeholder="例如: http://w8t.watchalert.tech:3000/api/oidc/callback"/>
-                                    </MyFormItem>
-                                    
-                                    <MyFormItem
-                                        name="domain"
-                                        label="域名"
-                                        rules={[{required: true, message: '请输入统一域名'}]}
-                                    >
-                                        <Input placeholder="例如: watchalert.tech"/>
-                                    </MyFormItem>
-                                </MyFormItemGroup>
-                            </div>
-                        )}
-                    </section>
-
-                    <section id="version">
-                        <Typography.Title level={5}>系统版本</Typography.Title>
-                        <div style={{
-                            padding: '8px 12px',
-                            background: '#f5f5f5',
-                            borderRadius: '4px',
-                            fontFamily: 'monospace'
-                        }}>
-                            {version || 'Unknown'}
-                        </div>
-                    </section>
-
-                    <section id="option"
-                             style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px'}}>
-                        <Popconfirm
-                            title="确认取消？"
-                            description="取消后修改的配置将不会保存！"
-                            onConfirm={handleCancel}
-                            okText="确认"
-                            cancelText="继续编辑"
-                        >
-                            <Button type="dashed" disabled={loading}>取消</Button>
-                        </Popconfirm>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            loading={loading}
-                            style={{ backgroundColor: '#000000' }}
-                        >
-                            {loading ? '保存中...' : '保存'}
-                        </Button>
-                    </section>
-                </Form>
-            </div>
-
-            <div className="systemSettingsAnchorContainer">
-                <Anchor
-                    affix
-                    items={[
-                        {key: '1', href: '#email', title: '邮箱配置'},
-                        {key: '2', href: '#ai', title: 'AI 能力'},
-                        {key: '3', href: '#auth', title: '认证'},
-                        {key: '999', href: '#version', title: '系统版本'},
-                        {key: '9999', href: '#option', title: '保存取消'},
-                    ]}
-                />
-            </div>
-        </div>
+                <div className="systemSettingsAnchorContainer">
+                    <Anchor
+                        affix
+                        items={[
+                            {key: '1', href: '#email', title: '邮箱配置'},
+                            {key: '2', href: '#ai', title: 'AI 能力'},
+                            {key: '3', href: '#auth', title: '认证'},
+                            {key: '999', href: '#version', title: '系统版本'},
+                            {key: '9999', href: '#option', title: '保存取消'},
+                        ]}
+                    />
+                </div>
+            </div>    
+        </>
     );
 };

@@ -7,6 +7,7 @@ import {FileText} from "lucide-react";
 import {HandleShowTotal} from "../../utils/lib";
 import {ReloadOutlined} from "@ant-design/icons";
 import { TableWithPagination } from "../../utils/TableWithPagination"
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 export const AuditLog = () => {
     const { Search } = Input
@@ -192,6 +193,7 @@ export const AuditLog = () => {
 
     return (
         <div>
+            <Breadcrumb items={['审计日志']} />
             <Drawer anchor="right" title="事件Body详情" onClose={onCloseDrawer} open={drawerOpen}>
                 <JsonViewer src={annotationsJson} displayObjectSize={false} />
             </Drawer>
@@ -255,7 +257,7 @@ export const AuditLog = () => {
                 pagination={pagination}
                 onPageChange={handlePageChange}
                 onPageSizeChange={handlePageSizeChange}
-                scrollY={height - 280}
+                scrollY={height - 250}
                 rowKey={record => record.id}
                 showTotal={HandleShowTotal}
             />

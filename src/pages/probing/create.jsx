@@ -22,6 +22,8 @@ import { ProbingCreate, ProbingSearch, ProbingUpdate } from "../../api/probing"
 import { HandleApiError } from "../../utils/lib"
 import VSCodeEditor from "../../utils/VSCodeEditor"
 import { useAppContext } from "../../context/RuleContext"
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 // Constants
 const VALIDATION_PATTERNS = {
@@ -340,6 +342,7 @@ export const CreateProbingRule = ({ type }) => {
 
     return (
         <div>
+            <Breadcrumb items={['网络分析', '拨测任务', '创建']} />
             <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
                 <Divider orientation="left">基础配置</Divider>
                 <div style={{ display: "flex", gap: "24px", alignItems: "start" }}>

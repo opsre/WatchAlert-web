@@ -6,6 +6,8 @@ import {
 } from '../../../api/dashboard';
 import { useParams } from 'react-router-dom'
 import {HandleShowTotal} from "../../../utils/lib";
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
 
 export const Dashboards = () => {
     const [list, setList] = useState()
@@ -60,6 +62,7 @@ export const Dashboards = () => {
 
     return (
         <>
+            <Breadcrumb items={['仪表盘', '列表']} />
             <div style={{ overflowX: 'auto', marginTop: 10, height: '71vh' }}>
                 <Table
                     columns={columns}

@@ -19,6 +19,7 @@ import { PrometheusPromQL } from '../promethues/index.jsx';
 import { queryPromMetrics } from '../../api/other.jsx';
 import { debounce } from 'lodash';
 import { SearchViewMetrics } from '../alert/preview/searchViewMetrics.tsx';
+import { Breadcrumb } from '../../components/Breadcrumb';
 
 // 添加全局 ResizeObserver 错误处理
 if (typeof window !== 'undefined') {
@@ -1271,159 +1272,162 @@ const FlowContent = ({ detailData, topologyId }) => {
   }, []); // 空依赖数组，只在组件挂载时执行一次
 
   return (
-    <div style={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-black rounded-lg" style={{height: "40px", width: "40px"}}>
-                <NodeIndexOutlined className="text-white items-center p-1"/>
+    <>
+      <Breadcrumb items={['服务拓扑', '详情']} />
+      <div style={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-black rounded-lg" style={{height: "40px", width: "40px"}}>
+                  <NodeIndexOutlined className="text-white items-center p-1"/>
+              </div>
+              <div>
+                  <p className="text-xl font-bold text-gray-900">{detailData.name}</p>
+              </div>
             </div>
-            <div>
-                <p className="text-xl font-bold text-gray-900">{detailData.name}</p>
-            </div>
-          </div>
-          <Space>
-              {isEditing ? (
-                  <>
-                      <Button 
-                          type="primary" 
-                          icon={<SaveOutlined />} 
-                          onClick={handleSubmit}
-                          style={{
-                              backgroundColor: '#000000'
-                          }}
-                      >保存</Button>
-                      <Button 
-                          onClick={handleReload}
-                      >取消编辑</Button>
-                  </>
-              ) : (
-                <Button 
-                    type="primary" 
-                    icon={<EditOutlined />} 
-                    onClick={toggleEditing}
-                    style={{
-                        backgroundColor: '#000000'
-                    }}
-                >编辑</Button>
-              )}
+            <Space>
+                {isEditing ? (
+                    <>
+                        <Button 
+                            type="primary" 
+                            icon={<SaveOutlined />} 
+                            onClick={handleSubmit}
+                            style={{
+                                backgroundColor: '#000000'
+                            }}
+                        >保存</Button>
+                        <Button 
+                            onClick={handleReload}
+                        >取消编辑</Button>
+                    </>
+                ) : (
+                  <Button 
+                      type="primary" 
+                      icon={<EditOutlined />} 
+                      onClick={toggleEditing}
+                      style={{
+                          backgroundColor: '#000000'
+                      }}
+                  >编辑</Button>
+                )}
 
-            <Button icon={<PlusOutlined />} onClick={addNewNode} disabled={!isEditing}>新增</Button>
-            <Button onClick={() => fitView()}>视图</Button>
-          </Space>
+              <Button icon={<PlusOutlined />} onClick={addNewNode} disabled={!isEditing}>新增</Button>
+              <Button onClick={() => fitView()}>视图</Button>
+            </Space>
+          </div>
+
+        {isEditing && (
+            <div style={{ padding: '8px 24px', background: '#fff1f0' , borderBottom: '1px solid #f0f0f0' }}>
+                <Text type={'danger'} style={{ fontSize: '13px' }}>
+                    {'编辑模式：拖拽移动节点，双击节点或双击连接线弹出编辑窗口，选中连线后按 Backspace/Delete 可删除。'}
+                </Text>
+            </div>
+        )}
+
+        <div style={{ 
+          flex: 1, 
+          minHeight: 0,
+          // 添加 CSS 优化来减少重排和重绘
+          willChange: 'transform',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          perspective: '1000px',
+          // 添加以下样式以优化性能
+          contain: 'layout style paint'
+        }} className="reactflow-wrapper">
+            <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={onNodeClick} // 关键：处理节点点击事件
+            onNodeDoubleClick={(event, node) => {
+                // 阻止事件冒泡
+                event.stopPropagation();
+                // 如果在编辑模式下，触发节点编辑
+                if (isEditing) {
+                    // 在双击时调用，与 onNodeClick 行为一致，确保数据源列表加载
+                    handleGetDatasourceList(node).then(() => {
+                        // 添加延迟以避免在打开 Drawer 时触发过多的 resize 事件
+                        setTimeout(() => {
+                          setSelectedNode(node);
+                        }, 300); // 增加延迟到300ms
+                    });
+                }
+            }}
+            onEdgeDoubleClick={(event, edge) => {
+                // 阻止事件冒泡
+                event.stopPropagation();
+                // 如果在编辑模式下，触发边缘编辑
+                if (isEditing) {
+                    // 添加延迟以避免在打开模态框时触发过多的 resize 事件
+                    setTimeout(() => {
+                      setSelectedEdge(edge);
+                      setIsEdgeModalOpen(true);
+                    }, 300); // 增加延迟到300ms
+                }
+            }}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            connectionMode="loose"
+            nodesDraggable={isEditing}
+            nodesConnectable={isEditing}
+            elementsSelectable={true}
+            deleteKeyCode={isEditing ? ['Backspace', 'Delete'] : null}
+            multiSelectionKeyCode={['Meta', 'Shift', 'Ctrl']}
+            fitView={false}
+            attributionPosition="bottom-left"
+            proOptions={{ hideAttribution: true }}
+            minZoom={0.2}
+            maxZoom={4}
+            // 添加以下属性来优化性能和减少 ResizeObserver 触发
+            elevateNodesOnSelect={false}
+            elevateEdgesOnSelect={false}
+            disableKeyboardA11y={true}
+            // 添加性能优化属性
+            connectOnClick={false}
+            // 添加更多性能优化
+            snapToGrid={false}
+            snapGrid={[15, 15]}
+            onlyRenderVisibleElements={true}
+            // 添加额外的性能优化属性以减少 ResizeObserver 错误
+            preventScrolling={true}
+            zoomOnScroll={false}
+            panOnScroll={true}
+            panOnDrag={true}
+            >
+            <Controls showFitView={false} showInteractive={false} />
+            <MiniMap />
+            <Background color="#f7f7f7" gap={20} size={1} />
+            </ReactFlow>
         </div>
 
-      {isEditing && (
-          <div style={{ padding: '8px 24px', background: '#fff1f0' , borderBottom: '1px solid #f0f0f0' }}>
-              <Text type={'danger'} style={{ fontSize: '13px' }}>
-                  {'编辑模式：拖拽移动节点，双击节点或双击连接线弹出编辑窗口，选中连线后按 Backspace/Delete 可删除。'}
-              </Text>
-          </div>
-      )}
-
-      <div style={{ 
-        flex: 1, 
-        minHeight: 0,
-        // 添加 CSS 优化来减少重排和重绘
-        willChange: 'transform',
-        transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden',
-        perspective: '1000px',
-        // 添加以下样式以优化性能
-        contain: 'layout style paint'
-      }} className="reactflow-wrapper">
-          <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick} // 关键：处理节点点击事件
-          onNodeDoubleClick={(event, node) => {
-              // 阻止事件冒泡
-              event.stopPropagation();
-              // 如果在编辑模式下，触发节点编辑
-              if (isEditing) {
-                  // 在双击时调用，与 onNodeClick 行为一致，确保数据源列表加载
-                  handleGetDatasourceList(node).then(() => {
-                      // 添加延迟以避免在打开 Drawer 时触发过多的 resize 事件
-                      setTimeout(() => {
-                        setSelectedNode(node);
-                      }, 300); // 增加延迟到300ms
-                  });
-              }
-          }}
-          onEdgeDoubleClick={(event, edge) => {
-              // 阻止事件冒泡
-              event.stopPropagation();
-              // 如果在编辑模式下，触发边缘编辑
-              if (isEditing) {
-                  // 添加延迟以避免在打开模态框时触发过多的 resize 事件
-                  setTimeout(() => {
-                    setSelectedEdge(edge);
-                    setIsEdgeModalOpen(true);
-                  }, 300); // 增加延迟到300ms
-              }
-          }}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          connectionMode="loose"
-          nodesDraggable={isEditing}
-          nodesConnectable={isEditing}
-          elementsSelectable={true}
-          deleteKeyCode={isEditing ? ['Backspace', 'Delete'] : null}
-          multiSelectionKeyCode={['Meta', 'Shift', 'Ctrl']}
-          fitView={false}
-          attributionPosition="bottom-left"
-          proOptions={{ hideAttribution: true }}
-          minZoom={0.2}
-          maxZoom={4}
-          // 添加以下属性来优化性能和减少 ResizeObserver 触发
-          elevateNodesOnSelect={false}
-          elevateEdgesOnSelect={false}
-          disableKeyboardA11y={true}
-          // 添加性能优化属性
-          connectOnClick={false}
-          // 添加更多性能优化
-          snapToGrid={false}
-          snapGrid={[15, 15]}
-          onlyRenderVisibleElements={true}
-          // 添加额外的性能优化属性以减少 ResizeObserver 错误
-          preventScrolling={true}
-          zoomOnScroll={false}
-          panOnScroll={true}
-          panOnDrag={true}
-          >
-          <Controls showFitView={false} showInteractive={false} />
-          <MiniMap />
-          <Background color="#f7f7f7" gap={20} size={1} />
-          </ReactFlow>
+          {/* 渲染 NodeEditorDrawer */}
+          <NodeEditorDrawer
+              node={selectedNode}
+              onClose={() => setSelectedNode(false)}
+              onUpdateNode={onUpdateNode}
+              datasourceOptions={datasourceOptions}
+              selectedDatasource={selectedDatasource}
+              handleSelectedDsItem={handleSelectedDsItem}
+              metricAddress={metricAddress}
+          />
+          {/* 渲染 EdgeEditorModal */}
+          <EdgeEditorModal
+              edge={selectedEdge}
+              open={isEdgeModalOpen} // 修改为使用模态框状态
+              onClose={onCloseEdgeModal} // 修改为使用模态框关闭函数
+              onUpdateEdge={(updatedEdge) => {
+                  setEdges((eds) =>
+                      eds.map((edge) =>
+                          edge.id === updatedEdge.id ? updatedEdge : edge
+                      )
+                  );
+                  onCloseEdgeModal(); // 修改为使用模态框关闭函数
+              }}
+          />
       </div>
-
-        {/* 渲染 NodeEditorDrawer */}
-        <NodeEditorDrawer
-            node={selectedNode}
-            onClose={() => setSelectedNode(false)}
-            onUpdateNode={onUpdateNode}
-            datasourceOptions={datasourceOptions}
-            selectedDatasource={selectedDatasource}
-            handleSelectedDsItem={handleSelectedDsItem}
-            metricAddress={metricAddress}
-        />
-        {/* 渲染 EdgeEditorModal */}
-        <EdgeEditorModal
-            edge={selectedEdge}
-            open={isEdgeModalOpen} // 修改为使用模态框状态
-            onClose={onCloseEdgeModal} // 修改为使用模态框关闭函数
-            onUpdateEdge={(updatedEdge) => {
-                setEdges((eds) =>
-                    eds.map((edge) =>
-                        edge.id === updatedEdge.id ? updatedEdge : edge
-                    )
-                );
-                onCloseEdgeModal(); // 修改为使用模态框关闭函数
-            }}
-        />
-    </div>
+    </>
   );
 };
 

@@ -4,6 +4,8 @@ import { Spin, Select, message } from 'antd';
 import { ProbingList } from '../../api/probing';
 import { queryRangePromMetrics } from '../../api/other';
 import { EventMetricChart } from '../chart/eventMetricChart';
+import { Breadcrumb } from '../../components/Breadcrumb';
+
 
 const { Option } = Select;
 
@@ -274,6 +276,7 @@ export const ProbingMetrics = () => {
 
     return (
         <div>
+            <Breadcrumb items={['网络分析', '拨测任务', '详情']} />
             {/* 头部 */}
             <div style={{ 
                 display: 'flex', 

@@ -12,6 +12,7 @@ import { ReactComponent as Event } from "../assets/event.svg"
 import { SearchOutlined, PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons"
 import {HandleShowTotal} from "../../../utils/lib";
 import { TableWithPagination } from "../../../utils/TableWithPagination"
+import { Breadcrumb } from "../../../components/Breadcrumb";
 
 const { Search } = Input
 
@@ -247,6 +248,8 @@ export const RuleTemplateGroup = () => {
     }
 
     return (
+        <>
+        <Breadcrumb items={['告警管理', '模版组']} />
         <div style={{ display: "flex", borderRadius: "8px" }}>
             {/* Sidebar */}
             <div style={{ width: "150px" }}>
@@ -313,7 +316,7 @@ export const RuleTemplateGroup = () => {
                         setPagination({ ...pagination, index: current, size: pageSize });
                         handleList(current, pageSize);
                     }}
-                    scrollY={height - 280}
+                    scrollY={height - 250}
                     rowKey={record => record.id}
                     showTotal={HandleShowTotal}
                     locale={{
@@ -339,5 +342,6 @@ export const RuleTemplateGroup = () => {
                 />
             </div>
         </div>
+        </>
     )
 }

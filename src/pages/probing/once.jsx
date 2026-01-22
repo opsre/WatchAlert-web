@@ -5,6 +5,8 @@ import {Alert, Tabs, Form, Input, Select, Button, Collapse, Table, Tag, Progress
 import Marquee from "react-fast-marquee"
 import { ProbingOnce } from "../../api/probing"
 import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 const { Panel } = Collapse
 
@@ -435,7 +437,8 @@ export const OnceProbing = () => {
 
     return (
         <Spin spinning={loading} tip="加载中...">
-            <div style={{ marginTop: "-15px" }}>
+            <Breadcrumb items={['网络分析', '即时拨测']} />
+            <div>
                 <Alert
                     banner
                     type="info"

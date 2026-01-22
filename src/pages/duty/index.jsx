@@ -8,6 +8,7 @@ import {Link} from "react-router-dom";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
 import {Users} from "lucide-react";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 export const DutyManage = () => {
     const [visible, setVisible] = useState(false);
@@ -229,6 +230,7 @@ export const DutyManage = () => {
 
     return (
         <>
+            <Breadcrumb items={['值班中心']} />
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
                     type="primary"

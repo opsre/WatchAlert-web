@@ -86,6 +86,7 @@ const RuleTemplateGroupCreateModal = ({ visible, onClose, selectedRow, openType,
     }
 
     return (
+        
         <Modal visible={visible} onCancel={onClose} footer={null}>
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                 <MyFormItem name="name" label="名称"

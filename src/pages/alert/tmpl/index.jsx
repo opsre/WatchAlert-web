@@ -17,6 +17,7 @@ import {
 } from "@ant-design/icons"
 import {HandleShowTotal} from "../../../utils/lib";
 import { TableWithPagination } from "../../../utils/TableWithPagination"
+import { Breadcrumb } from "../../../components/Breadcrumb";
 
 const MyFormItemContext = React.createContext([])
 const { Search } = Input
@@ -369,6 +370,7 @@ export const RuleTemplate = () => {
 
     return (
         <>
+            <Breadcrumb items={['告警管理', '模版']} />
             <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
@@ -510,7 +512,7 @@ export const RuleTemplate = () => {
                     setPagination({ ...pagination, index: current, size: pageSize });
                     handleList(current, pageSize);
                 }}
-                scrollY={height - 280}
+                scrollY={height - 250}
                 rowKey={record => `${record.ruleGroupName}-${record.ruleName}`}  // 使用组合键作为唯一标识
                 showTotal={HandleShowTotal}
                 // 启用多选功能

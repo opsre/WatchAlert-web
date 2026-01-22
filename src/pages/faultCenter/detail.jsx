@@ -13,6 +13,7 @@ import { FaultCenterNotify } from "./notify"
 import { AlarmUpgrade } from "./upgrade"
 import moment from "moment"
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 export const FaultCenterDetail = () => {
   const { id } = useParams()
@@ -244,183 +245,186 @@ const handleGetSlo = async () => {
   }
 
   return (
-    <div style={{ textAlign: "left" }}>
-      <Descriptions items={describeItems} />
+    <>
+      <Breadcrumb items={['故障中心', '详情']} />
+      <div style={{ textAlign: "left" }}>
+        <Descriptions items={describeItems} />
 
-      {/* 近7天 SLO 线性图看板 */}
-      <Row gutter={16} style={{ marginTop: 8, marginBottom: 20 }}>
-        <Col span={12}>
-          <div
-            style={{
-              padding: "20px",
-              borderRadius: "12px",
-              border: "1px solid #ddddddff",
-              height: 250,
-            }}
-          >
+        {/* 近7天 SLO 线性图看板 */}
+        <Row gutter={16} style={{ marginTop: 8, marginBottom: 20 }}>
+          <Col span={12}>
             <div
-              style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}
+              style={{
+                padding: "20px",
+                borderRadius: "12px",
+                border: "1px solid #ddddddff",
+                height: 250,
+              }}
             >
-              <div>
-                <Typography.Text style={{ fontSize: 13, color: "#000000ff", fontWeight: 600, display: "block" }}>
-                  平均修复时间 (MTTR)
-                </Typography.Text>
-                <Typography.Text style={{ fontSize: 11, color: "#6b7280", display: "block", marginTop: 2 }}>
-                  Mean Time To Repair
-                </Typography.Text>
-              </div>
               <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "10px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}
               >
-                <span style={{ fontSize: 18, color: "#fff" }}>⚡</span>
-              </div>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <Typography.Text style={{ fontSize: 12, color: "#6b7280", marginTop: 4, display: "block" }}>
-                7日平均: {formatDuration(computeAverageFromList("mttr"))}
-              </Typography.Text>
-            </div>
-            <ResponsiveContainer width="100%" height={140}>
-              <AreaChart data={sloChartData}>
-                <defs>
-                  <linearGradient id="mttrGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#cacacaff" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#cacacaff" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#cacacaff" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 11, fill: "#6b7280" }}
-                  axisLine={{ stroke: "#cacacaff" }}
-                  tickLine={{ stroke: "#cacacaff" }}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "#6b7280" }}
-                  axisLine={{ stroke: "#cacacaff" }}
-                  tickLine={{ stroke: "#cacacaff" }}
-                  tickFormatter={(value) => `${value}s`}
-                  width={40}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#ffffff",
-                    border: "1px solid #cacacaff",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    fontSize: 12,
+                <div>
+                  <Typography.Text style={{ fontSize: 13, color: "#000000ff", fontWeight: 600, display: "block" }}>
+                    平均修复时间 (MTTR)
+                  </Typography.Text>
+                  <Typography.Text style={{ fontSize: 11, color: "#6b7280", display: "block", marginTop: 2 }}>
+                    Mean Time To Repair
+                  </Typography.Text>
+                </div>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  labelStyle={{ color: "#000000ff", fontWeight: 600 }}
-                  formatter={(value) => formatDuration(value)}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="mttr"
-                  stroke="#000000ff"
-                  strokeWidth={1.5}
-                  fill="url(#mttrGradient)"
-                  dot={{ fill: "#000000ff", strokeWidth: 1, r: 2, stroke: "#fff" }}
-                  activeDot={{ r: 6, strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </Col>
+                >
+                  <span style={{ fontSize: 18, color: "#fff" }}>⚡</span>
+                </div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <Typography.Text style={{ fontSize: 12, color: "#6b7280", marginTop: 4, display: "block" }}>
+                  7日平均: {formatDuration(computeAverageFromList("mttr"))}
+                </Typography.Text>
+              </div>
+              <ResponsiveContainer width="100%" height={140}>
+                <AreaChart data={sloChartData}>
+                  <defs>
+                    <linearGradient id="mttrGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#cacacaff" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#cacacaff" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#cacacaff" vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    axisLine={{ stroke: "#cacacaff" }}
+                    tickLine={{ stroke: "#cacacaff" }}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    axisLine={{ stroke: "#cacacaff" }}
+                    tickLine={{ stroke: "#cacacaff" }}
+                    tickFormatter={(value) => `${value}s`}
+                    width={40}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #cacacaff",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      fontSize: 12,
+                    }}
+                    labelStyle={{ color: "#000000ff", fontWeight: 600 }}
+                    formatter={(value) => formatDuration(value)}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="mttr"
+                    stroke="#000000ff"
+                    strokeWidth={1.5}
+                    fill="url(#mttrGradient)"
+                    dot={{ fill: "#000000ff", strokeWidth: 1, r: 2, stroke: "#fff" }}
+                    activeDot={{ r: 6, strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Col>
 
-        <Col span={12}>
-          <div
-            style={{
-              padding: "20px",
-              borderRadius: "12px",
-              border: "1px solid #ddddddff",
-              height: 250,
-            }}
-          >
+          <Col span={12}>
             <div
-              style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}
+              style={{
+                padding: "20px",
+                borderRadius: "12px",
+                border: "1px solid #ddddddff",
+                height: 250,
+              }}
             >
-              <div>
-                <Typography.Text style={{ fontSize: 13, color: "#000000ff", fontWeight: 600, display: "block" }}>
-                  平均响应时间 (MTTA)
-                </Typography.Text>
-                <Typography.Text style={{ fontSize: 11, color: "#6b7280", display: "block", marginTop: 2 }}>
-                  Mean Time To Acknowledge
-                </Typography.Text>
-              </div>
               <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "10px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}
               >
-                <span style={{ fontSize: 18, color: "#fff" }}>⏱️</span>
-              </div>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <Typography.Text style={{ fontSize: 12, color: "#6b7280", marginTop: 4, display: "block" }}>
-                7日平均: {formatDuration(computeAverageFromList("mtta"))}
-              </Typography.Text>
-            </div>
-            <ResponsiveContainer width="100%" height={140}>
-              <AreaChart data={sloChartData}>
-                <defs>
-                  <linearGradient id="mttaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#cacacaff" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#cacacaff" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#cacacaff" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 11, fill: "#6b7280" }}
-                  axisLine={{ stroke: "#cacacaff" }}
-                  tickLine={{ stroke: "#cacacaff" }}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "#6b7280" }}
-                  axisLine={{ stroke: "#cacacaff" }}
-                  tickLine={{ stroke: "#cacacaff" }}
-                  tickFormatter={(value) => `${value}s`}
-                  width={40}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#ffffff",
-                    border: "1px solid #cacacaff",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    fontSize: 12,
+                <div>
+                  <Typography.Text style={{ fontSize: 13, color: "#000000ff", fontWeight: 600, display: "block" }}>
+                    平均响应时间 (MTTA)
+                  </Typography.Text>
+                  <Typography.Text style={{ fontSize: 11, color: "#6b7280", display: "block", marginTop: 2 }}>
+                    Mean Time To Acknowledge
+                  </Typography.Text>
+                </div>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  labelStyle={{ color: "#000000ff", fontWeight: 600 }}
-                  formatter={(value) => formatDuration(value)}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="mtta"
-                  stroke="#000000ff"
-                  strokeWidth={1.5}
-                  fill="url(#mttaGradient)"
-                  dot={{ fill: "#000000ff", strokeWidth: 1, r: 2, stroke: "#fff" }}
-                  activeDot={{ r: 6, strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </Col>
-      </Row>
+                >
+                  <span style={{ fontSize: 18, color: "#fff" }}>⏱️</span>
+                </div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <Typography.Text style={{ fontSize: 12, color: "#6b7280", marginTop: 4, display: "block" }}>
+                  7日平均: {formatDuration(computeAverageFromList("mtta"))}
+                </Typography.Text>
+              </div>
+              <ResponsiveContainer width="100%" height={140}>
+                <AreaChart data={sloChartData}>
+                  <defs>
+                    <linearGradient id="mttaGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#cacacaff" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#cacacaff" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#cacacaff" vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    axisLine={{ stroke: "#cacacaff" }}
+                    tickLine={{ stroke: "#cacacaff" }}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    axisLine={{ stroke: "#cacacaff" }}
+                    tickLine={{ stroke: "#cacacaff" }}
+                    tickFormatter={(value) => `${value}s`}
+                    width={40}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #cacacaff",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      fontSize: 12,
+                    }}
+                    labelStyle={{ color: "#000000ff", fontWeight: 600 }}
+                    formatter={(value) => formatDuration(value)}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="mtta"
+                    stroke="#000000ff"
+                    strokeWidth={1.5}
+                    fill="url(#mttaGradient)"
+                    dot={{ fill: "#000000ff", strokeWidth: 1, r: 2, stroke: "#fff" }}
+                    activeDot={{ r: 6, strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Col>
+        </Row>
 
-      <Tabs activeKey={activeTabKey} defaultActiveKey="1" items={tagItems} onChange={onTabChange} />
-    </div>
+        <Tabs activeKey={activeTabKey} defaultActiveKey="1" items={tagItems} onChange={onTabChange} />
+      </div>
+    </>
   )
 }

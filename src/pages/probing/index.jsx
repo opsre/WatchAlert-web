@@ -5,6 +5,7 @@ import {Link, useNavigate} from "react-router-dom";
 import {CopyOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import {HandleApiError, HandleShowTotal} from "../../utils/lib";
 import {useAppContext} from "../../context/RuleContext";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 
 export const Probing = () => {
@@ -260,6 +261,7 @@ export const Probing = () => {
 
     return (
         <>
+            <Breadcrumb items={['网络分析', '拨测任务']} />
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
                 <div style={{display: 'flex', gap: '10px'}}>
                     <Search

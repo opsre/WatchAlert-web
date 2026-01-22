@@ -7,6 +7,8 @@ import {getUserInfo} from "../../api/user";
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {copyToClipboard} from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 
 export const Tenants = () => {
@@ -247,6 +249,7 @@ export const Tenants = () => {
 
     return (
         <>
+            <Breadcrumb items={['租户管理']} />
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
                     type="primary"

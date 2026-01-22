@@ -7,6 +7,8 @@ import { deleteRuleGroup, getRuleGroupList } from '../../../api/rule'
 import { copyToClipboard } from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
 import { TableWithPagination } from "../../../utils/TableWithPagination"
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
 
 export const AlertRuleGroup = ({ }) => {
     const { Search } = Input
@@ -210,6 +212,7 @@ export const AlertRuleGroup = ({ }) => {
 
     return (
         <>
+            <Breadcrumb items={['告警管理', '规则组']} />
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
                 <div>
                     <Search
@@ -252,7 +255,7 @@ export const AlertRuleGroup = ({ }) => {
                     setPagination({ ...pagination, index: current, size });
                     handleList(current, size);
                 }}
-                scrollY={height - 280}
+                scrollY={height - 250}
                 rowKey={record => record.id}
                 showTotal={HandleShowTotal}
             />

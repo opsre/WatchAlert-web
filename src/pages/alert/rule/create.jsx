@@ -47,6 +47,7 @@ import VSCodeEditor from "../../../utils/VSCodeEditor";
 import {SearchViewLogs} from "../preview/searchViewLogs";
 import SqlEditor from "../../../utils/sqlEditor";
 import {SearchViewMetrics} from "../preview/searchViewMetrics.tsx";
+import {Breadcrumb} from "../../../components/Breadcrumb"
 
 const format = 'HH:mm';
 const MyFormItemContext = React.createContext([])
@@ -885,12 +886,13 @@ export const AlertRule = ({ type }) => {
     }
 
     return (
+        <>
+        <Breadcrumb items={['告警管理', '规则', '详情']} />
         <div style={{
             textAlign: 'left',
             width: '100%',
             // flex: 1,
             alignItems: 'flex-start',
-            marginTop: '-10px',
             maxHeight: 'calc((-120px + 100vh))',
             overflowY: 'auto',
         }}>
@@ -2038,5 +2040,6 @@ export const AlertRule = ({ type }) => {
                 </div>
             </Form>
         </div>
+        </>
     )
 }

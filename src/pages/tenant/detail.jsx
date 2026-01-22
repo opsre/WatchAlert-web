@@ -5,6 +5,8 @@ import {TenantQuota} from "./quota";
 import {TenantUsers} from "./users";
 import { useParams } from 'react-router-dom'
 import {getTenant} from "../../api/tenant";
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 export const TenantDetail = ()=>{
     const { id } = useParams()
@@ -73,13 +75,16 @@ export const TenantDetail = ()=>{
         },
     ];
     return(
-       <div style={{textAlign:'left'}}>
-           <Descriptions title={"基本信息"} bordered items={itemsDescriptions} />
+        <>
+            <Breadcrumb items={['租户管理', '详情']} />
+            <div style={{textAlign:'left'}}>
+                <Descriptions title={"基本信息"} bordered items={itemsDescriptions} />
 
-           <div style={{marginTop:'20px'}}>
-               <span style={{fontSize:'16px',color:'rgba(0, 0, 0, 0.88)',fontWeight:'600'}}>高级配置</span>
-               <Tabs defaultActiveKey="1" items={itemsTabs} />
-           </div>
-       </div>
+                <div style={{marginTop:'20px'}}>
+                    <span style={{fontSize:'16px',color:'rgba(0, 0, 0, 0.88)',fontWeight:'600'}}>高级配置</span>
+                    <Tabs defaultActiveKey="1" items={itemsTabs} />
+                </div>
+            </div>
+        </>
     )
 }

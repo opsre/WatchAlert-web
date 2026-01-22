@@ -10,6 +10,8 @@ import { ReactComponent as SlackIcon } from '../img/slack.svg'
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
+import {Breadcrumb} from "../../../components/Breadcrumb";
+
 
 const { Search } = Input;
 
@@ -230,6 +232,7 @@ export const NoticeTemplate = () => {
 
     return (
         <>
+            <Breadcrumb items={['通知管理', '通知模版']} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
                     <Search

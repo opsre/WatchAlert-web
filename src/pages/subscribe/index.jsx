@@ -12,6 +12,8 @@ import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import {DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {HandleShowTotal} from "../../utils/lib";
+import {Breadcrumb} from "../../components/Breadcrumb";
+
 
 export const Subscribe = () => {
     const { Search } = Input
@@ -175,6 +177,7 @@ export const Subscribe = () => {
 
     return (
         <>
+            <Breadcrumb items={['告警管理', '订阅列表']} />
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
                 <div style={{display: 'flex', gap: '10px'}}>
                     <Search

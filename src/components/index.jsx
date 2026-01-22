@@ -270,34 +270,16 @@ const Components = (props) => {
                                     background: colorBgContainer,
                                     borderRadius: borderRadiusLG,
                                     padding: "0",
-                                    height: "calc(100vh - 42px)",
+                                    height: "calc(100vh - 40px)",
                                     overflow: "hidden",
                                     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
                                 }}
                             >
-                                {/* 页面头部 */}
-                                {name !== "off" && (
-                                    <div
-                                        style={{
-                                            padding: "16px 24px",
-                                            borderBottom: "1px solid #f0f0f0",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "8px",
-                                        }}
-                                    >
-                                        <Button type="text" icon={<LeftOutlined />} onClick={goBackPage} style={{ padding: "4px", color: "#8c8c8c" }} />
-                                        <span style={{ fontSize: "14px", color: "#8c8c8c" }}>
-                                            <HomeOutlined /> / {name}
-                                        </span>
-                                    </div>
-                                )}
-
                                 {/* 主内容 */}
                                 <div
                                     style={{
-                                        padding: name !== "off" ? "24px" : "0",
-                                        height: name !== "off" ? "calc(100% - 53px)" : "100%",
+                                        padding: name !== "off" ? "20px" : "0",
+                                        height: name !== "off" ? "calc(100%)" : "100%",
                                         overflow: "auto",
                                     }}
                                 >

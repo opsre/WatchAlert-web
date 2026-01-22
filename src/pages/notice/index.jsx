@@ -8,6 +8,8 @@ import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
 import { noticeRecordList } from '../../api/notice';
 import { NoticeRecords } from './history';
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 export const NoticeObjects = () => {
     const { Search } = Input
@@ -235,6 +237,7 @@ export const NoticeObjects = () => {
 
     return (
         <>
+            <Breadcrumb items={['通知管理', '通知对象']} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
                     <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />

@@ -46,6 +46,7 @@ import { useAppContext } from "../../../context/RuleContext";
 import { TableWithPagination } from '../../../utils/TableWithPagination';
 import { RuleGroupSidebar } from './RuleGroupSidebar';
 import { getRuleGroupList } from "../../../api/rule"
+import { Breadcrumb } from "../../../components/Breadcrumb";
 
 export const AlertRuleList = () => {
     const { setCloneAlertRule } = useAppContext()
@@ -755,6 +756,8 @@ export const AlertRuleList = () => {
     }
 
     return (
+        <>
+        <Breadcrumb items={['告警管理', '规则']} />
         <div style={{ display: 'flex' }}>
             <div style={{ width: '180px', flexShrink: 0 }}>
                 <RuleGroupSidebar
@@ -837,7 +840,7 @@ export const AlertRuleList = () => {
                             updatePagination(newPagination)
                             handleList(id, current, pageSize)
                         }}
-                        scrollY={'calc(100vh - 300px)'}
+                        scrollY={'calc(100vh - 270px)'}
                         rowKey="ruleId"
                         showTotal={HandleShowTotal}
                         selectedRowKeys={selectedRowKeys}
@@ -1108,5 +1111,6 @@ rules:
                 </div>
             </div>
         </div>
+        </>
     )
 }

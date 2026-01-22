@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom"
 import { FaultCenterDelete, FaultCenterList } from "../../api/faultCenter"
 import { MoreOutlined, DeleteOutlined, ExclamationCircleOutlined, PlusOutlined } from "@ant-design/icons"
 import { CreateFaultCenter } from "./create"
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 const { confirm } = Modal
 const { Title } = Typography
@@ -144,117 +146,120 @@ export const FaultCenter = () => {
     }
 
     return (
-        <div style={styles.pageContainer}>
-            {/* 固定在顶部的搜索和创建按钮 */}
-            <div style={styles.headerSection}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", gap: "10px" }}>
-                        <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
-                    </div>
+        <>
+            <Breadcrumb items={['故障中心']} />
+            <div style={styles.pageContainer}>
+                {/* 固定在顶部的搜索和创建按钮 */}
+                <div style={styles.headerSection}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                            <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
+                        </div>
 
-                    <div>
-                        <Button type="primary" style={{ backgroundColor: "#000000" }} onClick={() => setVisible(true)} icon={<PlusOutlined />}>
-                            创建
-                        </Button>
+                        <div>
+                            <Button type="primary" style={{ backgroundColor: "#000000" }} onClick={() => setVisible(true)} icon={<PlusOutlined />}>
+                                创建
+                            </Button>
+                        </div>
                     </div>
                 </div>
+
+                <CreateFaultCenter visible={visible} onClose={handleModalClose} handleList={handleList} type="create" />
+
+                {/* 可滚动的内容区域 */}
+                <div style={styles.scrollContainer}>
+                    {/* 空状态展示 */}
+                    {list.length === 0 && (
+                        <div
+                            style={{
+                                height: "70vh",
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                marginTop: -40,
+                            }}
+                        >
+                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"暂无故障中心数据"} style={{ marginBottom: 32 }}>
+                                <Title level={4} style={{ marginBottom: 16 }}>
+                                    开始创建第一个故障中心
+                                </Title>
+                                <span style={{ marginBottom: 24 }}>通过创建故障中心来统一管理您的告警信息</span>
+                            </Empty>
+                        </div>
+                    )}
+
+                    <Row gutter={[18, 18]} style={{ display: "flex", flexWrap: "wrap", marginTop: "20px" }}>
+                        {list.map((item) => (
+                            <Col key={item.id} xs={24} sm={24} md={8} lg={8} style={{ flex: "320px" }}>
+                                <div
+                                    onClick={() => handleCardClick(item.id)}
+                                    onMouseEnter={() => setHoveredCard(item.id)}
+                                    onMouseLeave={() => setHoveredCard(null)}
+                                    style={{
+                                        cursor: "pointer",
+                                        transform: hoveredCard === item.id ? styles.cardHover.transform : "scale(1)",
+                                        transition: styles.cardHover.transition,
+                                    }}
+                                >
+                                    <Card style={{ textAlign: "left" }}>
+                                        {/* 标题部分 */}
+                                        <div style={styles.cardTitle}>
+                                            <span>{item.name}</span>
+                                            <Dropdown overlay={renderMenu(item)} trigger={["click"]} overlayStyle={{ zIndex: 9999 }}>
+                                                <MoreOutlined
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                    }}
+                                                    style={{ fontSize: "18px", cursor: "pointer" }}
+                                                />
+                                            </Dropdown>
+                                        </div>
+
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
+                                            {/* 待处理 */}
+                                            <div style={{ flex: "1 1 calc(50% - 8px)" }}>
+                                                <span style={styles.value(item.currentAlertNumber > 0 ? "#ff7373" : "#93fa8f")}>
+                                                    {item.currentAlertNumber ? item.currentAlertNumber : 0}
+                                                </span>
+                                                <span style={styles.label}> 待处理</span>
+                                            </div>
+
+                                            {/* 预告警 */}
+                                            <div style={{ flex: "1 1 calc(50% - 8px)" }}>
+                                                <span style={styles.value(item.currentPreAlertNumber > 0 ? "#ffe465" : "#93fa8f")}>
+                                                    {item.currentPreAlertNumber ? item.currentPreAlertNumber : 0}
+                                                </span>
+                                                <span style={styles.label}> 预告警</span>
+                                            </div>
+
+                                            {/* 待恢复 */}
+                                            <div style={{ flex: "1 1 calc(50% - 8px)" }}>
+                                                <span style={styles.value(item.currentRecoverNumber > 0 ? "orange" : "#93fa8f")}>
+                                                    {item.currentRecoverNumber ? item.currentRecoverNumber : 0}
+                                                </span>
+                                                <span style={styles.label}> 待恢复</span>
+                                            </div>
+
+                                            {/* 静默中 */}
+                                            <div style={{ flex: "1 1 calc(50% - 8px)" }}>
+                                                <span style={styles.value(item.currentMuteNumber > 0 ? "#878383" : "#93fa8f")}>{item.currentMuteNumber ? item.currentMuteNumber : 0}</span>
+                                                <span style={styles.label}> 静默中</span>
+                                            </div>
+                                        </div>
+
+                                        <br/>
+                                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                            <span style={{ color: "gray" }}>{formatDate(item.createAt)}</span>
+                                        </div>
+                                    </Card>
+                                </div>
+                            </Col>
+                        ))}
+                    </Row>
+                </div>
             </div>
-
-            <CreateFaultCenter visible={visible} onClose={handleModalClose} handleList={handleList} type="create" />
-
-            {/* 可滚动的内容区域 */}
-            <div style={styles.scrollContainer}>
-                {/* 空状态展示 */}
-                {list.length === 0 && (
-                    <div
-                        style={{
-                            height: "70vh",
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            marginTop: -40,
-                        }}
-                    >
-                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"暂无故障中心数据"} style={{ marginBottom: 32 }}>
-                            <Title level={4} style={{ marginBottom: 16 }}>
-                                开始创建第一个故障中心
-                            </Title>
-                            <span style={{ marginBottom: 24 }}>通过创建故障中心来统一管理您的告警信息</span>
-                        </Empty>
-                    </div>
-                )}
-
-                <Row gutter={[18, 18]} style={{ display: "flex", flexWrap: "wrap", marginTop: "20px" }}>
-                    {list.map((item) => (
-                        <Col key={item.id} xs={24} sm={24} md={8} lg={8} style={{ flex: "320px" }}>
-                            <div
-                                onClick={() => handleCardClick(item.id)}
-                                onMouseEnter={() => setHoveredCard(item.id)}
-                                onMouseLeave={() => setHoveredCard(null)}
-                                style={{
-                                    cursor: "pointer",
-                                    transform: hoveredCard === item.id ? styles.cardHover.transform : "scale(1)",
-                                    transition: styles.cardHover.transition,
-                                }}
-                            >
-                                <Card style={{ textAlign: "left" }}>
-                                    {/* 标题部分 */}
-                                    <div style={styles.cardTitle}>
-                                        <span>{item.name}</span>
-                                        <Dropdown overlay={renderMenu(item)} trigger={["click"]} overlayStyle={{ zIndex: 9999 }}>
-                                            <MoreOutlined
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                }}
-                                                style={{ fontSize: "18px", cursor: "pointer" }}
-                                            />
-                                        </Dropdown>
-                                    </div>
-
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
-                                        {/* 待处理 */}
-                                        <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                            <span style={styles.value(item.currentAlertNumber > 0 ? "#ff7373" : "#93fa8f")}>
-                                                {item.currentAlertNumber ? item.currentAlertNumber : 0}
-                                            </span>
-                                            <span style={styles.label}> 待处理</span>
-                                        </div>
-
-                                        {/* 预告警 */}
-                                        <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                            <span style={styles.value(item.currentPreAlertNumber > 0 ? "#ffe465" : "#93fa8f")}>
-                                                {item.currentPreAlertNumber ? item.currentPreAlertNumber : 0}
-                                            </span>
-                                            <span style={styles.label}> 预告警</span>
-                                        </div>
-
-                                        {/* 待恢复 */}
-                                        <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                            <span style={styles.value(item.currentRecoverNumber > 0 ? "orange" : "#93fa8f")}>
-                                                {item.currentRecoverNumber ? item.currentRecoverNumber : 0}
-                                            </span>
-                                            <span style={styles.label}> 待恢复</span>
-                                        </div>
-
-                                        {/* 静默中 */}
-                                        <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                            <span style={styles.value(item.currentMuteNumber > 0 ? "#878383" : "#93fa8f")}>{item.currentMuteNumber ? item.currentMuteNumber : 0}</span>
-                                            <span style={styles.label}> 静默中</span>
-                                        </div>
-                                    </div>
-
-                                    <br/>
-                                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                                        <span style={{ color: "gray" }}>{formatDate(item.createAt)}</span>
-                                    </div>
-                                </Card>
-                            </div>
-                        </Col>
-                    ))}
-                </Row>
-            </div>
-        </div>
+        </>
     )
 }
 

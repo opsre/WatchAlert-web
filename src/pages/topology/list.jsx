@@ -7,6 +7,8 @@ import { copyToClipboard } from "../../utils/copyToClipboard";
 import { TopologyList, TopologyDelete, TopologyCreate, TopologyUpdate } from '../../api/topology';
 import { TableWithPagination } from '../../utils/TableWithPagination';
 import { HandleShowTotal } from "../../utils/lib";
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 const List = () => {
   const [data, setData] = useState([]);
@@ -290,6 +292,7 @@ const List = () => {
 
   return (
     <>
+      <Breadcrumb items={['服务拓扑']} />
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button 
                 type="primary" 

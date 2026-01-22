@@ -13,6 +13,8 @@ import ESImg from "../alert/rule/img/ElasticSearch.svg";
 import VLogImg from "../alert/rule/img/victorialogs.svg"
 import {createSubscribe} from "../../api/subscribe";
 import {getNoticeTmplList} from "../../api/noticeTmpl";
+import {Breadcrumb} from "../../components/Breadcrumb";
+
 
 const MyFormItemContext = React.createContext([])
 
@@ -183,10 +185,11 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
     };
 
     return (
+        <>
+        <Breadcrumb items={['告警管理', '订阅']} />
         <div style={{textAlign:'left',
             width: '100%',
             alignItems: 'flex-start',
-            marginTop: '-10px',
             maxHeight: 'calc(100vh)',
             overflowY: 'auto',
         }}>
@@ -335,5 +338,6 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
                 </div>
             </Form>
         </div>
+        </>
     )
 }

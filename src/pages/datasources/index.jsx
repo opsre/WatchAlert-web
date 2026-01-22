@@ -16,6 +16,7 @@ import './index.css'
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 export const Datasources = () => {
     const { Search } = Input
@@ -255,6 +256,7 @@ export const Datasources = () => {
 
     return (
         <>
+            <Breadcrumb items={['数据源']} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
                     <Search

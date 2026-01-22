@@ -5,6 +5,8 @@ import { deleteRole, getRoleList } from '../../../api/role';
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import {HandleShowTotal} from "../../../utils/lib";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
 
 const { Search } = Input;
 
@@ -147,6 +149,8 @@ export const UserRole = () => {
 
     return (
         <>
+            <Breadcrumb items={['人员组织', '角色管理']} />
+        
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
                     type="primary"

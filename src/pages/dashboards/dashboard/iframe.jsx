@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getDashboardFullUrl, getFolderInfo} from '../../../api/dashboard';
 import { useParams } from 'react-router-dom'
+import { Breadcrumb } from '../../../components/Breadcrumb';
+
 
 export const GrafanaDashboardComponent = () => {
     const { fid,did } = useParams()
@@ -30,8 +32,9 @@ export const GrafanaDashboardComponent = () => {
 
     return (
         <>
+            <Breadcrumb items={['仪表盘', '详情']} />
             <div >Loading...</div>
-            <div style={{ marginLeft: '-24px', marginTop: '-43px', height: '78vh' }}>
+            <div style={{ marginLeft: '-24px', height: '78vh' }}>
                 <iframe
                     src={iframeSrc}
                     frameborder="0"
