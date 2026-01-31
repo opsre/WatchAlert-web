@@ -188,7 +188,7 @@ export const ComponentSider = () => {
                 padding: 0 16px;
                 height: 44px;
                 line-height: 44px;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             /* 选中状态 - 橙色渐变背景 */
@@ -197,19 +197,24 @@ export const ComponentSider = () => {
                 color: #000;
                 font-weight: 600;
                 box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
+                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-item-selected .ant-menu-item-icon {
                 color: #000;
+                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             /* 悬停效果 */
             .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) {
-                transform: translateX(4px);
+                background: rgba(255, 153, 0, 0.1);
+                transform: translateX(6px);
+                color: #FF9900;
             }
             
             .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) .ant-menu-item-icon {
                 color: #FF9900;
+                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             /* 子菜单样式 */
@@ -220,7 +225,7 @@ export const ComponentSider = () => {
                 padding: 0 16px;
                 height: 44px;
                 line-height: 44px;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
@@ -228,20 +233,34 @@ export const ComponentSider = () => {
                 color: #000;
                 font-weight: 600;
                 box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
+                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title .ant-menu-submenu-arrow {
                 color: #000;
+                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-submenu-title:hover:not(.ant-menu-submenu-selected) {
                 background: rgba(255, 153, 0, 0.1);
                 color: #FF9900;
-                transform: translateX(4px);
+                transform: translateX(6px);
             }
             
             .ant-menu-dark .ant-menu-submenu-title:hover:not(.ant-menu-submenu-selected) .ant-menu-submenu-arrow {
                 color: #FF9900;
+                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+            }
+            
+            /* 即使子菜单被选中，父级菜单悬停时仍应有高亮效果 */
+            .ant-menu-dark .ant-menu-submenu-selected:hover > .ant-menu-submenu-title {
+                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%) !important;
+                color: #000;
+                transform: translateX(0px);
+            }
+            
+            .ant-menu-dark .ant-menu-submenu-selected:hover > .ant-menu-submenu-title .ant-menu-submenu-arrow {
+                color: #000;
             }
             
             /* 子菜单内容 */
@@ -251,6 +270,7 @@ export const ComponentSider = () => {
                 margin: 4px 16px;
                 padding: 8px 0;
                 backdrop-filter: blur(10px);
+                transition: all 0.3s ease-in-out;
             }
             
             .ant-menu-dark .ant-menu-sub .ant-menu-item {
@@ -259,9 +279,10 @@ export const ComponentSider = () => {
                 height: 36px;
                 line-height: 36px;
                 font-size: 13px;
+                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
-            /* 滚动条样式 */
+            /* 滚动条样式 - 显示为覆盖模式，不占用额外空间 */
             .ant-layout-sider-children::-webkit-scrollbar {
                 width: 6px;
             }
@@ -269,15 +290,44 @@ export const ComponentSider = () => {
             .ant-layout-sider-children::-webkit-scrollbar-track {
                 background: rgba(255, 255, 255, 0.1);
                 border-radius: 3px;
+                margin: 8px 0;
             }
             
             .ant-layout-sider-children::-webkit-scrollbar-thumb {
-                background: #FF9900;
+                background: rgba(255, 153, 0, 0.5);
                 border-radius: 3px;
+                transition: background 0.3s ease;
             }
             
             .ant-layout-sider-children::-webkit-scrollbar-thumb:hover {
                 background: #FFB84D;
+            }
+            
+            /* 侧边栏容器滚动条样式 */
+            .sidebar-menu-container::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .sidebar-menu-container::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 3px;
+                margin: 8px 0;
+            }
+            
+            .sidebar-menu-container::-webkit-scrollbar-thumb {
+                background: rgba(255, 153, 0, 0.3);
+                border-radius: 3px;
+                transition: background 0.3s ease;
+            }
+            
+            .sidebar-menu-container::-webkit-scrollbar-thumb:hover {
+                background: #FF9900;
+            }
+            
+            /* 菜单子项动画 */
+            .ant-menu-sub.ant-menu-inline {
+                overflow: hidden;
+                transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
             }
         `;
         document.head.appendChild(style);
@@ -477,7 +527,11 @@ export const ComponentSider = () => {
                     flex: 1,
                     height: '76vh',
                     paddingBottom: 70, // 预留底部空间
+                    /* 自定义滚动条样式 */
+                    msOverflowStyle: 'auto',  /* IE 和 Edge */
+                    scrollbarWidth: 'thin',  /* Firefox */
                 }}
+                className="sidebar-menu-container"
             >
                 <Menu
                     theme="dark"
@@ -485,6 +539,41 @@ export const ComponentSider = () => {
                     selectedKeys={[selectedMenuKey]}
                     style={{ background: 'transparent'}}
                     items={menuItems}
+                    expandIcon={({ isActive }) => (
+                        <svg
+                            viewBox="0 0 1024 1024"
+                            style={{
+                                width: '12px',
+                                height: '12px',
+                                transition: 'transform 0.25s ease',
+                                transform: isActive ? 'rotate(90deg)' : 'rotate(0deg)',
+                            }}
+                            fill="currentColor"
+                        >
+                            <path d="M384 512l256 256-256 256z"></path>
+                        </svg>
+                    )}
+                    collapseMotion={{
+                        motionName: 'ant-motion-slide-up',
+                        motionAppear: false,
+                        motionEnter: true,
+                        motionLeave: true,
+                        onLeaveStart: (node) => {
+                            return { maxHeight: node.offsetHeight };
+                        },
+                        onLeaveActive: (node) => {
+                            return { maxHeight: 0, opacity: 0 };
+                        },
+                        onEnterStart: (node) => {
+                            node.style.maxHeight = '0px';
+                            node.style.opacity = '0';
+                            return { maxHeight: node.scrollHeight, opacity: 0 };
+                        },
+                        onEnterActive: (node) => {
+                            node.style.overflow = 'hidden';
+                            return { maxHeight: node.scrollHeight, opacity: 1 };
+                        },
+                    }}
                 />
             </div>
 

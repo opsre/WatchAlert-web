@@ -82,7 +82,6 @@ export const AlertRuleList = () => {
     const [importDrawerVisible, setImportDrawerVisible] = useState(false)
     const [importType, setImportType] = useState(1)
     const [selectedDatasource, setSelectedDatasource] = useState(null)
-    const [selectedDatasourceType, setSelectedDatasourceType] = useState("")
     const [selectedFaultCenter, setSelectedFaultCenter] = useState(null)
     const [faultCenterList, setFaultCenterList] = useState([])
     const [yamlContent, setYamlContent] = useState("")
@@ -426,7 +425,7 @@ export const AlertRuleList = () => {
     }
 
     const GetSeverity = (data) => {
-        const isPrometheusType = data.datasourceType === 'Prometheus' || data.datasourceType === 'VictoriaMetrics';
+        const isPrometheusType = data.datasourceType === 'Prometheus';
         if (isPrometheusType && data.prometheusConfig?.rules) {
             return data.prometheusConfig.rules.map((rule) => rule.severity);
         } else {
@@ -572,7 +571,7 @@ export const AlertRuleList = () => {
         try {
             const params = {
                 ruleGroupId: id,
-                datasourceType: selectedDatasourceType || undefined,
+                datasourceType: "Prometheus",
                 datasourceIdList: [selectedDatasource] || undefined,
                 faultCenterId: selectedFaultCenter || undefined,
                 importType: importType,
@@ -899,26 +898,14 @@ export const AlertRuleList = () => {
                                         value={`# 示例:
 rules:
 - alert: Exporter Componen is Down
-    expr: up == 0
-    for: 2m
-    labels:
-        severity: serious
-    annotations:
-        summary: 节点 Exporter Componen is Down
-        description: 节点 Exporter Componen is Down`}
+  expr: up == 0
+  for: 2m
+  labels:
+    severity: serious
+  annotations:
+    summary: 节点 Exporter Componen is Down
+    description: 节点 Exporter Componen is Down`}
                                         onChange={handleYamlContentChange}
-                                    />
-                                </div>
-                                <div style={{ marginBottom: 16 }}>
-                                    <div style={{ marginBottom: 8 }}>选择数据源类型：</div>
-                                    <Select
-                                        placeholder="请选择数据源类型"
-                                        style={{ width: "100%" }}
-                                        onChange={(value) => setSelectedDatasourceType(value)}
-                                        options={[
-                                            { label: "Prometheus", value: "Prometheus" },
-                                            { label: "VictoriaMetrics", value: "VictoriaMetrics" }
-                                        ]}
                                     />
                                 </div>
                                 <div style={{ marginBottom: 16 }}>
@@ -928,7 +915,7 @@ rules:
                                         style={{ width: "100%" }}
                                         onChange={(value) => setSelectedDatasource(value)}
                                         options={datasourceList
-                                            .filter((ds) => ds.type === selectedDatasourceType)
+                                            .filter((ds) => ds.type === "Prometheus")
                                             .map((ds) => ({ label: ds.name, value: ds.id }))}
                                     />
                                 </div>
@@ -1019,10 +1006,6 @@ rules:
                                                                 {
                                                                     label: 'Prometheus',
                                                                     value: 'Prometheus'
-                                                                },
-                                                                {
-                                                                    label: 'VictoriaMetrics',
-                                                                    value: 'VictoriaMetrics'
                                                                 },
                                                                 {
                                                                     label: 'Loki',

@@ -134,18 +134,49 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         if (visible && !dataLoaded) {
             const loadInitialData = async () => {
                 try {
+                    // 先加载基础数据
                     await Promise.all([
                         loadDutyList(),
-                        loadUserList(),
-                        loadNoticeTemplates('FeiShu')
+                        loadUserList()
                     ])
+                    
+                    // 如果是编辑模式，需要预先加载相关的通知模板
+                    if (selectedRow && selectedRow.routes) {
+                        const noticeTypesToLoad = []
+                        if (selectedRow.routes?.length > 0) {
+                            // 收集所有路由中的通知类型
+                            selectedRow.routes.forEach(route => {
+                                if (route.noticeType && !noticeTypesToLoad.includes(route.noticeType)) {
+                                    noticeTypesToLoad.push(route.noticeType)
+                                }
+                            })
+                        } else {
+                            // 单一路由情况
+                            if (selectedRow.noticeType && !noticeTypesToLoad.includes(selectedRow.noticeType)) {
+                                noticeTypesToLoad.push(selectedRow.noticeType)
+                            }
+                        }
+                        
+                        // 并行加载所有需要的通知模板
+                        if (noticeTypesToLoad.length > 0) {
+                            await Promise.all(
+                                noticeTypesToLoad.map(type => loadNoticeTemplates(type))
+                            )
+                        } else {
+                            // 如果没有特定类型，加载默认类型
+                            await loadNoticeTemplates()
+                        }
+                    } else {
+                        // 创建模式，加载默认类型
+                        await loadNoticeTemplates()
+                    }
                 } finally {
                     setDataLoaded(true)
                 }
             }
             loadInitialData()
         }
-    }, [visible, dataLoaded, loadDutyList, loadUserList, loadNoticeTemplates])
+    }, [visible, dataLoaded, loadDutyList, loadUserList, loadNoticeTemplates, selectedRow])
 
     // 表单初始化 - 根据编辑/创建模式设置表单值
     useEffect(() => {
@@ -153,7 +184,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
             // 模态框关闭时重置状态
             setDataLoaded(false)
             setSelectedNoticeCard(0)
-            setNoticeType('FeiShu')
+            setNoticeType('')
             setTemplateCache({})
             setTestLoadingRoutes({})
             templateCacheRef.current = {}
@@ -167,7 +198,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
             const routes = selectedRow.routes?.length > 0 
                 ? selectedRow.routes.map(route => ({
                     ...route,
-                    severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0'])
+                    severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
+                    noticeTmplId: route.noticeTmplId || ''
                 }))
                 : [{
                     severitys: ['P0'],
@@ -180,11 +212,14 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     cc: selectedRow.email?.cc || []
                 }]
 
-            form.setFieldsValue({
-                name: selectedRow.name,
-                dutyId: selectedRow.dutyId,
-                routes: routes
-            })
+            // 等待相关模板加载完成后设置表单值
+            setTimeout(() => {
+                form.setFieldsValue({
+                    name: selectedRow.name,
+                    dutyId: selectedRow.dutyId,
+                    routes: routes
+                })
+            }, 0)
 
             const cardIndex = cards.findIndex(card => card.value === (selectedRow.noticeType || 'FeiShu'))
             setSelectedNoticeCard(cardIndex >= 0 ? cardIndex : 0)
