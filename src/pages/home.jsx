@@ -79,9 +79,9 @@ export const Home = () => {
     try {
       setLoading(true)
       const res = await FaultCenterList()
-      setFaultCenters(res.data)
-      if (res.data.length > 0) {
-        setSelectedFaultCenter(res.data[0].id)
+      setFaultCenters(res?.data || [])
+      if (res?.data?.length > 0) {
+        setSelectedFaultCenter(res?.data[0]?.id)
       }
     } catch (error) {
       console.error(error)
@@ -98,7 +98,7 @@ export const Home = () => {
       setLoading(true)
       const params = { faultCenterId }
       const res = await getDashboardInfo(params)
-      setDashboardInfo(res.data)
+      setDashboardInfo(res?.data || {})
     } catch (error) {
       console.error(error)
       message.error("获取仪表盘数据失败")
@@ -150,10 +150,10 @@ export const Home = () => {
             borderRadius: '6px'
           }}
         >
-          {severity}
+          {severity ?? ''}
         </Tag>
         <a 
-          href={`/faultCenter/detail/${faultCenterId}?query=${ruleName}`}
+          href={`/faultCenter/detail/${faultCenterId ?? ''}?query=${ruleName ?? ''}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{ 
@@ -167,7 +167,7 @@ export const Home = () => {
           onMouseEnter={(e) => e.target.style.color = '#FF9900'}
           onMouseLeave={(e) => e.target.style.color = '#262626'}
         >
-          {ruleName}
+          {ruleName ?? ''}
         </a>
       </div>
     )
@@ -241,9 +241,9 @@ export const Home = () => {
   }
 
   // 计算总告警数
-  const totalAlerts = (dashboardInfo?.alarmDistribution?.P0 || 0) + 
-                     (dashboardInfo?.alarmDistribution?.P1 || 0) + 
-                     (dashboardInfo?.alarmDistribution?.P2 || 0)
+  const totalAlerts = (dashboardInfo?.alarmDistribution?.P0 ?? 0) + 
+                     (dashboardInfo?.alarmDistribution?.P1 ?? 0) + 
+                     (dashboardInfo?.alarmDistribution?.P2 ?? 0)
 
   return (
     <div
@@ -637,7 +637,7 @@ export const Home = () => {
                   fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
                   textShadow: "0 4px 8px rgba(0,0,0,0.3), 0 0 20px rgba(255,215,0,0.3)"
                 }}>
-                  {dashboardInfo?.userNumber || 0}
+                  {dashboardInfo?.userNumber ?? 0}
                 </Text>
               </div>
             </div>
@@ -741,7 +741,7 @@ export const Home = () => {
                       }}></div>
                       <Text style={{ fontSize: "12px", color: "#a0a0a0", marginRight: "8px" }}>P0</Text>
                       <Text style={{ fontSize: "14px", fontWeight: "600", color: "#ffffff" }}>
-                        {dashboardInfo?.alarmDistribution?.P0 || 0}
+                        {dashboardInfo?.alarmDistribution?.P0 ?? 0}
                       </Text>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", marginBottom: "4px" }}>
@@ -754,7 +754,7 @@ export const Home = () => {
                       }}></div>
                       <Text style={{ fontSize: "12px", color: "#a0a0a0", marginRight: "8px" }}>P1</Text>
                       <Text style={{ fontSize: "14px", fontWeight: "600", color: "#ffffff" }}>
-                        {dashboardInfo?.alarmDistribution?.P1 || 0}
+                        {dashboardInfo?.alarmDistribution?.P1 ?? 0}
                       </Text>
                     </div>
                     <div style={{ display: "flex", alignItems: "center" }}>
@@ -767,7 +767,7 @@ export const Home = () => {
                       }}></div>
                       <Text style={{ fontSize: "12px", color: "#a0a0a0", marginRight: "8px" }}>P2</Text>
                       <Text style={{ fontSize: "14px", fontWeight: "600", color: "#ffffff" }}>
-                        {dashboardInfo?.alarmDistribution?.P2 || 0}
+                        {dashboardInfo?.alarmDistribution?.P2 ?? 0}
                       </Text>
                     </div>
                   </div>
@@ -807,7 +807,7 @@ export const Home = () => {
             {/* 内容区域 */}
             <div style={{ padding: "24px", height: "calc(100% - 80px)" }}>
               <Spin spinning={loading}>
-                {metricData.date && metricData.date.length > 0 ? (
+                {metricData?.date && metricData?.date?.length > 0 ? (
                   <div style={{ 
                     borderRadius: "16px",
                     padding: "16px",
@@ -816,7 +816,7 @@ export const Home = () => {
                     alignItems: "center",
                   }}>
                     <div style={{ width: "100%", height: "500px" }}>
-                      <NoticeMetricChart data={metricData} />
+                      <NoticeMetricChart data={metricData ?? {}} />
                     </div>
                   </div>
                 ) : (
@@ -888,10 +888,10 @@ export const Home = () => {
                 }}
                 popupClassName="dark-select-dropdown"
               >
-                {faultCenters.length === 0 && <Option disabled>暂无可用故障中心</Option>}
-                {faultCenters.map((center) => (
-                  <Option key={center.id} value={center.id}>
-                    {center.name}
+                {faultCenters?.length === 0 && <Option disabled>暂无可用故障中心</Option>}
+                {faultCenters?.map((center) => (
+                  <Option key={center?.id} value={center?.id}>
+                    {center?.name}
                   </Option>
                 ))}
               </Select>
@@ -900,9 +900,9 @@ export const Home = () => {
             {/* 内容区域 */}
             <div style={{ padding: "0", height: "calc(100% - 120px)" }}>
               <Spin spinning={loading}>
-                {dashboardInfo.curAlertList?.length > 0 ? (
+                {dashboardInfo?.curAlertList?.length > 0 ? (
                   <List
-                    dataSource={dashboardInfo.curAlertList ?? []}
+                    dataSource={dashboardInfo?.curAlertList ?? []}
                     style={{
                       height: "100%",
                       overflow: "auto",
@@ -934,7 +934,7 @@ export const Home = () => {
                         <div style={{ width: "100%" }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: "10px" }}>
                             <Tag 
-                              color={SEVERITY_COLORS[item.severity]} 
+                              color={SEVERITY_COLORS[item?.severity]} 
                               style={{ 
                                 margin: 0, 
                                 fontWeight: '500',
@@ -942,10 +942,10 @@ export const Home = () => {
                                 fontSize: "11px"
                               }}
                             >
-                              {item.severity}
+                              {item?.severity}
                             </Tag>
                             <a 
-                              href={`/faultCenter/detail/${item.faultCenterId}?query=${item.ruleName}`}
+                              href={`/faultCenter/detail/${item?.faultCenterId}?query=${item?.ruleName}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{ 
@@ -961,11 +961,11 @@ export const Home = () => {
                               onMouseEnter={(e) => e.target.style.color = '#FF9900'}
                               onMouseLeave={(e) => e.target.style.color = '#ffffff'}
                             >
-                              {item.ruleName}
+                              {item?.ruleName}
                             </a>
                             <div style={{ display: "flex", alignItems: "center", color: "#a0a0a0", fontSize: "10px" }}>
                               <Clock size={12} style={{ marginRight: "4px" }} />
-                              {FormatTime(item.tiggerTime)}
+                              {FormatTime(item?.tiggerTime)}
                             </div>
                           </div>
                         </div>
