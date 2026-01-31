@@ -131,7 +131,7 @@ export const DashboardFolder = () => {
     const handleList = async () => {
         try {
             const res = await getFolderList();
-            const d = res.data.map((item, index) => {
+            const d = res?.data?.map((item, index) => {
                 return {
                     key: index,
                     ...item,
@@ -174,7 +174,7 @@ export const DashboardFolder = () => {
                 query: value,
             }
             const res = await getFolderList(params)
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }

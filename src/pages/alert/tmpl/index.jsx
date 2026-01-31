@@ -138,12 +138,12 @@ export const RuleTemplate = () => {
         const res = await getRuleTmplList(params);
     
         setPagination({
-            index: res.data.index,
-            size: res.data.size,
-            total: res.data.total,
+            index: res?.data?.index,
+            size: res?.data?.size,
+            total: res?.data?.total,
         })
 
-        setList(res.data.list);
+        setList(res?.data?.list);
         // 清空选择
         setSelectedRowKeys([]);
     }, [tmplType, ruleGroupName])
@@ -154,7 +154,7 @@ export const RuleTemplate = () => {
             size: 9999,
         }
         const res = await getRuleGroupList(params)
-        const newData = res.data.list.map((item) => ({
+        const newData = res?.data?.list?.map((item) => ({
             label: item.name,
             value: item.id,
         }))
@@ -174,7 +174,7 @@ export const RuleTemplate = () => {
                     type: tmplType,
                 }
                 const res = await getRuleTmplList(params)
-                setList(res.data.list)
+                setList(res?.data?.list)
                 // 清空选择
                 setSelectedRowKeys([])
             } catch (error) {

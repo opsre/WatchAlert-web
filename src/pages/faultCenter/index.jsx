@@ -24,7 +24,7 @@ export const FaultCenter = () => {
     const handleList = async () => {
         try {
             const res = await FaultCenterList()
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }
@@ -44,7 +44,7 @@ export const FaultCenter = () => {
         try {
             const params = { query: value }
             const res = await FaultCenterList(params)
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }

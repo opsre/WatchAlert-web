@@ -210,7 +210,7 @@ export const Datasources = () => {
     const handleList = async () => {
         try {
             const res = await getDatasourceList()
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }
@@ -247,7 +247,7 @@ export const Datasources = () => {
                 query: value,
             }
             const res = await getDatasourceList(params)
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }

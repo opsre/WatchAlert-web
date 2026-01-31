@@ -78,20 +78,20 @@ export const FaultCenterNotify = () => {
             setLoading(true)
             const params = { id }
             const res = await FaultCenterSearch(params)
-            setDetail(res.data)
+            setDetail(res?.data)
 
             // Set form values
             form.setFieldsValue({
-                noticeIds: res.data.noticeIds,
-                repeatNoticeInterval: res.data.repeatNoticeInterval,
-                recoverNotify: res.data.recoverNotify,
-                alarmAggregation: res.data.alarmAggregation,
-                recoverWaitTime: res.data.recoverWaitTime,
+                noticeIds: res?.data?.noticeIds,
+                repeatNoticeInterval: res?.data?.repeatNoticeInterval,
+                recoverNotify: res?.data?.recoverNotify,
+                alarmAggregation: res?.data?.alarmAggregation,
+                recoverWaitTime: res?.data?.recoverWaitTime,
             })
 
             // Map noticeRoutes to noticeLabels
-            if (res.data.noticeRoutes && res.data.noticeRoutes.length > 0) {
-                const labels = res.data.noticeRoutes.map((group) => ({
+            if (res?.data?.noticeRoutes && res?.data?.noticeRoutes?.length > 0) {
+                const labels = res?.data?.noticeRoutes?.map((group) => ({
                     key: group.key,
                     value: group.value,
                     noticeIds: group.noticeIds,

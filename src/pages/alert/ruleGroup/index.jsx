@@ -157,7 +157,7 @@ export const AlertRuleGroup = ({ }) => {
                 total: res?.data?.total,
             });
 
-            setList(res.data.list)
+            setList(res?.data?.list)
         } catch (error) {
             console.error(error)
         }
@@ -204,7 +204,7 @@ export const AlertRuleGroup = ({ }) => {
                 total: res?.data?.total,
             });
 
-            setList(res.data.list)
+            setList(res?.data?.list)
         } catch (error) {
             console.error(error)
         }

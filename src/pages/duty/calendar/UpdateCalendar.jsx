@@ -54,7 +54,7 @@ export const UpdateCalendarModal = ({ visible, onClose, time, tenantId, dutyId, 
                 joinDuty: "true",
             }
             const res = await getUserList(params)
-            const options = res.data.map((item) => ({
+            const options = res?.data?.map((item) => ({
                 username: item.username,
                 userid: item.userid,
             }))

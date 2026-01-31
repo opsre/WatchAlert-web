@@ -69,8 +69,8 @@ export const SearchViewMetrics = ({
             }
 
             // 提取所有 result 数据
-            const allResults = res.data
-                .filter((item: any) => item.status === "success" && item.data?.result?.length > 0)
+            const allResults = res?.data
+                ?.filter((item: any) => item.status === "success" && item.data?.result?.length > 0)
                 .flatMap((item: any) => item.data.result)
 
             setMetrics(allResults)
@@ -107,7 +107,7 @@ export const SearchViewMetrics = ({
                 throw new Error(res.msg || "请求失败")
             }
 
-            setChartData(res.data)
+            setChartData(res?.data)
         } catch (err) {
             setError(err instanceof Error ? err.message : "网络错误")
             console.error("Fetch chart data error:", err)

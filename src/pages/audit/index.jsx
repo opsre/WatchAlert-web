@@ -117,12 +117,12 @@ export const AuditLog = () => {
 
             // Update pagination with response data
             setPagination({
-                index: res.data.index || 1, // Use response index or default to 1
-                size: res.data.size || 10, // Use response size or default to 10
-                total: res.data.total || 0, // Use response total or default to 0
+                index: res?.data?.index || 1, // Use response index or default to 1
+                size: res?.data?.size || 10, // Use response size or default to 10
+                total: res?.data?.total || 0, // Use response total or default to 0
             })
 
-            setList(res.data.list || [])
+            setList(res?.data?.list || [])
         } catch (error) {
             message.error(typeof error === "string" ? error : "Failed to fetch audit logs")
         }
@@ -180,12 +180,12 @@ export const AuditLog = () => {
             const res = await searchAuditLog(params)
 
             setPagination({
-                current: res.data.index || 1,
-                pageSize: res.data.size || 10,
-                total: res.data.total || 0,
+                current: res?.data?.index || 1,
+                pageSize: res?.data?.size || 10,
+                total: res?.data?.total || 0,
             })
 
-            setList(res.data.list || [])
+            setList(res?.data?.list || [])
         } catch (error) {
             console.error(error)
         }

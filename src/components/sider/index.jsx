@@ -188,7 +188,7 @@ export const ComponentSider = () => {
                 padding: 0 16px;
                 height: 44px;
                 line-height: 44px;
-                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+                transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             /* 选中状态 - 橙色渐变背景 */
@@ -210,11 +210,12 @@ export const ComponentSider = () => {
                 background: rgba(255, 153, 0, 0.1);
                 transform: translateX(6px);
                 color: #FF9900;
+                transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) .ant-menu-item-icon {
                 color: #FF9900;
-                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+                transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             /* 子菜单样式 */
@@ -225,7 +226,7 @@ export const ComponentSider = () => {
                 padding: 0 16px;
                 height: 44px;
                 line-height: 44px;
-                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+                transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
@@ -245,11 +246,12 @@ export const ComponentSider = () => {
                 background: rgba(255, 153, 0, 0.1);
                 color: #FF9900;
                 transform: translateX(6px);
+                transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-submenu-title:hover:not(.ant-menu-submenu-selected) .ant-menu-submenu-arrow {
                 color: #FF9900;
-                transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+                transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             /* 即使子菜单被选中，父级菜单悬停时仍应有高亮效果 */
@@ -329,6 +331,22 @@ export const ComponentSider = () => {
                 overflow: hidden;
                 transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
             }
+            
+            /* 优化滚动体验 - 使滚动更丝滑 */
+            .sidebar-menu-container {
+                scroll-behavior: smooth;
+                overscroll-behavior: contain;
+            }
+            
+            .ant-menu-root {
+                overflow-y: auto;
+                scroll-behavior: smooth;
+            }
+            
+            /* 启用原生滚动性能优化 */
+            .ant-menu-item, .ant-menu-submenu-title {
+                will-change: transform;
+            }
         `;
         document.head.appendChild(style);
         
@@ -343,10 +361,10 @@ export const ComponentSider = () => {
     const fetchUserInfo = async () => {
         try {
             const res = await getUserInfo()
-            setUserInfo(res.data)
+            setUserInfo(res?.data)
 
-            if (res.data.userid) {
-                await fetchTenantList(res.data.userid)
+            if (res?.data?.userid) {
+                await fetchTenantList(res?.data?.userid)
             }
 
             setLoading(false)
@@ -364,12 +382,12 @@ export const ComponentSider = () => {
             }
             const res = await getTenantList(params)
 
-            if (res.data === null || res.data.length === 0) {
+            if (res?.data === null || res?.data?.length === 0) {
                 message.error("该用户没有可用租户")
                 return
             }
 
-            const opts = res.data.map((key, index) => ({
+            const opts = res?.data?.map((key, index) => ({
                 label: key.name,
                 value: key.id,
                 index: index,
@@ -574,6 +592,7 @@ export const ComponentSider = () => {
                             return { maxHeight: node.scrollHeight, opacity: 1 };
                         },
                     }}
+                    className="sidebar-menu"
                 />
             </div>
 

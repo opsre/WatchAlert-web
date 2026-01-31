@@ -43,7 +43,7 @@ const Components = (props) => {
                     try {
                         const userRes = await getUserInfo()
                         if (userRes.data?.userid) {
-                            await fetchTenantList(userRes.data.userid)
+                            await fetchTenantList(userRes?.data?.userid)
                         }
                     } catch (err) {
                         console.error("Failed to fetch user info:", err)
@@ -127,13 +127,13 @@ const Components = (props) => {
         try {
             const res = await getTenantList({ userId: userid })
 
-            if (!res?.data || !Array.isArray(res.data) || res.data.length === 0) {
+            if (!res?.data || !Array.isArray(res?.data) || res?.data?.length === 0) {
                 console.error("No tenant data available")
                 setError(true)
                 return
             }
 
-            const tenantOptions = res.data.map((tenant, index) => ({
+            const tenantOptions = res?.data?.map((tenant, index) => ({
                 label: tenant.name,
                 value: tenant.id,
                 index: index,

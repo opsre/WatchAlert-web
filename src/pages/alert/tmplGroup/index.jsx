@@ -139,12 +139,12 @@ export const RuleTemplateGroup = () => {
             const res = await getRuleTmplGroupList(params);
 
             setPagination({
-                index: res.data.index,
-                size: res.data.size,
-                total: res.data.total,
+                index: res?.data?.index,
+                size: res?.data?.size,
+                total: res?.data?.total,
             });
 
-            setList(res.data.list)
+            setList(res?.data?.list)
         } catch (error) {
             console.error("Failed to fetch template groups:", error);
         } finally {
@@ -186,12 +186,12 @@ export const RuleTemplateGroup = () => {
             const res = await getRuleTmplGroupList(params)
 
             setPagination({
-                index: res.data.index,
-                size: res.data.size,
-                total: res.data.total,
+                index: res?.data?.index,
+                size: res?.data?.size,
+                total: res?.data?.total,
             })
 
-            setList(res.data.list)
+            setList(res?.data?.list)
         } catch (error) {
             console.error(error)
         } finally {

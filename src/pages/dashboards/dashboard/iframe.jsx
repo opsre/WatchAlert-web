@@ -19,12 +19,12 @@ export const GrafanaDashboardComponent = () => {
             }
             const resInfo = await getFolderInfo(fParams)
             const params = {
-                theme: resInfo.data.theme,
-                host:  resInfo.data.grafanaHost,
+                theme: resInfo?.data?.theme,
+                host:  resInfo?.data?.grafanaHost,
                 uid: did
             }
             const res = await getDashboardFullUrl(params)
-            setIframeSrc(res.data)
+            setIframeSrc(res?.data)
         } catch (error) {
             console.error(error)
         }

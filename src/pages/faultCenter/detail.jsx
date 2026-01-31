@@ -64,7 +64,7 @@ export const FaultCenterDetail = () => {
     try {
       const params = { id }
       const res = await FaultCenterSearch(params)
-      setDetail(res.data)
+      setDetail(res?.data)
     } catch (error) {
       console.error(error)
     }
@@ -79,9 +79,9 @@ const handleGetSlo = async () => {
       const res = await FaultCenterSlo(params)
 
       if (res.code === 200 && res.data) {
-        const mttaArr = Array.isArray(res.data.mtta) ? res.data.mtta : []
-        const mttrArr = Array.isArray(res.data.mttr) ? res.data.mttr : []
-        const mtbfArr = Array.isArray(res.data.mtbf) ? res.data.mtbf : []
+        const mttaArr = Array.isArray(res?.data?.mtta) ? res?.data?.mtta : []
+        const mttrArr = Array.isArray(res?.data?.mttr) ? res?.data?.mttr : []
+        const mtbfArr = Array.isArray(res?.data?.mtbf) ? res?.data?.mtbf : []
 
         // 构造近7天日期（从 6 天前 到 今天），并对应数组索引 0..6
         const days = []

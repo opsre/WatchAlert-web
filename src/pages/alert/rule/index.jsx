@@ -346,12 +346,12 @@ export const AlertRuleList = () => {
             }
             const res = await getRuleList(params)
             const newPagination = {
-                index: res.data.index,
-                size: res.data.size,
-                total: res.data.total,
+                index: res?.data?.index,
+                size: res?.data?.size,
+                total: res?.data?.total,
             }
             updatePagination(newPagination)
-            setList(res.data.list)
+            setList(res?.data?.list)
             setSelectedRowKeys([])
         } catch (error) {
             console.error(error)
@@ -386,7 +386,7 @@ export const AlertRuleList = () => {
                 total: res?.data?.total,
             }
             updatePagination(newPagination)
-            setList(res.data.list)
+            setList(res?.data?.list)
             setSelectedRowKeys([])
         } catch (error) {
             console.error(error)
@@ -410,7 +410,7 @@ export const AlertRuleList = () => {
     const handleListDatasource = async () => {
         try {
             const res = await getDatasourceList()
-            setDatasourceList(res.data)
+            setDatasourceList(res?.data)
         } catch (error) {
             console.error(error)
         }
@@ -506,7 +506,7 @@ export const AlertRuleList = () => {
     const fetchFaultCenterList = async () => {
         try {
             const res = await FaultCenterList()
-            const newData = res.data?.map((item) => ({
+            const newData = res?.data?.map((item) => ({
                 label: item.name,
                 value: item.id,
             }))
@@ -523,7 +523,7 @@ export const AlertRuleList = () => {
                 size: 9999,
             }
             const res = await getRuleGroupList(params)
-            const newData = res.data.list.map((item) => ({
+            const newData = res?.data?.list?.map((item) => ({
                 label: item.name,
                 value: item.id,
             }))

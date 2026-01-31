@@ -43,9 +43,9 @@ export const AlarmUpgrade = () => {
     const handleList = async () => {
         try {
             const res = await FaultCenterSearch({ id })
-            if (res.data) {
-                setFaultCenterData(res.data)
-                const { isUpgradeEnabled, upgradeStrategy, upgradableSeverity = [] } = res.data
+            if (res?.data) {
+                setFaultCenterData(res?.data)
+                const { isUpgradeEnabled, upgradeStrategy, upgradableSeverity = [] } = res?.data
 
                 setConfig({
                     isUpgradeEnabled: isUpgradeEnabled ?? true,

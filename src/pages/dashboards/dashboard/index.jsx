@@ -48,7 +48,7 @@ export const Dashboards = () => {
                 id: id
             }
             const res = await getGrafanaDashboardList(fParams)
-            const d = res.data.map((item, index) => {
+            const d = res?.data?.map((item, index) => {
                 return {
                     key: index,
                     ...item,

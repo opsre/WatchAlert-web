@@ -48,14 +48,14 @@ export const RuleGroupSidebar = ({
             }
             const res = await getRuleGroupList(params)
             // 确保返回的是数组
-            if (res && res.data && res.data.list) {
-                const list = Array.isArray(res.data.list) ? res.data.list : []
+            if (res && res?.data && res?.data?.list) {
+                const list = Array.isArray(res?.data?.list) ? res?.data?.list : []
                 setRuleGroupList(list)
                 setFilteredRuleGroupList(list)
-            } else if (res && res.data && Array.isArray(res.data)) {
+            } else if (res && res?.data && Array.isArray(res?.data)) {
                 // 兼容直接返回数组的情况
-                setRuleGroupList(res.data)
-                setFilteredRuleGroupList(res.data)
+                setRuleGroupList(res?.data)
+                setFilteredRuleGroupList(res?.data)
             } else {
                 setRuleGroupList([])
                 setFilteredRuleGroupList([])

@@ -462,17 +462,17 @@ export const AlertCurrentEvent = (props) => {
             }
             const res = await getCurEventList(params)
             if (res?.data?.list) {
-                setCurrentEventList(res.data.list)
+                setCurrentEventList(res?.data?.list)
 
                 // 更新分页信息
                 setCurrentPagination({
                     ...currentPagination,
-                    pageIndex: res.data.index,
-                    pageTotal: res.data.total,
+                    pageIndex: res?.data?.index,
+                    pageTotal: res?.data?.total,
                 })
 
                 // 检查是否有数据但当前页为空
-                if (res.data.total > 0 && res.data.list.length === 0 && pageIndex > 1) {
+                if (res?.data?.total > 0 && res?.data?.list?.length === 0 && pageIndex > 1) {
                     // 自动跳转到第一页
                     setCurrentPagination((prev) => ({
                         ...prev,
@@ -575,7 +575,7 @@ export const AlertCurrentEvent = (props) => {
             const res = await ReqAiAnalyze(formData)
             setAiAnalyzeContent({
                 ...params,
-                content: res.data,
+                content: res?.data,
             })
         } catch (error) {
             message.error("AI分析请求失败: " + error.message)
@@ -617,7 +617,7 @@ export const AlertCurrentEvent = (props) => {
             const res = await ReqAiAnalyze(formData)
             setAiAnalyzeContent({
                 ...params,
-                content: res.data,
+                content: res?.data,
             })
         } catch (error) {
             message.error("深度分析请求失败: " + error.message)
@@ -794,7 +794,7 @@ export const AlertCurrentEvent = (props) => {
             }
             const res = await getCurEventList(params)
             if (res?.data?.list) {
-                event = res.data.list.sort((a, b) => b.first_trigger_time - a.first_trigger_time)
+                event = res?.data?.list?.sort((a, b) => b.first_trigger_time - a.first_trigger_time)
             }
         } catch (error) {
             HandleApiError(error)
@@ -822,7 +822,7 @@ export const AlertCurrentEvent = (props) => {
                 fingerprint: selectedEvent.fingerprint,
             };
             const res = await ListEventComments(comment);
-            setComments(res.data);
+            setComments(res?.data);
         } catch (error) {
             HandleApiError(error)
         }
@@ -915,11 +915,11 @@ export const AlertCurrentEvent = (props) => {
                 eventId: eventId,
             }
             const res = await noticeRecordList(params)
-            setNoticeRecords(res.data.list || [])
+            setNoticeRecords(res?.data?.list || [])
             setNoticePagination({
-                pageIndex: res.data.index,
-                pageSize: res.data.size,
-                pageTotal: res.data.total,
+                pageIndex: res?.data?.index,
+                pageSize: res?.data?.size,
+                pageTotal: res?.data?.total,
             })
         } catch (error) {
             message.error("获取通知记录失败: " + error.message)

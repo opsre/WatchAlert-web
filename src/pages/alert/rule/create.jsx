@@ -547,7 +547,7 @@ export const AlertRule = ({ type }) => {
         }
         const res = await getJaegerService(params)
 
-        const newData = res.data.data?.map((item) => ({
+        const newData = res?.data?.data?.map((item) => ({
             label: item,
             value: item
         }))

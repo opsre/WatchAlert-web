@@ -55,9 +55,9 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
             const res = await GetCalendarUsers(params)
 
             // 假设 res.data 是 [][]DutyUser 结构
-            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-                const loadedGroups = res.data
-                    .filter((userList) => Array.isArray(userList)) // 确保每个 userList 都是数组
+            if (res?.data && Array.isArray(res?.data) && res?.data?.length > 0) {
+                const loadedGroups = res?.data
+                    ?.filter((userList) => Array.isArray(userList)) // 确保每个 userList 都是数组
                     .map((userList, index) => {
                         // 根据组内第一个用户的userid生成稳定的颜色索引
                         let colorIndex = index
@@ -110,7 +110,7 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
                 joinDuty: "true",
             }
             const res = await getUserList(params)
-            const options = res.data.map((item) => ({
+            const options = res?.data?.map((item) => ({
                 username: item.username,
                 userid: item.userid,
             }))

@@ -197,7 +197,7 @@ export const DutyManage = () => {
     const handleList = async () => {
         try {
             const res = await getDutyManagerList()
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             message.error(error);
         }

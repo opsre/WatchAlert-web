@@ -381,13 +381,13 @@ export const AlertHistoryEvent = (props) => {
             setLoading(true)
             const res = await getHisEventList(params)
             if (res?.data?.list) {
-                setHistoryEventList(res.data.list)
+                setHistoryEventList(res?.data?.list)
                 setHistoryPagination((prev) => ({
                     ...prev,
-                    pageTotal: res.data.total,
+                    pageTotal: res?.data?.total,
                 }))
                 // If current page has no data but total > 0 and not page 1, reset to page 1
-                if (res.data.total > 0 && res.data.list.length === 0 && historyPagination.pageIndex > 1) {
+                if (res?.data?.total > 0 && res?.data?.list?.length === 0 && historyPagination.pageIndex > 1) {
                     setHistoryPagination((prev) => ({
                         ...prev,
                         pageIndex: 1, // This will trigger the main useEffect again
@@ -513,7 +513,7 @@ export const AlertHistoryEvent = (props) => {
             setExportLoading(true)
             const res = await getHisEventList(params)
             setExportLoading(false)
-            return res.data.list
+            return res?.data?.list
         } catch (error) {
             console.error(error)
             setExportLoading(false)
@@ -569,7 +569,7 @@ export const AlertHistoryEvent = (props) => {
                 fingerprint: selectedEvent.fingerprint,
             }
             const res = await ListEventComments(comment)
-            setComments(res.data)
+            setComments(res?.data)
         } catch (error) {
             HandleApiError(error)
         }
@@ -655,11 +655,11 @@ export const AlertHistoryEvent = (props) => {
                 eventId: eventId,
             }
             const res = await noticeRecordList(params)
-            setNoticeRecords(res.data.list || [])
+            setNoticeRecords(res?.data?.list || [])
             setNoticePagination({
-                pageIndex: res.data.index,
-                pageSize: res.data.size,
-                pageTotal: res.data.total,
+                pageIndex: res?.data?.index,
+                pageSize: res?.data?.size,
+                pageTotal: res?.data?.total,
             })
         } catch (error) {
             message.error("获取通知记录失败: " + error.message)

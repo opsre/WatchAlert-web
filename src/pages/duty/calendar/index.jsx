@@ -21,7 +21,7 @@ export const fetchDutyData = async (dutyId, year, month) => {
                 }),
         }
         const res = await searchCalendar(params)
-        return res.data
+        return res?.data
     } catch (error) {
         console.error(error)
         message.error("获取日程数据失败")

@@ -95,15 +95,15 @@ export const Login = () => {
         try {
             const res = await getOidcInfo();
             if (res) {
-                if (res.data.authType !== 2) {
+                if (res?.data?.authType !== 2) {
                     message.error('OIDC 未启用，请联系管理员');
                     return;
                 }
 
                 const oidcConfig = {
-                    authority: res.data.upperURI,
-                    client_id: res.data.clientID,
-                    redirect_uri: res.data.redirectURI,
+                    authority: res?.data?.upperURI,
+                    client_id: res?.data?.clientID,
+                    redirect_uri: res?.data?.redirectURI,
                     response_type: 'code',
                     scope: 'openid profile email',
                 };
