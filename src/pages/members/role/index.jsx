@@ -119,7 +119,7 @@ export const UserRole = () => {
 
     const handleList = async () => {
         const res = await getRoleList();
-        setList(res.data);
+        setList(res?.data);
     };
 
     const handleDelete = async (record) => {

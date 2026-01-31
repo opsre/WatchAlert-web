@@ -131,7 +131,7 @@ export const Subscribe = () => {
     const handleList = async (index) => {
         try {
             const res = await listSubscribe()
-            const sortedList = res.data.sort((a, b) => {
+            const sortedList = res?.data?.sort((a, b) => {
                 return new Date(b.sCreateAt) - new Date(a.sCreateAt);
             });
 

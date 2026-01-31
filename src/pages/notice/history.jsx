@@ -206,11 +206,11 @@ export const NoticeRecords = ({ noticeObjectId }) => {
 
             const res = await noticeRecordList(params)
 
-            setList(res.data.list || [])
+            setList(res?.data?.list || [])
             setPagination({
-                pageIndex: res.data.index,
+                pageIndex: res?.data?.index,
                 pageSize,
-                pageTotal: res.data.total,
+                pageTotal: res?.data?.total,
             })
         } catch (error) {
             console.error("Failed to load records:", error)

@@ -164,7 +164,7 @@ export const NoticeObjects = () => {
 
         try {
             const res = await getNoticeList()
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             message.error(error);
         }
@@ -177,7 +177,7 @@ export const NoticeObjects = () => {
     const handleDutyManagerList = async () => {
         try {
             const res = await getDutyManagerList()
-            setDutyList(res.data);
+            setDutyList(res?.data);
         } catch (error) {
             message.error(error);
         }
@@ -219,7 +219,7 @@ export const NoticeObjects = () => {
                 query: value,
             }
             const res = await getNoticeList(params)
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }

@@ -234,7 +234,7 @@ export const Probing = () => {
             setLoading(true);
             // 不传递 ruleType 参数，获取所有类型的任务
             const res = await ProbingList({});
-            setDataList(res.data);
+            setDataList(res?.data);
         } catch (error) {
             console.error(error);
         } finally {
@@ -249,7 +249,7 @@ export const Probing = () => {
             const res = await ProbingList({
                 query: value,
             });
-            setDataList(res.data);
+            setDataList(res?.data);
         } catch (error) {
             console.error(error);
         }

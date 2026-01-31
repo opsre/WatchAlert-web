@@ -146,7 +146,7 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
                 size: rulePagination.size,
             }
             const res = await getRuleList(params)
-            const ops = res.data.list.map((item) =>{
+            const ops = res?.data?.list?.map((item) =>{
                 return {
                     label: item.ruleName,
                     value: item.ruleId,
@@ -154,9 +154,9 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
             })
 
             setRulePagination({
-                index: res.data.index,
-                size: res.data.size,
-                total: res.data.total,
+                index: res?.data?.index,
+                size: res?.data?.size,
+                total: res?.data?.total,
             });
             setRuleList(ops);
         } catch (error) {
@@ -169,7 +169,7 @@ export const CreateSubscribeModel = ({ visible, onClose, selectedRow, type, hand
             noticeType: "Email",
         }
         const res =  await getNoticeTmplList(params)
-        const newData = res.data.map((item) => ({
+        const newData = res?.data?.map((item) => ({
             label: item.name,
             value: item.id
         }))

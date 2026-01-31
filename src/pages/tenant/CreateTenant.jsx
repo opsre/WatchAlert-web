@@ -100,7 +100,7 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
                 joinDuty: "true",
             }
             const res = await getUserList(params)
-            const options = res.data.map((item) => ({
+            const options = res?.data?.map((item) => ({
                 username: item.username,
                 userid: item.userid
             }))

@@ -126,7 +126,7 @@ export const User = () => {
     const handleList = async () => {
         try {
             const res = await getUserList();
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             console.error(error);
         }
@@ -161,7 +161,7 @@ export const User = () => {
                 query: value
             }
             const res = await getUserList(params)
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             console.error(error);
         }

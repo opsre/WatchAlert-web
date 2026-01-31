@@ -955,7 +955,7 @@ const FlowContent = ({ detailData, topologyId }) => {
         const res = await getDatasource(params);
         
         if (res?.data?.http?.url) {
-          setMetricAddress(res.data.http.url);
+          setMetricAddress(res?.data?.http?.url);
         } else {
           setMetricAddress(PROMETHEUS_ADDR);
         }
@@ -1207,8 +1207,8 @@ const FlowContent = ({ detailData, topologyId }) => {
 
           const res = await queryPromMetrics(params);
 
-          if (res.code === 200 && res.data && res.data.length > 0) {
-            const result = res.data[0];
+          if (res.code === 200 && res?.data && res?.data?.length > 0) {
+            const result = res?.data[0];
             if (result.status === "success" && result.data?.result?.length > 0) {
               // 获取最后一个值
               const value = parseFloat(result.data.result[0].value[1]).toFixed(2);

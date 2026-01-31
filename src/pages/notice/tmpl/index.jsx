@@ -190,7 +190,7 @@ export const NoticeTemplate = () => {
 
     const handleList = async () => {
         const res = await getNoticeTmplList();
-        setList(res.data);
+        setList(res?.data);
     };
 
     const handleDelete = async (record) => {
@@ -224,7 +224,7 @@ export const NoticeTemplate = () => {
                 query: value,
             };
             const res = await getNoticeTmplList(params);
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             console.error(error);
         }

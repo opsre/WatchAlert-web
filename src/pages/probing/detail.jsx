@@ -110,8 +110,8 @@ export const ProbingMetrics = () => {
         try {
             const res = await ProbingList({});
             
-            if (res.data && res.data.length > 0) {
-                const task = res.data.find(item => item.ruleId === id);
+            if (res?.data && res?.data?.length > 0) {
+                const task = res?.data?.find(item => item.ruleId === id);
                 
                 if (task) {
                     setTaskInfo(task);

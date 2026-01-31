@@ -14,7 +14,7 @@ const TopologyDetail = () => {
     try {
       const res = await TopologyGetDetail({ id });
       if (res.code === 200) {
-        setDetailData(res.data || {});
+        setDetailData(res?.data || {});
       } else {
         message.error(res.message || '获取详情失败');
       }

@@ -169,7 +169,7 @@ export const FaultCenter = () => {
                 {/* 可滚动的内容区域 */}
                 <div style={styles.scrollContainer}>
                     {/* 空状态展示 */}
-                    {list.length === 0 && (
+                    {list?.length === 0 && (
                         <div
                             style={{
                                 height: "70vh",
@@ -190,7 +190,7 @@ export const FaultCenter = () => {
                     )}
 
                     <Row gutter={[18, 18]} style={{ display: "flex", flexWrap: "wrap", marginTop: "20px" }}>
-                        {list.map((item) => (
+                        {list?.map((item) => (
                             <Col key={item.id} xs={24} sm={24} md={8} lg={8} style={{ flex: "320px" }}>
                                 <div
                                     onClick={() => handleCardClick(item.id)}

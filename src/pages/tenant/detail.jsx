@@ -22,7 +22,7 @@ export const TenantDetail = ()=>{
                 id: id,
             }
             const res = await getTenant(params)
-            setTenantInfo(res.data);
+            setTenantInfo(res?.data);
         } catch (error) {
             console.error(error)
         }

@@ -175,7 +175,7 @@ export const Tenants = () => {
         let userid = ""
         try {
             const userRes = await getUserInfo()
-            userid = userRes.data.userid
+            userid = userRes?.data?.userid
         } catch (error){
             console.log(error)
         }
@@ -185,15 +185,15 @@ export const Tenants = () => {
                 userId: userid,
             }
             const res = await getTenantList(params)
-            if (res.data === null || res.data.length === 0){
+            if (res?.data === null || res?.data?.length === 0){
                 message.error("该用户没有可用租户")
             }
-            setList(res.data);
+            setList(res?.data);
             
             // 更新总数
             const newPagination = {
                 ...pagination,
-                total: res.data ? res.data.length : 0
+                total: res?.data ? res?.data?.length : 0
             }
             updatePagination(newPagination)
         } catch (error) {

@@ -25,11 +25,11 @@ export default function Profile() {
     const fetchUserInfo = async () => {
         try {
             const res = await getUserInfo();
-            setUserInfo(res.data);
+            setUserInfo(res?.data);
             form.setFieldsValue({
                 password: "****************",
-                phone: res.data.phone,
-                email: res.data.email,
+                phone: res?.data?.phone,
+                email: res?.data?.email,
             });
         } catch (error) {
             console.error(error);

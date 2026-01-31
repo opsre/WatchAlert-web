@@ -3,6 +3,7 @@
  */
 import axios from 'axios';
 import {message} from "antd";
+
 const protocol = window.location.protocol;
 const curUrl = window.location.hostname
 const port = window.location.port;
@@ -40,12 +41,18 @@ axios.interceptors.response.use(
     (error) => {
         switch (error?.response?.status){
             case 401:
-                window.localStorage.removeItem('Authorization');
-                window.history.replaceState(null, '', '/login');
-                // window.location.reload();
+                // 清除认证信息
+                localStorage.clear();
+                // 显示退出登录提示
+                message.warning('身份验证已过期，正在退出登录...');
+                // 延迟跳转到登录页面，确保用户能看到提示
+                setTimeout(() => {
+                    window.location.replace('/login');
+                }, 1000); // 延迟1秒跳转
+                break;
             case 403:
-                message.error("无权限访问!")
-                window.history.replaceState(null, '', '/');
+                message.error("无权限访问!");
+                break;
         }
 
         return Promise.reject(error);

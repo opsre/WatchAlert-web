@@ -152,8 +152,14 @@ export const ComponentSider = () => {
     const menuItems = useMemo(() => convertToMenuItems(userInfo?.role === 'admin' ? adminMenuItems : userMenuItems), [userInfo, convertToMenuItems]);
 
     const handleLogout = () => {
+        // 清除本地存储
         localStorage.clear()
-        navigate("/login")
+        // 显示退出登录提示
+        message.success('已退出登录');
+        // 延迟跳转到登录页面，确保用户能看到提示
+        setTimeout(() => {
+            navigate("/login");
+        }, 800); // 延迟0.8秒跳转
     }
 
     const userPopoverMenuItems = [
@@ -370,8 +376,14 @@ export const ComponentSider = () => {
             setLoading(false)
         } catch (error) {
             console.error("Failed to fetch user info:", error)
+            // 清除认证信息
             window.localStorage.removeItem("Authorization")
-            navigate("/login")
+            // 显示错误提示
+            message.error('获取用户信息失败，请重新登录');
+            // 延迟跳转到登录页面，确保用户能看到提示
+            setTimeout(() => {
+                navigate("/login");
+            }, 1000); // 延迟1秒跳转
         }
     }
 
@@ -404,8 +416,14 @@ export const ComponentSider = () => {
             setTenantStatus(true)
         } catch (error) {
             console.error("Failed to fetch tenant list:", error)
+            // 清除本地存储
             localStorage.clear()
+            // 显示错误提示
             message.error("获取租户错误, 退出登录")
+            // 延迟跳转到登录页面，确保用户能看到提示
+            setTimeout(() => {
+                navigate("/login");
+            }, 1000); // 延迟1秒跳转
         }
     }
 

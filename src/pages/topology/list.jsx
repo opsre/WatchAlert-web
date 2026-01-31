@@ -52,12 +52,12 @@ const List = () => {
         }
         const res = await TopologyList(params)
         const newPagination = {
-            index: res.data.index,
-            size: res.data.size,
-            total: res.data.total,
+            index: res?.data?.index,
+            size: res?.data?.size,
+            total: res?.data?.total,
         }
         updatePagination(newPagination)
-        setData(res.data.list)
+        setData(res?.data?.list)
     } catch (error) {
         console.error(error)
     } finally {

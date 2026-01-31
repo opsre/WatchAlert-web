@@ -111,7 +111,7 @@ export const Home = () => {
   const fetchMetricData = async () => {
     try {
       const res = await noticeRecordMetric()
-      setMetricData(res.data)
+      setMetricData(res?.data)
     } catch (error) {
       message.error("加载图表数据失败")
       console.error("Failed to load metric data:", error)

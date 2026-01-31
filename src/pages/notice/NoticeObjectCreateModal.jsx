@@ -63,8 +63,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
     const loadDutyList = useCallback(async () => {
         try {
             const res = await getDutyManagerList()
-            if (res?.data && Array.isArray(res.data)) {
-                const newData = res.data.map((item) => ({
+            if (res?.data && Array.isArray(res?.data)) {
+                const newData = res?.data?.map((item) => ({
                     label: item.name,
                     value: item.id
                 }))
@@ -79,8 +79,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
     const loadUserList = useCallback(async () => {
         try {
             const res = await getUserList({ joinDuty: "true" })
-            if (res?.data && Array.isArray(res.data)) {
-                const options = res.data.map((item) => ({
+            if (res?.data && Array.isArray(res?.data)) {
+                const options = res?.data?.map((item) => ({
                     userName: item.username,
                     userEmail: item.email
                 }))
@@ -107,8 +107,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
 
         try {
             const res = await getNoticeTmplList({ noticeType: noticeTypeParam })
-            if (res?.data && Array.isArray(res.data)) {
-                const newData = res.data.map((item) => ({
+            if (res?.data && Array.isArray(res?.data)) {
+                const newData = res?.data?.map((item) => ({
                     label: item.name,
                     value: item.id
                 }))

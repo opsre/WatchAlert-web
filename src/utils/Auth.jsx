@@ -22,9 +22,9 @@ const Auth = (WrappedComponent) => {
                         localStorage.clear()
                         navigate("/login")
                     } else {
-                        localStorage.setItem("Authorization", res.data.token)
-                        localStorage.setItem("Username", res.data.username)
-                        localStorage.setItem("UserId", res.data.userId)
+                        localStorage.setItem("Authorization", res?.data?.token)
+                        localStorage.setItem("Username", res?.data?.username)
+                        localStorage.setItem("UserId", res?.data?.userId)
                         navigate("/")
                     }
                 }

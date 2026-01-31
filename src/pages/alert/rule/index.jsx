@@ -206,7 +206,7 @@ export const AlertRuleList = () => {
                 <span>
                     {getDatasourceNamesByIds(record.datasourceId)
                         .split(", ")
-                        .map((name, index) => (
+                        ?.map((name, index) => (
                             <Tag color="processing" key={index}>
                                 {name}
                             </Tag>
@@ -427,9 +427,9 @@ export const AlertRuleList = () => {
     const GetSeverity = (data) => {
         const isPrometheusType = data.datasourceType === 'Prometheus';
         if (isPrometheusType && data.prometheusConfig?.rules) {
-            return data.prometheusConfig.rules.map((rule) => rule.severity);
+            return data?.prometheusConfig?.rules?.map((rule) => rule.severity);
         } else {
-            return data.severity ? [data.severity] : [];
+            return data?.severity ? [data?.severity] : [];
         }
     };
 

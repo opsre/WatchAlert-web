@@ -84,14 +84,14 @@ export const Silences = (props) => {
             const res = await getSilenceList(params);
             setLoading(false);
 
-            const sortedList = res.data.list.sort((a, b) => {
+            const sortedList = res?.data?.list?.sort((a, b) => {
                 return new Date(b.update_at) - new Date(a.update_at);
             });
 
             setPagination({
-                index: res.data.index,
-                size: res.data.size,
-                total: res.data.total,
+                index: res?.data?.index,
+                size: res?.data?.size,
+                total: res?.data?.total,
             });
 
             setList(sortedList);

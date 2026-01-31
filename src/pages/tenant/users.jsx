@@ -115,7 +115,7 @@ export const TenantUsers = ({ tenantInfo }) => {
     const handleGetUserRole = async () => {
         try {
             const res = await getRoleList()
-            const options = res.data.map((item) => (
+            const options = res?.data?.map((item) => (
                 {
                     label: item.name,
                     value: item.id
@@ -157,7 +157,7 @@ export const TenantUsers = ({ tenantInfo }) => {
     const fetchData = async () => {
         try {
             const response = await getUserList();
-            const data = response.data;
+            const data = response?.data;
             formatData(data); // Format the fetched data for Transfer
         } catch (error) {
             console.error(error);
@@ -170,7 +170,7 @@ export const TenantUsers = ({ tenantInfo }) => {
                 id: tenantInfo.id,
             }
             const res = await getUsersForTenant(params)
-            setUserData(res.data.users)
+            setUserData(res?.data?.users)
         } catch (error) {
             console.error(error);
         }

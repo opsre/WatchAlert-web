@@ -78,7 +78,7 @@ const handleGetSlo = async () => {
       }
       const res = await FaultCenterSlo(params)
 
-      if (res.code === 200 && res.data) {
+      if (res.code === 200 && res?.data) {
         const mttaArr = Array.isArray(res?.data?.mtta) ? res?.data?.mtta : []
         const mttrArr = Array.isArray(res?.data?.mttr) ? res?.data?.mttr : []
         const mtbfArr = Array.isArray(res?.data?.mtbf) ? res?.data?.mtbf : []

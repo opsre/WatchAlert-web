@@ -139,38 +139,38 @@ export const SystemSettings = () => {
 
             //  改进的配置初始化逻辑
             const aiConfig = {
-                enable: res.data.aiConfig?.enable || false,
-                url: res.data.aiConfig?.url || "",
-                appKey: res.data.aiConfig?.appKey || "",
-                model: res.data.aiConfig?.model || "",
-                timeout: res.data.aiConfig?.timeout || 30,
-                maxTokens: res.data.aiConfig?.maxTokens || 1000,
-                prompt: res.data.aiConfig?.prompt || defaultPrompt
+                enable: res?.data?.aiConfig?.enable || false,
+                url: res?.data?.aiConfig?.url || "",
+                appKey: res?.data?.aiConfig?.appKey || "",
+                model: res?.data?.aiConfig?.model || "",
+                timeout: res?.data?.aiConfig?.timeout || 30,
+                maxTokens: res?.data?.aiConfig?.maxTokens || 1000,
+                prompt: res?.data?.aiConfig?.prompt || defaultPrompt
             };
 
             const ldapConfig = {
-                address: res.data.ldapConfig?.address || "",
-                baseDN: res.data.ldapConfig?.baseDN || "",
-                adminUser: res.data.ldapConfig?.adminUser || "",
-                adminPass: res.data.ldapConfig?.adminPass || "",
-                userDN: res.data.ldapConfig?.userDN || "",
-                userPrefix: res.data.ldapConfig?.userPrefix || "",
-                defaultUserRole: res.data.ldapConfig?.defaultUserRole || undefined,
-                cronjob: res.data.ldapConfig?.cronjob || "*/30 * * * *", //  更合理的默认值
+                address: res?.data?.ldapConfig?.address || "",
+                baseDN: res?.data?.ldapConfig?.baseDN || "",
+                adminUser: res?.data?.ldapConfig?.adminUser || "",
+                adminPass: res?.data?.ldapConfig?.adminPass || "",
+                userDN: res?.data?.ldapConfig?.userDN || "",
+                userPrefix: res?.data?.ldapConfig?.userPrefix || "",
+                defaultUserRole: res?.data?.ldapConfig?.defaultUserRole || undefined,
+                cronjob: res?.data?.ldapConfig?.cronjob || "*/30 * * * *", //  更合理的默认值
             };
 
             const emailConfig = {
-                serverAddress: res.data.emailConfig?.serverAddress || "",
-                port: res.data.emailConfig?.port || "",
-                email: res.data.emailConfig?.email || "",
-                token: res.data.emailConfig?.token || "",
+                serverAddress: res?.data?.emailConfig?.serverAddress || "",
+                port: res?.data?.emailConfig?.port || "",
+                email: res?.data?.emailConfig?.email || "",
+                token: res?.data?.emailConfig?.token || "",
             };
 
             const oidcConfig = {
-                clientID: res.data.oidcConfig?.clientID || "",
-                upperURI: res.data.oidcConfig?.upperURI || "",
-                redirectURI: res.data.oidcConfig?.redirectURI || "",
-                domain: res.data.oidcConfig?.domain || "",
+                clientID: res?.data?.oidcConfig?.clientID || "",
+                upperURI: res?.data?.oidcConfig?.upperURI || "",
+                redirectURI: res?.data?.oidcConfig?.redirectURI || "",
+                domain: res?.data?.oidcConfig?.domain || "",
             }
 
             //  确保表单字段正确初始化
@@ -187,10 +187,10 @@ export const SystemSettings = () => {
                 1: "LDAP 认证",
                 2: "OIDC 认证"
             };
-            setAlignValue(authTypeMapping[res.data.authType] || "系统认证");
+            setAlignValue(authTypeMapping[res?.data?.authType] || "系统认证");
 
             setEnableAi(aiConfig.enable);
-            setVersion(res.data.appVersion || 'Unknown');
+            setVersion(res?.data?.appVersion || 'Unknown');
         } catch (error) {
             console.error("Failed to load settings:", error);
             message.error('加载设置失败，请重试');

@@ -240,11 +240,11 @@ export const OnceProbing = () => {
 
             console.log('发送拨测请求:', params)
             const res = await ProbingOnce(params)
-            if (res && res.data) {
+            if (res && res?.data) {
                 // Parse the new metrics data structure
-                const parsedData = parseMetricsData(res.data)
+                const parsedData = parseMetricsData(res?.data)
                 setResponseData(parsedData)
-                console.log('拨测响应:', res.data)
+                console.log('拨测响应:', res?.data)
                 console.log('解析后数据:', parsedData)
             }
         } catch (errorInfo) {

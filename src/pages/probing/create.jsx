@@ -193,7 +193,7 @@ export const CreateProbingRule = ({ type }) => {
             setDatasourceLoading(true)
             const res = await getDatasourceList()
             // Filter for Prometheus data sources
-            const filteredData = res.data.filter(item => 
+            const filteredData = res?.data?.filter(item => 
                 item.type === "Prometheus" && item.write.enabled === "On"
             )
             const newData = filteredData.map((item) => ({
