@@ -100,7 +100,6 @@ export const FaultCenter = () => {
         scrollContainer: {
             flex: 1,
             overflowY: "auto", // 启用垂直滚动
-            padding: "0 10px",
         },
         cardTitle: {
             fontSize: "16px",
@@ -109,19 +108,79 @@ export const FaultCenter = () => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-        },
-        label: {
-            color: "#878383",
+            color: "#1f2d3d",
         },
         value: (color) => ({
             color: color,
             fontWeight: "bold",
             marginLeft: "8px",
-            fontSize: "15px",
+            fontSize: "16px",
         }),
         cardHover: {
-            transform: "scale(1.05)",
-            transition: "transform 0.3s ease",
+            transform: "translateY(-5px) scale(1.02)",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            boxShadow: "0 4px 25px rgba(0,0,0,0.15)",
+        },
+        cardContainer: {
+            margin: "4px",
+            transition: "all 0.3s ease",
+        },
+        card: {
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            border: "1px solid #f0f0f0",
+            transition: "all 0.3s ease",
+            height: "160px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            padding: "16px",
+            position: "relative",
+            overflow: "hidden",
+        },
+        statsContainer: {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "10px",
+            flex: 1,
+        },
+        statItem: {
+            textAlign: "center",
+            flex: 1,
+        },
+        statValue: (color) => ({
+            fontSize: "20px",
+            fontWeight: "700",
+            color: color,
+            lineHeight: 1.2,
+        }),
+        statLabel: {
+            fontSize: "12px",
+            color: "#6b7280",
+            marginTop: "4px",
+        },
+        footer: {
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            borderTop: "1px solid #f5f5f5",
+            paddingTop: "12px",
+            marginTop: "8px",
+        },
+        createTime: {
+            fontSize: "12px",
+            color: "#9ca3af",
+        },
+        moreIcon: {
+            fontSize: "16px",
+            cursor: "pointer",
+            padding: "4px",
+            borderRadius: "4px",
+            transition: "background-color 0.2s",
+        },
+        moreIconHover: {
+            backgroundColor: "#f5f5f5",
         },
     }
 
@@ -189,62 +248,65 @@ export const FaultCenter = () => {
                         </div>
                     )}
 
-                    <Row gutter={[18, 18]} style={{ display: "flex", flexWrap: "wrap", marginTop: "20px" }}>
+                    <Row gutter={[10, 10]} style={{ display: "flex", flexWrap: "wrap", marginTop: "20px" }}>
                         {list?.map((item) => (
                             <Col key={item.id} xs={24} sm={24} md={8} lg={8} style={{ flex: "320px" }}>
                                 <div
+                                    style={styles.cardContainer}
                                     onClick={() => handleCardClick(item.id)}
                                     onMouseEnter={() => setHoveredCard(item.id)}
                                     onMouseLeave={() => setHoveredCard(null)}
-                                    style={{
-                                        cursor: "pointer",
-                                        transform: hoveredCard === item.id ? styles.cardHover.transform : "scale(1)",
-                                        transition: styles.cardHover.transition,
-                                    }}
                                 >
-                                    <Card style={{ textAlign: "left" }}>
+                                    <Card 
+                                        style={{
+                                            ...styles.card,
+                                            ...(hoveredCard === item.id ? styles.cardHover : {})
+                                        }}
+                                        bodyStyle={{ padding: 0, height: '100%' }}
+                                    >
                                         {/* 标题部分 */}
-                                        <div style={styles.cardTitle}>
-                                            <span>{item.name}</span>
-                                            <Dropdown overlay={renderMenu(item)} trigger={["click"]} overlayStyle={{ zIndex: 9999 }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                                            <span style={{ fontSize: "15px", fontWeight: "500", color: "#1f2d3d", flex: 1 }}>{item.name}</span>
+                                            <Dropdown overlay={renderMenu(item)} trigger={"click"} overlayStyle={{ zIndex: 9999 }}>
                                                 <MoreOutlined
                                                     onClick={(e) => {
                                                         e.stopPropagation()
                                                     }}
-                                                    style={{ fontSize: "18px", cursor: "pointer" }}
+                                                    style={styles.moreIcon}
+                                                    onMouseEnter={(e) => e.target.style.backgroundColor = "#f5f5f5"}
+                                                    onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"}
                                                 />
                                             </Dropdown>
                                         </div>
 
-                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
+                                        <div style={styles.statsContainer}>
                                             {/* 预告警 */}
-                                            <div style={{ flex: "1 1 calc(35% - 8px)" }}>
-                                                <span style={styles.value(item.currentPreAlertNumber > 0 ? "#ffe465" : "#93fa8f")}>
+                                            <div style={styles.statItem}>
+                                                <div style={styles.statValue(item.currentPreAlertNumber > 0 ? "#ffe465" : "#10b981")}>
                                                     {item.currentPreAlertNumber ? item.currentPreAlertNumber : 0}
-                                                </span>
-                                                <span style={styles.label}> 预告警</span>
+                                                </div>
+                                                <div style={styles.statLabel}>预告警</div>
                                             </div>
 
                                             {/* 待处理 */}
-                                            <div style={{ flex: "1 1 calc(35% - 8px)" }}>
-                                                <span style={styles.value(item.currentAlertNumber > 0 ? "#ff7373" : "#93fa8f")}>
+                                            <div style={styles.statItem}>
+                                                <div style={styles.statValue(item.currentAlertNumber > 0 ? "#ef4444" : "#10b981")}>
                                                     {item.currentAlertNumber ? item.currentAlertNumber : 0}
-                                                </span>
-                                                <span style={styles.label}> 待处理</span>
+                                                </div>
+                                                <div style={styles.statLabel}>待处理</div>
                                             </div>
 
                                             {/* 待恢复 */}
-                                            <div style={{ flex: "1 1 calc(35% - 8px)" }}>
-                                                <span style={styles.value(item.currentRecoverNumber > 0 ? "orange" : "#93fa8f")}>
+                                            <div style={styles.statItem}>
+                                                <div style={styles.statValue(item.currentRecoverNumber > 0 ? "#f97316" : "#10b981")}>
                                                     {item.currentRecoverNumber ? item.currentRecoverNumber : 0}
-                                                </span>
-                                                <span style={styles.label}> 待恢复</span>
+                                                </div>
+                                                <div style={styles.statLabel}>待恢复</div>
                                             </div>
                                         </div>
 
-                                        <br/>
-                                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                                            <span style={{ color: "gray" }}>{formatDate(item.createAt)}</span>
+                                        <div style={styles.footer}>
+                                            <span style={styles.createTime}>{formatDate(item.createAt)}</span>
                                         </div>
                                     </Card>
                                 </div>
