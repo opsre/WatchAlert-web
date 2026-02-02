@@ -150,7 +150,7 @@ export const Silences = (props) => {
 
     const radioOptions = [
         {
-            label: '按规则聚合',
+            label: '相同规则聚合',
             value: 'Rule',
         },
         {
