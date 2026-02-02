@@ -217,34 +217,28 @@ export const FaultCenter = () => {
                                         </div>
 
                                         <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
-                                            {/* 待处理 */}
-                                            <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                                <span style={styles.value(item.currentAlertNumber > 0 ? "#ff7373" : "#93fa8f")}>
-                                                    {item.currentAlertNumber ? item.currentAlertNumber : 0}
-                                                </span>
-                                                <span style={styles.label}> 待处理</span>
-                                            </div>
-
                                             {/* 预告警 */}
-                                            <div style={{ flex: "1 1 calc(50% - 8px)" }}>
+                                            <div style={{ flex: "1 1 calc(35% - 8px)" }}>
                                                 <span style={styles.value(item.currentPreAlertNumber > 0 ? "#ffe465" : "#93fa8f")}>
                                                     {item.currentPreAlertNumber ? item.currentPreAlertNumber : 0}
                                                 </span>
                                                 <span style={styles.label}> 预告警</span>
                                             </div>
 
+                                            {/* 待处理 */}
+                                            <div style={{ flex: "1 1 calc(35% - 8px)" }}>
+                                                <span style={styles.value(item.currentAlertNumber > 0 ? "#ff7373" : "#93fa8f")}>
+                                                    {item.currentAlertNumber ? item.currentAlertNumber : 0}
+                                                </span>
+                                                <span style={styles.label}> 待处理</span>
+                                            </div>
+
                                             {/* 待恢复 */}
-                                            <div style={{ flex: "1 1 calc(50% - 8px)" }}>
+                                            <div style={{ flex: "1 1 calc(35% - 8px)" }}>
                                                 <span style={styles.value(item.currentRecoverNumber > 0 ? "orange" : "#93fa8f")}>
                                                     {item.currentRecoverNumber ? item.currentRecoverNumber : 0}
                                                 </span>
                                                 <span style={styles.label}> 待恢复</span>
-                                            </div>
-
-                                            {/* 静默中 */}
-                                            <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                                <span style={styles.value(item.currentMuteNumber > 0 ? "#878383" : "#93fa8f")}>{item.currentMuteNumber ? item.currentMuteNumber : 0}</span>
-                                                <span style={styles.label}> 静默中</span>
                                             </div>
                                         </div>
 

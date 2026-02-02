@@ -127,7 +127,6 @@ export const AlertCurrentEvent = (props) => {
     const statusMap = {
         "pre_alert": { color: "#ffe465", text: "预告警" },
         "alerting": { color: "red", text: "告警中" },
-        "silenced": { color: "grey", text: "静默中" },
         "pending_recovery": { color: "orange", text: "待恢复" },
         "recovered": { color: "green", text: "已恢复" },
     }
@@ -347,7 +346,7 @@ export const AlertCurrentEvent = (props) => {
         {
             title: "操作",
             key: "action",
-            width: "100px",
+            width: "50px",
             render: (_, record) => {
                 const menu = (
                     <Menu>
@@ -1130,7 +1129,6 @@ export const AlertCurrentEvent = (props) => {
                             options={[
                                 { value: "pre_alert", label: "预告警" },
                                 { value: "alerting", label: "告警中" },
-                                { value: "silenced", label: "静默中" },
                                 { value: "pending_recovery", label: "待恢复" },
                             ]}
                         />

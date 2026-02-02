@@ -762,10 +762,10 @@ export const AlertRule = ({ type }) => {
     const handleGetRdsClusters = async(params) =>{
         try{
             const res = await getRdsClusters(params)
-            if (res?.data === null){
+            if (res.data === null){
                 setEndpointOptions([])
             }
-            const ops = res?.data?.map((item) => {
+            const ops = res.data?.map((item) =>{
                 return {
                     label: item,
                     value: item,
