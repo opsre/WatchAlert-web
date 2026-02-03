@@ -600,7 +600,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                                             <Input placeholder="http(s)://xxx.xxx"/>
                                                                         </Form.Item>
 
-                                                                        {currentNoticeType === 'FeiShu' && (
+                                                                        {(currentNoticeType === 'FeiShu' || currentNoticeType === 'DingDing') && (
                                                                             <Form.Item
                                                                                 {...restField}
                                                                                 name={[name, "sign"]}
