@@ -1,4 +1,4 @@
-import {Form, Input, Button, Select, Card, Drawer, Checkbox} from 'antd'
+import {Form, Input, Button, Select, Card, Drawer, Checkbox, TimePicker} from 'antd'
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createNotice, updateNotice } from '../../api/notice'
 import { getDutyManagerList } from '../../api/duty'
@@ -12,7 +12,9 @@ import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
 import {getNoticeTmplList} from "../../api/noticeTmpl";
 import {getUserList} from "../../api/user";
 import { noticeTest } from '../../api/notice';
+import dayjs from 'dayjs';
 
+const format = 'HH:mm';
 const MyFormItemContext = React.createContext([])
 
 function toArr(str) {
@@ -58,6 +60,38 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         { imgSrc: SlackImg, text: 'Slack', value: 'Slack' },
         { imgSrc: WebHook, text: 'WebHook', value: 'WebHook' },
     ], [])
+
+    // 全局状态保持不变，但生效时间将存储在各个路由中
+    const weekOptions = [
+        {
+            label:'周一',
+            value:'Monday',
+        },
+        {
+            label:'周二',
+            value:'Tuesday',
+        },
+        {
+            label:'周三',
+            value:'Wednesday',
+        },
+        {
+            label:'周四',
+            value:'Thursday',
+        },
+        {
+            label:'周五',
+            value:'Friday',
+        },
+        {
+            label:'周六',
+            value:'Saturday',
+        },
+        {
+            label:'周日',
+            value:'Sunday',
+        },
+    ];
 
     // API 调用函数
     const loadDutyList = useCallback(async () => {
@@ -199,7 +233,16 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                 ? selectedRow.routes.map(route => ({
                     ...route,
                     severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
-                    noticeTmplId: route.noticeTmplId || ''
+                    noticeTmplId: route.noticeTmplId || '',
+                    effectiveTime: route.effectiveTime && Object.keys(route.effectiveTime).length > 0 ? {
+                        week: route.effectiveTime.week || [],
+                        startTime: route.effectiveTime.startTime !== undefined ? route.effectiveTime.startTime : 0,
+                        endTime: route.effectiveTime.endTime !== undefined ? route.effectiveTime.endTime : 0
+                    } : {
+                        week: [],
+                        startTime: 0,
+                        endTime: 0
+                    }
                 }))
                 : [{
                     severitys: ['P0'],
@@ -209,7 +252,16 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     sign: selectedRow.sign || '',
                     subject: selectedRow.email?.subject || '',
                     to: selectedRow.email?.to || [],
-                    cc: selectedRow.email?.cc || []
+                    cc: selectedRow.email?.cc || [],
+                    effectiveTime: selectedRow.effectiveTime && Object.keys(selectedRow.effectiveTime).length > 0 ? {
+                        week: selectedRow.effectiveTime.week || [],
+                        startTime: selectedRow.effectiveTime.startTime !== undefined ? selectedRow.effectiveTime.startTime : 0,
+                        endTime: selectedRow.effectiveTime.endTime !== undefined ? selectedRow.effectiveTime.endTime : 0
+                    } : {
+                        week: [],
+                        startTime: 0,
+                        endTime: 0
+                    }
                 }]
 
             // 等待相关模板加载完成后设置表单值
@@ -235,7 +287,12 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     sign: '',
                     subject: '',
                     to: [],
-                    cc: []
+                    cc: [],
+                    effectiveTime: {
+                        week: [],
+                        startTime: 0,
+                        endTime: 0
+                    }
                 }]
             })
             setSelectedNoticeCard(0)
@@ -272,7 +329,16 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     sign: route.sign || '',
                     subject: route.subject || '',
                     to: route.to || [],
-                    cc: route.cc || []
+                    cc: route.cc || [],
+                    effectiveTime: route.effectiveTime && Object.keys(route.effectiveTime).length > 0 ? {
+                        week: route.effectiveTime.week || [],
+                        startTime: route.effectiveTime.startTime !== undefined ? route.effectiveTime.startTime : 0,
+                        endTime: route.effectiveTime.endTime !== undefined ? route.effectiveTime.endTime : 0
+                    } : {
+                        week: [],
+                        startTime: 0,
+                        endTime: 0
+                    }
                 })) || [],
             }
             await createNotice(params)
@@ -296,7 +362,16 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     sign: route.sign || '',
                     subject: route.subject || '',
                     to: route.to || [],
-                    cc: route.cc || []
+                    cc: route.cc || [],
+                    effectiveTime: route.effectiveTime && Object.keys(route.effectiveTime).length > 0 ? {
+                        week: route.effectiveTime.week || [],
+                        startTime: route.effectiveTime.startTime !== undefined ? route.effectiveTime.startTime : 0,
+                        endTime: route.effectiveTime.endTime !== undefined ? route.effectiveTime.endTime : 0
+                    } : {
+                        week: [],
+                        startTime: 0,
+                        endTime: 0
+                    }
                 })) || [],
                 updateBy: 'current_user',
                 uuid: selectedRow.uuid
@@ -358,6 +433,19 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
             setTestLoadingRoutes(prev => ({ ...prev, [routeIndex]: false }))
         }
     }
+
+    // 将秒数转换为 ISO 格式的 Date 对象
+    const secondsToDateObj = (seconds) => {
+        // 以当前日期为基础
+        const date = dayjs();
+
+        // 计算小时和分钟
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+
+        // 设置 dayjs 对象的小时和分钟
+        return date.set('hour', hours).set('minute', minutes).set('second', 0); // 秒数设为 0
+    };
 
 
 
@@ -671,7 +759,111 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                         />
                                                     </Form.Item>
 
-                                                    <div style={{ marginTop: "-20px" ,marginBottom: "-20px"}}>
+                                                    <div style={{marginTop: '-13px'}}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, "effectiveTime"]}
+                                                            label="生效时间"
+                                                            style={{
+                                                                width: '100%',
+                                                            }}
+                                                        >
+                                                            <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => {
+                                                                const prevEffectiveTime = prevValues?.routes?.[name]?.effectiveTime
+                                                                const currentEffectiveTime = currentValues?.routes?.[name]?.effectiveTime
+                                                                return prevEffectiveTime !== currentEffectiveTime
+                                                            }}>
+                                                                {({ getFieldValue }) => {
+                                                                    const currentEffectiveTime = getFieldValue(['routes', name, 'effectiveTime']) && Object.keys(getFieldValue(['routes', name, 'effectiveTime'])).length > 0 ? {
+                                                                        week: getFieldValue(['routes', name, 'effectiveTime']).week || [],
+                                                                        startTime: getFieldValue(['routes', name, 'effectiveTime']).startTime !== undefined ? getFieldValue(['routes', name, 'effectiveTime']).startTime : 0,
+                                                                        endTime: getFieldValue(['routes', name, 'effectiveTime']).endTime !== undefined ? getFieldValue(['routes', name, 'effectiveTime']).endTime : 0
+                                                                    } : {
+                                                                        week: [],
+                                                                        startTime: 0,
+                                                                        endTime: 0
+                                                                    }
+                                                                                                        
+                                                                    return (
+                                                                        <div style={{display: 'flex', gap: '10px'}}>
+                                                                            <Select
+                                                                                mode="multiple"
+                                                                                allowClear
+                                                                                style={{
+                                                                                    width: '100%',
+                                                                                }}
+                                                                                placeholder="如果为空则表示全天候"
+                                                                                value={currentEffectiveTime.week}
+                                                                                onChange={(value) => {
+                                                                                    const routes = getFieldValue('routes') || [];
+                                                                                    const newRoutes = [...routes];
+                                                                                    if (newRoutes[name]) {
+                                                                                        newRoutes[name] = {
+                                                                                            ...newRoutes[name],
+                                                                                            effectiveTime: {
+                                                                                                ...newRoutes[name].effectiveTime,
+                                                                                                week: value
+                                                                                            }
+                                                                                        };
+                                                                                    }
+                                                                                    form.setFieldsValue({ routes: newRoutes });
+                                                                                }}
+                                                                                options={weekOptions}
+                                                                            />
+                                                                            <TimePicker
+                                                                                placeholder={"开始"}
+                                                                                format={format}
+                                                                                value={secondsToDateObj(currentEffectiveTime.startTime !== undefined ? currentEffectiveTime.startTime : 0)}
+                                                                                onChange={(value) => {
+                                                                                    const time = new Date(value);
+                                                                                    const hours = time.getHours().toString().padStart(2, '0');
+                                                                                    const minutes = time.getMinutes().toString().padStart(2, '0');
+                                                                                    const seconds = (parseInt(hours) * 3600) + (parseInt(minutes) * 60);
+                                                                                                                        
+                                                                                    const routes = getFieldValue('routes') || [];
+                                                                                    const newRoutes = [...routes];
+                                                                                    if (newRoutes[name]) {
+                                                                                        newRoutes[name] = {
+                                                                                            ...newRoutes[name],
+                                                                                            effectiveTime: {
+                                                                                                ...newRoutes[name].effectiveTime,
+                                                                                                startTime: seconds
+                                                                                            }
+                                                                                        };
+                                                                                    }
+                                                                                    form.setFieldsValue({ routes: newRoutes });
+                                                                                }}/>
+                                                                            <TimePicker
+                                                                                placeholder={"结束"}
+                                                                                format={format}
+                                                                                value={secondsToDateObj(currentEffectiveTime.endTime !== undefined ? currentEffectiveTime.endTime : 0)}
+                                                                                onChange={(value) => {
+                                                                                    const time = new Date(value);
+                                                                                    const hours = time.getHours().toString().padStart(2, '0');
+                                                                                    const minutes = time.getMinutes().toString().padStart(2, '0');
+                                                                                    const seconds = (parseInt(hours) * 3600) + (parseInt(minutes) * 60);
+                                                                                                                        
+                                                                                    const routes = getFieldValue('routes') || [];
+                                                                                    const newRoutes = [...routes];
+                                                                                    if (newRoutes[name]) {
+                                                                                        newRoutes[name] = {
+                                                                                            ...newRoutes[name],
+                                                                                            effectiveTime: {
+                                                                                                ...newRoutes[name].effectiveTime,
+                                                                                                endTime: seconds
+                                                                                            }
+                                                                                        };
+                                                                                    }
+                                                                                    form.setFieldsValue({ routes: newRoutes });
+                                                                                }}/>
+                                                                        </div>
+                                                                    )
+                                                                }}
+                                                            </Form.Item>
+                                                        </Form.Item>
+                                                    </div>
+
+                                                    <div style={{ marginTop: "-15px",marginBottom: "-20px", display: 'flex', justifyContent: 'flex-end'}}>
                                                         {/* 通知测试按钮 */}
                                                         <Form.Item>
                                                             <Button

@@ -91,7 +91,7 @@ export const AlertRule = ({ type }) => {
     // 初始化时间数据的状态
     const [week,setWeek] = useState(null)
     const [startTime, setStartTime] = useState(0);
-    const [endTime, setEndTime] = useState(86340);
+    const [endTime, setEndTime] = useState(0);
     const weekOptions = [
         {
             label:'周一',
@@ -1913,7 +1913,7 @@ export const AlertRule = ({ type }) => {
                                 style={{
                                     width: '100%',
                                 }}
-                                placeholder="请选择规则生效时间"
+                                placeholder="如果为空则表示全天候"
                                 value={week}
                                 onChange={handleChange}
                                 options={weekOptions}
@@ -1930,9 +1930,6 @@ export const AlertRule = ({ type }) => {
                                 value={secondsToDateObj(endTime)}
                             />
                         </div>
-                        <Typography.Text type="secondary" style={{marginTop: '5px', fontSize: '12px'}}>
-                            {"> 默认情况下规则随时生效。如需指定生效时间，请选择具体的时间。"}
-                        </Typography.Text>
                     </MyFormItem>
                 </div>
 
