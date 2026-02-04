@@ -40,7 +40,7 @@ axios.interceptors.response.use(
     },
     (error) => {
         switch (error?.response?.status){
-            case 401:
+            case 401, 400:
                 // 清除认证信息
                 localStorage.clear();
                 // 显示退出登录提示
