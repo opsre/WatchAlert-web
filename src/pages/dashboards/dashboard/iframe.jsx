@@ -33,7 +33,6 @@ export const GrafanaDashboardComponent = () => {
     return (
         <>
             <Breadcrumb items={['仪表盘', '详情']} />
-            <div >Loading...</div>
             <div style={{ marginLeft: '-24px', height: '78vh' }}>
                 <iframe
                     src={iframeSrc}

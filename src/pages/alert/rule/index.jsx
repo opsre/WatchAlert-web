@@ -339,8 +339,8 @@ export const AlertRuleList = () => {
     const handleList = useCallback(async (ruleGroupId, index, size) => {
         try {
             const params = {
-                index: index,
-                size: size,
+                index: index || 1,
+                size: size || 10,
                 status: selectRuleStatus,
                 ruleGroupId: ruleGroupId,
             }
@@ -373,8 +373,8 @@ export const AlertRuleList = () => {
     const onSearch = useCallback(async (value) => {
         try {
             const params = {
-                index: pagination.index,
-                size: pagination.size,
+                index: pagination.index || 1,
+                size: pagination.size || 10,
                 ruleGroupId: id,
                 status: selectRuleStatus,
                 query: value,

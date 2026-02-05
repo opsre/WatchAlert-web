@@ -47,8 +47,8 @@ const List = () => {
     setLoading(true);
     try {
         const params = {
-            index: index,
-            size: size,
+            index: index || 1,
+            size: size || 10,
         }
         const res = await TopologyList(params)
         const newPagination = {
