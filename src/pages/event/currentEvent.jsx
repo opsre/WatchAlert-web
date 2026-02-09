@@ -27,7 +27,8 @@ import {
     DeleteEventComment,
     getCurEventList,
     ListEventComments,
-    ProcessAlertEvent
+    ProcessAlertEvent,
+    DeleteAlertEvent,
 } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
 import { ReqAiAnalyze } from "../../api/ai"
@@ -654,6 +655,11 @@ export const AlertCurrentEvent = (props) => {
                 label: "批量认领",
                 onClick: () => handleBatchClaim(),
             },
+            {
+                key: "batchDelete",
+                label: "批量删除",
+                onClick: () => handleBatchDelete(),
+            },
         ],
     }
 
@@ -682,6 +688,39 @@ export const AlertCurrentEvent = (props) => {
                     handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize) // 刷新列表
                 } catch (error) {
                     message.error("认领失败: " + error.message)
+                } finally {
+                    setBatchProcessing(false)
+                }
+            },
+            onCancel: () => {
+                setBatchProcessing(false)
+            },
+        })
+    }
+
+    const handleBatchDelete = () => {
+        setBatchProcessing(true)
+        if (selectedRowKeys.length === 0) {
+            message.warning("请先选择要删除的事件")
+            setBatchProcessing(false)
+            return
+        }
+
+        Modal.confirm({
+            title: "确认批量删除",
+            content: `确定要删除选中的 ${selectedRowKeys.length} 个事件吗？`,
+            onOk: async () => {
+                try {
+                    const params = {
+                        faultCenterId: id,
+                        fingerprints: selectedRowKeys
+                    }
+                    await DeleteAlertEvent(params)
+                    message.success(`成功删除 ${selectedRowKeys.length} 个事件`)
+                    setSelectedRowKeys([]) // 清空选择
+                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize) // 刷新列表
+                } catch (error) {
+                    message.error("删除失败: " + error.message)
                 } finally {
                     setBatchProcessing(false)
                 }
