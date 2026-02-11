@@ -189,8 +189,10 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                                             style={{ width: "120px" }}
                                         >
                                             <Select placeholder="选择操作符">
-                                                <Option value="=">等于</Option>
-                                                <Option value="!=">不等于</Option>
+                                                <Option value="==">==</Option>
+                                                <Option value="=~">=~</Option>
+                                                <Option value="!=">!=</Option>
+                                                <Option value="!~">!~</Option>
                                             </Select>
                                         </Form.Item>
 

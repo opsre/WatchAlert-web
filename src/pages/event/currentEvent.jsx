@@ -102,7 +102,7 @@ export const AlertCurrentEvent = (props) => {
         filterOptions: [], // ruleName, ruleType, alertLevel
         itemsPerPage: 10, // 导出HTML的每页项目数
     })
-    // 选中的告警状态
+    // 选中的事件状态
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [comments, setComments] = useState( [])
     const [newComment, setNewComment] = useState("")
@@ -126,10 +126,12 @@ export const AlertCurrentEvent = (props) => {
     }
 
     const statusMap = {
-        "pre_alert": { color: "#ffe465", text: "预告警" },
+        "pre_alert": { color: "yellow", text: "预告警" },
         "alerting": { color: "red", text: "告警中" },
         "pending_recovery": { color: "orange", text: "待恢复" },
         "recovered": { color: "green", text: "已恢复" },
+        "processing": { color: "purple", text: "处理中" },
+        "muting": { color: "gray", text: "静默中" },
     }
 
     const rowSelection = {
@@ -304,7 +306,7 @@ export const AlertCurrentEvent = (props) => {
             },
         },
         {
-            title: "告警状态",
+            title: "事件状态",
             dataIndex: "status",
             key: "status",
             width: "100px",
@@ -312,11 +314,7 @@ export const AlertCurrentEvent = (props) => {
                 const status = statusMap[text]
                 return (
                     <div>
-                        {(text === "alerting" && record.confirmState?.confirmUsername) && (
-                            <Tag style={{ color:"#980d9e", background:"#f6edff", borderColor: "rgb(204 121 208)" }}>处理中</Tag>
-                        ) || 
-                            <Tag color={status.color}>{status.text}</Tag>
-                        }
+                        <Tag color={status.color}>{status.text}</Tag>
                     </div>
                 )
             },
@@ -408,29 +406,15 @@ export const AlertCurrentEvent = (props) => {
 
     const handleSilenceModalOpen = (record) => {
         const excludeKeys = ['value']; // 要排除的 key 列表
+        const labelsArray = Object.entries(record.labels || {})
+            .filter(([key]) => !excludeKeys.includes(key))
+            .map(([key, value]) => ({
+                key,
+                operator: "=",
+                value,
+            }));
 
-        // 如果 record.labels 中包含 fingerprint，就只取 fingerprint
-        if (record.labels && 'fingerprint' in record.labels) {
-            setSelectedSilenceRow({
-                labels: [{
-                    key: 'fingerprint',
-                    operator: '=',
-                    value: record.labels.fingerprint,
-                }]
-            });
-        } else {
-            // 否则，继续原来逻辑：过滤掉 excludeKeys 的字段
-            const labelsArray = Object.entries(record.labels || {})
-                .filter(([key]) => !excludeKeys.includes(key))
-                .map(([key, value]) => ({
-                    key,
-                    operator: "=",
-                    value,
-                }));
-
-            setSelectedSilenceRow({ labels: labelsArray });
-        }
-
+        setSelectedSilenceRow({ labels: labelsArray });
         setSilenceVisible(true);
     };
 
@@ -1132,7 +1116,7 @@ export const AlertCurrentEvent = (props) => {
                             prefix={<SearchOutlined />}
                         />
                         <Select
-                            placeholder="选择类型"
+                            placeholder="数据源类型"
                             style={{ width: 150 }}
                             allowClear
                             value={selectedDataSource || null}
@@ -1160,7 +1144,7 @@ export const AlertCurrentEvent = (props) => {
                             ]}
                         />
                         <Select
-                            placeholder="告警状态"
+                            placeholder="事件状态"
                             style={{ width: 150 }}
                             allowClear
                             value={selectedStatus || null}
@@ -1168,6 +1152,8 @@ export const AlertCurrentEvent = (props) => {
                             options={[
                                 { value: "pre_alert", label: "预告警" },
                                 { value: "alerting", label: "告警中" },
+                                { value: "processing", label: "处理中" },
+                                { value: "muting", label: "静默中" },
                                 { value: "pending_recovery", label: "待恢复" },
                             ]}
                         />
@@ -1309,7 +1295,7 @@ export const AlertCurrentEvent = (props) => {
                                         <>
                                             {(selectedEvent.status === "alerting" && selectedEvent.confirmState?.confirmUsername) && (
                                                 <Tag style={{ color:"#980d9e", background:"#f6edff", borderColor: "rgb(204 121 208)" }}>处理中</Tag>
-                                            ) || 
+                                            ) ||
                                                 <Tag color={statusMap[selectedEvent.status].color}>{statusMap[selectedEvent.status].text}</Tag>
                                             }
                                         </>
