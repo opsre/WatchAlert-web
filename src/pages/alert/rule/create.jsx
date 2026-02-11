@@ -1859,7 +1859,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItem>
                     )}
 
-                    {(selectedType !== 0 && selectedType !== 5 ) &&
+                    {(selectedType !== 0) &&
                         <MyFormItem
                             name="severity" label="告警等级"
                             rules={[
