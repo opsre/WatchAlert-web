@@ -134,7 +134,8 @@ export const NoticeObjects = () => {
                             <Button 
                                 type="text" 
                                 icon={<CopyOutlined />} 
-                                 style={{ color: "#52c41a" }} // 使用绿色区分
+                                onClick={(e) => handleCopy(record, e)}
+                                style={{ color: "#52c41a" }} // 使用绿色区分
                             />
                         </Tooltip>
                         <Tooltip title="删除">
@@ -218,14 +219,21 @@ export const NoticeObjects = () => {
         }
     };
     
-// 修改原有的 handleCopy 函数
-    const handleCopy = (record) => {
-        // 构造新的复制参数，给名称加一个 "-复制" 的后缀
-        const copiedRecord = {
-            ...record,
-            name: `${record.name}-复制`
-        };
-        // 保存复制的数据并打开弹窗
+    const handleCopy = (record, e) => {
+        // 1. 阻止事件冒泡，防止表格被意外选中或拦截
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        
+        // 2. 打印日志用于调试（按 F12 可以在控制台看到这行输出）
+        console.log("【调试】点击了复制按钮，当前行数据：", record);
+
+        // 3. 使用深拷贝，彻底切断与原表格数据的引用关联
+        const copiedRecord = JSON.parse(JSON.stringify(record));
+        copiedRecord.name = `${copiedRecord.name}-复制`;
+        
+        // 4. 设置状态并打开抽屉
         setCreateSelectedRow(copiedRecord);
         setVisible(true); 
     };
