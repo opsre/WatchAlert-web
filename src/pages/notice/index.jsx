@@ -267,9 +267,9 @@ export const NoticeObjects = () => {
                 <div>
                     <Button
                         type="primary"
-                        onClick={() => 
+                        onClick={() => {
                             setCreateSelectedRow(null); // 确保正常创建时是个空表单
-                            setVisible(true)}
+                            setVisible(true)}}
                         style={{
                             backgroundColor: '#000000'
                         }}
