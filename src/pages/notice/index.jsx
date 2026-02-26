@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip, Drawer, Select} from 'antd';
 import { CreateNoticeObjectModal } from './NoticeObjectCreateModal';
-import { deleteNotice, getNoticeList } from '../../api/notice';
+import { deleteNotice, getNoticeList, createNotice } from '../../api/notice';
 import {getDutyManagerList} from "../../api/duty";
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
@@ -116,7 +116,7 @@ export const NoticeObjects = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 100,
+            width: 140, // 增加宽度以容纳三个按钮
             render: (_, record) =>
                 list.length >= 1 ? (
                     <Space size="middle">
@@ -127,6 +127,22 @@ export const NoticeObjects = () => {
                                 onClick={() => handleUpdateModalOpen(record)}
                                 style={{ color: "#1677ff" }}
                             />
+                        </Tooltip>
+                        {/* 新增的复制按钮 */}
+                        <Tooltip title="复制">
+                            <Popconfirm
+                                title="确定要复制该通知对象吗?"
+                                onConfirm={() => handleCopy(record)}
+                                okText="确定"
+                                cancelText="取消"
+                                placement="left"
+                            >
+                                <Button 
+                                    type="text" 
+                                    icon={<CopyOutlined />} 
+                                    style={{ color: "#52c41a" }} // 使用绿色区分
+                                />
+                            </Popconfirm>
                         </Tooltip>
                         <Tooltip title="删除">
                             <Popconfirm
@@ -206,6 +222,25 @@ export const NoticeObjects = () => {
             handleList();
         } catch (error) {
             message.error(error);
+        }
+    };
+    
+    const handleCopy = async (record) => {
+        try {
+            // 剔除系统生成的唯一标识和时间字段，避免后端冲突
+            const { uuid, id, createAt, updateAt, updateBy, createBy, ...rest } = record;
+            
+            // 构造新的复制参数，可以给名称加一个 "-复制" 的后缀
+            const params = {
+                ...rest,
+                name: `${record.name}-复制`
+            };
+            
+            await createNotice(params);
+            handleList(); // 重新拉取列表以刷新页面
+        } catch (error) {
+            console.error("复制失败:", error);
+            // 详细的错误提示已经在 api 层的 HandleApiError 中处理了
         }
     };
 
