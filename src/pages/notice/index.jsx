@@ -21,6 +21,7 @@ export const NoticeObjects = () => {
     const [height, setHeight] = useState(window.innerHeight);
     const [historyDrawerVisible, setHistoryDrawerVisible] = useState(false);
     const [selectedNoticeObject, setSelectedNoticeObject] = useState(null);
+    const [createSelectedRow, setCreateSelectedRow] = useState(null); // 用于存放复制时带入的数据
     const columns = [
         {
             title: '名称',
@@ -130,19 +131,11 @@ export const NoticeObjects = () => {
                         </Tooltip>
                         {/* 新增的复制按钮 */}
                         <Tooltip title="复制">
-                            <Popconfirm
-                                title="确定要复制该通知对象吗?"
-                                onConfirm={() => handleCopy(record)}
-                                okText="确定"
-                                cancelText="取消"
-                                placement="left"
-                            >
-                                <Button 
-                                    type="text" 
-                                    icon={<CopyOutlined />} 
-                                    style={{ color: "#52c41a" }} // 使用绿色区分
-                                />
-                            </Popconfirm>
+                            <Button 
+                                type="text" 
+                                icon={<CopyOutlined />} 
+                                 style={{ color: "#52c41a" }} // 使用绿色区分
+                            />
                         </Tooltip>
                         <Tooltip title="删除">
                             <Popconfirm
@@ -225,27 +218,21 @@ export const NoticeObjects = () => {
         }
     };
     
-    const handleCopy = async (record) => {
-        try {
-            // 剔除系统生成的唯一标识和时间字段，避免后端冲突
-            const { uuid, id, createAt, updateAt, updateBy, createBy, ...rest } = record;
-            
-            // 构造新的复制参数，可以给名称加一个 "-复制" 的后缀
-            const params = {
-                ...rest,
-                name: `${record.name}-复制`
-            };
-            
-            await createNotice(params);
-            handleList(); // 重新拉取列表以刷新页面
-        } catch (error) {
-            console.error("复制失败:", error);
-            // 详细的错误提示已经在 api 层的 HandleApiError 中处理了
-        }
+// 修改原有的 handleCopy 函数
+    const handleCopy = (record) => {
+        // 构造新的复制参数，给名称加一个 "-复制" 的后缀
+        const copiedRecord = {
+            ...record,
+            name: `${record.name}-复制`
+        };
+        // 保存复制的数据并打开弹窗
+        setCreateSelectedRow(copiedRecord);
+        setVisible(true); 
     };
 
     const handleModalClose = () => {
         setVisible(false);
+        setCreateSelectedRow(null); // 关闭弹窗时清空复制产生的数据
     };
 
     const onSearch = async (value) => {
@@ -280,7 +267,9 @@ export const NoticeObjects = () => {
                 <div>
                     <Button
                         type="primary"
-                        onClick={() => setVisible(true)}
+                        onClick={() => 
+                            setCreateSelectedRow(null); // 确保正常创建时是个空表单
+                            setVisible(true)}
                         style={{
                             backgroundColor: '#000000'
                         }}
@@ -291,7 +280,13 @@ export const NoticeObjects = () => {
                 </div>
             </div>
 
-            <CreateNoticeObjectModal visible={visible} onClose={handleModalClose} type='create' handleList={handleList} />
+            <CreateNoticeObjectModal 
+                visible={visible} 
+                onClose={handleModalClose} 
+                selectedRow={createSelectedRow} 
+                type='create' 
+                handleList={handleList} 
+            />
 
             <CreateNoticeObjectModal visible={updateVisible} onClose={handleUpdateModalClose} selectedRow={selectedRow} type='update' handleList={handleList} />
 
