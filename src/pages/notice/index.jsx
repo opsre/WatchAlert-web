@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip, Drawer, Select} from 'antd';
 import { CreateNoticeObjectModal } from './NoticeObjectCreateModal';
-import { deleteNotice, getNoticeList } from '../../api/notice';
+import { deleteNotice, getNoticeList, createNotice } from '../../api/notice';
 import {getDutyManagerList} from "../../api/duty";
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
@@ -21,6 +21,7 @@ export const NoticeObjects = () => {
     const [height, setHeight] = useState(window.innerHeight);
     const [historyDrawerVisible, setHistoryDrawerVisible] = useState(false);
     const [selectedNoticeObject, setSelectedNoticeObject] = useState(null);
+    const [createSelectedRow, setCreateSelectedRow] = useState(null); // 用于存放复制时带入的数据
     const columns = [
         {
             title: '名称',
@@ -116,7 +117,7 @@ export const NoticeObjects = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 100,
+            width: 140, // 增加宽度以容纳三个按钮
             render: (_, record) =>
                 list.length >= 1 ? (
                     <Space size="middle">
@@ -126,6 +127,15 @@ export const NoticeObjects = () => {
                                 icon={<EditOutlined />}
                                 onClick={() => handleUpdateModalOpen(record)}
                                 style={{ color: "#1677ff" }}
+                            />
+                        </Tooltip>
+                        {/* 新增的复制按钮 */}
+                        <Tooltip title="复制">
+                            <Button 
+                                type="text" 
+                                icon={<CopyOutlined />} 
+                                onClick={(e) => handleCopy(record, e)}
+                                style={{ color: "#52c41a" }} // 使用绿色区分
                             />
                         </Tooltip>
                         <Tooltip title="删除">
@@ -208,9 +218,29 @@ export const NoticeObjects = () => {
             message.error(error);
         }
     };
+    
+    const handleCopy = (record, e) => {
+        // 1. 阻止事件冒泡，防止表格被意外选中或拦截
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        
+        // 2. 打印日志用于调试（按 F12 可以在控制台看到这行输出）
+        console.log("【调试】点击了复制按钮，当前行数据：", record);
+
+        // 3. 使用深拷贝，彻底切断与原表格数据的引用关联
+        const copiedRecord = JSON.parse(JSON.stringify(record));
+        copiedRecord.name = `${copiedRecord.name}-复制`;
+        
+        // 4. 设置状态并打开抽屉
+        setCreateSelectedRow(copiedRecord);
+        setVisible(true); 
+    };
 
     const handleModalClose = () => {
         setVisible(false);
+        setCreateSelectedRow(null); // 关闭弹窗时清空复制产生的数据
     };
 
     const onSearch = async (value) => {
@@ -245,7 +275,9 @@ export const NoticeObjects = () => {
                 <div>
                     <Button
                         type="primary"
-                        onClick={() => setVisible(true)}
+                        onClick={() => {
+                            setCreateSelectedRow(null); // 确保正常创建时是个空表单
+                            setVisible(true)}}
                         style={{
                             backgroundColor: '#000000'
                         }}
@@ -256,7 +288,13 @@ export const NoticeObjects = () => {
                 </div>
             </div>
 
-            <CreateNoticeObjectModal visible={visible} onClose={handleModalClose} type='create' handleList={handleList} />
+            <CreateNoticeObjectModal 
+                visible={visible} 
+                onClose={handleModalClose} 
+                selectedRow={createSelectedRow} 
+                type='create' 
+                handleList={handleList} 
+            />
 
             <CreateNoticeObjectModal visible={updateVisible} onClose={handleUpdateModalClose} selectedRow={selectedRow} type='update' handleList={handleList} />
 
