@@ -1502,22 +1502,6 @@ export const AlertRule = ({ type }) => {
                                             options={kubeReasonListOptions}
                                         />
                                     </MyFormItem>
-
-                                    <MyFormItem
-                                        name="value"
-                                        label="告警条件"
-                                        style={{
-                                            width: '45%',
-                                        }}
-                                        rules={[
-                                            {
-                                                required: true,
-                                            },
-                                        ]}>
-                                        <InputNumber placeholder="输入阈值" addonBefore={
-                                            "当事件条数 >="
-                                        } addonAfter={"条时告警"}/>
-                                    </MyFormItem>
                                 </div>
                                 <div style={{display: 'flex', gap: '10px'}}>
                                     <MyFormItem

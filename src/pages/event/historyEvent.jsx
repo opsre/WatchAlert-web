@@ -119,7 +119,7 @@ export const AlertHistoryEvent = (props) => {
         ElasticSearch: <ESImg style={{ width: 16, height: 16 }} />,
         VictoriaLogs: <VLogImg style={{ width: 16, height: 16 }} />,
         ClickHouse: <CkImg style={{ width: 16, height: 16 }} />,
-        Kubernetes: <K8sImg style={{ width: 16, height: 16 }} />,
+        KubernetesEvent: <K8sImg style={{ width: 16, height: 16 }} />,
     }
     const [noticeSelectEventId, setNoticeSelectEventId] = useState('')
     const [noticeRecords, setNoticeRecords] = useState([])  
@@ -630,6 +630,10 @@ export const AlertHistoryEvent = (props) => {
     // 获取图表数据
     const fetchMetricData = async () => {
         try {
+            if (selectedEvent.datasource_type !== "Prometheus") {
+                return
+            }
+
             const parmas = {
                 datasourceIds: selectedEvent.datasource_id,
                 query: selectedEvent.searchQL,
@@ -801,14 +805,16 @@ export const AlertHistoryEvent = (props) => {
             >
                 {selectedEvent && (
                     <div>
-                        <div style={{
-                                marginLeft: '-20px',
-                            }}
-                        >
-                            <Spin spinning={loading}>
-                                <EventMetricChart data={metricData.data} />
-                            </Spin>
-                        </div>
+                        {selectedEvent.datasource_type === "Prometheus" && (
+                            <div style={{
+                                    marginLeft: '-20px',
+                                }}
+                            >
+                                <Spin spinning={loading}>
+                                    <EventMetricChart data={metricData.data} />
+                                </Spin>
+                            </div>
+                        )}
 
                         <Descriptions
                             bordered

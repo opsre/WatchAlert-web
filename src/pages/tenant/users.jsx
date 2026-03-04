@@ -86,12 +86,12 @@ export const TenantUsers = ({ tenantInfo }) => {
                             cancelText="取消"
                             placement="left"
                         >
-                            <a style={{
-                                cursor: record.userName === 'admin' ? 'not-allowed' : 'pointer',
-                                color: record.userName === 'admin' ? '#b2b2b2' : '#1677ff'
-                            }}>
-                                <Button type="text" icon={<DeleteOutlined/>} style={{color: "#ff4d4f"}}/>
-                            </a>
+                            <Button 
+                                type="text" 
+                                icon={<DeleteOutlined/>} 
+                                disabled={record.userName === 'admin'} 
+                                style={{color: record.userName === 'admin' ? "#b2b2b2" : "#ff4d4f"}}
+                            />
                         </Popconfirm>
                     </Tooltip>
                 </Space>

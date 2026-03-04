@@ -27,7 +27,7 @@ export const Login = () => {
             try {
                 const params = { username: 'admin' };
                 const res = await checkUser(params);
-                if (res?.data?.username === 'admin') {
+                if (res?.data === 'ok') {
                     setPasswordModal(true);
                 }
             } catch (error) {

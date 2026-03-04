@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo, memo } from 'react';
-import { Button, Card, Space, Typography, Checkbox, notification, Form, Input, Select, Drawer, Modal, Collapse, Switch, message, Tag } from 'antd';
+import { Button, Card, Space, Typography, Checkbox, notification, Form, Input, Select, Drawer, Modal, Collapse, Switch, message, Divider } from 'antd';
 import {
   ReactFlow, MiniMap, Controls, Background,
   useNodesState, useEdgesState, addEdge,
@@ -142,12 +142,12 @@ const nodeTypesList = ['Gateway', 'Service', 'Middleware', 'Database'];
 
 // 比较运算符选项
 const operatorOptions = [
-  { label: '小于 (<)', value: '<' },
-  { label: '小于等于 (<=)', value: '<=' },
-  { label: '大于 (>)', value: '>' },
-  { label: '大于等于 (>=)', value: '>=' },
-  { label: '等于 (==)', value: '==' },
-  { label: '不等于 (!=)', value: '!=' },
+  { label: '<', value: '<' },
+  { label: '<=', value: '<=' },
+  { label: '>', value: '>' },
+  { label: '>=', value: '>=' },
+  { label: '==', value: '==' },
+  { label: '!=', value: '!=' },
 ];
 
 // 比较函数：根据运算符比较两个值
@@ -586,18 +586,19 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
                 layout="vertical"
                 onFinish={handleFinish}
             >
+              <Divider orientation="left">基础配置</Divider>
                 <Form.Item
                     name="label"
                     label="主标题 (Label)"
                     rules={[{ required: true, message: '请输入主标题' }]}
                 >
-                    <Input />
+                    <Input maxLength={15}/>
                 </Form.Item>
                 <Form.Item
                     name="subLabel"
                     label="副标题 (SubLabel)"
                 >
-                    <Input />
+                    <Input maxLength={15}/>
                 </Form.Item>
                 <Form.Item
                     name="type"
@@ -611,7 +612,7 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
                         ))}
                     </Select>
                 </Form.Item>
-                
+                <Divider orientation="left">指标配置</Divider>
                 {/* Prometheus 配置折叠面板 */}
                 <Collapse 
                     // defaultActiveKey={enablePrometheus ? ['1'] : []} 
@@ -631,10 +632,8 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
                         <Form.Item
                             name="metricsLabel"
                             label="指标标识"
-                            help="自定义指标显示标识，如：QPS、TPS、CPU、内存等"
                         >
                             <Input 
-                                placeholder="QPS" 
                                 disabled={!enablePrometheus}
                             />
                         </Form.Item>
@@ -658,7 +657,6 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
                             <Form.Item
                                 name="prometheusQuery"
                                 label="Prometheus 查询表达式"
-                                help="输入 Prometheus 查询表达式以获取指标数据"
                                 style={{ width: '100%' }}
                             >
                                 <PrometheusPromQL 
@@ -694,15 +692,15 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
                             </Button>
                         </div>
                         
-                        {/* 阈值比较设置 */}
-                        <Form.Item label="阈值比较">
+                        {/* 异常条件设置 */}
+                        <Form.Item label="异常条件">
                             <Space.Compact style={{ width: '100%' }}>
                                 <Form.Item
                                     name="operator"
                                     noStyle
                                     rules={[{ required: enablePrometheus, message: '请选择运算符' }]}
                                 >
-                                    <Select style={{ width: '20%' }} placeholder="选择运算符" disabled={!enablePrometheus}>
+                                    <Select style={{ width: '10%' }} placeholder="选择运算符" disabled={!enablePrometheus}>
                                         {operatorOptions.map(op => (
                                             <Option key={op.value} value={op.value}>{op.label}</Option>
                                         ))}
@@ -713,7 +711,7 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
                                     noStyle
                                     rules={[{ required: enablePrometheus, message: '请输入阈值' }]}
                                 >
-                                    <Input style={{ width: '80%' }} placeholder="例如: 0.95" disabled={!enablePrometheus} />
+                                    <Input style={{ width: '90%' }} placeholder="0.95" disabled={!enablePrometheus} />
                                 </Form.Item>
                             </Space.Compact>
                         </Form.Item>

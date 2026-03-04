@@ -65,11 +65,9 @@ const UserCreateModal = ({ visible, onClose, selectedRow, type, handleList }) =>
     const handleCreate = async (values) => {
         try {
             await registerUser(values)
-            message.success("用户创建成功！")
             handleList()
         } catch (error) {
             console.error(error)
-            message.error("用户创建失败。")
         }
     }
 
