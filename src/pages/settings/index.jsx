@@ -521,11 +521,19 @@ export const SystemSettings = () => {
                                         </MyFormItem>
 
                                         <MyFormItem
+                                            name="clientSecret"
+                                            label="客户端密钥"
+                                            rules={[{required: true, message: '请输入客户端密钥'}]}
+                                        >
+                                            <Input placeholder="******"/>
+                                        </MyFormItem>
+
+                                        <MyFormItem
                                             name="upperURI"
                                             label="认证地址"
                                             rules={[{required: true, message: '请输入跳转认证平台地址'}]}
                                         >
-                                            <Input placeholder="例如: https://upper.watchalert.tech:5005"/>
+                                            <Input placeholder="例如: https://upper.watchalert.tech:5005/.well-known/openid-configuration"/>
                                         </MyFormItem>
 
                                         <MyFormItem
