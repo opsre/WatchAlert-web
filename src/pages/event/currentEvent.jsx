@@ -1128,6 +1128,7 @@ export const AlertCurrentEvent = (props) => {
                                 { value: "ElasticSearch", label: "ElasticSearch" },
                                 { value: "VictoriaLogs", label: "VictoriaLogs" },
                                 { value: "ClickHouse", label: "ClickHouse" },
+                                { value: "KubernetesEvent", label: "Kubernetes" },
                             ]}
                         />
                         <Select

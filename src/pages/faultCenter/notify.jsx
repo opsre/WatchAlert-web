@@ -15,7 +15,6 @@ import {
     Empty,
     message,
     Spin,
-    Divider
 } from "antd"
 import {
     EditOutlined,
@@ -78,15 +77,37 @@ export const FaultCenterNotify = () => {
             setLoading(true)
             const params = { id }
             const res = await FaultCenterSearch(params)
-            setDetail(res?.data)
+            const data = res?.data
+            
+            // 处理重复通知间隔数据结构
+            let repeatNoticeInterval = data.repeatNoticeInterval
+            if (repeatNoticeInterval && typeof repeatNoticeInterval === "object" && !Array.isArray(repeatNoticeInterval)) {
+                // 已经是对象格式，直接使用
+            } else if (repeatNoticeInterval !== undefined && repeatNoticeInterval !== null) {
+                // 旧的数字格式，转换为对象格式
+                repeatNoticeInterval = {
+                    "0": Number(repeatNoticeInterval),
+                    "1": Number(repeatNoticeInterval),
+                    "2": Number(repeatNoticeInterval)
+                }
+            } else {
+                // 默认值
+                repeatNoticeInterval = {
+                    "0": 60,
+                    "1": 120,
+                    "2": 360
+                }
+            }
+
+            setDetail(data)
 
             // Set form values
             form.setFieldsValue({
-                noticeIds: res?.data?.noticeIds,
-                repeatNoticeInterval: res?.data?.repeatNoticeInterval,
-                recoverNotify: res?.data?.recoverNotify,
-                alarmAggregation: res?.data?.alarmAggregation,
-                recoverWaitTime: res?.data?.recoverWaitTime,
+                noticeIds: data.noticeIds,
+                repeatNoticeInterval: repeatNoticeInterval,
+                recoverNotify: data.recoverNotify,
+                alarmAggregation: data.alarmAggregation,
+                recoverWaitTime: data.recoverWaitTime,
             })
 
             // Map noticeRoutes to noticeLabels
@@ -166,14 +187,19 @@ export const FaultCenterNotify = () => {
                 ...detail,
                 ...values,
                 noticeRoutes: noticeRoutes,
-                repeatNoticeInterval: Number(values.repeatNoticeInterval),
+                repeatNoticeInterval: Object.entries(values.repeatNoticeInterval).reduce((acc, [key, value]) => {
+                    acc[key] = Number(value)
+                    return acc
+                }, {}),
                 recoverWaitTime: Number(values.recoverWaitTime) || 1,
             }
 
             await FaultCenterUpdate(params)
             setEditable(false)
+            message.success("保存成功")
         } catch (error) {
             console.error("Save failed:", error)
+            message.error("保存失败")
         } finally {
             setSaving(false)
         }
@@ -252,7 +278,6 @@ export const FaultCenterNotify = () => {
 
             <Form
                 form={form}
-                initialValues={detail}
                 layout="vertical"
                 requiredMark="optional"
                 className={editable ? "form-editable" : ""}
@@ -317,32 +342,51 @@ export const FaultCenterNotify = () => {
                                 />
                             </MyFormItem>
 
-                            <MyFormItem
-                                name="repeatNoticeInterval"
-                                label={
-                                    <div style={{ display: "flex", alignItems: "center" }}>
-                                        <ClockCircleOutlined style={{ marginRight: "8px", color: "#faad14" }} />
-                                        <span>重复通知间隔</span>
-                                    </div>
-                                }
-                                tooltip="告警持续存在时，重复发送通知的时间间隔"
-                                rules={[{ required: true, message: "请输入重复通知间隔时间" }]}
-                            >
-                                <Input
-                                    type="number"
-                                    addonAfter="分钟"
-                                    placeholder="请输入间隔时间，如 60"
-                                    min={1}
-                                    disabled={!editable}
-                                    style={{ borderRadius: "6px" }}
-                                    onChange={(e) => {
-                                        const value = e.target.value
-                                        if (value !== "" && !/^\d+$/.test(value)) {
-                                            e.target.value = value.replace(/\D/g, "")
-                                        }
-                                    }}
-                                />
-                            </MyFormItem>
+                            <div style={{marginBottom: '16px', marginTop: '-8px'}}>
+                                <div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
+                                    <ClockCircleOutlined style={{ marginRight: "8px", color: "#faad14" }} />
+                                    <Text>重复通知间隔</Text>
+                                    <Tooltip title="告警持续存在时，重复发送通知的时间间隔，按告警级别配置">
+                                        <InfoCircleOutlined style={{ color: "#8c8c8c", marginLeft: "8px" }} />
+                                    </Tooltip>
+                                </div>
+                                <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                                    {[
+                                        { level: "P0" },
+                                        { level: "P1" },
+                                        { level: "P2" },
+                                    ].map((item) => (
+                                        <div key={item.level} style={{ flex: "1 1 200px", minWidth: "200px" }}>
+                                            <MyFormItem
+                                                name={["repeatNoticeInterval", item.level]}
+                                                noStyle
+                                                rules={[
+                                                    { 
+                                                        required: true, 
+                                                        message: `请输入${item.level}的重复通知间隔` 
+                                                    }
+                                                ]}
+                                            >
+                                                <Input
+                                                    type="number"
+                                                    addonBefore={item.level}
+                                                    addonAfter="分钟"
+                                                    placeholder="请输入间隔时间"
+                                                    min={1}
+                                                    disabled={!editable}
+                                                    style={{ borderRadius: "6px" }}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value
+                                                        if (value !== "" && !/^\d+$/.test(value)) {
+                                                            e.target.value = value.replace(/\D/g, "")
+                                                        }
+                                                    }}
+                                                />
+                                            </MyFormItem>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
 
                             <MyFormItem
                                 name="recoverWaitTime"

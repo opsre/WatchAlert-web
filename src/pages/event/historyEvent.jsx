@@ -22,7 +22,7 @@ import {
     Avatar,
     Popconfirm,
 } from "antd"
-import { DownloadOutlined, ReloadOutlined } from "@ant-design/icons"
+import { DownloadOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons"
 import dayjs from "dayjs"
 import { AddEventComment, DeleteEventComment, getHisEventList, ListEventComments } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
@@ -703,6 +703,7 @@ export const AlertHistoryEvent = (props) => {
             <Space style={{ marginBottom: 16 }} wrap>
                 <Search
                     allowClear
+                    prefix={<SearchOutlined />}
                     placeholder="输入搜索关键字"
                     onSearch={handleSearchSubmit} // On search button click or Enter
                     value={searchQuery} // Controlled component
@@ -710,7 +711,7 @@ export const AlertHistoryEvent = (props) => {
                     style={{ width: 200 }}
                 />
                 <Select
-                    placeholder="选择类型"
+                    placeholder="数据源类型"
                     style={{ width: 150 }}
                     allowClear
                     value={selectedDataSource || null}
@@ -723,10 +724,11 @@ export const AlertHistoryEvent = (props) => {
                         { value: "ElasticSearch", label: "ElasticSearch" },
                         { value: "VictoriaLogs", label: "VictoriaLogs" },
                         { value: "ClickHouse", labels: "ClickHouse" },
+                        { value: "KubernetesEvent", label: "Kubernetes" },
                     ]}
                 />
                 <Select
-                    placeholder="选择告警等级"
+                    placeholder="告警等级"
                     style={{ width: 150 }}
                     allowClear
                     value={selectedAlertLevel || null}
