@@ -50,6 +50,7 @@ export const Silences = (props) => {
     });
     const [searchText, setSearchText] = useState(''); // 添加搜索文本状态
     const [height, setHeight] = useState(window.innerHeight)
+    const [selectStatus, setSelectStatus] = useState("1")
 
     useEffect(() => {
         // 定义一个处理窗口大小变化的函数
@@ -71,13 +72,14 @@ export const Silences = (props) => {
     }, [pagination.index, pagination.size]);  // 添加分页依赖
 
     // 获取所有数据
-    const handleList = async (index = pagination.index, size = pagination.size) => {
+    const handleList = async (status) => {
         try {
             const params = {
-                index: index,
-                size: size,
+                index: pagination.index,
+                size: pagination.size,
                 faultCenterId: faultCenterId,
-                query: searchText || undefined // 添加搜索参数
+                query: searchText || undefined, // 添加搜索参数
+                status: status || "1"
             };
 
             setLoading(true);
@@ -335,6 +337,11 @@ export const Silences = (props) => {
         handleList();
     };
 
+    const changeStatus = async ({ target: { value } }) => {
+        setSelectStatus(value)
+        handleList(value)
+    }
+
     return (
         <div style={{ marginTop: "5px" }}>
             <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
@@ -358,20 +365,33 @@ export const Silences = (props) => {
             <div style={{ 
                 display: 'flex', 
                 marginBottom: '16px',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
             }}>
-                <Search
-                    placeholder="搜索规则名称"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    onSearch={handleSearch}
-                    style={{ 
-                        width: '300px',
-                        marginRight: '16px'
-                    }}
-                    allowClear
-                    prefix={<SearchOutlined />}
-                />
+                <div>
+                    <Radio.Group
+                        options={[
+                            { label: "全部", value: "all" },
+                            { label: "未生效", value: "0" },
+                            { label: "生效中", value: "1" },
+                            { label: "已失效", value: "2" },
+                        ]}
+                        defaultValue={selectStatus}
+                        onChange={changeStatus}
+                        optionType="button"
+                    />
+                    <Search
+                        placeholder="搜索规则名称"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        onSearch={handleSearch}
+                        style={{ 
+                            marginLeft: '10px',
+                            width: '300px',
+                        }}
+                        allowClear
+                        prefix={<SearchOutlined />}
+                    />
+                </div>
                 <Button 
                     type="primary" 
                     icon={<PlusOutlined />}

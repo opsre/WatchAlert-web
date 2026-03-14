@@ -452,7 +452,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                         />
                                     </MyFormItem>
 
-                                    <MyFormItem name="" label="* 告警条件" rules={[{required: !exprRule}]}>
+                                    <MyFormItem name="" label={<><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>告警条件</>} rules={[{required: !exprRule}]}>
                                         {exprRule?.map((label, index) => (
                                             <div className="rule-item" key={index} style={{gap: '10px'}}>
                                                 <MyFormItem

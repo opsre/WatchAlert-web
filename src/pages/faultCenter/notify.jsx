@@ -247,7 +247,7 @@ export const FaultCenterNotify = () => {
                         )}
                     </Space>
                 </div>
-                <Text type="secondary">🔔: 配置告警通知规则，确保告警信息能够及时送达相关人员</Text>
+                <Text type="secondary">配置告警通知规则，确保告警信息能够及时送达相关人员</Text>
             </div>
 
             <Form
@@ -258,7 +258,7 @@ export const FaultCenterNotify = () => {
                 className={editable ? "form-editable" : ""}
             >
                 <Row gutter={24}>
-                    <Col xs={24} lg={12}>
+                    <Col xs={24} lg={8}>
                         <div
                             style={{
                                 padding: "24px",
@@ -377,7 +377,7 @@ export const FaultCenterNotify = () => {
                         </div>
                     </Col>
 
-                    <Col xs={24} lg={12}>
+                    <Col xs={24} lg={16}>
                         <div
                             style={{
                                 padding: "24px",

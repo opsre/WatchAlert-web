@@ -182,80 +182,80 @@ export const AlarmUpgrade = () => {
                         )}
                     </Space>
                 </div>
-                <Text type="secondary">🔔: 当告警产生后，如果在设定时间内未被认领，系统将自动通知相关人员</Text>
+                <Text type="secondary">当告警产生后，如果在设定时间内未被认领，系统将自动通知相关人员</Text>
             </div>
 
             <Form form={form} {...formItemLayout} layout="vertical">
-                <Row gutter={24}>
-                    <div
-                        style={{
-                            padding: "12px",
-                            width: "100%",
-                            marginTop: "-20px"
-                        }}
+                <div
+                    style={{
+                        padding: "24px",
+                        background: "#fff",
+                        borderRadius: "12px",
+                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
+                        marginBottom: "24px",
+                        border: "1px solid #f0f0f0"
+                    }}
+                    >
+                        <Form.Item
+                            name="claimTimeout"
+                            label={
+                                <div style={{display: "flex", alignItems: "center"}}>
+                                    <ClockCircleOutlined style={{marginRight: "8px", color: "#ff4d4f"}}/>
+                                    <span>认领超时时间</span>
+                                </div>
+                            }
+                            rules={[{required: isUpgradeEnabled, message: "请输入认领超时时间"}]}
                         >
-                            <Form.Item
-                                name="claimTimeout"
-                                label={
-                                    <div style={{display: "flex", alignItems: "center"}}>
-                                        <ClockCircleOutlined style={{marginRight: "8px", color: "#ff4d4f"}}/>
-                                        <span>认领超时时间</span>
-                                    </div>
-                                }
-                                rules={[{required: isUpgradeEnabled, message: "请输入认领超时时间"}]}
-                            >
-                                <Input
-                                    type="number"
-                                    addonAfter="分钟"
-                                    placeholder="请输入认领超时时间"
-                                    min={1}
-                                    disabled={!editable || !isUpgradeEnabled}
-                                    style={{borderRadius: "6px"}}
-                                />
-                            </Form.Item>
+                            <Input
+                                type="number"
+                                addonAfter="分钟"
+                                placeholder="请输入认领超时时间"
+                                min={1}
+                                disabled={!editable || !isUpgradeEnabled}
+                                style={{borderRadius: "6px"}}
+                            />
+                        </Form.Item>
 
-                            <Form.Item
-                                name="claimRepeatInterval"
-                                label={
-                                    <div style={{display: "flex", alignItems: "center"}}>
-                                        <BellOutlined style={{marginRight: "8px", color: "#faad14"}}/>
-                                        <span>重复通知间隔</span>
-                                    </div>
-                                }
-                                rules={[{required: isUpgradeEnabled, message: "请输入重复通知间隔"}]}
-                            >
-                                <Input
-                                    type="number"
-                                    addonAfter="分钟"
-                                    placeholder="请输入重复通知间隔"
-                                    min={1}
-                                    disabled={!editable || !isUpgradeEnabled}
-                                    style={{borderRadius: "6px"}}
-                                />
-                            </Form.Item>
+                        <Form.Item
+                            name="claimRepeatInterval"
+                            label={
+                                <div style={{display: "flex", alignItems: "center"}}>
+                                    <BellOutlined style={{marginRight: "8px", color: "#faad14"}}/>
+                                    <span>重复通知间隔</span>
+                                </div>
+                            }
+                            rules={[{required: isUpgradeEnabled, message: "请输入重复通知间隔"}]}
+                        >
+                            <Input
+                                type="number"
+                                addonAfter="分钟"
+                                placeholder="请输入重复通知间隔"
+                                min={1}
+                                disabled={!editable || !isUpgradeEnabled}
+                                style={{borderRadius: "6px"}}
+                            />
+                        </Form.Item>
 
-                            <Form.Item
-                                name="claimNoticeId"
-                                label={
-                                    <div style={{display: "flex", alignItems: "center"}}>
-                                        <TeamOutlined style={{marginRight: "8px", color: "#1677ff"}}/>
-                                        <span>升级到通知对象</span>
-                                    </div>
-                                }
-                                rules={[{required: isUpgradeEnabled, message: "请选择升级到通知对象"}]}
-                            >
-                                <Select
-                                    placeholder="选择升级到通知对象"
-                                    options={noticeOptions}
-                                    disabled={!editable || !isUpgradeEnabled}
-                                    style={{width: "100%", borderRadius: "6px"}}
-                                    optionFilterProp="label"
-                                    showSearch
-                                />
-                            </Form.Item>
-
-                        </div>
-                </Row>
+                        <Form.Item
+                            name="claimNoticeId"
+                            label={
+                                <div style={{display: "flex", alignItems: "center"}}>
+                                    <TeamOutlined style={{marginRight: "8px", color: "#1677ff"}}/>
+                                    <span>升级到通知对象</span>
+                                </div>
+                            }
+                            rules={[{required: isUpgradeEnabled, message: "请选择升级到通知对象"}]}
+                        >
+                            <Select
+                                placeholder="选择升级到通知对象"
+                                options={noticeOptions}
+                                disabled={!editable || !isUpgradeEnabled}
+                                style={{width: "100%", borderRadius: "6px"}}
+                                optionFilterProp="label"
+                                showSearch
+                            />
+                        </Form.Item>
+                </div>
             </Form>
         </div>
     )

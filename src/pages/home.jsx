@@ -302,7 +302,7 @@ export const Home = () => {
             fontSize: "32px", 
             fontWeight: "700", 
             margin: 0,
-            background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FFB300 100%)",
+            background: "linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text"
@@ -396,7 +396,7 @@ export const Home = () => {
                 <div style={{
                   width: "50px",
                   height: "50px",
-                  background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FF8F00 100%)",
+                  background: "linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%)",
                   borderRadius: "20px",
                   display: "flex",
                   alignItems: "center",
@@ -495,7 +495,7 @@ export const Home = () => {
                 <div style={{
                   width: "50px",
                   height: "50px",
-                  background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FF8F00 100%)",
+                  background: "linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%)",
                   borderRadius: "20px",
                   display: "flex",
                   alignItems: "center",
@@ -594,7 +594,7 @@ export const Home = () => {
                 <div style={{
                   width: "50px",
                   height: "50px",
-                  background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FF8F00 100%)",
+                  background: "linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%)",
                   borderRadius: "20px",
                   display: "flex",
                   alignItems: "center",
@@ -693,7 +693,7 @@ export const Home = () => {
                 <div style={{
                   width: "50px",
                   height: "50px",
-                  background: "linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FF8F00 100%)",
+                  background: "linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%)",
                   borderRadius: "20px",
                   display: "flex",
                   alignItems: "center",

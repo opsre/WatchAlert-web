@@ -30,7 +30,8 @@ const adminMenuItems = [
         children: [
             { key: '2-1', path: '/ruleGroup', label: '告警规则' },
             { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
-            { key: '2-6', path: '/subscribes', label: '告警订阅' }
+            { key: '2-6', path: '/subscribes', label: '告警订阅' },
+            { key: '2-7', path: '/recordingRules', label: '记录规则' },
         ]
     },
     { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
@@ -199,7 +200,7 @@ export const ComponentSider = () => {
             
             /* 选中状态 - 橙色渐变背景 */
             .ant-menu-dark .ant-menu-item-selected {
-                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%);
+                background: linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%);
                 color: #000;
                 font-weight: 600;
                 box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
@@ -236,7 +237,7 @@ export const ComponentSider = () => {
             }
             
             .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
-                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%);
+                background: linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%);
                 color: #000;
                 font-weight: 600;
                 box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
@@ -262,7 +263,7 @@ export const ComponentSider = () => {
             
             /* 即使子菜单被选中，父级菜单悬停时仍应有高亮效果 */
             .ant-menu-dark .ant-menu-submenu-selected:hover > .ant-menu-submenu-title {
-                background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%) !important;
+                background: linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%) !important;
                 color: #000;
                 transform: translateX(0px);
             }
@@ -640,14 +641,12 @@ export const ComponentSider = () => {
                     }}>
                         <Avatar
                             style={{
-                                background: "linear-gradient(135deg, #FF9900 0%, #FFB84D 100%)",
+                                background: "linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%)",
                                 color: "#000",
                                 fontWeight: "bold",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                border: "2px solid rgba(255, 153, 0, 0.3)",
-                                boxShadow: "0 2px 8px rgba(255, 153, 0, 0.3)"
                             }}
                             size="default"
                         >

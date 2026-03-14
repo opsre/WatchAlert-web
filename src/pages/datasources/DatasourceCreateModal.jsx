@@ -397,7 +397,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                         style={{ flex: 3 }}
                                         rules={[{ required: true, message: "请输入标签键（key）" }]}
                                     >
-                                        <Input placeholder="键（key）" />
+                                        <Input placeholder="键（key）" onChange={handleInputChange}/>
                                     </Form.Item>
 
                                     <Form.Item
@@ -406,7 +406,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                         style={{ flex: 3 }}
                                         rules={[{ required: true, message: "请输入标签值（value）" }]}
                                     >
-                                        <Input placeholder="值（value）" />
+                                        <Input placeholder="值（value）" onChange={handleInputChange}/>
                                     </Form.Item>
 
                                     <MinusCircleOutlined

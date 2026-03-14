@@ -34,6 +34,8 @@ import {FaultCenter} from "../pages/faultCenter";
 import {FaultCenterDetail} from "../pages/faultCenter/detail";
 import List from "../pages/topology/list";
 import TopologyDetail from "../pages/topology/detail";
+import { RecordingRuleIndex } from "../pages/alert/recordingRule";
+import { RecordingRuleCreatePage } from "../pages/alert/recordingRule/create";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default [
@@ -180,6 +182,22 @@ export default [
     {
         path: '/topology/:id/detail',
         element: <ComponentsContent name="服务拓扑 / 拓扑详情" c={<TopologyDetail />} />
+    },
+    {
+        path: 'recordingRules',
+        element: <ComponentsContent c={<RecordingRuleIndex />} />
+    },
+    {
+        path: '/recordingRules/:id/list',
+        element: <ComponentsContent c={<RecordingRuleIndex />} />
+    },
+    {
+        path: '/recordingRules/:id/create',
+        element: <ComponentsContent c={<RecordingRuleCreatePage type="add" />} />
+    },
+    {
+        path: '/recordingRules/:id/rule/:ruleId/edit',
+        element: <ComponentsContent c={<RecordingRuleCreatePage type="edit" />} />
     },
     {
         path: '/*',
