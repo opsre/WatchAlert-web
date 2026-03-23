@@ -691,7 +691,7 @@ export const DataAnalysis = () => {
             ))}
             
             {/* 底部：添加查询按钮 */}
-            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            {/* <div style={{ textAlign: 'center', marginTop: '16px' }}>
                 <Button
                     type="dashed"
                     icon={<PlusOutlined />}
@@ -701,7 +701,7 @@ export const DataAnalysis = () => {
                 >
                     添加查询
                 </Button>
-            </div>
+            </div> */}
         </div>
     )
 

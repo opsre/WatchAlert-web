@@ -68,12 +68,20 @@ export const SearchViewMetrics = ({
                 throw new Error(res.msg || "请求失败")
             }
 
-            // 提取所有 result 数据
-            const allResults = res?.data
-                ?.filter((item: any) => item.status === "success" && item.data?.result?.length > 0)
-                .flatMap((item: any) => item.data.result)
+            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+                const processedResults = res.data.flatMap(r => 
+                    r.data?.result?.map(item => ({
+                        ...item,
+                        // 取最后一个值作为当前值
+                        value: item.values && item.values.length > 0 
+                            ? item.values[item.values.length - 1] 
+                            : (item.value || null)
+                    })) || []
+                )
+                setMetrics(processedResults)
+            }
 
-            setMetrics(allResults)
+            
         } catch (err) {
             setError(err instanceof Error ? err.message : "网络错误")
             console.error("Fetch card data error:", err)
@@ -173,23 +181,20 @@ export const SearchViewMetrics = ({
             title: '数值',
             dataIndex: 'value',
             key: 'value',
-            width: 120,
-            render: (value: string) => (
-                <Text style={{ 
-                    fontSize: '16px', 
-                    fontWeight: 'bold',
-                    color: parseFloat(value.replace(/,/g, '')) === 0 ? '#52c41a' : '#1890ff'
-                }}>
-                    {value}
-                </Text>
+            width: 200,
+            render: (value, record) => (
+                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                    <div>
+                        <Text strong style={{ fontSize: '14px' }}>
+                            {value}
+                        </Text>
+                        <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px' }}>
+                            ({record.timestamp})
+                        </Text>
+                    </div>
+                </Space>
             )
-        },
-        {
-            title: '时间戳',
-            dataIndex: 'timestamp',
-            key: 'timestamp',
-            width: 180,
-        },
+        }
     ]
 
 
@@ -379,8 +384,8 @@ export const SearchViewMetrics = ({
                     key: 'card',
                     label: (
                         <span>
-                            <AppstoreOutlined />
-                            卡片视图
+                            <AppstoreOutlined style={{ marginRight: '8px' }} />
+                            Card
                         </span>
                     ),
                     children: renderCardView(),
@@ -389,8 +394,8 @@ export const SearchViewMetrics = ({
                     key: 'chart',
                     label: (
                         <span>
-                            <LineChartOutlined />
-                            图表视图
+                            <LineChartOutlined style={{ marginRight: '8px' }} />
+                            Graph
                         </span>
                     ),
                     children: renderChartView(),
