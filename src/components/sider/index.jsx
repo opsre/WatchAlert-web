@@ -11,6 +11,7 @@ import {
     FileDoneOutlined,
     SettingOutlined,
     ExceptionOutlined,
+    BarChartOutlined,
     ApiOutlined, TeamOutlined, DownOutlined, LogoutOutlined, NodeIndexOutlined
 } from '@ant-design/icons';
 import {Link, useNavigate} from 'react-router-dom';
@@ -35,6 +36,14 @@ const adminMenuItems = [
         ]
     },
     { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
+    { 
+        key: '14', 
+        label: '数据分析',
+        icon: <BarChartOutlined />, 
+        children: [
+            { key: '14-1', path: '/dataAnalysis', label: '指标查询' },
+        ]
+    },
     {
         key: '3',
         icon: <NotificationOutlined />,
@@ -84,6 +93,14 @@ const userMenuItems = [
         ]
     },
     { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
+    { 
+        key: '14', 
+        label: '数据分析',
+        icon: <BarChartOutlined />, 
+        children: [
+            { key: '14-1', path: '/dataAnalysis', label: '指标查询' },
+        ]
+    },
     {
         key: '3',
         icon: <NotificationOutlined />,

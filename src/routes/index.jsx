@@ -36,6 +36,7 @@ import List from "../pages/topology/list";
 import TopologyDetail from "../pages/topology/detail";
 import { RecordingRuleIndex } from "../pages/alert/recordingRule";
 import { RecordingRuleCreatePage } from "../pages/alert/recordingRule/create";
+import { DataAnalysis } from "../pages/exploer";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default [
@@ -198,6 +199,10 @@ export default [
     {
         path: '/recordingRules/:id/rule/:ruleId/edit',
         element: <ComponentsContent c={<RecordingRuleCreatePage type="edit" />} />
+    },
+    {
+        path: '/dataAnalysis',
+        element: <ComponentsContent name="数据分析 / 指标查询" c={<DataAnalysis />} />
     },
     {
         path: '/*',
