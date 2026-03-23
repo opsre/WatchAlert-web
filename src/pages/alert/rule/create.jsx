@@ -940,6 +940,7 @@ export const AlertRule = ({ type }) => {
                                                 name={[name, "key"]}
                                                 style={{flex: 3}}
                                                 rules={[{required: true, message: "请输入标签键（key）"}]}
+                                                normalize={(value) => value?.replace(/\s/g, "")}
                                             >
                                                 <Input placeholder="键（key）" onChange={handleInputChange}/>
                                             </Form.Item>
@@ -949,6 +950,7 @@ export const AlertRule = ({ type }) => {
                                                 name={[name, "value"]}
                                                 style={{flex: 3}}
                                                 rules={[{required: true, message: "请输入标签值（value）"}]}
+                                                normalize={(value) => value?.replace(/\s/g, "")}
                                             >
                                                 <Input placeholder="值（value）" onChange={handleInputChange}/>
                                             </Form.Item>

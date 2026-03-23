@@ -61,21 +61,41 @@ export const Probing = () => {
             title: '端点',
             key: 'endpoint',
             width: 'auto',
-            render: (record) => (
-                <Link 
-                    to={`/probing/${record.ruleId}/detail`}
-                    style={{
+            render: (record) => {
+                const endpoint = record.probingEndpointConfig?.endpoint || '';
+                // 根据英文逗号分隔多个端点
+                const endpoints = endpoint.split(',').map(s => s.trim()).filter(s => s);
+                
+                return (
+                    <Link 
+                        to={`/probing/${record.ruleId}/detail`}
+                        style={{
                             color: "#1677ff",
                             display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
+                            flexDirection: "column",
+                            gap: "4px",
                         }}
-                >
-                    {record.probingEndpointConfig?.endpoint && record.probingEndpointConfig.endpoint.length > 80 
-                                ? `${record.probingEndpointConfig.endpoint.substring(0, 80)}...`
-                                : record.probingEndpointConfig?.endpoint}
-                </Link>
-            ),
+                    >
+                        {endpoints.map((ep, index) => {
+                            // 如果超过 100 个字符，显示省略号
+                            const displayText = ep.length > 50 ? `${ep.substring(0, 50)}...` : ep;
+                            return (
+                                <div 
+                                    key={index}
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title={ep} // 鼠标悬停显示完整内容
+                                >
+                                    {displayText}
+                                </div>
+                            );
+                        })}
+                    </Link>
+                );
+            },
         }
     ], []);
 

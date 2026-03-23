@@ -122,30 +122,45 @@ export const CreateProbingRule = ({ type }) => {
     }, [isValidJson])
 
     const validateEndpoint = useCallback((_, value) => {
-        switch (protocolType) {
-            case "HTTP":
-                return VALIDATION_PATTERNS.url.test(value)
-                    ? Promise.resolve()
-                    : Promise.reject("请输入有效的完整URL, 例如: http(s)://github.com")
-            case "ICMP":
-                return VALIDATION_PATTERNS.domainIp.test(value)
-                    ? Promise.resolve()
-                    : Promise.reject("请输入有效的域名或IP地址, 例如: github.com / 1.1.1.1")
-            case "TCP":
-                return VALIDATION_PATTERNS.tcp.test(value)
-                    ? Promise.resolve()
-                    : Promise.reject("请输入有效的 IP/域名:端口, 例如: 1.1.1.1:80")
-            case "SSL":
-                return VALIDATION_PATTERNS.domain.test(value)
-                    ? Promise.resolve()
-                    : Promise.reject("请输入有效的域名, 例如: github.com")
-            default:
-                return Promise.resolve()
+        // 支持多个端点，用英文逗号分隔
+        const endpoints = value?.split(',').map(s => s.trim()).filter(s => s)
+        
+        for (const endpoint of endpoints) {
+            switch (protocolType) {
+                case "HTTP":
+                    if (!VALIDATION_PATTERNS.url.test(endpoint)) {
+                        return Promise.reject("请输入有效的完整 URL, 例如：http(s)://github.com")
+                    }
+                    break
+                case "ICMP":
+                    if (!VALIDATION_PATTERNS.domainIp.test(endpoint)) {
+                        return Promise.reject("请输入有效的域名或 IP 地址，例如：github.com / 192.168.1.1")
+                    }
+                    break
+                case "TCP":
+                    if (!VALIDATION_PATTERNS.tcp.test(endpoint)) {
+                        return Promise.reject("请输入有效的 IP/域名：端口，例如：192.168.1.1:80")
+                    }
+                    break
+                case "SSL":
+                    if (!VALIDATION_PATTERNS.domain.test(endpoint)) {
+                        return Promise.reject("请输入有效的域名，例如：github.com")
+                    }
+                    break
+                default:
+                    break
+            }
         }
+        return Promise.resolve()
     }, [protocolType])
 
     const initBasicInfo = useCallback((selectedRow) => {
         if (selectedRow) {
+            const labelsArray = Object.entries(selectedRow.labels || {}).map(([key, value]) => ({
+                key,
+                value,
+            }));
+
             setProtocolType(selectedRow.ruleType)
             setEnabled(selectedRow.enabled)
             setMethodType(selectedRow.probingEndpointConfig.http?.method || "GET")
@@ -161,6 +176,7 @@ export const CreateProbingRule = ({ type }) => {
             form.setFieldsValue({
                 ruleName: selectedRow.ruleName,
                 ruleType: selectedRow.ruleType,
+                labels: labelsArray,
                 probingEndpointConfig: {
                     endpoint: selectedRow?.probingEndpointConfig?.endpoint,
                     icmp: {
@@ -286,8 +302,16 @@ export const CreateProbingRule = ({ type }) => {
     const handleFormSubmit = async (values) => {
         setSubmitLoading(true)
         try {
+            const formattedLabels = values.labels?.reduce((acc, { key, value }) => {
+                if (key) {
+                    acc[key] = value
+                }
+                return acc
+            }, {})
+
             const finalParams = {
                 ...values,
+                labels: formattedLabels,
                 enabled: enabled,
                 probingEndpointConfig: {
                     ...values.probingEndpointConfig,
@@ -396,6 +420,68 @@ export const CreateProbingRule = ({ type }) => {
                     </div>
                 </div>
 
+                <label style={{ display: "block", marginBottom: "8px" }}>标签</label>
+                <Form.List name="labels">
+                    {(fields, { add, remove }) => (
+                        <>
+                            {fields.map(({ key, name, ...restField }) => (
+                                <div
+                                    key={key}
+                                    style={{
+                                        display: "flex",
+                                        marginBottom: 8,
+                                        gap: "8px",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <Form.Item
+                                        {...restField}
+                                        name={[name, "key"]}
+                                        style={{ flex: 3 }}
+                                        rules={[{ required: true, message: "请输入标签键（key）" }]}
+                                        normalize={(value) => value?.replace(/\s/g, "")}
+                                    >
+                                        <Input placeholder="键（key）" />
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        {...restField}
+                                        name={[name, "value"]}
+                                        style={{ flex: 3 }}
+                                        rules={[{ required: true, message: "请输入标签值（value）" }]}
+                                        normalize={(value) => value?.replace(/\s/g, "")}
+                                    >
+                                        <Input placeholder="值（value）" />
+                                    </Form.Item>
+
+                                    <MinusCircleOutlined
+                                        style={{
+                                            marginTop: "-25px",
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                            cursor: "pointer",
+                                        }}
+                                        onClick={() => remove(name)}
+                                    />
+                                </div>
+                            ))}
+
+                            <Form.Item>
+                                <Button
+                                    type="dashed"
+                                    onClick={() => add()}
+                                    block
+                                    icon={<PlusOutlined />}
+                                    disabled={fields.length >= 10}
+                                >
+                                    添加标签
+                                </Button>
+                            </Form.Item>
+                        </>
+                    )}
+                </Form.List>
+
                 <Divider orientation="left">端点配置</Divider>
                 <MyFormItemGroup prefix={["probingEndpointConfig"]}>
                     <MyFormItem
@@ -409,6 +495,7 @@ export const CreateProbingRule = ({ type }) => {
                     >
                         {protocolType === "HTTP" ? (
                             <Input
+                                placeholder="请输入端点，多个端点请用英文逗号分隔，例如：https://api.example.com/v1/health,https://api.example.com/v2/status"
                                 addonBefore={
                                     <Select
                                         value={methodType}
@@ -418,8 +505,17 @@ export const CreateProbingRule = ({ type }) => {
                                     />
                                 }
                             />
+                        ) : protocolType === "TCP" ? (
+                            <Input
+                                placeholder="请输入端点，多个端点请用英文逗号分隔，例如：192.168.1.1:80,10.0.0.1:443"
+                            />
                         ) : (
-                            <Input />
+                            <Input
+                                placeholder={protocolType === "ICMP" 
+                                    ? "请输入端点，多个端点请用英文逗号分隔，例如：github.com,8.8.8.8"
+                                    : "请输入端点，多个端点请用英文逗号分隔，例如：github.com,example.com"
+                                }
+                            />
                         )}
                     </MyFormItem>
 
