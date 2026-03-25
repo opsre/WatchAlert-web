@@ -94,12 +94,9 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
         setSelectedItems(value)
     }
 
-    const handleSearchDutyUser = async () => {
+    const handleUser = async () => {
         try {
-            const params = {
-                joinDuty: "true",
-            }
-            const res = await getUserList(params)
+            const res = await getUserList()
             const options = res?.data?.map((item) => ({
                 username: item.username,
                 userid: item.userid
@@ -147,7 +144,7 @@ export const CreateTenant = ({ visible, onClose, selectedRow, type, handleList }
                             showSearch
                             placeholder="租户负责人"
                             onChange={handleSelectChange}
-                            onClick={handleSearchDutyUser}
+                            onClick={handleUser}
                             style={{
                                 width: '100%',
                             }}
