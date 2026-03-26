@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo, memo } from 'react';
-import { Button, Card, Space, Typography, Checkbox, notification, Form, Input, Select, Drawer, Modal, Collapse, Switch, message, Divider } from 'antd';
+import { Button, Card, Space, Typography, Checkbox, notification, Form, Input, Select, Drawer, Modal, Collapse, message, Divider, Empty, Tag, Spin } from 'antd';
 import {
   ReactFlow, MiniMap, Controls, Background,
   useNodesState, useEdgesState, addEdge,
@@ -19,6 +19,8 @@ import { PrometheusPromQL } from '../promethues/index.jsx';
 import { queryPromMetrics } from '../../api/other.jsx';
 import { debounce } from 'lodash';
 import { SearchViewMetrics } from '../alert/preview/searchViewMetrics.tsx';
+import { EventMetricChart } from '../chart/eventMetricChart';
+import { queryRangePromMetrics } from '../../api/other.jsx';
 import { Breadcrumb } from '../../components/Breadcrumb';
 
 // 添加全局 ResizeObserver 错误处理
@@ -89,7 +91,7 @@ const IconComponentMap = {
 };
 
 // --- 颜色配置 ---
-const PRIMARY_BLUE = '#1890ff';
+const PRIMARY_BLUE = '#ffffff';
 const LIGHT_BLUE = '#bae0ff';
 const PRIMARY_EDGE_COLOR = '#000';
 const SELECTED_EDGE_HIGHLIGHT = '#f5222d';
@@ -128,17 +130,18 @@ const getLayoutedElements = (nodes, edges, direction = defaultDirection) => {
 
 // --- Layer Map ---
 const layerMap = {
-  // 核心 4 种类型
+  // 核心 5 种类型
   Gateway: { label: '网关', color: '#1890ff', icon: 'GlobalOutlined', background: '#e6f7ff', lightColor: '#91d5ff' }, // 蓝色系
   Service: { label: '服务', color: '#52c41a', icon: 'CloudServerOutlined', background: '#f6ffed', lightColor: '#b7eb8f' }, // 绿色系
   Middleware: { label: '中间件', color: '#fa8c16', icon: 'ForkOutlined', background: '#fff7e6', lightColor: '#ffd591' }, // 橙色系
-  Database: { label: '数据库', color: '#f5222d', icon: 'HddOutlined', background: '#fff1f0', lightColor: '#ffad9a' }, // 红色系
+  Database: { label: '数据库', color: '#f5222d', icon: 'DatabaseOutlined', background: '#fff1f0', lightColor: '#ffad9a' }, // 红色系
+  Infrastructure: { label: '基础设施', color: '#722ed1', icon: 'HddOutlined', background: '#f9f0ff', lightColor: '#d3adf7' }, // 紫色系
 
   // 默认/新增
   new: { label: '新增', color: PRIMARY_BLUE, icon: 'PlusOutlined', background: '#fff', lightColor: LIGHT_BLUE }
 };
 // 提取可编辑的节点类型
-const nodeTypesList = ['Gateway', 'Service', 'Middleware', 'Database'];
+const nodeTypesList = ['Gateway', 'Service', 'Middleware', 'Database', 'Infrastructure'];
 
 // 比较运算符选项
 const operatorOptions = [
@@ -188,31 +191,35 @@ const FlowingEdge = memo(({
   const strokeWidth = 2;
   if (selected) { strokeColor = SELECTED_EDGE_HIGHLIGHT; }
 
-  // 所有连接线都使用动画效果，延长动画时间使传输效果更平滑
-  const animationStyle = `flow-dot-${isNew ? 'new' : 'primary'} 5s linear infinite`;
-  const dashArray = isNew ? '13, 5' : '13, 5';
-
+  // 实线样式，无虚线
   const finalStyle = {
     stroke: strokeColor,
     strokeWidth: selected ? 4 : strokeWidth,
-    strokeDasharray: dashArray,
-    animation: animationStyle,
-    transition: 'stroke 2s, stroke-width 2s',
-    cursor: 'pointer', // 添加鼠标指针提示
-    filter: selected ? 'drop-shadow(0 0 4px rgba(34, 154, 245, 0.5))' : 'none', // 选中时添加阴影效果
+    strokeDasharray: 'none', // 实线
+    transition: 'all 0.2s ease',
+    cursor: 'pointer',
+    // 选中时添加发光效果
+    filter: selected
+      ? 'drop-shadow(0 0 8px rgba(245, 34, 45, 0.8))'
+      : 'none',
+    strokeOpacity: 1,
     ...style
   };
 
   // 创建一个透明的辅助路径来扩大点击区域
   const helperPathStyle = {
     stroke: 'transparent',
-    strokeWidth: 20, // 扩大点击区域
+    strokeWidth: 24,
     fill: 'none',
     cursor: 'pointer'
   };
 
+  // 选中时箭头也更明显
   const finalMarkerEnd = selected
-    ? { type: MarkerType.ArrowClosed, color: SELECTED_EDGE_HIGHLIGHT }
+    ? {
+        type: MarkerType.ArrowClosed,
+        color: SELECTED_EDGE_HIGHLIGHT,
+      }
     : markerEnd;
 
   // 计算文本位置
@@ -246,13 +253,18 @@ const FlowingEdge = memo(({
   
   return (
     <>
-      <style>{`
-        @keyframes flow-dot-primary { to { stroke-dashoffset: -30; } }
-        @keyframes flow-dot-new { to { stroke-dashoffset: -36; } }
-      `}</style>
       {/* 透明辅助路径，用于扩大点击区域 */}
       <path d={edgePath} style={helperPathStyle} />
+      {/* 实线底图 */}
       <path id={id} className="react-flow__edge-path" d={edgePath} markerEnd={finalMarkerEnd} style={finalStyle} />
+      {/* 动态传输点效果 - 蓝色 */}
+      <circle r="4" fill={PRIMARY_BLUE}>
+        <animateMotion
+          dur="2s"
+          repeatCount="indefinite"
+          path={edgePath}
+        />
+      </circle>
       {label && (
         <>
           {/* 文本背景 */}
@@ -263,10 +275,10 @@ const FlowingEdge = memo(({
             height={textHeight}
             rx="4"
             ry="4"
-            fill={selected ? '#e6f7ff' : 'white'}
+            fill={selected ? '#fff1f0' : 'white'}
             stroke={selected ? SELECTED_EDGE_HIGHLIGHT : '#ccc'}
-            filter={selected ? 'drop-shadow(0 0 2px rgba(34, 129, 245, 0.3))' : 'none'}
-            strokeWidth="1"
+            filter={selected ? 'drop-shadow(0 0 6px rgba(245, 34, 45, 0.5))' : 'none'}
+            strokeWidth={selected ? 2 : 1}
           />
           {lines.map((line, index) => (
             <text
@@ -433,14 +445,6 @@ const LayeredNode = memo(({ data, style }) => {
                     data.onClick(data);
                 }
             }}
-            onClick={(e) => {
-                // 阻止事件冒泡
-                e.stopPropagation();
-                // 触发节点数据中的onNodeClick处理函数
-                if (data.onNodeClick) {
-                    data.onNodeClick(data);
-                }
-            }}
         >
         {/* Handles - 每个位置使用对应的样式，让连接点只显示一半 */}
         <Handle type="target" position={Position.Top} id="top-target" style={handleTopStyle} />
@@ -464,7 +468,7 @@ const LayeredNode = memo(({ data, style }) => {
         {data.enablePrometheus && (
             <div style={metricsContainerStyle}>
                 <span>
-                    {data.metricsLabel || 'QPS'} : <Text code style={metricsTextStyle}>{data.prometheusValue || 'NA'} {data.operator || '<'} {data.threshold || 'NA'}</Text>
+                    {data.metricsLabel || 'A'} : <Text code style={metricsTextStyle}>{data.prometheusValue || 'NA'} {data.operator || '<'} {data.threshold || 'NA'}</Text>
                 </span>
                 {/* 当 Prometheus 值与阈值的比较结果为 true 时显示红色感叹号 */}
                 {data.prometheusValue && data.threshold && compareValues(data.prometheusValue, data.threshold, data.operator || '<') && (
@@ -510,29 +514,108 @@ const saveToLocalStorage = (nodes, edges) => {
   } catch (error) { return false; }
 };
 
-// --- 2. 节点编辑 Drawer 组件 ---
-const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, selectedDatasource, handleSelectedDsItem, metricAddress }) => {
-    const [form] = Form.useForm();
-    const [enablePrometheus, setEnablePrometheus] = useState(false);
-    const [openMetricQueryModal, setOpenMetricQueryModal] = useState(false);
-    const [viewMetricsModalKey, setViewMetricsModalKey] = useState(0);
+// --- 节点指标图表组件 ---
+const NodeMetricChart = ({ datasourceId, promQL }) => {
+    const [chartData, setChartData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (node) {      
-            setEnablePrometheus(node.data.enablePrometheus)
-  
+        const fetchData = async () => {
+            if (!datasourceId || !promQL) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                setError(null);
+                const now = Math.floor(Date.now() / 1000);
+                const params = {
+                    datasourceIds: datasourceId,
+                    query: promQL,
+                    startTime: now - 3600,
+                    endTime: now,
+                };
+
+                const res = await queryRangePromMetrics(params);
+                if (res?.code === 200 && res?.data) {
+                    setChartData(res.data);
+                }
+            } catch (err) {
+                setError(err.message || '获取数据失败');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [datasourceId, promQL]);
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                <Spin />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                <Text type="danger">{error}</Text>
+            </div>
+        );
+    }
+
+    if (!chartData || chartData.length === 0) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                <Text type="secondary">暂无数据</Text>
+            </div>
+        );
+    }
+
+    return <EventMetricChart data={chartData} />;
+};
+
+// --- 2. 节点编辑 Drawer 组件 ---
+const NodeEditorDrawer = ({ node, viewMode, onClose, onUpdateNode, datasourceOptions, selectedDatasource, handleSelectedDsItem, metricAddress }) => {
+    const [form] = Form.useForm();
+    const [openMetricQueryModal, setOpenMetricQueryModal] = useState(false);
+    const [viewMetricsModalKey, setViewMetricsModalKey] = useState(0);
+    const [currentMetricQuery, setCurrentMetricQuery] = useState('');
+
+    useEffect(() => {
+        if (node && node.data) {
+            // 处理数据结构：支持新旧两种格式
+            let metrics = [];
+
+            // 新格式：metrics 数组
+            if (node.data.metrics && Array.isArray(node.data.metrics) && node.data.metrics.length > 0) {
+                metrics = node.data.metrics.map((m, index) => ({
+                    id: m.id || Date.now().toString() + index,
+                    tag: m.tag || m.label || '',
+                    query: m.query || m.prometheusQuery || ''
+                }));
+            }
+            // 旧格式：enablePrometheus + prometheusQuery
+            else if (node.data.enablePrometheus && node.data.prometheusQuery) {
+                metrics.push({
+                    id: Date.now().toString(),
+                    tag: node.data.metricsLabel || 'A',
+                    query: node.data.prometheusQuery
+                });
+            }
+
             form.setFieldsValue({
                 label: node.data.label,
                 subLabel: node.data.subLabel,
                 type: node.data.type,
-                enablePrometheus: node.data.enablePrometheus,
                 datasourceId: node.data.datasourceId || null,
-                prometheusQuery: node.data.prometheusQuery || '',
-                threshold: node.data.threshold || '',
-                operator: node.data.operator || '<',
-                metricsLabel: node.data.metricsLabel || 'QPS',
+                metrics: metrics
             });
-            
+
             if (node.data.datasourceId) {
                 handleSelectedDsItem(node.data.datasourceId);
             }
@@ -540,27 +623,90 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
     }, [node, form, handleSelectedDsItem]);
 
     const handleFinish = (values) => {
-        // 获取 Prometheus 查询表达式的当前值
-        const prometheusQuery = form.getFieldValue('prometheusQuery') || '';
-        
+        // 过滤掉空指标配置（tag和query都为空才过滤）
+        const validMetrics = (values.metrics || []).filter(m => m.tag || m.query);
+
+        // 如果有有效指标，必须选择数据源
+        if (validMetrics.length > 0 && !selectedDatasource) {
+            message.error('添加查询语句后，必须选择数据源');
+            return;
+        }
+
+        // 使用表单值而不是 node.data，确保获取最新值
         const updatedNode = {
             ...node,
             data: {
-                ...node.data,
-                ...values,
-                enablePrometheus: enablePrometheus,
-                datasourceId: enablePrometheus ? (selectedDatasource || null) : null,
-                prometheusQuery: enablePrometheus ? prometheusQuery : '',
-                threshold: enablePrometheus ? (values.threshold || '') : '',
-                operator: enablePrometheus ? (values.operator || '<') : '<',
-                metricsLabel: enablePrometheus ? (values.metricsLabel || 'QPS') : 'QPS',
+                ...(node?.data || {}),
+                label: values.label || '',
+                subLabel: values.subLabel || '',
+                type: values.type || 'Service',
+                datasourceId: selectedDatasource || null,
+                metrics: validMetrics,
             },
         };
+
+        // 先更新节点数据
         onUpdateNode(updatedNode);
-        onClose();
+        // 延迟关闭，确保状态更新完成
+        setTimeout(() => {
+            onClose();
+        }, 100);
     };
 
-    if (!node) return null;
+    if (!node || !node.data) return null;
+
+    const viewMetrics = node.data.metrics || [];
+    const viewDatasourceId = node.data.datasourceId;
+
+    // 查看模式：显示监控图表
+    if (viewMode) {
+        return (
+            <Modal
+                title={
+                    <div>
+                        <div>{node.data.label}</div>
+                        <Text type="secondary" style={{ fontSize: '12px', fontWeight: 'normal' }}>
+                            节点类型: {layerMap[node.data.type]?.label || node.data.type}
+                        </Text>
+                    </div>
+                }
+                open={!!node}
+                onCancel={onClose}
+                footer={null}
+                width={1000}
+                styles={{
+                    body: {
+                        maxHeight: '70vh',
+                        overflowY: 'auto',
+                    },
+                }}
+            >
+                {viewMetrics.length === 0 ? (
+                    <Empty description="暂无指标数据" />
+                ) : (
+                    <div style={{ marginTop: '-20px' }}>
+                        {viewMetrics.map((metric, index) => (
+                            <div key={metric.id || index}>
+                                <Divider />
+                                <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Tag color="black"># {metric.tag || `指标${index + 1}`}</Tag>
+                                </div>
+                                <div style={{ height: '250px', width: '100%' }}>
+                                    <NodeMetricChart
+                                        datasourceId={viewDatasourceId}
+                                        promQL={metric.query}
+                                    />
+                                </div>
+                                {index === viewMetrics.length - 1 && (
+                                    <div style={{ height: '300px' }} />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </Modal>
+        );
+    }
 
     return (
         <Drawer
@@ -613,110 +759,118 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
                     </Select>
                 </Form.Item>
                 <Divider orientation="left">指标配置</Divider>
-                {/* Prometheus 配置折叠面板 */}
-                <Collapse 
-                    // defaultActiveKey={enablePrometheus ? ['1'] : []} 
-                    style={{ marginBottom: 16 }}
+
+                {/* 通用数据源选择 */}
+                <Form.Item
+                    name="datasourceId"
+                    label="数据源"
+                    tooltip="添加查询语句后，必须选择数据源"
                 >
-                    <Collapse.Panel header={
+                    <Select
+                        placeholder="选择数据源"
+                        value={selectedDatasource}
+                        onChange={handleSelectedDsItem}
+                        options={datasourceOptions}
+                    />
+                </Form.Item>
+
+                {/* 多个指标配置 */}
+                <Form.List name="metrics">
+                    {(fields, { add, remove }) => (
                         <>
-                            <span style={{ marginRight: 8 }}>启用 Prometheus 指标查询</span>
-                            <Switch 
-                                style={{marginTop: "-2.5px"}}
-                                checked={enablePrometheus} 
-                                onChange={(checked) => setEnablePrometheus(checked)}
-                            />
-                        </>
-                    } key="1">
-                        {/* 指标标识输入框 */}
-                        <Form.Item
-                            name="metricsLabel"
-                            label="指标标识"
-                        >
-                            <Input 
-                                disabled={!enablePrometheus}
-                            />
-                        </Form.Item>
-                        
-                        {/* 数据源选择 */}
-                        <Form.Item
-                            name="datasourceId"
-                            label="关联数据源"
-                            rules={[{ required: enablePrometheus, message: '请选择数据源' }]}
-                        >
-                            <Select
-                                placeholder="选择数据源"
-                                value={selectedDatasource}
-                                onChange={handleSelectedDsItem}
-                                options={datasourceOptions}
-                                disabled={!enablePrometheus}
-                            />
-                        </Form.Item>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Form.Item
-                                name="prometheusQuery"
-                                label="Prometheus 查询表达式"
-                                style={{ width: '100%' }}
-                            >
-                                <PrometheusPromQL 
-                                    addr={metricAddress}
-                                    value={form.getFieldValue('prometheusQuery') || ''}
-                                    setPromQL={(value) => form.setFieldsValue({ prometheusQuery: value })}
-                                    // 添加防抖属性以减少 ResizeObserver 触发
-                                    debounceDuration={300}
-                                    // 添加其他优化属性
-                                    style={{ width: '100%' }}
-                                    // 延迟渲染以避免在组件挂载时触发过多的 resize 事件
-                                    deferRender={true}
-                                />
-                            </Form.Item>
+                            {fields.map(({ key, name, ...restField }) => (
+                                <div
+                                    key={key}
+                                    style={{
+                                        padding: '16px',
+                                        marginBottom: '16px',
+                                        background: '#fafafa',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e8e8e8'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                        <Form.Item
+                                            {...restField}
+                                            name={[name, 'tag']}
+                                            noStyle
+                                        >
+                                            <Input
+                                                placeholder={`指标${name + 1}`}
+                                                style={{
+                                                    fontWeight: 'bold',
+                                                    fontSize: '14px',
+                                                    border: 'none',
+                                                    background: 'transparent',
+                                                    borderRadius: 0,
+                                                    padding: '0'
+                                                }}
+                                            />
+                                        </Form.Item>
+                                        <Button
+                                            type="text"
+                                            danger
+                                            onClick={() => remove(name)}
+                                            style={{ fontSize: '10px', padding: '0' }}
+                                        >
+                                            删除
+                                        </Button>
+                                    </div>
+
+                                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+                                        <Form.Item
+                                            {...restField}
+                                            name={[name, 'query']}
+                                            label="Prometheus 查询表达式"
+                                            style={{ flex: 1, marginBottom: 0 }}
+                                        >
+                                            <PrometheusPromQL
+                                                addr={metricAddress}
+                                                value={form.getFieldValue(['metrics', name, 'query']) || ''}
+                                                setPromQL={(value) => form.setFieldsValue({ metrics: [...form.getFieldValue('metrics') || []].map((m, i) => i === name ? { ...m, query: value } : m) })}
+                                                debounceDuration={300}
+                                                style={{ width: '100%' }}
+                                                deferRender={true}
+                                            />
+                                        </Form.Item>
+                                        <Button
+                                            type="primary"
+                                            style={{ backgroundColor: '#000', borderColor: '#000', marginBottom: '4px' }}
+                                            onClick={() => {
+                                                const metric = form.getFieldValue(['metrics', name]);
+                                                if (!metric?.query) {
+                                                    message.error("请先输入查询表达式");
+                                                    return;
+                                                }
+                                                if (!selectedDatasource) {
+                                                    message.error("请先选择数据源");
+                                                    return;
+                                                }
+                                                setCurrentMetricQuery(metric.query);
+                                                setViewMetricsModalKey(prev => prev + 1);
+                                                setOpenMetricQueryModal(true);
+                                            }}
+                                        >
+                                            预览
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+
                             <Button
-                                type="primary"
-                                style={{ backgroundColor: '#000', borderColor: '#000', marginTop: '5px' }}
+                                type="dashed"
                                 onClick={() => {
-                                    if (!selectedDatasource) {
-                                        message.error("请先选择数据源");
-                                        return;
-                                    }
-                                    const promQL = form.getFieldValue('prometheusQuery');
-                                    if (!promQL) {
-                                        message.error("请先输入 Prometheus 查询表达式");
-                                        return;
-                                    }
-                                    setViewMetricsModalKey(prev => prev + 1);
-                                    setOpenMetricQueryModal(true);
+                                    const currentMetrics = form.getFieldValue('metrics') || [];
+                                    add({ id: Date.now().toString(), tag: `指标${currentMetrics.length + 1}`, query: '' })
                                 }}
+                                block
+                                style={{ marginBottom: 16 }}
                             >
-                                数据预览
+                                + 添加指标
                             </Button>
-                        </div>
-                        
-                        {/* 异常条件设置 */}
-                        <Form.Item label="异常条件">
-                            <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item
-                                    name="operator"
-                                    noStyle
-                                    rules={[{ required: enablePrometheus, message: '请选择运算符' }]}
-                                >
-                                    <Select style={{ width: '10%' }} placeholder="选择运算符" disabled={!enablePrometheus}>
-                                        {operatorOptions.map(op => (
-                                            <Option key={op.value} value={op.value}>{op.label}</Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
-                                <Form.Item
-                                    name="threshold"
-                                    noStyle
-                                    rules={[{ required: enablePrometheus, message: '请输入阈值' }]}
-                                >
-                                    <Input style={{ width: '90%' }} placeholder="0.95" disabled={!enablePrometheus} />
-                                </Form.Item>
-                            </Space.Compact>
-                        </Form.Item>
-                    </Collapse.Panel>
-                </Collapse>
+                        </>
+                    )}
+                </Form.List>
             </Form>
             <Text type="secondary" style={{ fontSize: '12px' }}>
                 ID: {node.id} | 类型: {node.type}
@@ -724,7 +878,6 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
 
             {/* 数据预览 Modal */}
             <Modal
-                title="Prometheus 数据预览"
                 open={openMetricQueryModal}
                 onCancel={() => setOpenMetricQueryModal(false)}
                 footer={null}
@@ -733,7 +886,6 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
                     body: {
                         height: '80vh',
                         overflowY: 'auto',
-                        padding: '12px',
                     },
                 }}
             >
@@ -741,7 +893,7 @@ const NodeEditorDrawer = ({ node, onClose, onUpdateNode, datasourceOptions, sele
                     key={`search-view-${viewMetricsModalKey}`}
                     datasourceType="Prometheus"
                     datasourceId={selectedDatasource ? [selectedDatasource] : []}
-                    promQL={form.getFieldValue('prometheusQuery') || ''}
+                    promQL={currentMetricQuery || ''}
                     displayMode='both'
                 />
             </Modal>
@@ -844,19 +996,20 @@ const FlowContent = ({ detailData, topologyId }) => {
   
   // 自定义 onEdgesChange 处理函数，确保在非编辑模式下不会改变连接线
   const onEdgesChange = useCallback((changes) => {
-    // 在非编辑模式下，过滤掉添加和删除操作
+    // 过滤掉非编辑模式下的添加、删除和位置移动操作
     if (!isEditing) {
-      const filteredChanges = changes.filter(change => 
-        !(change.type === 'add' || change.type === 'remove')
+      const filteredChanges = changes.filter(change =>
+        change.type !== 'add' && change.type !== 'remove' && change.type !== 'position'
       );
       onEdgesChangeBase(filteredChanges);
     } else {
-      // 在编辑模式下，允许所有操作
+      // 在编辑模式下，允许所有操作包括边的拖拽
       onEdgesChangeBase(changes);
     }
   }, [isEditing, onEdgesChangeBase]);
   
   const [selectedNode, setSelectedNode] = useState(null); // 新增状态：当前选中节点用于编辑
+  const [viewMode, setViewMode] = useState(false); // 查看模式 vs 编辑模式
   const [selectedEdge, setSelectedEdge] = useState(null); // 新增状态：当前选中边缘用于编辑
   const [isEdgeModalOpen, setIsEdgeModalOpen] = useState(false); // 修改状态：边缘编辑模态框开启状态
 
@@ -870,7 +1023,7 @@ const FlowContent = ({ detailData, topologyId }) => {
   const fetchPrometheusDataRef = useRef(null);
 
   // --- 节点更新函数 (在 Modal 中调用) ---
-  const onUpdateNode = useCallback(debounce((updatedNode) => {
+  const onUpdateNode = useCallback((updatedNode) => {
     setNodes((nds) =>
         nds.map((node) =>
             node.id === updatedNode.id ? {
@@ -889,7 +1042,7 @@ const FlowContent = ({ detailData, topologyId }) => {
             } : node
         )
     );
-  }, 300), [setNodes]); // 300ms 防抖，增加延迟以减少 ResizeObserver 触发
+  }, [setNodes]);
 
   // 获取数据源列表
   const handleGetDatasourceList = useCallback(async (nodeToEdit) => {
@@ -968,16 +1121,19 @@ const FlowContent = ({ detailData, topologyId }) => {
 
   // --- 节点点击事件 (打开 Drawer) ---
   const onNodeClick = useCallback((event, node) => {
-    if (!isEditing) return; // 仅在编辑模式下响应点击打开 Drawer
-    
-    // 在设置 selectedNode 之前获取数据源列表，以确保 Drawer 打开时列表已加载
-    handleGetDatasourceList(node).then(() => {
-        // 添加延迟以避免在打开 Drawer 时触发过多的 resize 事件
+    // 编辑模式下打开编辑面板，非编辑模式下打开预览
+    if (isEditing) {
+      handleGetDatasourceList(node).then(() => {
         setTimeout(() => {
+          setViewMode(false);
           setSelectedNode(node);
-        }, 200); // 增加延迟到200ms
-    });
-
+        }, 200);
+      });
+    } else {
+      // 非编辑模式：查看监控图表
+      setViewMode(true);
+      setSelectedNode(node);
+    }
   }, [isEditing, handleGetDatasourceList]);
 
   // --- 关闭 Modal ---
@@ -1013,17 +1169,7 @@ const FlowContent = ({ detailData, topologyId }) => {
                       ...n.data,
                       // 确保加载时保留所有 data 字段，包括 operator
                       operator: n.data?.operator || '<', // 如果没有 operator，默认使用 '<'
-                      metricsLabel: n.data?.metricsLabel || 'QPS', // 如果没有 metricsLabel，默认使用 'QPS'
-                      // 添加点击处理函数
-                      onNodeClick: (nodeData) => {
-                          if (isEditing) {
-                              handleGetDatasourceList(n).then(() => {
-                                  setTimeout(() => {
-                                      setSelectedNode(n);
-                                  }, 200);
-                              });
-                          }
-                      }
+                      metricsLabel: n.data?.metricsLabel || 'A', // 如果没有 metricsLabel，默认使用 'A'
                   }
               })));
             }, 100); // 增加延迟到100ms
@@ -1080,23 +1226,13 @@ const FlowContent = ({ detailData, topologyId }) => {
     const position = { x: (viewport.x * -1) + (window.innerWidth / 2) / viewport.zoom, y: (viewport.y * -1) + (window.innerHeight / 2) / viewport.zoom };
     const newNode = {
       id: `node_${Date.now()}`, type: 'layered', position: { x: position.x - (nodeWidth / 2), y: position.y - (nodeHeight / 2) },
-      data: { 
-        label: `新服务 ${nodes.length + 1}`, 
-        subLabel: '自定义添加', 
-        type: 'Service', 
-        datasourceId: selectedDatasource, 
+      data: {
+        label: `新服务 ${nodes.length + 1}`,
+        subLabel: '自定义添加',
+        type: 'Service',
+        datasourceId: selectedDatasource,
         operator: '<',
-        metricsLabel: 'QPS',
-        // 添加点击处理函数
-        onNodeClick: (nodeData) => {
-            if (isEditing) {
-                handleGetDatasourceList(newNode).then(() => {
-                    setTimeout(() => {
-                        setSelectedNode(newNode);
-                    }, 200);
-                });
-            }
-        }
+        metricsLabel: 'A',
       }, // 新节点默认使用当前选中的数据源ID和默认运算符
       draggable: true,
       style: {
@@ -1110,26 +1246,20 @@ const FlowContent = ({ detailData, topologyId }) => {
   const toggleEditing = useCallback(() => {
     const newEditingState = !isEditing;
     setIsEditing(newEditingState);
-    setNodes((nds) => nds.map(node => ({ 
-        ...node, 
+    // 切换模式时重置 viewMode，确保取消编辑后点击卡片显示预览modal
+    if (!newEditingState) {
+      setViewMode(true);
+    }
+    setNodes((nds) => nds.map(node => ({
+        ...node,
         draggable: newEditingState,
         data: {
             ...node.data,
-            // 更新点击处理函数
-            onNodeClick: (nodeData) => {
-                if (newEditingState) {
-                    handleGetDatasourceList(node).then(() => {
-                        setTimeout(() => {
-                            setSelectedNode(node);
-                        }, 200);
-                    });
-                }
-            }
         }
     })));
     // 切换到编辑模式时，预加载数据源列表
     if (newEditingState && datasourceOptions.length === 0) {
-        handleGetDatasourceList(null); 
+        handleGetDatasourceList(null);
     }
   }, [isEditing, setNodes, datasourceOptions.length, handleGetDatasourceList]);
 
@@ -1370,6 +1500,7 @@ const FlowContent = ({ detailData, topologyId }) => {
             connectionMode="loose"
             nodesDraggable={isEditing}
             nodesConnectable={isEditing}
+            edgesDraggable={isEditing} // 启用边的拖拽
             elementsSelectable={true}
             deleteKeyCode={isEditing ? ['Backspace', 'Delete'] : null}
             multiSelectionKeyCode={['Meta', 'Shift', 'Ctrl']}
@@ -1403,7 +1534,8 @@ const FlowContent = ({ detailData, topologyId }) => {
           {/* 渲染 NodeEditorDrawer */}
           <NodeEditorDrawer
               node={selectedNode}
-              onClose={() => setSelectedNode(false)}
+              viewMode={viewMode}
+              onClose={() => { setSelectedNode(null); setViewMode(false); }}
               onUpdateNode={onUpdateNode}
               datasourceOptions={datasourceOptions}
               selectedDatasource={selectedDatasource}

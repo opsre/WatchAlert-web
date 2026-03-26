@@ -103,7 +103,7 @@ export const EventMetricChart = ({ data }) => {
     })
 
     return (
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                     {seriesNames?.map((name, index) => (
@@ -169,14 +169,20 @@ export const EventMetricChart = ({ data }) => {
                         borderRadius: 8,
                         border: "none",
                         padding: "12px",
-                        maxWidth: '600px',
+                        maxWidth: '1000px',
+                        maxHeight: '1000px',
+                        overflowY: 'auto',
+                        overflowX: 'auto',
                         whiteSpace: 'normal',
                         wordBreak: 'break-word',
+                        zIndex: 9999,
                     }}
+                    isAnimationActive={false}
+                    filterNull={false}
                     itemStyle={{
                         color: "#ffffff",
                         fontSize: "12px",
-                        padding: "4px 0",
+                        padding: "2px 0",
                         whiteSpace: 'normal',
                         wordBreak: 'break-all',
                         lineHeight: '1.5',
@@ -184,12 +190,12 @@ export const EventMetricChart = ({ data }) => {
                     labelStyle={{
                         color: "#ffffff",
                         fontWeight: "500",
-                        marginBottom: "8px",
+                        marginBottom: "4px",
                         whiteSpace: 'normal',
                     }}
                     labelFormatter={(label) => {
                         const date = new Date(label * 1000)
-                        return `时间: ${date.toLocaleString('zh-CN', { 
+                        return `时间: ${date.toLocaleString('zh-CN', {
                             year: 'numeric',
                             month: '2-digit',
                             day: '2-digit',
@@ -200,19 +206,9 @@ export const EventMetricChart = ({ data }) => {
                     }}
                     formatter={(value, name) => {
                         if (value === null || value === undefined) return ['无数据', name]
-                        return [value, name]
+                        return [typeof value === 'number' ? value.toFixed(2) : value, name]
                     }}
                 />
-
-                {/* 隐藏图例 */}
-                {/* <Legend 
-                    wrapperStyle={{
-                        paddingTop: '20px',
-                        maxHeight: '150px',
-                        overflowY: 'auto',
-                    }}
-                    iconType="line"
-                /> */}
 
                 {seriesNames?.map((name, index) => (
                     <Line

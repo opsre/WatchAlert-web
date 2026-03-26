@@ -69,21 +69,13 @@ const List = () => {
     handleList(pagination.index, pagination.size);
   }, []);
 
-  const handleDelete = (record) => {
-    Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除 "${record.name}" 吗？此操作不可恢复。`,
-      okText: '确认',
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          await TopologyDelete({ id: record.id });
-          handleList(pagination.index, pagination.size);
-        } catch (error) {
-          console.error('删除失败:', error);
-        }
-      },
-    });
+  const handleDelete = async (record) => {
+    try {
+      await TopologyDelete({ id: record.id });
+      handleList(pagination.index, pagination.size);
+    } catch (error) {
+      console.error('删除失败:', error);
+    }
   };
 
   // 显示创建拓扑的模态框
@@ -246,7 +238,7 @@ const List = () => {
       render: (_, record) => (
         <Tooltip title="删除">
             <Popconfirm
-                title="确定要删除吗?"
+                title={`确定要删除 "${record.name}" 吗？此操作不可恢复。`}
                 onConfirm={() => handleDelete(record)}
                 okText="确定"
                 cancelText="取消"

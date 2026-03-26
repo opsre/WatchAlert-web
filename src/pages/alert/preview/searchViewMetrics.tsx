@@ -226,7 +226,10 @@ export const SearchViewMetrics = ({
         return <Alert message="查询失败" description={error} type="error" showIcon style={{ margin: "20px 0" }} />
     }
 
-    if (metrics.length === 0) {
+    // 根据 displayMode 判断是否有数据
+    const hasData = displayMode === 'chart' ? (chartData && chartData.length > 0 && chartData[0]?.data?.result?.length > 0) : (metrics.length > 0)
+
+    if (!hasData) {
         return (
             <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
