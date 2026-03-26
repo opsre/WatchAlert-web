@@ -512,16 +512,14 @@ export const FaultCenterNotify = () => {
                                                                 <div style={{ marginBottom: "8px" }}>
                                                                     <Text type="secondary" style={{ fontSize: "12px" }}>匹配条件</Text>
                                                                 </div>
-                                                                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                                                <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
                                                                     {labels.filter(l => l.key).map((label, idx) => (
                                                                         <Tag
                                                                             key={idx}
                                                                             color="blue"
                                                                             style={{
-                                                                                padding: "4px 10px",
                                                                                 borderRadius: "4px",
-                                                                                fontSize: "13px",
-                                                                                fontFamily: "monospace"
+                                                                                fontSize: "10px"
                                                                             }}
                                                                         >
                                                                             {label.key} {label.operator} {label.value}

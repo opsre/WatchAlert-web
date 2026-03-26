@@ -24,6 +24,7 @@ const { Sider } = Layout;
 
 const adminMenuItems = [
     { key: '1', path: '/', icon: <AreaChartOutlined />, label: '概览' },
+    { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' },
     {
         key: '2',
         icon: <BellOutlined />,
@@ -31,8 +32,7 @@ const adminMenuItems = [
         children: [
             { key: '2-1', path: '/ruleGroup', label: '告警规则' },
             { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
-            { key: '2-6', path: '/subscribes', label: '告警订阅' },
-            { key: '2-7', path: '/recordingRules', label: '记录规则' },
+            { key: '2-6', path: '/recordingRules', label: '记录规则' },
         ]
     },
     { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
@@ -65,7 +65,6 @@ const adminMenuItems = [
         ]
     },
     { key: '6', path: '/datasource', icon: <PieChartOutlined />, label: '数据源' },
-    { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' },
     {
         key: '5',
         icon: <UserOutlined />,
@@ -82,14 +81,14 @@ const adminMenuItems = [
 
 const userMenuItems = [
     { key: '1', path: '/', icon: <AreaChartOutlined />, label: '概览' },
+    { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' },
     {
         key: '2',
         icon: <BellOutlined />,
         label: '告警管理',
         children: [
             { key: '2-1', path: '/ruleGroup', label: '告警规则' },
-            { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
-            { key: '2-6', path: '/subscribes', label: '告警订阅' }
+            { key: '2-6', path: '/tmplType/Metrics/group', label: '规则模版' },
         ]
     },
     { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
@@ -122,7 +121,6 @@ const userMenuItems = [
         ]
     },
     { key: '6', path: '/datasource', icon: <PieChartOutlined />, label: '数据源' },
-    { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' },
 ];
 
 export const ComponentSider = () => {

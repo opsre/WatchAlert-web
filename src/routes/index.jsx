@@ -21,8 +21,6 @@ import { SystemSettings } from "../pages/settings";
 import { TenantDetail } from "../pages/tenant/detail";
 import { AlertRule } from "../pages/alert/rule/create";
 import {Dashboards} from "../pages/dashboards/dashboard";
-import {Subscribe} from "../pages/subscribe";
-import {CreateSubscribeModel} from "../pages/subscribe/create";
 import {NoticeRecords} from "../pages/notice/history";
 import {CalendarApp} from "../pages/duty/calendar";
 import {Probing} from "../pages/probing";
@@ -155,14 +153,6 @@ export default [
     {
         path: '/probing/:id/detail',
         element: <ComponentsContent name="网络分析 / 拨测详情" c={<ProbingMetrics />} />
-    },
-    {
-        path: '/subscribes',
-        element: <ComponentsContent name="告警管理 / 告警订阅" c={<Subscribe />} />
-    },
-    {
-        path: '/subscribe/create',
-        element: <ComponentsContent name="告警管理 / 添加订阅" c={<CreateSubscribeModel />} />
     },
     {
         path: '/profile',
