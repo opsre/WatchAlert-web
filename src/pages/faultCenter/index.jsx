@@ -90,7 +90,6 @@ export const FaultCenter = () => {
         pageContainer: {
             display: "flex",
             flexDirection: "column",
-            height: "70vh", // 使用视口高度
             overflow: "hidden", // 防止整个页面滚动
         },
         headerSection: {
