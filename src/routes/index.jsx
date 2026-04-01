@@ -30,8 +30,6 @@ import {ProbingMetrics} from "../pages/probing/detail";
 import Profile from "../pages/profile";
 import {FaultCenter} from "../pages/faultCenter";
 import {FaultCenterDetail} from "../pages/faultCenter/detail";
-import List from "../pages/topology/list";
-import TopologyDetail from "../pages/topology/detail";
 import { RecordingRuleIndex } from "../pages/alert/recordingRule";
 import { RecordingRuleCreatePage } from "../pages/alert/recordingRule/create";
 import { DataAnalysis } from "../pages/exploer";
@@ -165,14 +163,6 @@ export default [
     {
         path: '/faultCenter/detail/:id',
         element: <ComponentsContent name="故障中心 / 详情" c={<FaultCenterDetail />} />
-    },
-    {
-        path: '/topology',
-        element: <ComponentsContent name="服务拓扑" c={<List />} />
-    },
-    {
-        path: '/topology/:id/detail',
-        element: <ComponentsContent name="服务拓扑 / 拓扑详情" c={<TopologyDetail />} />
     },
     {
         path: 'recordingRules',

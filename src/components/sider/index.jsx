@@ -53,7 +53,6 @@ const adminMenuItems = [
             { key: '3-2', path: '/noticeTemplate', label: '通知模版' },
         ]
     },
-    { key: '13', path: '/topology', icon: <NodeIndexOutlined />, label: '服务拓扑' },
     { key: '4', path: '/dutyManage', icon: <CalendarOutlined />, label: '值班中心' },
     {
         key: '11',
@@ -109,7 +108,6 @@ const userMenuItems = [
             { key: '3-2', path: '/noticeTemplate', label: '通知模版' },
         ]
     },
-    { key: '13', path: '/topology', icon: <NodeIndexOutlined />, label: '服务拓扑' },
     { key: '4', path: '/dutyManage', icon: <CalendarOutlined />, label: '值班中心' },
     {
         key: '11',
