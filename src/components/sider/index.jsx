@@ -87,7 +87,8 @@ const userMenuItems = [
         label: '告警管理',
         children: [
             { key: '2-1', path: '/ruleGroup', label: '告警规则' },
-            { key: '2-6', path: '/tmplType/Metrics/group', label: '规则模版' },
+            { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
+            { key: '2-6', path: '/recordingRules', label: '记录规则' },
         ]
     },
     { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
