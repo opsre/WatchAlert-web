@@ -620,6 +620,11 @@ export const AlertHistoryEvent = (props) => {
         }
     }
 
+    const isPrometheusEvent = (event) => {
+        const datasourceType = event?.datasource_type?.trim()?.toLowerCase()
+        return datasourceType === "prometheus"
+    }
+
     useEffect(() => {
         if (drawerOpen && selectedEvent) {
             handleListComments()
@@ -630,19 +635,40 @@ export const AlertHistoryEvent = (props) => {
     // 获取图表数据
     const fetchMetricData = async () => {
         try {
-            if (selectedEvent.datasource_type !== "Prometheus") {
+            if (!isPrometheusEvent(selectedEvent)) {
                 return
             }
 
-            const parmas = {
+            const params = {
                 datasourceIds: selectedEvent.datasource_id,
                 query: selectedEvent.searchQL,
                 startTime: selectedEvent.first_trigger_time - 300,
-                endTime: selectedEvent.recover_time,
+                endTime: selectedEvent.recover_time || Math.floor(Date.now() / 1000),
                 step: 10,
             }
-            const res = await queryRangePromMetrics(parmas)
-            setMetricData(res)
+            const res = await queryRangePromMetrics(params)
+            const results = res?.data
+            const allResults = []
+
+            if (Array.isArray(results) && results.length > 0) {
+                const processedResults = results.flatMap(r =>
+                    r.data?.result?.map(item => ({
+                        ...item,
+                        value: item.values && item.values.length > 0
+                            ? item.values[item.values.length - 1]
+                            : (item.value || null)
+                    })) || []
+                )
+                allResults.push(...processedResults)
+            }
+
+            setMetricData([{
+                status: 'success',
+                data: {
+                    resultType: 'matrix',
+                    result: allResults,
+                },
+            }])
         } catch (error) {
             message.error("加载图表数据失败")
             console.error("Failed to load metric data:", error)
@@ -807,13 +833,15 @@ export const AlertHistoryEvent = (props) => {
             >
                 {selectedEvent && (
                     <div>
-                        {selectedEvent.datasource_type === "Prometheus" && (
+                        {isPrometheusEvent(selectedEvent) && (
                             <div style={{
                                     marginLeft: '-20px',
+                                    height: 260,
+                                    marginBottom: '24px',
                                 }}
                             >
                                 <Spin spinning={loading}>
-                                    <EventMetricChart data={metricData.data} />
+                                    <EventMetricChart data={metricData} />
                                 </Spin>
                             </div>
                         )}
