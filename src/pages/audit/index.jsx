@@ -194,7 +194,7 @@ export const AuditLog = () => {
     return (
         <div>
             <Breadcrumb items={['审计日志']} />
-            <Drawer anchor="right" title="事件Body详情" onClose={onCloseDrawer} open={drawerOpen}>
+            <Drawer anchor="right" title="事件Body详情" width={500} onClose={onCloseDrawer} open={drawerOpen}>
                 <JsonViewer src={annotationsJson} displayObjectSize={false} />
             </Drawer>
             <div style={{ display: "flex", justifyContent: "space-between", width: "50vh" }}>

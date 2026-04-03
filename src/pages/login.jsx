@@ -24,7 +24,7 @@ export const Login = () => {
     useEffect(() => {
         const checkAdminUser = async () => {
             try {
-                const params = { username: 'admin' };
+                const params = { identifier: 'admin' };
                 const res = await checkUser(params);
                 console.log(res?.data);
                 // 返回 'ok' 表示用户存在
@@ -42,7 +42,7 @@ export const Login = () => {
         event.preventDefault();
         const formData = new FormData(event.target);
         const params = {
-            username: formData.get('username'),
+            identifier: formData.get('identifier'),
             password: formData.get('password'),
         };
         try {
@@ -50,7 +50,7 @@ export const Login = () => {
             if (response.data) {
                 const info = response.data;
                 localStorage.setItem('Authorization', info.token);
-                localStorage.setItem('Username', info.username);
+                localStorage.setItem('Identifier', info.identifier);
                 localStorage.setItem('UserId', info.userId);
                 navigate('/');
             }
@@ -84,14 +84,14 @@ export const Login = () => {
             
             // 2. 自动登录
             const loginResponse = await loginUser({
-                username: 'admin',
+                identifier: 'admin',
                 password: password,
             });
             
             if (loginResponse.data) {
                 const info = loginResponse.data;
                 localStorage.setItem('Authorization', info.token);
-                localStorage.setItem('Username', info.username);
+                localStorage.setItem('Identifier', info.identifier);
                 localStorage.setItem('UserId', info.userId);
                 message.success('初始化成功，已自动登录');
                 navigate('/');
@@ -170,7 +170,7 @@ export const Login = () => {
                             <div>
                                 <input
                                     type="text"
-                                    name="username"
+                                    name="identifier"
                                     value="admin"
                                     readOnly
                                     placeholder="用户名"
@@ -209,8 +209,8 @@ export const Login = () => {
                                 <div>
                                     <input
                                         type="text"
-                                        name="username"
-                                        placeholder="用户名"
+                                        name="identifier"
+                                        placeholder="用户名/邮箱/手机号"
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all"
                                         required
                                     />

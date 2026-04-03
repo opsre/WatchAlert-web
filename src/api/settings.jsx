@@ -26,7 +26,18 @@ async function saveSystemSetting(params) {
     }
 }
 
+async function syncLdapUser() {
+    try {
+        const res = await http('post', '/api/w8t/setting/syncLdapUser', );
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
 export {
     getSystemSetting,
-    saveSystemSetting
+    saveSystemSetting,
+    syncLdapUser
 }

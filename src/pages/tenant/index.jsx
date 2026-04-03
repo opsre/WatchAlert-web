@@ -51,6 +51,7 @@ export const Tenants = () => {
         try {
             const params = {
                 id: record.id,
+                name: record.name,
             };
             await deleteTenant(params);
             handleList();

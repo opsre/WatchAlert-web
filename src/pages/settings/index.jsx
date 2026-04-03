@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import {Anchor, Button, Form, Input, Popconfirm, Typography, Radio, Segmented, Tabs, Switch, Select, message} from 'antd';
 import "./index.css";
-import { getSystemSetting, saveSystemSetting } from "../../api/settings";
+import { getSystemSetting, saveSystemSetting, syncLdapUser } from "../../api/settings";
 import TextArea from "antd/es/input/TextArea";
 import {getRoleList} from "../../api/role";
 import { Breadcrumb } from "../../components/Breadcrumb";
+import { getTenantList } from "../../api/tenant";
 
 // 表单上下文
 const MyFormItemContext = React.createContext([]);
@@ -32,7 +33,6 @@ const validateCronExpression = (_, value) => {
 
     // 基本格式检查：5个字段，用空格分隔
     const cronParts = cronValue.split(/\s+/);
-    console.log("-->",cronParts)
     if (cronParts.length !== 5) {
         return Promise.reject(new Error('Cron表达式必须包含5个字段：分钟 小时 日期 月份 星期'));
     }
@@ -101,11 +101,13 @@ export const SystemSettings = () => {
     const [enableAi, setEnableAi] = useState(false);
     const [alignValue, setAlignValue] = useState('系统认证');
     const [roleList, setRoleList] = useState([]);
+    const [tenantList, setTenantList] = useState([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         loadSettings();
         handleRoleList();
+        handleTenantList();
     }, []);
 
     //  优化的设置加载函数 - 改进错误处理和默认值设置
@@ -153,9 +155,9 @@ export const SystemSettings = () => {
                 baseDN: res?.data?.ldapConfig?.baseDN || "",
                 adminUser: res?.data?.ldapConfig?.adminUser || "",
                 adminPass: res?.data?.ldapConfig?.adminPass || "",
-                userDN: res?.data?.ldapConfig?.userDN || "",
-                userPrefix: res?.data?.ldapConfig?.userPrefix || "",
+                defaultTenant: res?.data?.ldapConfig?.defaultTenant || "",
                 defaultUserRole: res?.data?.ldapConfig?.defaultUserRole || undefined,
+                filter: res?.data?.ldapConfig?.filter || "(objectClass=person)",
                 cronjob: res?.data?.ldapConfig?.cronjob || "*/30 * * * *", //  更合理的默认值
             };
 
@@ -273,6 +275,34 @@ export const SystemSettings = () => {
         // 同步更新表单字段
         form.setFieldValue(['aiConfig', 'enable'], enabled);
     };
+    
+    const handleTenantList = async () => {
+        try {
+            const res = await getTenantList();
+            const newData = res.data?.map((item) => ({
+                label: item.name,
+                value: item.id,
+            })) || [];
+            setTenantList(newData);
+        } catch (error) {
+            console.error("Failed to load tenant list:", error);
+            message.error('加载租户列表失败');
+        }
+    };
+
+    const handleSyncLdapUser = async() =>{
+        try{
+            message.loading('正在同步LDAP用户...', 0);
+            await syncLdapUser()
+            message.destroy();
+            message.success('LDAP用户同步成功');
+        } catch (error){
+            console.error(error)
+            message.error('LDAP用户同步失败');
+            message.destroy();
+        }
+    }
+
 
     const segmentedOptions = ['系统认证', 'LDAP 认证', 'OIDC 认证'];
 
@@ -452,19 +482,16 @@ export const SystemSettings = () => {
                                         </MyFormItem>
 
                                         <MyFormItem
-                                            name="userDN"
-                                            label="用户DN"
-                                            rules={[{required: true, message: '请输入用户DN'}]}
+                                            name="defaultTenant"
+                                            label="默认租户"
+                                            rules={[{required: true, message: '请选择默认租户'}]}
                                         >
-                                            <Input placeholder="例如: ou=users,dc=example,dc=com"/>
-                                        </MyFormItem>
-
-                                        <MyFormItem
-                                            name="userPrefix"
-                                            label="用户DN前缀"
-                                            rules={[{required: true, message: '请输入用户DN前缀'}]}
-                                        >
-                                            <Input placeholder="例如: uid 或 cn"/>
+                                            <Select
+                                                style={{width: '100%'}}
+                                                placeholder="请选择默认租户"
+                                                options={tenantList}
+                                                loading={roleList.length === 0}
+                                            />
                                         </MyFormItem>
 
                                         <MyFormItem
@@ -481,12 +508,32 @@ export const SystemSettings = () => {
                                         </MyFormItem>
 
                                         <MyFormItem
-                                            name="cronjob"
-                                            label="定时任务"
-                                            rules={[{required: true, message: '请输入Cron表达式'}]}
+                                            name="filter"
+                                            label="过滤器"
                                         >
-                                            <Input placeholder="例如: */30 * * * * (每30分钟执行一次)"/>
+                                            <Input placeholder="如：(&(objectClass=person)(memberOf=cn=jms,ou=groups,dc=test,dc=com))，默认：(objectClass=person)"/>
                                         </MyFormItem>
+
+                                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                            <MyFormItem
+                                                name="cronjob"
+                                                label="定时任务"
+                                                rules={[{required: true, message: '请输入Cron表达式'}]}
+                                                style={{width: '95%'}}
+                                            >
+                                                <Input placeholder="例如: */30 * * * * (每30分钟执行一次)"/>
+                                            </MyFormItem>
+                                            <Button
+                                                type="primary"
+                                                style={{backgroundColor: '#000', borderColor: '#000', marginTop: '5px'}}
+                                                onClick={() => {
+                                                    handleSyncLdapUser()
+                                                }}
+                                            >
+                                                即时同步
+                                            </Button>
+                                        </div>
+
                                         <div style={helpTextStyle}>
                                             <strong>格式:</strong> 分钟 小时 日期 月份 星期<br/>
                                             <strong>常用示例:</strong><br/>
