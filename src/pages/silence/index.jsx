@@ -116,6 +116,7 @@ export const Silences = (props) => {
             const params = {
                 faultCenterId: faultCenterId,
                 id: record.id,
+                name: record.name,
             };
             await deleteSilence(params);
             handleList(); // 重新加载当前页数据

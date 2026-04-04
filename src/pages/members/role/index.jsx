@@ -125,6 +125,7 @@ export const UserRole = () => {
     const handleDelete = async (record) => {
         const params = {
             id: record.id,
+            name: record.name,
         };
         await deleteRole(params);
         handleList();

@@ -220,6 +220,7 @@ export const Datasources = () => {
         try {
             const params = {
                 id: record.id,
+                name: record.name,
             }
             await deleteDatasource(params)
             handleList()

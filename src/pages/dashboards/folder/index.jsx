@@ -147,6 +147,7 @@ export const DashboardFolder = () => {
         try {
             const params = {
                 id: record.id,
+                name: record.name,
             }
             await deleteDashboardFolder(params)
             handleList()

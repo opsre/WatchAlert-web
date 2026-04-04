@@ -210,7 +210,8 @@ export const NoticeObjects = () => {
     const handleDelete = async (record) => {
         try {
             const params = {
-                uuid: record.uuid
+                uuid: record.uuid,
+                name: record.name,
             }
             await deleteNotice(params)
             handleList();

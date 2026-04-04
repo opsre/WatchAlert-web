@@ -14,7 +14,7 @@ const MyFormItem = ({ name, ...props }) => {
     return <Form.Item name={concatName} {...props} />
 }
 
-export const AlertRuleGroupCreateModal = ({ visible, onClose, selectedRow, type, handleList, pagination}) => {
+export const AlertRuleGroupCreateModal = ({ visible, onClose, selectedRow, type, handleList}) => {
     const [form] = Form.useForm()
 
     // 禁止输入空格
@@ -38,7 +38,6 @@ export const AlertRuleGroupCreateModal = ({ visible, onClose, selectedRow, type,
             form.setFieldsValue({
                 id: selectedRow.id,
                 name: selectedRow.name,
-                description: selectedRow.description,
             })
         }
 
@@ -47,7 +46,7 @@ export const AlertRuleGroupCreateModal = ({ visible, onClose, selectedRow, type,
     const handleCreate = async (data) => {
         try {
             await createRuleGroup(data)
-            handleList(pagination.index,pagination.size)
+            handleList()
         } catch (error) {
             console.error(error)
         }
@@ -56,7 +55,7 @@ export const AlertRuleGroupCreateModal = ({ visible, onClose, selectedRow, type,
     const handleUpdate = async (data) => {
         try {
             await updateRuleGroup(data)
-            handleList(pagination.index,pagination.size)
+            handleList()
         } catch (error) {
             console.error(error)
         }
@@ -94,10 +93,6 @@ export const AlertRuleGroupCreateModal = ({ visible, onClose, selectedRow, type,
                         value={spaceValue}
                         onChange={handleInputChange}
                         onKeyPress={handleKeyPress} />
-                </MyFormItem>
-
-                <MyFormItem name="description" label="描述">
-                    <Input />
                 </MyFormItem>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

@@ -1,5 +1,4 @@
 import { AlertRuleList } from "../pages/alert/rule";
-import { AlertRuleGroup } from "../pages/alert/ruleGroup";
 import { RuleTemplate } from "../pages/alert/tmpl";
 import { RuleTemplateGroup } from "../pages/alert/tmplGroup";
 import { Datasources } from "../pages/datasources";
@@ -46,7 +45,7 @@ export default [
     },
     {
         path: '/ruleGroup',
-        element: <ComponentsContent name="告警管理 / 告警规则组" c={<AlertRuleGroup />} />,
+        element: <ComponentsContent name="告警管理 / 告警规则" c={<AlertRuleList />} />
     },
     {
         path: '/ruleGroup/:id/rule/list',

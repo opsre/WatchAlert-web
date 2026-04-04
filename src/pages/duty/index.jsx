@@ -206,7 +206,8 @@ export const DutyManage = () => {
     const handleDelete = async (record) => {
         try {
             const params = {
-                id: record.id
+                id: record.id,
+                name: record.name,
             }
             await deleteDutyManager(params)
             handleList();

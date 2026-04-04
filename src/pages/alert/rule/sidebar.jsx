@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useCallback, useEffect, useState, useMemo } from 'react'
 import { Typography, message, Tooltip, Button, Modal, Input } from 'antd'
 import { FolderOutlined, PlusOutlined, DeleteOutlined, SearchOutlined, CaretDownOutlined, CaretRightOutlined, EditOutlined } from '@ant-design/icons'
-import { RecordingRuleGroupList, RecordingRuleGroupDelete } from '../../../api/recordingRule'
-import { RuleGroupCreateModal } from './createGroup'
+import { getRuleGroupList, deleteRuleGroup } from '../../../api/rule'
+import { AlertRuleGroupCreateModal } from './createGroup.jsx'
 
 const { Text } = Typography
 
@@ -123,7 +123,7 @@ const TreeNode = ({
                     </span>
                 </Tooltip>
 
-                {/* 删除按钮 */}
+                
                 {isHovered && (
                     <>
                         {/* 更新按钮 */}
@@ -139,7 +139,8 @@ const TreeNode = ({
                                 minWidth: '20px'
                             }}
                         />
-
+                    
+                        {/* 删除按钮 */}
                         <Button
                             type="text"
                             size="small"
@@ -186,10 +187,10 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
     const [filteredRuleGroupList, setFilteredRuleGroupList] = useState([])
     const [loading, setLoading] = useState(false)
     const [createModalVisible, setCreateModalVisible] = useState(false)
+    const [updateModalVisible, setUpdateModalVisible] = useState(false)
     const [hoveredGroupId, setHoveredGroupId] = useState(null)
     const [searchVisible, setSearchVisible] = useState(false)
     const [searchValue, setSearchValue] = useState('')
-    const [updateModalVisible, setUpdateModalVisible] = useState(false)
     const [selectedGroup, setSelectedGroup] = useState(null)
     const [treeData, setTreeData] = useState([])
 
@@ -221,10 +222,9 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
     const handleListRuleGroup = async () => {
         setLoading(true)
         try {
-            const res = await RecordingRuleGroupList({ index: 1, size: 1000 })
+            const res = await getRuleGroupList({ index: 1, size: 1000 })
             const list = res?.data?.list || res?.data || []
             setRuleGroupList(Array.isArray(list) ? list : [])
-            setFilteredRuleGroupList(Array.isArray(list) ? list : [])
         } catch (error) {
             console.error('获取规则组列表失败:', error)
             message.error('获取规则组列表失败')
@@ -267,7 +267,7 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
             content: `确定要删除规则组「${group.name}」吗？`,
             onOk: async () => {
                 try {
-                    await RecordingRuleGroupDelete({ id: group.id })
+                    await deleteRuleGroup({ id: group.id, name: group.name, })
                     handleListRuleGroup()
                 } catch (error) {
                     message.error('删除失败')
@@ -315,7 +315,7 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
                 </div>
             </div>
 
-            {/* 树形列表区域 */}
+            {/* 树形列表 */}
             <div style={{ flex: 1, overflow: 'auto', marginLeft: '-20px' }}>
                 {treeData.map(node => (
                     <TreeNode
@@ -340,19 +340,20 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
             </div>
 
             {/* 创建弹窗 */}
-            <RuleGroupCreateModal
+            <AlertRuleGroupCreateModal
                 visible={createModalVisible}
                 onClose={handleCloseCreateModal}
                 type="create"
                 handleList={handleListRuleGroup}
             />
+
             {/* 更新弹窗 */}
-            <RuleGroupCreateModal
+            <AlertRuleGroupCreateModal
                 visible={updateModalVisible}
                 onClose={handleCloseUpdateModal}
                 type="update"
-                selectedRow={selectedGroup}
                 handleList={handleListRuleGroup}
+                selectedRow={selectedGroup}
             />
 
         </div>

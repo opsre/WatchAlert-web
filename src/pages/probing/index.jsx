@@ -102,7 +102,8 @@ export const Probing = () => {
     const handleDelete = useCallback(async (record) => {
         try {
             const params = {
-                ruleId: record.ruleId
+                ruleId: record.ruleId,
+                name: record.name,
             }
             await ProbingDelete(params)
             handleList();

@@ -14,7 +14,9 @@ import {
     Space,
     Switch,
     Popconfirm,
-    Form
+    Form,
+    Empty,
+    Typography
 } from "antd"
 import { Link, useNavigate } from "react-router-dom"
 import { useParams } from "react-router-dom"
@@ -36,7 +38,8 @@ import {
     ImportOutlined,
     CopyOutlined,
     PlusOutlined,
-    EditOutlined
+    EditOutlined,
+    ReloadOutlined
 } from "@ant-design/icons"
 import { FaultCenterList } from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
@@ -44,7 +47,7 @@ import { copyToClipboard } from "../../../utils/copyToClipboard";
 import { HandleApiError, HandleShowTotal } from "../../../utils/lib";
 import { useAppContext } from "../../../context/RuleContext";
 import { TableWithPagination } from '../../../utils/TableWithPagination';
-import { RuleGroupSidebar } from './RuleGroupSidebar';
+import { RuleGroupSidebar } from './sidebar';
 import { getRuleGroupList } from "../../../api/rule"
 import { Breadcrumb } from "../../../components/Breadcrumb";
 
@@ -310,7 +313,7 @@ export const AlertRuleList = () => {
                     <Tooltip title="删除">
                         <Popconfirm
                             title="确定要删除此规则吗?"
-                            onConfirm={() => handleDelete(record.ruleGroupId, record.ruleId)}
+                            onConfirm={() => handleDelete(record.ruleGroupId, record.ruleId, record.ruleName)}
                             okText="确定"
                             cancelText="取消"
                             placement="left"
@@ -361,11 +364,17 @@ export const AlertRuleList = () => {
     useEffect(() => {
         const initializeData = async () => {
             await handleListDatasource()
-            handleList(selectedRuleGroupId, pagination.index, pagination.size)
+            const groups = await handleListRuleGroup()
+            if (groups.length > 0) {
+                const firstGroupId = groups[0].id
+                navigate(`/ruleGroup/${firstGroupId}/rule/list`)
+                setSelectedRuleGroupId(firstGroupId)
+                handleList(firstGroupId, pagination.index, pagination.size)
+            }
+            isInitialMount.current = false
         }
         if (isInitialMount.current) {
             initializeData()
-            isInitialMount.current = false
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -424,6 +433,55 @@ export const AlertRuleList = () => {
         navigate(`/ruleGroup/${groupId}/rule/list`)
     }
 
+    const handleListRuleGroup = async () => {
+        try {
+            const params = { index: 1, size: 1000 }
+            const res = await getRuleGroupList(params)
+            const list = res?.data?.list || []
+            setRuleGroupList(list)
+            return list
+        } catch (error) {
+            console.error('Failed to fetch rule group list:', error)
+            return []
+        }
+    }
+
+    const handleRuleGroupChangeFromSidebar = useCallback(async (newGroupList) => {
+        const list = newGroupList || []
+        setRuleGroupList(list)
+        // If we were in empty state and now have rule groups, select the first one
+        if ((ruleGroupList?.length || 0) === 0 && list.length > 0) {
+            const firstGroupId = list[0].id
+            setSelectedRuleGroupId(firstGroupId)
+            handleList(firstGroupId, 1, pagination.size)
+        }
+    }, [ruleGroupList, handleList, pagination.size])
+
+    const { Text } = Typography
+
+    const renderEmptyState = () => (
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            padding: '40px',
+            marginTop: '-50px'
+        }}>
+            <Empty
+                description={null}
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
+                <Text style={{ fontSize: '14px', color: 'rgb(156, 163, 175)' }}>
+                    无可用规则组，请先创建规则组
+                </Text>
+                <Button size='small' icon={<ReloadOutlined />} onClick={() => handleListRuleGroup()}/>
+            </div>
+        </div>
+    )
+
     const GetSeverity = (data) => {
         const isPrometheusType = data.datasourceType === 'Prometheus';
         if (isPrometheusType && data.prometheusConfig?.rules) {
@@ -458,9 +516,9 @@ export const AlertRuleList = () => {
         navigate(`/ruleGroup/${id}/rule/add?isClone=1`)
     }
 
-    const handleDelete = async (ruleGroupId, ruleId) => {
+    const handleDelete = async (ruleGroupId, ruleId, name) => {
         try {
-            await deleteRule({ ruleId, ruleGroupId })
+            await deleteRule({ ruleId, ruleGroupId, name: name, })
         } catch (error) {
             HandleApiError(error)
         }
@@ -754,49 +812,36 @@ export const AlertRuleList = () => {
         ],
     }
 
-    return (
-        <>
-        <Breadcrumb items={['告警管理', '规则']} />
-        <div style={{ display: 'flex' }}>
-            <div style={{ width: '180px', flexShrink: 0 }}>
-                <RuleGroupSidebar
-                    selectedRuleGroupId={selectedRuleGroupId}
-                    onRuleGroupChange={handleRuleGroupChange}
-                />
-            </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginLeft: '20px' }}>
+    const renderContent = () => {
+        if (!ruleGroupList || ruleGroupList.length === 0) {
+            return renderEmptyState()
+        }
+        return (
+            <>
                 <div style={{
-                    background: '#fff',
-                    borderRadius: '8px',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden'
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "20px",
+                    alignItems: "center"
                 }}>
-                    <div style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: "20px",
-                        alignItems: "center"
-                    }}>
-                        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                            <Radio.Group
-                                options={[
-                                    { label: "全部", value: "all" },
-                                    { label: "开启", value: "enabled" },
-                                    { label: "禁用", value: "disabled" },
-                                ]}
-                                defaultValue={selectRuleStatus}
-                                onChange={changeStatus}
-                                optionType="button"
-                            />
-                            <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
-                            {selectedRowKeys.length > 0 && (
-                                <div style={{ color: '#1677ff', fontSize: '14px' }}>
-                                    已选择 {selectedRowKeys.length} 项
-                                </div>
-                            )}
-                        </div>
+                    <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                        <Radio.Group
+                            options={[
+                                { label: "全部", value: "all" },
+                                { label: "开启", value: "enabled" },
+                                { label: "禁用", value: "disabled" },
+                            ]}
+                            defaultValue={selectRuleStatus}
+                            onChange={changeStatus}
+                            optionType="button"
+                        />
+                        <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
+                        {selectedRowKeys.length > 0 && (
+                            <div style={{ color: '#1677ff', fontSize: '14px' }}>
+                                已选择 {selectedRowKeys.length} 项
+                            </div>
+                        )}
+                    </div>
                         <div style={{ display: "flex", gap: "10px" }}>
                             <Dropdown menu={batchOperationMenu} disabled={selectedRowKeys.length === 0}>
                                 <Button>
@@ -1091,6 +1136,32 @@ rules:
                             </Form>
                         </div>
                     </Modal>
+                </>
+            )
+        }
+
+    return (
+        <>
+        <Breadcrumb items={['告警管理', '告警规则']} />
+        <div style={{ display: 'flex', height: '95%' }}>
+            <div style={{ width: '180px', flexShrink: 0 }}>
+                <RuleGroupSidebar
+                    selectedRuleGroupId={selectedRuleGroupId}
+                    onRuleGroupChange={handleRuleGroupChange}
+                    onRuleGroupChangeFromParent={handleRuleGroupChangeFromSidebar}
+                />
+            </div>
+
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginLeft: '20px' }}>
+                <div style={{
+                    background: '#fff',
+                    borderRadius: '8px',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
+                }}>
+                    {renderContent()}
                 </div>
             </div>
         </div>

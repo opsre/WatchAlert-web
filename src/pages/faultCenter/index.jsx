@@ -32,7 +32,7 @@ export const FaultCenter = () => {
 
     const handleDelete = async (record) => {
         try {
-            const params = { id: record.id }
+            const params = { id: record.id, name: record.name }
             await FaultCenterDelete(params)
             handleList() // 删除后刷新列表
         } catch (error) {

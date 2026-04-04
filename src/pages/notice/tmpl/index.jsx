@@ -206,6 +206,7 @@ export const NoticeTemplate = () => {
     const handleDelete = async (record) => {
         const params = {
             id: record.id,
+            name: record.name,
         };
         await deleteNoticeTmpl(params);
         handleList();

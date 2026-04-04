@@ -1315,10 +1315,7 @@ export const AlertRule = ({ type }) => {
                                     }}
                                     rules={[{required: true}]}
                                 >
-                                    <Select showSearch style={{width: '100%'}} placeholder="StatusCode =~ 5xx">
-                                        <Option
-                                            value='%7B"http.status_code"%3A"5.%2A%3F"%7D'>{'StatusCode =~ 5xx'}</Option>
-                                    </Select>
+                                    <Input placeholder='{"http.status_code":"5.*?"}'/>
                                 </MyFormItem>
                             </div>
 
