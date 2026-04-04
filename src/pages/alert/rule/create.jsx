@@ -992,12 +992,13 @@ export const AlertRule = ({ type }) => {
 
                     <div style={{display: 'flex'}}>
                         <div>
-                            <p>数据源类型</p>
+                            <><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>数据源类型</>
                             <div style={{
                                 display: 'flex',
                                 gap: '10px',
                                 flexWrap: 'wrap',  // 添加这行使卡片自动换行
                                 maxWidth: '100%',  // 可选：限制容器最大宽度
+                                marginTop: '8px'
                             }}>
                                 {cards?.map((card, index) => (
                                     <Card
@@ -1694,7 +1695,7 @@ export const AlertRule = ({ type }) => {
                                 {esFilterType === "RawJson" && (
                                     <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px'}}>
                                         <MyFormItem
-                                            label="* 查询语句"
+                                            label={<><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>查询语句</>}
                                             rules={[{required: true}]}
                                             style={{width: '100%', height: '100%'}}
                                         >
