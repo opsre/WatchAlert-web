@@ -180,11 +180,11 @@ const UserCreateModal = ({ visible, onClose, selectedRow, type, handleList }) =>
                         { required: true, message: "请输入邮箱！", type: "email" }, // 添加type: 'email'进行格式校验
                     ]}
                 >
-                    <Input />
+                    <Input disabled={selectedRow?.create_by === "LDAP"}/>
                 </MyFormItem>
 
                 <MyFormItem name="phone" label="手机号">
-                    <Input />
+                    <Input disabled={selectedRow?.create_by === "LDAP"}/>
                 </MyFormItem>
 
                 <MyFormItem

@@ -603,7 +603,7 @@ export const SystemSettings = () => {
                             )}
                         </section>
 
-                        <section id="version">
+                        <section id="version" style={{ marginTop: "10px" }}>
                             <Typography.Title level={5}>系统版本</Typography.Title>
                             <div style={{
                                 padding: '8px 12px',

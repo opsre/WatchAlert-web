@@ -147,6 +147,10 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 description: selectedRow.description,
                 kubeConfig: selectedRow.kubeConfig,
                 elasticSearch: selectedRow.elasticSearch,
+                clickhouseConfig: {
+                    addr: selectedRow.clickhouseConfig?.Addr || "",
+                    timeout: selectedRow.clickhouseConfig?.Timeout || 10,
+                },
                 enabled: selectedRow.enabled
             })
 

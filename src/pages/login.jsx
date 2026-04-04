@@ -224,15 +224,6 @@ export const Login = () => {
                                         required
                                     />
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <label className="flex items-center space-x-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            className="form-checkbox h-4 w-4 text-black rounded border-gray-300"
-                                        />
-                                        <span className="text-sm text-gray-600">记住我</span>
-                                    </label>
-                                </div>
                                 <button
                                     type="submit"
                                     className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
