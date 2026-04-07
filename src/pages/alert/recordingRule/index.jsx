@@ -465,7 +465,7 @@ export const RecordingRuleIndex = () => {
             <div style={{ display: 'flex', height: '100%' }}>
                 <div style={{ width: '180px', flexShrink: 0 }}>
                     <RuleGroupSidebar
-                        selectedRuleGroupId={selectedRuleGroupId}
+                        selectedRuleGroupId={String(selectedRuleGroupId)}
                         onRuleGroupChange={handleRuleGroupChange}
                         onRuleGroupChangeFromParent={handleRuleGroupChangeFromSidebar}
                     />

@@ -90,6 +90,7 @@ export const AlertRuleGroupCreateModal = ({ visible, onClose, selectedRow, type,
                     ]}
                 >
                     <Input
+                        placeholder='规则组名称，如有英文分号会分级展示，示例：SRE:核心规则组'
                         value={spaceValue}
                         onChange={handleInputChange}
                         onKeyPress={handleKeyPress} />

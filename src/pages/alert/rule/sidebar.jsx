@@ -8,44 +8,78 @@ const { Text } = Typography
 
 // ==================== 构建树形结构 ====================
 const buildGroupTree = (groups) => {
-    const groupMap = new Map()
-    const tree = []
+    const groupMap = new Map()   // id -> node
+    const nameToNode = new Map() // name -> node （用于快速查找）
 
-    // 创建节点
+    const realGroups = new Set(groups.map(g => g.name)) // 所有真实存在的组名
+
+    // 第一步：创建所有真实节点
     groups.forEach(group => {
         const parts = group.name.split(':')
-        groupMap.set(group.id, {
+        const node = {
             ...group,
             children: [],
-            displayName: parts[parts.length - 1],   // 只显示最后一级
-            isExpanded: true                        // 默认展开
-        })
+            displayName: parts[parts.length - 1],
+            isExpanded: true,
+            isReal: true
+        }
+        groupMap.set(group.id, node)
+        nameToNode.set(group.name, node)
     })
 
-    // 建立父子关系
+    // 第二步：为所有层级创建虚拟父节点（从最顶层开始）
     groups.forEach(group => {
-        const node = groupMap.get(group.id)
         const parts = group.name.split(':')
-
-        if (parts.length === 1) {
-            tree.push(node)
-        } else {
-            const parentName = parts.slice(0, -1).join(':')
-            const parentNode = Array.from(groupMap.values()).find(n => n.name === parentName)
-
-            if (parentNode) {
-                parentNode.children.push(node)
-            } else {
-                tree.push(node) // 容错
+        
+        let currentPath = ''
+        for (let i = 0; i < parts.length - 1; i++) {   // 不包含自己，只处理父级
+            currentPath = currentPath ? `${currentPath}:${parts[i]}` : parts[i]
+            
+            // 如果这个父级路径不存在真实节点，则创建虚拟节点
+            if (!realGroups.has(currentPath) && !nameToNode.has(currentPath)) {
+                const virtualId = `virtual-${currentPath}`
+                const virtualNode = {
+                    id: virtualId,
+                    name: currentPath,
+                    displayName: parts[i],
+                    children: [],
+                    isExpanded: true,
+                    isReal: false
+                }
+                groupMap.set(virtualId, virtualNode)
+                nameToNode.set(currentPath, virtualNode)
             }
         }
+    })
+
+    // 第三步：建立父子关系
+    Array.from(groupMap.values()).forEach(node => {
+        const parts = node.name.split(':')
+        
+        if (parts.length === 1) {
+            // 顶层节点
+            // 不需要 push 到 tree，这里后面统一收集
+        } else {
+            const parentName = parts.slice(0, -1).join(':')
+            const parentNode = nameToNode.get(parentName)
+            
+            if (parentNode) {
+                parentNode.children.push(node)
+            }
+        }
+    })
+
+    // 第四步：收集顶层节点
+    const tree = Array.from(groupMap.values()).filter(node => {
+        const parts = node.name.split(':')
+        return parts.length === 1
     })
 
     // 排序
     const sortNodes = (nodes) => {
         nodes.sort((a, b) => a.name.localeCompare(b.name))
         nodes.forEach(node => {
-            if (node.children.length > 0) sortNodes(node.children)
+            if (node.children?.length > 0) sortNodes(node.children)
         })
     }
     sortNodes(tree)
@@ -54,29 +88,37 @@ const buildGroupTree = (groups) => {
 }
 
 // ==================== 单个树节点组件 ====================
-const TreeNode = ({
+const TreeNode = React.memo(({
     node,
     selectedRuleGroupId,
     onRuleGroupChange,
     handleDeleteRuleGroup,
+    handleUpdateRuleGroup,
     hoveredGroupId,
     setHoveredGroupId,
-    toggleExpand,
-    setUpdateModalVisible,
-    setSelectedGroup
+    toggleExpand
 }) => {
-    const isSelected = String(node.id) === String(selectedRuleGroupId)
+    const isSelected = node.id === selectedRuleGroupId
     const isHovered = hoveredGroupId === node.id
-    const hasChildren = node.children && node.children.length > 0
+    const hasChildren = node.children?.length > 0
 
-    const handleUpdateRuleGroup = (node) => {
-        setUpdateModalVisible(true)
-        setSelectedGroup(node)
-    }
+    // ==================== 点击逻辑（按你的最新需求） ====================
+    const handleNodeClick = useCallback((e) => {
+        if (!node.isReal) {
+            return;                    // 虚拟父节点（xxxx）不允许选中
+        }
+        if (e.target.closest('button')) return;
+
+        onRuleGroupChange(node.id)
+    }, [node.isReal, node.id, onRuleGroupChange])
+
+    const handleExpandClick = useCallback((e) => {
+        e.stopPropagation()
+        toggleExpand(node.id)
+    }, [node.id, toggleExpand])
 
     return (
         <div style={{ marginBottom: '2px' }}>
-            {/* 当前节点行 */}
             <div
                 style={{
                     display: 'flex',
@@ -85,22 +127,24 @@ const TreeNode = ({
                     padding: '0 12px',
                     margin: '0 8px',
                     borderRadius: '4px',
-                    backgroundColor: isSelected ? '#f0f5ff' : 'transparent',
-                    cursor: 'pointer',
+                    cursor: node.isReal ? 'pointer' : 'default',
                     userSelect: 'none'
                 }}
-                onClick={() => onRuleGroupChange(node.id)}
+                onClick={handleNodeClick}
                 onMouseEnter={() => setHoveredGroupId(node.id)}
                 onMouseLeave={() => setHoveredGroupId(null)}
             >
-                {/* 展开/收起箭头 */}
+                {/* 箭头 - 始终可点击（即使是虚拟节点） */}
                 {hasChildren ? (
                     <span
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            toggleExpand(node.id)
+                        onClick={handleExpandClick}
+                        style={{ 
+                            marginRight: '6px', 
+                            fontSize: '12px', 
+                            color: '#8c8c8c', 
+                            width: '16px', 
+                            cursor: 'pointer' 
                         }}
-                        style={{ marginRight: '6px', fontSize: '12px', color: '#8c8c8c', width: '16px' }}
                     >
                         {node.isExpanded ? <CaretDownOutlined /> : <CaretRightOutlined />}
                     </span>
@@ -113,48 +157,36 @@ const TreeNode = ({
                     <span style={{
                         flex: 1,
                         fontSize: '13px',
-                        color: isSelected ? '#1890ff' : '#595959',
+                        color: isSelected ? 'rgb(255, 203, 125)' : (node.isReal ? '#595959' : '#bfbfbf'),
                         fontWeight: isSelected ? 600 : 400,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        cursor: node.isReal ? 'pointer' : 'default'
                     }}>
                         {node.displayName}
                     </span>
                 </Tooltip>
 
-                
-                {isHovered && (
-                    <>
-                        {/* 更新按钮 */}
+                {/* 操作按钮：只有真实节点才显示 */}
+                {isHovered && node.isReal && (
+                    <div style={{ display: 'flex', gap: '2px' }}>
                         <Button
                             type="text"
                             size="small"
-                            icon={<EditOutlined />}
-                            onClick={() => handleUpdateRuleGroup(node)}
-                            style={{
-                                padding: '2px',
-                                height: '20px',
-                                width: '20px',
-                                minWidth: '20px'
-                            }}
+                            icon={<EditOutlined style={{ fontSize: '12px' }} />}
+                            onClick={(e) => { e.stopPropagation(); handleUpdateRuleGroup(node); }}
+                            style={{ padding: '2px', height: '20px', width: '20px', minWidth: '20px' }}
                         />
-                    
-                        {/* 删除按钮 */}
                         <Button
                             type="text"
                             size="small"
                             danger
                             icon={<DeleteOutlined />}
                             onClick={(e) => handleDeleteRuleGroup(node, e)}
-                            style={{
-                                padding: '2px',
-                                height: '20px',
-                                width: '20px',
-                                minWidth: '20px'
-                            }}
+                            style={{ padding: '2px', height: '20px', width: '20px', minWidth: '20px' }}
                         />
-                    </>
+                    </div>
                 )}
             </div>
 
@@ -168,18 +200,17 @@ const TreeNode = ({
                             selectedRuleGroupId={selectedRuleGroupId}
                             onRuleGroupChange={onRuleGroupChange}
                             handleDeleteRuleGroup={handleDeleteRuleGroup}
+                            handleUpdateRuleGroup={handleUpdateRuleGroup}
                             hoveredGroupId={hoveredGroupId}
                             setHoveredGroupId={setHoveredGroupId}
                             toggleExpand={toggleExpand}
-                            setUpdateModalVisible={setUpdateModalVisible}
-                            setSelectedGroup={setSelectedGroup}
                         />
                     ))}
                 </div>
             )}
         </div>
     )
-}
+})
 
 // ==================== 主组件 ====================
 export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => {
