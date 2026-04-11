@@ -27,6 +27,7 @@ import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/k
 import VSCodeEditor from "../../../utils/VSCodeEditor";
 import {PlusOutlined} from "@ant-design/icons";
 import SqlEditor from "../../../utils/sqlEditor";
+import TextArea from "antd/es/input/TextArea";
 
 const MyFormItemContext = React.createContext([])
 const { Option } = Select;
@@ -523,12 +524,11 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                             name="annotations"
                                             label="告警详情"
                                             tooltip="获取 Label 变量, 示例: ${labels.job}, ${labels.instance}。凡是 Target 中的变量均可通过`${labels.xxx}`获取。"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                },
-                                            ]}>
-                                            <Input/>
+                                            rules={[{required: true}]}
+                                        >
+                                            <TextArea rows={2}
+                                                      placeholder="输入告警事件的详细消息内容，如：服务器: ${labels.instance}，发生故障请紧急排查!"
+                                                      maxLength={10000}/>
                                         </MyFormItem>
                                     </div>
                                 </MyFormItemGroup>
@@ -626,10 +626,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                     }}
                                     rules={[{required: true}]}
                                 >
-                                    <Select showSearch style={{width: '100%'}} placeholder="StatusCode =~ 5xx">
-                                        <Option
-                                            value='%7B"http.status_code"%3A"5.%2A%3F"%7D'>{'StatusCode =~ 5xx'}</Option>
-                                    </Select>
+                                    <Input placeholder='{"http.status_code":"5.*?"}'/>
                                 </MyFormItem>
                             </div>
 
@@ -895,7 +892,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                 {esFilterType === "RawJson" && (
                                     <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px'}}>
                                         <MyFormItem
-                                            label="* 查询语句"
+                                            label={<><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>查询语句</>}
                                             rules={[{required: true}]}
                                             style={{width: '100%', height: '100%'}}
                                         >
