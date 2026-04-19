@@ -252,6 +252,7 @@ export const AlertRule = ({ type }) => {
                 annotations: selectedRow?.prometheusConfig?.annotations,
                 forDuration: selectedRow?.prometheusConfig?.forDuration,
                 rules: selectedRow?.prometheusConfig?.rules,
+                callbakPromQLs: selectedRow?.prometheusConfig?.callbakPromQLs || [],
             },
             alicloudSLSConfig: {
                 project: selectedRow?.alicloudSLSConfig?.project,
@@ -788,6 +789,25 @@ export const AlertRule = ({ type }) => {
         return form.getFieldValue(['prometheusConfig', 'promQL'])
     }
 
+    // Callback PromQL state management
+    const handleGetCallbackPromQL = (index) => {
+        return form.getFieldValue(['prometheusConfig', 'callbakPromQLs', index, 'value']) || '';
+    }
+
+    const handleSetCallbackPromQL = (index, value) => {
+        const currentCallbacks = form.getFieldValue(['prometheusConfig', 'callbakPromQLs']) || [];
+        const updatedCallbacks = [...currentCallbacks];
+        if (!updatedCallbacks[index]) {
+            updatedCallbacks[index] = {};
+        }
+        updatedCallbacks[index].value = value;
+        form.setFieldsValue({
+            prometheusConfig: {
+                callbakPromQLs: updatedCallbacks
+            }
+        });
+    }
+
     useEffect(() => {
         form.setFieldsValue({ prometheusConfig: { promQL: promQL } });
     }, [promQL])
@@ -1145,12 +1165,11 @@ export const AlertRule = ({ type }) => {
                                                     -
                                                 </Button>
 
-
                                             </div>
                                         ))}
                                     </MyFormItem>
 
-                                    <div className="action-buttons" style={{marginTop: '-35px'}}>
+                                    <div style={{marginTop: '-35px'}}>
                                         <Button icon={<PlusOutlined/>} type="dashed" block onClick={addExprRule} disabled={exprRule?.length === 3}>
                                             添加规则条件
                                         </Button>
@@ -1166,6 +1185,56 @@ export const AlertRule = ({ type }) => {
                                             <TextArea rows={2}
                                                       placeholder="输入告警事件的详细消息内容，如：服务器: ${labels.instance}，发生故障请紧急排查!"
                                                       maxLength={10000}/>
+                                        </MyFormItem>
+                                    </div>
+
+                                    <div>
+                                        <MyFormItem label="回调 PromQL" tooltip="告警触发后运行自定义 PromQL，并将结果写入至 Label 中">
+                                            <Form.List name={['prometheusConfig', 'callbakPromQLs']}>
+                                                {(fields, {add, remove}) => (
+                                                    <>
+                                                        {fields.map(({key, name, ...restField}) => (
+                                                            <div key={key} style={{ display: 'flex', alignItems: 'center' }}>
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'key']}
+                                                                    style={{ marginRight: 8, flex: 1 }}
+                                                                    normalize={(value) => value?.replace(/\s/g, '')}
+                                                                    rules={[
+                                                                        { required: true, message: 'Please input key!' },
+                                                                        { pattern: /^\S+$/, message: 'Key cannot contain spaces!' }
+                                                                    ]}
+                                                                >
+                                                                    <Input 
+                                                                        placeholder="标识 (英文)"
+                                                                    />
+                                                                </Form.Item>
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'value']}
+                                                                    style={{ marginRight: 8, flex: 5 }}
+                                                                    rules={[{ required: true, message: 'Please input PromQL!' }]}
+                                                                >
+                                                                    <PrometheusPromQL
+                                                                        addr={metricAddress}
+                                                                        value={handleGetCallbackPromQL(name)}
+                                                                        setPromQL={(value) => handleSetCallbackPromQL(name, value)}
+                                                                    />
+                                                                </Form.Item>
+
+                                                                <Button style={{ marginTop: "-25px" }} onClick={() => remove(name)}>
+                                                                    -
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+                                                        <Form.Item style={{marginBottom: "-10px"}}>
+                                                            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                                                                添加回调 PromQL
+                                                            </Button>
+                                                        </Form.Item>
+                                                    </>
+                                                )}
+                                            </Form.List>
                                         </MyFormItem>
                                     </div>
                                 </MyFormItemGroup>

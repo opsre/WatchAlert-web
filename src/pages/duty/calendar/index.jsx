@@ -214,15 +214,6 @@ export const CalendarApp = ({ tenantId }) => {
                             )}
                         </div>
                     )}
-
-                    {hasData && (
-                        <div
-                            className={`
-                                absolute top-1 right-1 w-2 h-2 rounded-full
-                                ${isToday ? "bg-white" : "bg-black"}
-                            `}
-                        />
-                    )}
                 </div>
             </div>
         )
