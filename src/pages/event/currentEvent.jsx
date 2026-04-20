@@ -350,13 +350,16 @@ export const AlertCurrentEvent = (props) => {
                 const menu = (
                     <Menu>
                         <Menu.Item onClick={() => {handleClaimOne(record)}} >
-                            去认领
+                            认领它
                         </Menu.Item>
                         {record.status !== "silenced" && (
                             <Menu.Item onClick={() => {handleSilenceModalOpen(record)}} >
-                                去静默
+                                静默它
                             </Menu.Item>
                         )}
+                        <Menu.Item onClick={() => {handleDeleteOne(record)}} >
+                            删除它
+                        </Menu.Item>
                         <Menu.Item onClick={() => openAiAnalyze(record)} disabled={analyzeLoading}>
                             {analyzeLoading ? "Ai 分析中" : "Ai 分析"}
                         </Menu.Item>
@@ -733,6 +736,30 @@ export const AlertCurrentEvent = (props) => {
                     handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
                 } catch (error) {
                     message.error("认领失败: " + error.message)
+                } finally {
+                    setBatchProcessing(false)
+                }
+            },
+        })
+    }
+
+    // 单条删除
+    const handleDeleteOne = (record) => {
+        Modal.confirm({
+            title: "确认删除",
+            content: `确定要删除规则 "${record.rule_name}" 的事件吗？`,
+            onOk: async () => {
+                try {
+                    setBatchProcessing(true)
+                    const params = {
+                        faultCenterId: id,
+                        fingerprints: [record.fingerprint],
+                    }
+                    await DeleteAlertEvent(params)
+                    message.success("删除成功")
+                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
+                } catch (error) {
+                    message.error("删除失败: " + error.message)
                 } finally {
                     setBatchProcessing(false)
                 }
