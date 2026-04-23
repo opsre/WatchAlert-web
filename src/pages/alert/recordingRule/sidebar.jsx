@@ -131,7 +131,7 @@ const TreeNode = React.memo(({
                     userSelect: 'none'
                 }}
                 onClick={handleNodeClick}
-                onMouseEnter={() => setHoveredGroupId(node.id)}
+                onMouseEnter={() => setHoveredGroupId(String(node.id))}
                 onMouseLeave={() => setHoveredGroupId(null)}
             >
                 {/* 箭头 - 始终可点击（即使是虚拟节点） */}
@@ -308,6 +308,11 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
         })
     }
 
+    const handleUpdateRuleGroup = (group) => {
+        setSelectedGroup(group)
+        setUpdateModalVisible(true)
+    }
+
     return (
         <div style={{
             display: 'flex',
@@ -356,11 +361,10 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
                         selectedRuleGroupId={selectedRuleGroupId}
                         onRuleGroupChange={onRuleGroupChange}
                         handleDeleteRuleGroup={handleDeleteRuleGroup}
+                        handleUpdateRuleGroup={handleUpdateRuleGroup}
                         hoveredGroupId={hoveredGroupId}
                         setHoveredGroupId={setHoveredGroupId}
                         toggleExpand={toggleExpand}
-                        setUpdateModalVisible={setUpdateModalVisible}
-                        setSelectedGroup={setSelectedGroup}
                     />
                 ))}
 

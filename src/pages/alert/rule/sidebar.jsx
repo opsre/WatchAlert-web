@@ -307,6 +307,11 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
         })
     }
 
+    const handleUpdateRuleGroup = (group) => {
+        setSelectedGroup(group)
+        setUpdateModalVisible(true)
+    }
+
     return (
         <div style={{
             display: 'flex',
@@ -355,11 +360,10 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
                         selectedRuleGroupId={selectedRuleGroupId}
                         onRuleGroupChange={onRuleGroupChange}
                         handleDeleteRuleGroup={handleDeleteRuleGroup}
+                        handleUpdateRuleGroup={handleUpdateRuleGroup}
                         hoveredGroupId={hoveredGroupId}
                         setHoveredGroupId={setHoveredGroupId}
                         toggleExpand={toggleExpand}
-                        setUpdateModalVisible={setUpdateModalVisible}
-                        setSelectedGroup={setSelectedGroup}
                     />
                 ))}
 
