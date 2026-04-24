@@ -18,7 +18,7 @@ import {Link, useNavigate} from 'react-router-dom';
 import {Menu, Layout, Typography, Dropdown, message, Spin, theme, Popover, Avatar, Divider} from 'antd';
 import logoIcon from "../../img/logo.svg";
 import {getUserInfo} from "../../api/user";
-import {getTenantList} from "../../api/tenant";
+import {getTenantList, getTenant} from "../../api/tenant";
 
 const { Sider } = Layout;
 
@@ -128,6 +128,7 @@ export const ComponentSider = () => {
     const [userInfo, setUserInfo] = useState(null)
     const [loading, setLoading] = useState(true)
     const [tenantList, setTenantList] = useState([])
+    const [currentTenant, setCurrentTenant] = useState(null)
     const [getTenantStatus, setTenantStatus] = useState(null)
 
     const {
@@ -164,7 +165,24 @@ export const ComponentSider = () => {
         });
     }, [handleMenuClick]);
 
-    const menuItems = useMemo(() => convertToMenuItems(userInfo?.role === 'admin' ? adminMenuItems : userMenuItems), [userInfo, convertToMenuItems]);
+    const menuItems = useMemo(() => {
+        let baseMenuItems = userInfo?.role === 'admin' ? adminMenuItems : userMenuItems;
+        
+        // 如果不是管理员但是是租户管理者，添加租户管理菜单
+        if (userInfo?.role !== 'admin' && userInfo?.username === currentTenant?.manager) {
+            baseMenuItems = [
+                ...baseMenuItems,
+                { 
+                    key: '7', 
+                    path: `/tenants/detail/${localStorage.getItem('TenantID')}`, 
+                    icon: <DeploymentUnitOutlined />, 
+                    label: '租户管理' 
+                }
+            ];
+        }
+        
+        return convertToMenuItems(baseMenuItems);
+    }, [userInfo, currentTenant, convertToMenuItems]);
 
     const handleLogout = () => {
         // 清除本地存储
@@ -386,6 +404,8 @@ export const ComponentSider = () => {
 
             if (res?.data?.userid) {
                 await fetchTenantList(res?.data?.userid)
+                // 获取当前租户信息
+                await fetchCurrentTenantInfo()
             }
 
             setLoading(false)
@@ -439,6 +459,21 @@ export const ComponentSider = () => {
             setTimeout(() => {
                 navigate("/login");
             }, 1000); // 延迟1秒跳转
+        }
+    }
+
+    const fetchCurrentTenantInfo = async () => {
+        try {
+            const tenantId = localStorage.getItem("TenantID");
+            if (tenantId) {
+                const params = {
+                    id: tenantId,
+                };
+                const res = await getTenant(params);
+                setCurrentTenant(res?.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch current tenant info:", error);
         }
     }
 
