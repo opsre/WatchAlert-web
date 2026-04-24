@@ -1,4 +1,4 @@
-import {Button, Table, Popconfirm, Input, Tooltip, Space, message} from 'antd'
+import {Button, Table, Popconfirm, Input, Tooltip, Space, message, Dropdown, Modal} from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -7,7 +7,7 @@ import {
     searchDashboard
 } from '../../../api/dashboard';
 import CreateFolderModal from './create';
-import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
 import { Breadcrumb } from "../../../components/Breadcrumb";
@@ -77,31 +77,46 @@ export const DashboardFolder = () => {
         {
             title: '操作',
             dataIndex: 'operation',
-            width: 120,
+            width: 60,
             fixed: 'right',
             render: (_, record) =>
                 list.length >= 1 ? (
-                    <Space size="middle">
-                        <Tooltip title="更新">
-                            <Button
-                                type="text"
-                                icon={<EditOutlined />}
-                                onClick={() => handleUpdateModalOpen(record)}
-                                style={{ color: "#1677ff" }}
-                            />
-                        </Tooltip>
-                        <Tooltip title="删除">
-                            <Popconfirm
-                                title="确定要删除吗?"
-                                onConfirm={() => handleDelete(record)}
-                                okText="确定"
-                                cancelText="取消"
-                                placement="left"
-                            >
-                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                            </Popconfirm>
-                        </Tooltip>
-                    </Space>
+                    <Dropdown
+                        menu={{
+                            items: [
+                                {
+                                    key: 'edit',
+                                    icon: <EditOutlined />,
+                                    label: '更新',
+                                    onClick: () => handleUpdateModalOpen(record)
+                                },
+                                {
+                                    key: 'delete',
+                                    icon: <DeleteOutlined />,
+                                    label: '删除',
+                                    danger: true,
+                                    onClick: () => {
+                                        Modal.confirm({
+                                            title: "确定要删除吗?",
+                                            content: `文件夹名称: ${record.name}`,
+                                            okText: "确定",
+                                            cancelText: "取消",
+                                            okType: 'danger',
+                                            onOk: () => handleDelete(record)
+                                        })
+                                    }
+                                }
+                            ]
+                        }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
+                        <Button
+                            type="text"
+                            icon={<MoreOutlined />}
+                            style={{ color: "#666" }}
+                        />
+                    </Dropdown>
                 ) : null,
         },
     ]

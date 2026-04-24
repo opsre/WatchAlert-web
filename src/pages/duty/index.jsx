@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from 'react';
-import {Table, Button, Popconfirm, message, Space, Tag, Tooltip } from 'antd';
+import {Table, Button, Popconfirm, message, Space, Tag, Tooltip, Dropdown, Modal} from 'antd';
 import { CreateDutyModal } from './DutyManageCreateModal';
-import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from '@ant-design/icons';
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined} from '@ant-design/icons';
 import { deleteDutyManager, getDutyManagerList } from '../../api/duty';
 import {Link} from "react-router-dom";
 import { copyToClipboard } from "../../utils/copyToClipboard";
@@ -144,29 +144,45 @@ export const DutyManage = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 120,
-            render: (_, record) =>
-                <Space size="middle">
-                    <Tooltip title="更新">
-                        <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            onClick={() => handleUpdateModalOpen(record)}
-                            style={{ color: "#1677ff" }}
-                        />
-                    </Tooltip>
-                    <Tooltip title="删除">
-                        <Popconfirm
-                            title="确定要删除此日程吗?"
-                            onConfirm={() => handleDelete(record)}
-                            okText="确定"
-                            cancelText="取消"
-                            placement="left"
-                        >
-                            <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                        </Popconfirm>
-                    </Tooltip>
-                </Space>
+            width: 60,
+            render: (_, record) => (
+                <Dropdown
+                    menu={{
+                        items: [
+                            {
+                                key: 'edit',
+                                icon: <EditOutlined />,
+                                label: '更新',
+                                onClick: () => handleUpdateModalOpen(record)
+                            },
+                            {
+                                key: 'delete',
+                                icon: <DeleteOutlined />,
+                                label: '删除',
+                                danger: true,
+                                onClick: () => {
+                                    Modal.confirm({
+                                        title: "确定要删除此日程吗?",
+                                        content: `日程名称: ${record.name}`,
+                                        okText: "确定",
+                                        cancelText: "取消",
+                                        okType: 'danger',
+                                        onOk: () => handleDelete(record)
+                                    })
+                                }
+                            }
+                        ]
+                    }}
+                    trigger={['click']}
+                    placement="bottomRight"
+                >
+                    <Button
+                        type="text"
+                        icon={<MoreOutlined />}
+                        style={{ color: "#666" }}
+                    />
+                </Dropdown>
+            )
         },
     ]);
 

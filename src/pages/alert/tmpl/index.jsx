@@ -13,7 +13,8 @@ import {
     DownOutlined,
     ImportOutlined,
     EditOutlined,
-    PlusOutlined
+    PlusOutlined,
+    MoreOutlined
 } from "@ant-design/icons"
 import {HandleShowTotal} from "../../../utils/lib";
 import { TableWithPagination } from "../../../utils/TableWithPagination"
@@ -89,28 +90,36 @@ export const RuleTemplate = () => {
             {
                 title: "操作",
                 dataIndex: "operation",
-                width: 120,
+                width: 60,
                 fixed: "right",
                 render: (_, record) =>
                     list.length >= 1 ? (
-                        <Space size="middle">
-                            <Tooltip title="更新">
-                                <Button
-                                    type="text"
-                                    icon={<EditOutlined />}
-                                    onClick={() => handleUpdateTmpl(record)}
-                                    style={{ color: "#1677ff" }}
-                                />
-                            </Tooltip>
-                            <Tooltip title="应用">
-                                <Button
-                                    type="text"
-                                    icon={<ImportOutlined />}
-                                    onClick={() => handleOpenSelectedRuleGroup(record)}
-                                    style={{ color: "#059136" }}
-                                />
-                            </Tooltip>
-                        </Space>
+                        <Dropdown
+                            menu={{
+                                items: [
+                                    {
+                                        key: 'edit',
+                                        icon: <EditOutlined />,
+                                        label: '更新',
+                                        onClick: () => handleUpdateTmpl(record)
+                                    },
+                                    {
+                                        key: 'apply',
+                                        icon: <ImportOutlined />,
+                                        label: '应用',
+                                        onClick: () => handleOpenSelectedRuleGroup(record)
+                                    }
+                                ]
+                            }}
+                            trigger={['click']}
+                            placement="bottomRight"
+                        >
+                            <Button
+                                type="text"
+                                icon={<MoreOutlined />}
+                                style={{ color: "#666" }}
+                            />
+                        </Dropdown>
                     ) : null,
             },
         ],

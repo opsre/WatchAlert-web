@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip, Drawer, Select} from 'antd';
+import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip, Drawer, Select, Dropdown, Modal} from 'antd';
 import { CreateNoticeObjectModal } from './NoticeObjectCreateModal';
 import { deleteNotice, getNoticeList, createNotice } from '../../api/notice';
 import {getDutyManagerList} from "../../api/duty";
-import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
 import { noticeRecordList } from '../../api/notice';
@@ -117,39 +117,51 @@ export const NoticeObjects = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 140, // 增加宽度以容纳三个按钮
+            width: 60,
             render: (_, record) =>
                 list.length >= 1 ? (
-                    <Space size="middle">
-                        <Tooltip title="更新">
-                            <Button
-                                type="text"
-                                icon={<EditOutlined />}
-                                onClick={() => handleUpdateModalOpen(record)}
-                                style={{ color: "#1677ff" }}
-                            />
-                        </Tooltip>
-                        {/* 新增的复制按钮 */}
-                        <Tooltip title="复制">
-                            <Button 
-                                type="text" 
-                                icon={<CopyOutlined />} 
-                                onClick={(e) => handleCopy(record, e)}
-                                style={{ color: "#52c41a" }} // 使用绿色区分
-                            />
-                        </Tooltip>
-                        <Tooltip title="删除">
-                            <Popconfirm
-                                title="确定要删除吗?"
-                                onConfirm={() => handleDelete(record)}
-                                okText="确定"
-                                cancelText="取消"
-                                placement="left"
-                            >
-                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                            </Popconfirm>
-                        </Tooltip>
-                    </Space>
+                    <Dropdown
+                        menu={{
+                            items: [
+                                {
+                                    key: 'edit',
+                                    icon: <EditOutlined />,
+                                    label: '更新',
+                                    onClick: () => handleUpdateModalOpen(record)
+                                },
+                                {
+                                    key: 'copy',
+                                    icon: <CopyOutlined />,
+                                    label: '复制',
+                                    onClick: (e) => handleCopy(record, e)
+                                },
+                                {
+                                    key: 'delete',
+                                    icon: <DeleteOutlined />,
+                                    label: '删除',
+                                    danger: true,
+                                    onClick: () => {
+                                        Modal.confirm({
+                                            title: "确定要删除吗?",
+                                            content: `通知对象名称: ${record.name}`,
+                                            okText: "确定",
+                                            cancelText: "取消",
+                                            okType: 'danger',
+                                            onOk: () => handleDelete(record)
+                                        })
+                                    }
+                                }
+                            ]
+                        }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
+                        <Button
+                            type="text"
+                            icon={<MoreOutlined />}
+                            style={{ color: "#666" }}
+                        />
+                    </Dropdown>
                 ) : null,
         },
     ]

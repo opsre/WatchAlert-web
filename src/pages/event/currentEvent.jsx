@@ -39,7 +39,7 @@ import {
     ReloadOutlined,
     SearchOutlined,
     FilterOutlined,
-    EllipsisOutlined,
+    MoreOutlined,
     DownloadOutlined
 } from "@ant-design/icons"
 import { CreateSilenceModal } from "../silence/SilenceRuleCreateModal";
@@ -345,30 +345,40 @@ export const AlertCurrentEvent = (props) => {
         {
             title: "操作",
             key: "action",
-            width: "50px",
+            width: "30px",
             render: (_, record) => {
-                const menu = (
-                    <Menu>
-                        <Menu.Item onClick={() => {handleClaimOne(record)}} >
-                            认领它
-                        </Menu.Item>
-                        {record.status !== "silenced" && (
-                            <Menu.Item onClick={() => {handleSilenceModalOpen(record)}} >
-                                静默它
-                            </Menu.Item>
-                        )}
-                        <Menu.Item onClick={() => {handleDeleteOne(record)}} >
-                            删除它
-                        </Menu.Item>
-                        <Menu.Item onClick={() => openAiAnalyze(record)} disabled={analyzeLoading}>
-                            {analyzeLoading ? "Ai 分析中" : "Ai 分析"}
-                        </Menu.Item>
-                    </Menu>
-                );
+                const items = [
+                    {
+                        key: 'claim',
+                        label: '认领它',
+                        onClick: () => handleClaimOne(record)
+                    },
+                    ...(record.status !== "silenced" ? [{
+                        key: 'silence',
+                        label: '静默它',
+                        onClick: () => handleSilenceModalOpen(record)
+                    }] : []),
+                    {
+                        key: 'delete',
+                        label: '删除它',
+                        danger: true,
+                        onClick: () => handleDeleteOne(record)
+                    },
+                    {
+                        key: 'ai-analyze',
+                        label: analyzeLoading ? "Ai 分析中" : "Ai 分析",
+                        onClick: () => openAiAnalyze(record),
+                        disabled: analyzeLoading
+                    }
+                ];
 
                 return (
-                    <Dropdown overlay={menu} trigger={['click']}>
-                        <EllipsisOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+                    <Dropdown
+                        menu={{ items }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
+                        <MoreOutlined style={{ fontSize: 16, cursor: 'pointer', color: "#666" }} />
                     </Dropdown>
                 );
             },

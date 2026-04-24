@@ -11,7 +11,9 @@ import {
     Radio,
     Popconfirm,
     Empty,
-    Typography
+    Typography,
+    Dropdown,
+    Modal
 } from "antd"
 import { Link, useNavigate } from "react-router-dom"
 import { useParams } from "react-router-dom"
@@ -20,7 +22,8 @@ import {
     DeleteOutlined,
     CopyOutlined,
     PlusOutlined,
-    ReloadOutlined
+    ReloadOutlined,
+    MoreOutlined
 } from "@ant-design/icons"
 import { HandleApiError, HandleShowTotal } from "../../../utils/lib";
 import { useAppContext } from "../../../context/RuleContext";
@@ -175,34 +178,47 @@ export const RecordingRuleIndex = () => {
             title: "操作",
             dataIndex: "operation",
             fixed: "right",
-            width: 50,
-            render: (_, record) => (
-                <Space size="middle">
-                    <Tooltip title="克隆">
+            width: 60,
+            render: (_, record) => {
+                const items = [
+                    {
+                        key: 'clone',
+                        icon: <CopyOutlined />,
+                        label: '克隆',
+                        onClick: () => handleClone(record)
+                    },
+                    {
+                        key: 'delete',
+                        icon: <DeleteOutlined />,
+                        label: '删除',
+                        danger: true,
+                        onClick: () => {
+                            Modal.confirm({
+                                title: "确定要删除此规则吗?",
+                                content: `规则名称: ${record.ruleName}`,
+                                okText: "确定",
+                                cancelText: "取消",
+                                okType: 'danger',
+                                onOk: () => handleDelete(record.ruleGroupId, record.ruleId)
+                            })
+                        }
+                    }
+                ];
+
+                return (
+                    <Dropdown
+                        menu={{ items }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
                         <Button
                             type="text"
-                            icon={<CopyOutlined />}
-                            onClick={() => handleClone(record)}
-                            style={{ color: "#615454" }}
+                            icon={<MoreOutlined />}
+                            style={{ color: "#666" }}
                         />
-                    </Tooltip>
-                    <Tooltip title="删除">
-                        <Popconfirm
-                            title="确定要删除此规则吗?"
-                            onConfirm={() => handleDelete(record.ruleGroupId, record.ruleId)}
-                            okText="确定"
-                            cancelText="取消"
-                            placement="left"
-                        >
-                            <Button
-                                type="text"
-                                icon={<DeleteOutlined />}
-                                style={{ color: "red" }}
-                            />
-                        </Popconfirm>
-                    </Tooltip>
-                </Space>
-            ),
+                    </Dropdown>
+                );
+            },
         },
     ]
     const savePaginationToStorage = useCallback((newPagination) => {

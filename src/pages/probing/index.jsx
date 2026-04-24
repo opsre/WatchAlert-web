@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import {Table, Button, Tag, Input, Popconfirm, message, Tooltip, Space, Switch, Drawer, Typography, Divider} from 'antd';
+import {Table, Button, Tag, Input, Popconfirm, message, Tooltip, Space, Switch, Drawer, Typography, Divider, Dropdown, Modal} from 'antd';
 import {ProbingChangeState, ProbingDelete, ProbingList} from "../../api/probing";
 import {Link, useNavigate} from "react-router-dom";
-import {CopyOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, QuestionCircleOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, QuestionCircleOutlined, MoreOutlined} from "@ant-design/icons";
 import {HandleApiError, HandleShowTotal} from "../../utils/lib";
 import {useAppContext} from "../../context/RuleContext";
 import { Breadcrumb } from "../../components/Breadcrumb";
@@ -158,7 +158,7 @@ export const Probing = () => {
             title: '状态',
             dataIndex: 'enabled',
             key: 'enabled',
-            width: "100px",
+            width: "80px",
             render: (enabled, record) => (
                 <Switch
                     checked={enabled}
@@ -184,30 +184,47 @@ export const Probing = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 100,
-            render: (_, record) => (
-                <Space size="middle">
-                    <Tooltip title="克隆">
+            width: 60,
+            render: (_, record) => {
+                const items = [
+                    {
+                        key: 'clone',
+                        icon: <CopyOutlined />,
+                        label: '克隆',
+                        onClick: () => handleClone(record)
+                    },
+                    {
+                        key: 'delete',
+                        icon: <DeleteOutlined />,
+                        label: '删除',
+                        danger: true,
+                        onClick: () => {
+                            Modal.confirm({
+                                title: "确定要删除此任务吗?",
+                                content: `任务名称: ${record.ruleName}`,
+                                okText: "确定",
+                                cancelText: "取消",
+                                okType: 'danger',
+                                onOk: () => handleDelete(record)
+                            })
+                        }
+                    }
+                ];
+
+                return (
+                    <Dropdown
+                        menu={{ items }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
                         <Button
                             type="text"
-                            icon={<CopyOutlined />}
-                            onClick={() => handleClone(record)}
-                            style={{ color: "#615454" }}
+                            icon={<MoreOutlined />}
+                            style={{ color: "#666" }}
                         />
-                    </Tooltip>
-                    <Tooltip title="删除">
-                        <Popconfirm
-                            title="确定要删除此任务吗?"
-                            onConfirm={() => handleDelete(record)}
-                            okText="确定"
-                            cancelText="取消"
-                            placement="left"
-                        >
-                            <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                        </Popconfirm>
-                    </Tooltip>
-                </Space>
-            ),
+                    </Dropdown>
+                );
+            },
         },
     ], [handleClone, handleDelete]);
 
