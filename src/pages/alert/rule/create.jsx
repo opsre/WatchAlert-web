@@ -10,13 +10,13 @@ import {
     InputNumber,
     Card,
     TimePicker,
-    Typography, Modal, message, Checkbox
+    Typography, Modal, message, Checkbox, AutoComplete
 } from 'antd'
 import React, { useState, useEffect } from 'react'
 import {MinusCircleOutlined, PlusOutlined, RedoOutlined} from '@ant-design/icons'
 import {createRule, searchRuleInfo, updateRule} from '../../../api/rule'
 import {getDatasource, getDatasourceList} from '../../../api/datasource'
-import {getJaegerService} from '../../../api/other'
+import {getJaegerService, queryPromMetrics} from '../../../api/other'
 import {useParams} from 'react-router-dom'
 import dayjs from 'dayjs';
 import './index.css'
@@ -149,6 +149,8 @@ export const AlertRule = ({ type }) => {
     const [filterCondition,setFilterCondition] = useState('') // 匹配关系
     const [queryWildcard,setQueryWildcard] = useState(0) // 匹配模式
     const [metricAddress,setMetricAddress] = useState("")
+    const [nodeInstanceOptions, setNodeInstanceOptions] = useState([])
+    const [loadingNodeInstances, setLoadingNodeInstances] = useState(false)
     const [viewLogsModalKey, setViewLogsModalKey] = useState(0);
     const [viewMetricsModalKey, setViewMetricsModalKey] = useState(0);
     const [openSearchContentModal, setOpenSearchContentModal] = useState(false)
@@ -887,6 +889,55 @@ export const AlertRule = ({ type }) => {
         setOpenMetricQueryModel(true)
     };
 
+    const handleQueryNodeInstances = async () => {
+        const currentPromQL = handleGetPromQL()
+        if (!selectedItems || selectedItems.length === 0) {
+            message.error("请先选择数据源")
+            return
+        }
+        if (!currentPromQL) {
+            message.error("请先填写 PromQL")
+            return
+        }
+
+        try {
+            setLoadingNodeInstances(true)
+            const res = await queryPromMetrics({
+                datasourceIds: selectedItems.join(","),
+                query: currentPromQL,
+            })
+
+            if (res.code !== 200) {
+                message.error(res.msg || "查询节点失败")
+                return
+            }
+
+            const instances = Array.from(new Set(
+                (res.data || [])
+                    .flatMap((item) => item?.data?.result || [])
+                    .map((item) => item?.metric?.instance)
+                    .filter(Boolean)
+            )).sort()
+
+            setNodeInstanceOptions(instances.map((instance) => ({
+                label: instance,
+                value: instance,
+            })))
+
+            if (instances.length === 0) {
+                message.warning("当前 PromQL 未返回 instance 标签")
+                return
+            }
+
+            message.success(`已加载 ${instances.length} 个节点`)
+        } catch (error) {
+            console.error(error)
+            message.error("查询节点失败")
+        } finally {
+            setLoadingNodeInstances(false)
+        }
+    }
+
     const handleGetKubernetesEventTypes = async() =>{
         try{
             const res = await getKubernetesResourceList()
@@ -1238,6 +1289,15 @@ export const AlertRule = ({ type }) => {
                                                     })
                                                 }}
                                             />
+                                            {thresholdMode === THRESHOLD_MODE_NODE_OVERRIDE && (
+                                                <Button
+                                                    size="small"
+                                                    loading={loadingNodeInstances}
+                                                    onClick={handleQueryNodeInstances}
+                                                >
+                                                    查询节点
+                                                </Button>
+                                            )}
                                         </div>
 
                                         {thresholdMode === THRESHOLD_MODE_NODE_OVERRIDE && (
@@ -1260,7 +1320,13 @@ export const AlertRule = ({ type }) => {
                                                                     name={[name, 'matchLabels', 'instance']}
                                                                     rules={[{ required: true, message: '请输入节点 instance' }]}
                                                                 >
-                                                                    <Input placeholder="节点 instance，例如 10.0.0.1:9100" />
+                                                                    <AutoComplete
+                                                                        placeholder="选择或输入节点 instance"
+                                                                        options={nodeInstanceOptions}
+                                                                        filterOption={(inputValue, option) =>
+                                                                            option?.value?.toUpperCase().includes(inputValue.toUpperCase())
+                                                                        }
+                                                                    />
                                                                 </Form.Item>
 
                                                                 <Form.Item
