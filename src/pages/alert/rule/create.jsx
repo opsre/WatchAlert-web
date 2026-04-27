@@ -50,6 +50,8 @@ import {SearchViewMetrics} from "../preview/searchViewMetrics.tsx";
 import {Breadcrumb} from "../../../components/Breadcrumb"
 
 const format = 'HH:mm';
+const THRESHOLD_MODE_GLOBAL = 'global';
+const THRESHOLD_MODE_NODE_OVERRIDE = 'node_override';
 const MyFormItemContext = React.createContext([])
 const { Option } = Select;
 
@@ -75,6 +77,7 @@ export const AlertRule = ({ type }) => {
     const searchParams = new URLSearchParams(window.location.search);
     const { appState } = useAppContext();
     const [form] = Form.useForm()
+    const thresholdMode = Form.useWatch(['prometheusConfig', 'thresholdMode'], form);
     const { id,ruleId } = useParams()
     const [selectedRow,setSelectedRow] = useState({})
     const [enabled, setEnabled] = useState(true) // 设置初始状态为 true
@@ -211,7 +214,11 @@ export const AlertRule = ({ type }) => {
             if (type !== "edit" && searchParams.get("isClone") !== "1") {
                 // 设置执行频率默认值为5
                 form.setFieldsValue({
-                    evalInterval: 5
+                    evalInterval: 5,
+                    prometheusConfig: {
+                        thresholdMode: THRESHOLD_MODE_GLOBAL,
+                        thresholdOverrides: [],
+                    }
                 });
             }
         }
@@ -252,6 +259,8 @@ export const AlertRule = ({ type }) => {
                 annotations: selectedRow?.prometheusConfig?.annotations,
                 forDuration: selectedRow?.prometheusConfig?.forDuration,
                 rules: selectedRow?.prometheusConfig?.rules,
+                thresholdMode: selectedRow?.prometheusConfig?.thresholdMode || THRESHOLD_MODE_GLOBAL,
+                thresholdOverrides: selectedRow?.prometheusConfig?.thresholdOverrides || [],
                 callbakPromQLs: selectedRow?.prometheusConfig?.callbakPromQLs || [],
             },
             alicloudSLSConfig: {
@@ -524,6 +533,7 @@ export const AlertRule = ({ type }) => {
             ...values,
             externalLabels: formattedLabels,
             evalInterval: Number(values.evalInterval),
+            prometheusConfig: normalizeThresholdOverrides(values.prometheusConfig),
             elasticSearchConfig: newEsConfig,
             effectiveTime: {
                 week: week,
@@ -625,6 +635,41 @@ export const AlertRule = ({ type }) => {
         const updatedExprRule = [...exprRule]
         updatedExprRule.splice(index, 1)
         setExprRule(updatedExprRule)
+    }
+
+    const getDefaultOverrideSeverity = () => {
+        const rules = form.getFieldValue(['prometheusConfig', 'rules']) || exprRule || []
+        return rules?.[0]?.severity || 'P0'
+    }
+
+    const getDefaultOverrideDuration = () => {
+        const rules = form.getFieldValue(['prometheusConfig', 'rules']) || exprRule || []
+        return rules?.[0]?.forDuration || 300
+    }
+
+    const normalizeThresholdOverrides = (prometheusConfig = {}) => {
+        if (prometheusConfig.thresholdMode !== THRESHOLD_MODE_NODE_OVERRIDE) {
+            return {
+                ...prometheusConfig,
+                thresholdMode: THRESHOLD_MODE_GLOBAL,
+                thresholdOverrides: [],
+            }
+        }
+
+        const thresholdOverrides = (prometheusConfig.thresholdOverrides || [])
+            .map((item) => ({
+                matchLabels: Object.fromEntries(
+                    Object.entries(item?.matchLabels || {}).filter((entry) => entry[1] !== undefined && entry[1] !== '')
+                ),
+                rules: (item?.rules || []).filter((rule) => rule?.severity && rule?.expr),
+            }))
+            .filter((item) => Object.keys(item.matchLabels).length > 0 && item.rules.length > 0)
+
+        return {
+            ...prometheusConfig,
+            thresholdMode: thresholdOverrides.length > 0 ? THRESHOLD_MODE_NODE_OVERRIDE : THRESHOLD_MODE_GLOBAL,
+            thresholdOverrides,
+        }
     }
 
     const handleChange = (value) => {
@@ -1173,6 +1218,120 @@ export const AlertRule = ({ type }) => {
                                         <Button icon={<PlusOutlined/>} type="dashed" block onClick={addExprRule} disabled={exprRule?.length === 3}>
                                             添加规则条件
                                         </Button>
+                                    </div>
+
+                                    <div style={{ marginTop: '30px' }}>
+                                        <MyFormItem name="thresholdMode" hidden>
+                                            <Input />
+                                        </MyFormItem>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                            <span style={{ fontWeight: 500 }}>节点阈值覆盖</span>
+                                            <Switch
+                                                checked={thresholdMode === THRESHOLD_MODE_NODE_OVERRIDE}
+                                                onChange={(checked) => {
+                                                    form.setFieldsValue({
+                                                        prometheusConfig: {
+                                                            thresholdMode: checked ? THRESHOLD_MODE_NODE_OVERRIDE : THRESHOLD_MODE_GLOBAL,
+                                                            thresholdOverrides: checked ? form.getFieldValue(['prometheusConfig', 'thresholdOverrides']) || [] : [],
+                                                        },
+                                                    })
+                                                }}
+                                            />
+                                        </div>
+
+                                        {thresholdMode === THRESHOLD_MODE_NODE_OVERRIDE && (
+                                            <Form.List name={['prometheusConfig', 'thresholdOverrides']}>
+                                                {(fields, { add, remove }) => (
+                                                    <>
+                                                        {fields.map(({ key, name, ...restField }) => (
+                                                            <div
+                                                                key={key}
+                                                                style={{
+                                                                    display: 'grid',
+                                                                    gridTemplateColumns: 'minmax(220px, 1.5fr) 120px minmax(180px, 1fr) 180px 48px',
+                                                                    gap: '10px',
+                                                                    alignItems: 'start',
+                                                                    marginBottom: '8px',
+                                                                }}
+                                                            >
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'matchLabels', 'instance']}
+                                                                    rules={[{ required: true, message: '请输入节点 instance' }]}
+                                                                >
+                                                                    <Input placeholder="节点 instance，例如 10.0.0.1:9100" />
+                                                                </Form.Item>
+
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'rules', 0, 'severity']}
+                                                                    rules={[{ required: true, message: '请选择等级' }]}
+                                                                >
+                                                                    <Select placeholder="P0">
+                                                                        <Option value="P0">P0</Option>
+                                                                        <Option value="P1">P1</Option>
+                                                                        <Option value="P2">P2</Option>
+                                                                    </Select>
+                                                                </Form.Item>
+
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'rules', 0, 'expr']}
+                                                                    rules={[
+                                                                        { required: true, message: '请输入告警条件' },
+                                                                        {
+                                                                            validator: (_, value) => {
+                                                                                if (!value || validateExpr(value)) {
+                                                                                    return Promise.resolve()
+                                                                                }
+                                                                                return Promise.reject(new Error('请输入有效的告警条件，例如：> 98'))
+                                                                            },
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Input placeholder="例如：> 98" />
+                                                                </Form.Item>
+
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'rules', 0, 'forDuration']}
+                                                                    rules={[{ required: true, message: '请输入持续时间' }]}
+                                                                >
+                                                                    <InputNumber
+                                                                        addonBefore="持续"
+                                                                        addonAfter="秒"
+                                                                        placeholder="300"
+                                                                        min={0}
+                                                                        style={{ width: '100%' }}
+                                                                    />
+                                                                </Form.Item>
+
+                                                                <Button onClick={() => remove(name)}>
+                                                                    -
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+
+                                                        <Button
+                                                            type="dashed"
+                                                            block
+                                                            icon={<PlusOutlined />}
+                                                            onClick={() => add({
+                                                                matchLabels: { instance: '' },
+                                                                rules: [{
+                                                                    severity: getDefaultOverrideSeverity(),
+                                                                    expr: '',
+                                                                    forDuration: getDefaultOverrideDuration(),
+                                                                }],
+                                                            })}
+                                                        >
+                                                            添加节点阈值
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </Form.List>
+                                        )}
                                     </div>
 
                                     <div style={{ marginTop: '30px' }}>
