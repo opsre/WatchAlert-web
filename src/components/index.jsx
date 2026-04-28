@@ -257,7 +257,7 @@ const Components = (props) => {
                             background: "#000000",
                         }}
                     >
-                        <div style={{ height: "100%", overflow: "auto", padding: "16px 0" }}>
+                        <div style={{ height: "100%", overflow: "auto" }}>
                             <ComponentSider />
                         </div>
                     </div>
