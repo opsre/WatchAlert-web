@@ -1,0 +1,20 @@
+<svg width="160" height="110" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+    <linearGradient id="smsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#73d13d;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#52c41a;stop-opacity:1" />
+    </linearGradient>
+    <filter id="smsShadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+</defs>
+<path d="M4 5C4 4.44772 4.44772 4 5 4H19C19.5523 4 20 4.44772 20 5V15C20 15.5523 19.5523 16 19 16H8L4 20V5Z" fill="url(#smsGrad)" filter="url(#smsShadow)"/>
+<rect x="7" y="8" width="10" height="1" rx="0.5" fill="#ffffff" opacity="0.9"/>
+<rect x="7" y="10.5" width="7" height="1" rx="0.5" fill="#ffffff" opacity="0.7"/>
+<circle cx="17" cy="9" r="1.5" fill="#ffffff" opacity="0.3">
+    <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/>
+</circle>
+<circle cx="16" cy="12" r="1" fill="#ffffff" opacity="0.2">
+    <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+</circle>
+</svg>

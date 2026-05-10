@@ -8,6 +8,8 @@ import DingDingImg from "./img/dingding.svg";
 import WeChatImg from "./img/qywechat.svg"
 import SlackImg from "./img/slack.svg"
 import WebHook from "./img/webhook.svg"
+import PhoneImg from "./img/phone.svg";
+import SMSImg from "./img/sms.svg";
 import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
 import {getNoticeTmplList} from "../../api/noticeTmpl";
 import {getUserList} from "../../api/user";
@@ -59,6 +61,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         { imgSrc: WeChatImg, text: '企业微信', value: 'WeChat' },
         { imgSrc: SlackImg, text: 'Slack', value: 'Slack' },
         { imgSrc: WebHook, text: 'WebHook', value: 'WebHook' },
+        { imgSrc: PhoneImg, text: '电话', value: 'Phone' },
+        { imgSrc: SMSImg, text: '短信', value: 'SMS' },
     ], [])
 
     // 全局状态保持不变，但生效时间将存储在各个路由中
@@ -116,7 +120,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
             if (res?.data && Array.isArray(res?.data)) {
                 const options = res?.data?.map((item) => ({
                     userName: item.username,
-                    userEmail: item.email
+                    userEmail: item.email,
+                    phone: item.phone
                 }))
                 setFilteredOptions(options)
             }
@@ -423,6 +428,12 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     subject: route.subject || '',
                     to: route.to || [],
                     cc: route.cc || []
+                },
+                phone: {
+                    to: route.to || []
+                },
+                sms: {
+                    to: route.to || []
                 }
             }
             
@@ -516,7 +527,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                             key={key}
                                             style={{
                                                 marginBottom: 16,
-                                                padding: 12,
+                                                padding: 22,
                                                 border: '1px solid #d9d9d9',
                                                 background: '#ffffffff',
                                                 borderRadius: 8,
@@ -636,7 +647,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                                             {...restField}
                                                                             name={[name, "to"]}
                                                                             label="收件人"
-                                                                            rules={[{required: true}]}
+                                                                            rules={[{required: false}]}
                                                                         >
                                                                             <Select
                                                                                 mode="multiple"
@@ -670,6 +681,60 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                                                         value={item.userEmail}
                                                                                     >
                                                                                         {item.userName} ({item.userEmail})
+                                                                                    </Option>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </Form.Item>
+                                                                    </>
+                                                                )
+                                                            } else if (currentNoticeType === 'Phone') {
+                                                                return (
+                                                                    <>
+                                                                        <Form.Item
+                                                                            {...restField}
+                                                                            name={[name, "to"]}
+                                                                            label="接收人"
+                                                                            rules={[{required: false}]}
+                                                                        >
+                                                                            <Select
+                                                                                mode="multiple"
+                                                                                placeholder="请选择需要电话通知的人员"
+                                                                                style={{ width: '100%' }}
+                                                                            >
+                                                                                {filteredOptions.map((item) => (
+                                                                                    <Option
+                                                                                        key={item.userName}
+                                                                                        value={item.phone}
+                                                                                        disabled={item.phone.length === 0}
+                                                                                    >
+                                                                                        {item.userName}
+                                                                                    </Option>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </Form.Item>
+                                                                    </>
+                                                                )
+                                                            } else if (currentNoticeType === 'SMS') {
+                                                                return (
+                                                                    <>
+                                                                        <Form.Item
+                                                                            {...restField}
+                                                                            name={[name, "to"]}
+                                                                            label="接收人"
+                                                                            rules={[{required: false}]}
+                                                                        >
+                                                                            <Select
+                                                                                mode="multiple"
+                                                                                placeholder="请选择需要短信通知的人员"
+                                                                                style={{ width: '100%' }}
+                                                                            >
+                                                                                {filteredOptions.map((item) => (
+                                                                                    <Option
+                                                                                        key={item.userName}
+                                                                                        value={item.phone}
+                                                                                        disabled={item.phone.length === 0}
+                                                                                    >
+                                                                                        {item.userName}
                                                                                     </Option>
                                                                                 ))}
                                                                             </Select>
@@ -713,8 +778,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                         {({ getFieldValue }) => {
                                                             const currentNoticeType = getFieldValue(['routes', name, 'noticeType']) || 'FeiShu'
                                                             
-                                                            // 当通知类型为 WebHook 时，不显示通知模板选项
-                                                            if (currentNoticeType === 'WebHook') {
+                                                            // 当通知类型为 WebHook、Phone、SMS 时，不显示通知模板选项
+                                                            if (currentNoticeType === 'WebHook' || currentNoticeType === 'Phone' || currentNoticeType === 'SMS') {
                                                                 return null
                                                             }
                                                             
