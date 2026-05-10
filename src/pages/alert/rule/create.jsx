@@ -2017,7 +2017,8 @@ export const AlertRule = ({ type }) => {
                                 alignItems: 'center',
                                 borderLeft: '1px solid #e8e8e8',
                                 paddingLeft: 10,
-                                height: 32
+                                height: 32,
+                                marginLeft: "13px"
                             }}>
                                 {/* 刷新按钮 */}
                                 <Tooltip title="刷新列表">
