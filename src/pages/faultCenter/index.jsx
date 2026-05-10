@@ -100,14 +100,19 @@ export const FaultCenter = () => {
             flex: 1,
             overflowY: "auto", // 启用垂直滚动
         },
-        cardTitle: {
-            fontSize: "16px",
-            fontWeight: "bold",
-            marginBottom: "8px",
+        cardHeader: {
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "center",
+            alignItems: "flex-start",
+            marginBottom: "6px",
+        },
+        cardTitle: {
+            fontSize: "15px",
+            fontWeight: "600",
             color: "#1f2d3d",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
         },
         value: (color) => ({
             color: color,
@@ -116,60 +121,60 @@ export const FaultCenter = () => {
             fontSize: "16px",
         }),
         cardHover: {
-            transform: "translateY(-5px) scale(1.02)",
+            transform: "translateY(-4px) scale(1.01)",
             transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            boxShadow: "0 4px 25px rgba(0,0,0,0.15)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
         },
         cardContainer: {
             margin: "4px",
             transition: "all 0.3s ease",
         },
         card: {
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            borderRadius: "10px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
             border: "1px solid #f0f0f0",
             transition: "all 0.3s ease",
-            height: "160px",
+            height: "145px",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
             padding: "16px",
             position: "relative",
             overflow: "hidden",
+            background: "linear-gradient(135deg, #ffffff 0%, #fafafa 100%)",
         },
-        statsContainer: {
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: "10px",
+        cardContent: {
             flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: "6px",
         },
         statItem: {
             textAlign: "center",
             flex: 1,
         },
         statValue: (color) => ({
-            fontSize: "20px",
+            fontSize: "18px",
             fontWeight: "700",
             color: color,
             lineHeight: 1.2,
         }),
         statLabel: {
-            fontSize: "12px",
-            color: "#6b7280",
-            marginTop: "4px",
+            fontSize: "11px",
+            color: "#8c8c8c",
+            marginTop: "3px",
         },
-        footer: {
+        cardFooter: {
             display: "flex",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
             alignItems: "center",
             borderTop: "1px solid #f5f5f5",
-            paddingTop: "12px",
-            marginTop: "8px",
+            paddingTop: "8px",
+            marginTop: "4px",
         },
         createTime: {
-            fontSize: "12px",
-            color: "#9ca3af",
+            fontSize: "11px",
+            color: "#bfbfbf",
         },
         moreIcon: {
             fontSize: "16px",
@@ -177,6 +182,7 @@ export const FaultCenter = () => {
             padding: "4px",
             borderRadius: "4px",
             transition: "background-color 0.2s",
+            color: "#8c8c8c",
         },
         moreIconHover: {
             backgroundColor: "#f5f5f5",
@@ -247,9 +253,9 @@ export const FaultCenter = () => {
                         </div>
                     )}
 
-                    <Row gutter={[10, 10]} style={{ display: "flex", flexWrap: "wrap", marginTop: "20px" }}>
+                    <Row gutter={[16, 16]} style={{ display: "flex", flexWrap: "wrap", marginTop: "20px" }}>
                         {list?.map((item) => (
-                            <Col key={item.id} xs={24} sm={24} md={8} lg={8} style={{ flex: "320px" }}>
+                            <Col key={item.id} xs={24} sm={12} md={8} lg={6} xl={6}>
                                 <div
                                     style={styles.cardContainer}
                                     onClick={() => handleCardClick(item.id)}
@@ -261,11 +267,15 @@ export const FaultCenter = () => {
                                             ...styles.card,
                                             ...(hoveredCard === item.id ? styles.cardHover : {})
                                         }}
-                                        bodyStyle={{ padding: 0, height: '100%' }}
+                                        bodyStyle={{ padding: 0, height: '100%', display: 'flex', flexDirection: 'column' }}
                                     >
                                         {/* 标题部分 */}
-                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                                            <span style={{ fontSize: "15px", fontWeight: "500", color: "#1f2d3d", flex: 1 }}>{item.name}</span>
+                                        <div style={styles.cardHeader}>
+                                            <div>
+                                                <div style={styles.cardTitle}>
+                                                    {item.name}
+                                                </div>
+                                            </div>
                                             <Dropdown overlay={renderMenu(item)} trigger={"click"} overlayStyle={{ zIndex: 9999 }}>
                                                 <MoreOutlined
                                                     onClick={(e) => {
@@ -278,33 +288,38 @@ export const FaultCenter = () => {
                                             </Dropdown>
                                         </div>
 
-                                        <div style={styles.statsContainer}>
-                                            {/* 预告警 */}
-                                            <div style={styles.statItem}>
-                                                <div style={styles.statValue(item.currentPreAlertNumber > 0 ? "#ffe465" : "#10b981")}>
-                                                    {item.currentPreAlertNumber ? item.currentPreAlertNumber : 0}
+                                        {/* 内容部分 */}
+                                        <div style={styles.cardContent}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                                {/* 预告警 */}
+                                                <div style={styles.statItem}>
+                                                    <div style={styles.statValue(item.currentPreAlertNumber > 0 ? "#ffe465" : "#10b981")}>
+                                                        {item.currentPreAlertNumber ? item.currentPreAlertNumber : 0}
+                                                    </div>
+                                                    <div style={styles.statLabel}>预告警</div>
                                                 </div>
-                                                <div style={styles.statLabel}>预告警</div>
-                                            </div>
 
-                                            {/* 待处理 */}
-                                            <div style={styles.statItem}>
-                                                <div style={styles.statValue(item.currentAlertNumber > 0 ? "#ef4444" : "#10b981")}>
-                                                    {item.currentAlertNumber ? item.currentAlertNumber : 0}
+                                                {/* 待处理 */}
+                                                <div style={styles.statItem}>
+                                                    <div style={styles.statValue(item.currentAlertNumber > 0 ? "#ef4444" : "#10b981")}>
+                                                        {item.currentAlertNumber ? item.currentAlertNumber : 0}
+                                                    </div>
+                                                    <div style={styles.statLabel}>待处理</div>
                                                 </div>
-                                                <div style={styles.statLabel}>待处理</div>
-                                            </div>
 
-                                            {/* 待恢复 */}
-                                            <div style={styles.statItem}>
-                                                <div style={styles.statValue(item.currentRecoverNumber > 0 ? "#f97316" : "#10b981")}>
-                                                    {item.currentRecoverNumber ? item.currentRecoverNumber : 0}
+                                                {/* 待恢复 */}
+                                                <div style={styles.statItem}>
+                                                    <div style={styles.statValue(item.currentRecoverNumber > 0 ? "#f97316" : "#10b981")}>
+                                                        {item.currentRecoverNumber ? item.currentRecoverNumber : 0}
+                                                    </div>
+                                                    <div style={styles.statLabel}>待恢复</div>
                                                 </div>
-                                                <div style={styles.statLabel}>待恢复</div>
                                             </div>
                                         </div>
 
-                                        <div style={styles.footer}>
+                                        {/* 底部 */}
+                                        <div style={styles.cardFooter}>
+                                            <span></span>
                                             <span style={styles.createTime}>{formatDate(item.createAt)}</span>
                                         </div>
                                     </Card>
