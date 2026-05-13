@@ -6,6 +6,7 @@ import './global.css';
 import { checkUser, loginUser, registerUser, getOidcInfo } from '../api/user';
 import { message } from "antd";
 import { UserManager } from 'oidc-client';
+import logoIcon from "../img/health.svg";
 
 export const Login = () => {
     const [showOidcButtons, setShowOidcButtons] = useState(false);
@@ -125,29 +126,15 @@ export const Login = () => {
         }
     }
 
-    // 示例插画组件
-    const Illustration1 = () => (
-        <svg className="w-16 h-16 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-        </svg>
-    );
-
-    const Illustration2 = () => (
-        <svg className="w-16 h-16 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-    );
-
     return (
         <div className="min-h-screen flex bg-black text-white">
             {/* 左侧插画区 */}
-            <div className="hidden md:flex w-1/2 flex-col justify-center items-center bg-black p-12 space-y-8">
-                <Illustration1 />
-                <h2 className="text-3xl tracking-wide font-medium">WatchAlert 告警引擎</h2>
-                <p className="text-gray-400 max-w-md text-center">
-                    实时监控 · 安全可靠 · 快速部署
-                </p>
-                <Illustration2 />
+            <div style={{ maxWidth: "60%" }}>
+                <img
+                    src={logoIcon}
+                    alt="WatchAlert Logo"
+                    style={{ height: "700px", borderRadius: "8px",  marginTop: "20px" }}
+                />
             </div>
 
             {/* 右侧登录区域 */}

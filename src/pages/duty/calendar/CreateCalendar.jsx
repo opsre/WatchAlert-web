@@ -389,6 +389,8 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
                             <Select onChange={setDateType} value={dateType}>
                                 <Option value="day">{"天"}</Option>
                                 <Option value="week">{"周"}</Option>
+                                <Option value="month">{"月"}</Option>
+                                <Option value="year">{"年"}</Option>
                             </Select>
                         }
                     />

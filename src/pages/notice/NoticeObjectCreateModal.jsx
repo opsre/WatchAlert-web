@@ -116,7 +116,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
 
     const loadUserList = useCallback(async () => {
         try {
-            const res = await getUserList({ joinDuty: "true" })
+            const res = await getUserList()
             if (res?.data && Array.isArray(res?.data)) {
                 const options = res?.data?.map((item) => ({
                     userName: item.username,

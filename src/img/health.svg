@@ -1,0 +1,66 @@
+<svg width="100%" height="100%" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" style="background:#000; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;">
+  <defs>
+    <!-- 核心流光渐变 -->
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00A3FF" stop-opacity="0" />
+      <stop offset="50%" stop-color="#00A3FF" stop-opacity="1" />
+      <stop offset="100%" stop-color="#00A3FF" stop-opacity="0" />
+    </linearGradient>
+    
+    <!-- 底部文字柔和渐变 -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#444" />
+      <stop offset="50%" stop-color="#fff" />
+      <stop offset="100%" stop-color="#444" />
+    </linearGradient>
+
+    <!-- 告警点发光滤镜 -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 1. 背景静止底线 (弱化处理，增加空间深度) -->
+  <path d="M0 200 L150 200 L180 150 L220 250 L250 200 L500 200 L530 100 L580 300 L620 200 L800 200" 
+        fill="none" 
+        stroke="rgba(0, 163, 255, 0.1)" 
+        stroke-width="1" />
+        
+  <!-- 2. 动态流光线条 (加速并增加宽度) -->
+  <path d="M0 200 L150 200 L180 150 L220 250 L250 200 L500 200 L530 100 L580 300 L620 200 L800 200" 
+        fill="none" 
+        stroke="url(#lineGrad)" 
+        stroke-width="2.5" 
+        stroke-dasharray="160, 640">
+    <animate attributeName="stroke-dashoffset" from="800" to="0" dur="3s" repeatCount="indefinite" />
+  </path>
+
+  <!-- 3. 关键告警点 (增强为双层呼吸光晕) -->
+  <g filter="url(#glow)">
+    <circle cx="530" cy="100" r="4" fill="#00A3FF">
+      <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="530" cy="100" r="12" fill="#00A3FF" opacity="0.3">
+      <animate attributeName="r" values="8;16;8" dur="2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" repeatCount="indefinite" />
+    </circle>
+  </g>
+
+  <!-- 4. 底部动态输出文字 -->
+  <g transform="translate(400, 340)">
+    <text text-anchor="middle" font-size="18" font-weight="300" letter-spacing="3" fill="url(#textGrad)">
+      WatchAlert 告警引擎 · 实时监控 · AI 分析 · 快速部署
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4s" repeatCount="indefinite" />
+    </text>
+    
+    <!-- 文字下方的装饰流动条 -->
+    <rect x="-150" y="15" width="300" height="1" fill="rgba(0, 163, 255, 0.2)">
+      <animate attributeName="opacity" values="0.1;0.5;0.1" dur="4s" repeatCount="indefinite" />
+    </rect>
+  </g>
+</svg>
