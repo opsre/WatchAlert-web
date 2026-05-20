@@ -1895,7 +1895,7 @@ export const AlertRule = ({ type }) => {
                             )} />
                     </Modal>
 
-                    {(selectedType === 1 || selectedType === 2 || selectedType === 7 || selectedType === 8 || selectedType === 9) && (
+                    {(selectedType === 1 || selectedType === 2 || selectedType === 6 || selectedType === 7 || selectedType === 8) && (
                         <MyFormItem
                             name="logEvalCondition"
                             label="告警条件"
