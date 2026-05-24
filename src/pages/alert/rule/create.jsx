@@ -10,13 +10,13 @@ import {
     InputNumber,
     Card,
     TimePicker,
-    Typography, Modal, message, Checkbox
+    Typography, Modal, message, Checkbox, AutoComplete
 } from 'antd'
 import React, { useState, useEffect } from 'react'
 import {MinusCircleOutlined, PlusOutlined, RedoOutlined} from '@ant-design/icons'
 import {createRule, searchRuleInfo, updateRule} from '../../../api/rule'
 import {getDatasource, getDatasourceList} from '../../../api/datasource'
-import {getJaegerService} from '../../../api/other'
+import {getJaegerService, queryPromMetrics} from '../../../api/other'
 import {useParams} from 'react-router-dom'
 import dayjs from 'dayjs';
 import './index.css'
@@ -50,6 +50,8 @@ import {SearchViewMetrics} from "../preview/searchViewMetrics.tsx";
 import {Breadcrumb} from "../../../components/Breadcrumb"
 
 const format = 'HH:mm';
+const THRESHOLD_MODE_GLOBAL = 'global';
+const THRESHOLD_MODE_NODE_OVERRIDE = 'node_override';
 const MyFormItemContext = React.createContext([])
 const { Option } = Select;
 
@@ -75,6 +77,7 @@ export const AlertRule = ({ type }) => {
     const searchParams = new URLSearchParams(window.location.search);
     const { appState } = useAppContext();
     const [form] = Form.useForm()
+    const thresholdMode = Form.useWatch(['prometheusConfig', 'thresholdMode'], form);
     const { id,ruleId } = useParams()
     const [selectedRow,setSelectedRow] = useState({})
     const [enabled, setEnabled] = useState(true) // 设置初始状态为 true
@@ -146,6 +149,9 @@ export const AlertRule = ({ type }) => {
     const [filterCondition,setFilterCondition] = useState('') // 匹配关系
     const [queryWildcard,setQueryWildcard] = useState(0) // 匹配模式
     const [metricAddress,setMetricAddress] = useState("")
+    const [metricLabelOptions, setMetricLabelOptions] = useState([])
+    const [metricLabelValueOptions, setMetricLabelValueOptions] = useState({})
+    const [loadingMetricLabels, setLoadingMetricLabels] = useState(false)
     const [viewLogsModalKey, setViewLogsModalKey] = useState(0);
     const [viewMetricsModalKey, setViewMetricsModalKey] = useState(0);
     const [openSearchContentModal, setOpenSearchContentModal] = useState(false)
@@ -211,7 +217,11 @@ export const AlertRule = ({ type }) => {
             if (type !== "edit" && searchParams.get("isClone") !== "1") {
                 // 设置执行频率默认值为5
                 form.setFieldsValue({
-                    evalInterval: 5
+                    evalInterval: 5,
+                    prometheusConfig: {
+                        thresholdMode: THRESHOLD_MODE_GLOBAL,
+                        thresholdOverrides: [],
+                    }
                 });
             }
         }
@@ -252,6 +262,8 @@ export const AlertRule = ({ type }) => {
                 annotations: selectedRow?.prometheusConfig?.annotations,
                 forDuration: selectedRow?.prometheusConfig?.forDuration,
                 rules: selectedRow?.prometheusConfig?.rules,
+                thresholdMode: selectedRow?.prometheusConfig?.thresholdMode || THRESHOLD_MODE_GLOBAL,
+                thresholdOverrides: selectedRow?.prometheusConfig?.thresholdOverrides || [],
                 callbakPromQLs: selectedRow?.prometheusConfig?.callbakPromQLs || [],
             },
             alicloudSLSConfig: {
@@ -524,6 +536,7 @@ export const AlertRule = ({ type }) => {
             ...values,
             externalLabels: formattedLabels,
             evalInterval: Number(values.evalInterval),
+            prometheusConfig: normalizeThresholdOverrides(values.prometheusConfig),
             elasticSearchConfig: newEsConfig,
             effectiveTime: {
                 week: week,
@@ -625,6 +638,84 @@ export const AlertRule = ({ type }) => {
         const updatedExprRule = [...exprRule]
         updatedExprRule.splice(index, 1)
         setExprRule(updatedExprRule)
+    }
+
+    const getDefaultOverrideSeverity = () => {
+        const rules = form.getFieldValue(['prometheusConfig', 'rules']) || exprRule || []
+        return rules?.[0]?.severity || 'P0'
+    }
+
+    const getDefaultOverrideDuration = () => {
+        const rules = form.getFieldValue(['prometheusConfig', 'rules']) || exprRule || []
+        return rules?.[0]?.forDuration || 300
+    }
+
+    const getOverrideMatchLabelKey = (overrideIndex) => {
+        const matchLabels = form.getFieldValue(['prometheusConfig', 'thresholdOverrides', overrideIndex, 'matchLabels']) || {}
+        return Object.keys(matchLabels).find((key) => matchLabels[key] !== undefined) || ''
+    }
+
+    const updateOverrideMatchLabelKey = (overrideIndex, nextKey) => {
+        const thresholdOverrides = form.getFieldValue(['prometheusConfig', 'thresholdOverrides']) || []
+        const nextOverrides = [...thresholdOverrides]
+        const currentOverride = nextOverrides[overrideIndex] || {}
+        const currentLabels = currentOverride.matchLabels || {}
+        const currentValue = currentLabels[getOverrideMatchLabelKey(overrideIndex)] || ''
+        const nextMatchLabels = nextKey ? { [nextKey]: currentValue } : {}
+
+        nextOverrides[overrideIndex] = {
+            ...currentOverride,
+            matchLabels: nextMatchLabels,
+        }
+
+        form.setFieldsValue({
+            prometheusConfig: {
+                thresholdOverrides: nextOverrides,
+            },
+        })
+    }
+
+    const updateOverrideMatchLabelValue = (overrideIndex, labelKey, nextValue) => {
+        const thresholdOverrides = form.getFieldValue(['prometheusConfig', 'thresholdOverrides']) || []
+        const nextOverrides = [...thresholdOverrides]
+        const currentOverride = nextOverrides[overrideIndex] || {}
+        const nextMatchLabels = labelKey ? { [labelKey]: nextValue } : {}
+
+        nextOverrides[overrideIndex] = {
+            ...currentOverride,
+            matchLabels: nextMatchLabels,
+        }
+
+        form.setFieldsValue({
+            prometheusConfig: {
+                thresholdOverrides: nextOverrides,
+            },
+        })
+    }
+
+    const normalizeThresholdOverrides = (prometheusConfig = {}) => {
+        if (prometheusConfig.thresholdMode !== THRESHOLD_MODE_NODE_OVERRIDE) {
+            return {
+                ...prometheusConfig,
+                thresholdMode: THRESHOLD_MODE_GLOBAL,
+                thresholdOverrides: [],
+            }
+        }
+
+        const thresholdOverrides = (prometheusConfig.thresholdOverrides || [])
+            .map((item) => ({
+                matchLabels: Object.fromEntries(
+                    Object.entries(item?.matchLabels || {}).filter((entry) => entry[1] !== undefined && entry[1] !== '')
+                ),
+                rules: (item?.rules || []).filter((rule) => rule?.severity && rule?.expr),
+            }))
+            .filter((item) => Object.keys(item.matchLabels).length > 0 && item.rules.length > 0)
+
+        return {
+            ...prometheusConfig,
+            thresholdMode: thresholdOverrides.length > 0 ? THRESHOLD_MODE_NODE_OVERRIDE : THRESHOLD_MODE_GLOBAL,
+            thresholdOverrides,
+        }
     }
 
     const handleChange = (value) => {
@@ -841,6 +932,103 @@ export const AlertRule = ({ type }) => {
     const handleQueryMetrics = async () => {
         setOpenMetricQueryModel(true)
     };
+
+    const handleQueryMetricLabels = async ({ silent = false } = {}) => {
+        const currentPromQL = handleGetPromQL()
+        if (!selectedItems || selectedItems.length === 0) {
+            if (!silent) {
+                message.error("请先选择数据源")
+            }
+            return
+        }
+        if (!currentPromQL) {
+            if (!silent) {
+                message.error("请先填写 PromQL")
+            }
+            return
+        }
+
+        try {
+            setLoadingMetricLabels(true)
+            const res = await queryPromMetrics({
+                datasourceIds: selectedItems.join(","),
+                query: currentPromQL,
+            })
+
+            if (res.code !== 200) {
+                if (!silent) {
+                    message.error(res.msg || "查询标签失败")
+                }
+                return
+            }
+
+            const labelValues = {}
+            ;(res.data || [])
+                .flatMap((item) => item?.data?.result || [])
+                .forEach((item) => {
+                    Object.entries(item?.metric || {}).forEach(([key, value]) => {
+                        if (!key || key === '__name__' || value === undefined || value === '') {
+                            return
+                        }
+
+                        if (!labelValues[key]) {
+                            labelValues[key] = new Set()
+                        }
+                        labelValues[key].add(value)
+                    })
+                })
+
+            const nextLabelValueOptions = Object.fromEntries(
+                Object.entries(labelValues).map(([key, values]) => [
+                    key,
+                    Array.from(values).sort().map((value) => ({
+                        label: value,
+                        value,
+                    })),
+                ])
+            )
+            const labelKeys = Object.keys(nextLabelValueOptions).sort()
+
+            setMetricLabelOptions(labelKeys.map((key) => ({
+                label: key,
+                value: key,
+            })))
+            setMetricLabelValueOptions(nextLabelValueOptions)
+
+            if (labelKeys.length === 0) {
+                if (!silent) {
+                    message.warning("当前 PromQL 未返回可用于匹配的标签")
+                }
+                return
+            }
+
+            if (!silent) {
+                message.success(`已加载 ${labelKeys.length} 个标签`)
+            }
+        } catch (error) {
+            console.error(error)
+            if (!silent) {
+                message.error("查询标签失败")
+            }
+        } finally {
+            setLoadingMetricLabels(false)
+        }
+    }
+
+    useEffect(() => {
+        if (selectedType !== 0 || thresholdMode !== THRESHOLD_MODE_NODE_OVERRIDE) {
+            return
+        }
+        if (!selectedItems || selectedItems.length === 0 || !handleGetPromQL()) {
+            return
+        }
+
+        const timer = setTimeout(() => {
+            handleQueryMetricLabels({ silent: true })
+        }, 600)
+
+        return () => clearTimeout(timer)
+    }, [selectedType, thresholdMode, selectedItems, promQL])
 
     const handleGetKubernetesEventTypes = async() =>{
         try{
@@ -1173,6 +1361,151 @@ export const AlertRule = ({ type }) => {
                                         <Button icon={<PlusOutlined/>} type="dashed" block onClick={addExprRule} disabled={exprRule?.length === 3}>
                                             添加规则条件
                                         </Button>
+                                    </div>
+
+                                    <div style={{ marginTop: '30px' }}>
+                                        <MyFormItem name="thresholdMode" hidden>
+                                            <Input />
+                                        </MyFormItem>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                            <span style={{ fontWeight: 500 }}>标签阈值覆盖</span>
+                                            <Switch
+                                                checked={thresholdMode === THRESHOLD_MODE_NODE_OVERRIDE}
+                                                onChange={(checked) => {
+                                                    form.setFieldsValue({
+                                                        prometheusConfig: {
+                                                            thresholdMode: checked ? THRESHOLD_MODE_NODE_OVERRIDE : THRESHOLD_MODE_GLOBAL,
+                                                        },
+                                                    })
+                                                }}
+                                            />
+                                            {thresholdMode === THRESHOLD_MODE_NODE_OVERRIDE && loadingMetricLabels && (
+                                                <Typography.Text type="secondary">标签加载中...</Typography.Text>
+                                            )}
+                                        </div>
+
+                                        {thresholdMode === THRESHOLD_MODE_NODE_OVERRIDE && (
+                                            <Form.List name={['prometheusConfig', 'thresholdOverrides']}>
+                                                {(fields, { add, remove }) => (
+                                                    <>
+                                                        {fields.map(({ key, name, ...restField }) => (
+                                                            <div
+                                                                key={key}
+                                                                style={{
+                                                                    display: 'grid',
+                                                                    gridTemplateColumns: 'minmax(160px, 0.9fr) minmax(220px, 1.3fr) 120px minmax(180px, 1fr) 180px 48px',
+                                                                    gap: '10px',
+                                                                    alignItems: 'start',
+                                                                    marginBottom: '8px',
+                                                                }}
+                                                            >
+                                                                <Form.Item
+                                                                    required
+                                                                >
+                                                                    <AutoComplete
+                                                                        value={getOverrideMatchLabelKey(name)}
+                                                                        placeholder="标签名，例如 instance"
+                                                                        options={metricLabelOptions}
+                                                                        onChange={(value) => updateOverrideMatchLabelKey(name, value)}
+                                                                        filterOption={(inputValue, option) =>
+                                                                            option?.value?.toUpperCase().includes(inputValue.toUpperCase())
+                                                                        }
+                                                                    />
+                                                                </Form.Item>
+
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    shouldUpdate
+                                                                >
+                                                                    {() => {
+                                                                        const labelKey = getOverrideMatchLabelKey(name)
+                                                                        const labelValue = form.getFieldValue(['prometheusConfig', 'thresholdOverrides', name, 'matchLabels', labelKey]) || ''
+
+                                                                        return (
+                                                                            <AutoComplete
+                                                                                value={labelValue}
+                                                                                placeholder={labelKey ? "标签值，例如 10.0.0.1:9100" : "请先选择标签名"}
+                                                                                options={metricLabelValueOptions[labelKey] || []}
+                                                                                onChange={(value) => updateOverrideMatchLabelValue(name, labelKey, value)}
+                                                                                disabled={!labelKey}
+                                                                                filterOption={(inputValue, option) =>
+                                                                                    option?.value?.toUpperCase().includes(inputValue.toUpperCase())
+                                                                                }
+                                                                            />
+                                                                        )
+                                                                    }}
+                                                                </Form.Item>
+
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'rules', 0, 'severity']}
+                                                                    rules={[{ required: true, message: '请选择等级' }]}
+                                                                >
+                                                                    <Select placeholder="P0">
+                                                                        <Option value="P0">P0</Option>
+                                                                        <Option value="P1">P1</Option>
+                                                                        <Option value="P2">P2</Option>
+                                                                    </Select>
+                                                                </Form.Item>
+
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'rules', 0, 'expr']}
+                                                                    rules={[
+                                                                        { required: true, message: '请输入告警条件' },
+                                                                        {
+                                                                            validator: (_, value) => {
+                                                                                if (!value || validateExpr(value)) {
+                                                                                    return Promise.resolve()
+                                                                                }
+                                                                                return Promise.reject(new Error('请输入有效的告警条件，例如：> 98'))
+                                                                            },
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Input placeholder="例如：> 98" />
+                                                                </Form.Item>
+
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'rules', 0, 'forDuration']}
+                                                                    rules={[{ required: true, message: '请输入持续时间' }]}
+                                                                >
+                                                                    <InputNumber
+                                                                        addonBefore="持续"
+                                                                        addonAfter="秒"
+                                                                        placeholder="300"
+                                                                        min={0}
+                                                                        style={{ width: '100%' }}
+                                                                    />
+                                                                </Form.Item>
+
+                                                                <Button onClick={() => remove(name)}>
+                                                                    -
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+
+                                                        <Button
+                                                            type="dashed"
+                                                            block
+                                                            icon={<PlusOutlined />}
+                                                            onClick={() => add({
+                                                                matchLabels: {},
+                                                                rules: [{
+                                                                    severity: getDefaultOverrideSeverity(),
+                                                                    expr: '',
+                                                                    forDuration: getDefaultOverrideDuration(),
+                                                                }],
+                                                            })}
+                                                        >
+                                                            添加标签阈值
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </Form.List>
+                                        )}
                                     </div>
 
                                     <div style={{ marginTop: '30px' }}>
