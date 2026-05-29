@@ -29,10 +29,27 @@ const MyFormItem = ({ name, ...props }) => {
     return <Form.Item name={concatName} {...props} />
 }
 
+// 将 map 格式的 headers 转换为数组格式用于表单
+const headersMapToArray = (headers) => {
+    if (!headers || typeof headers !== 'object') return []
+    return Object.entries(headers).map(([key, value]) => ({ key, value }))
+}
+
+// 将数组格式的 headers 转换为 map 格式用于提交
+const headersArrayToMap = (headersArray) => {
+    if (!headersArray || !Array.isArray(headersArray)) return {}
+    return headersArray.reduce((acc, { key, value }) => {
+        if (key) {
+            acc[key] = value
+        }
+        return acc
+    }, {})
+}
+
 export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, handleList }) => {
     const { Option } = Select
     const [form] = Form.useForm()
-    
+
     // 基础状态
     const [dutyList, setDutyList] = useState([])
     const [submitLoading, setSubmitLoading] = useState(false)
@@ -41,7 +58,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
     const [noticeType, setNoticeType] = useState('FeiShu')
 
     const [filteredOptions, setFilteredOptions] = useState([])
-    
+
     // 数据加载状态
     const [dataLoaded, setDataLoaded] = useState(false)
     const [templateCache, setTemplateCache] = useState({})
@@ -178,7 +195,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                         loadDutyList(),
                         loadUserList()
                     ])
-                    
+
                     // 如果是编辑模式，需要预先加载相关的通知模板
                     if (selectedRow && selectedRow.routes) {
                         const noticeTypesToLoad = []
@@ -195,7 +212,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                 noticeTypesToLoad.push(selectedRow.noticeType)
                             }
                         }
-                        
+
                         // 并行加载所有需要的通知模板
                         if (noticeTypesToLoad.length > 0) {
                             await Promise.all(
@@ -234,11 +251,12 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
 
         if (selectedRow) {
             // 编辑模式
-            const routes = selectedRow.routes?.length > 0 
+            const routes = selectedRow.routes?.length > 0
                 ? selectedRow.routes.map(route => ({
                     ...route,
                     severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
                     noticeTmplId: route.noticeTmplId || '',
+                    headers: headersMapToArray(route.headers),
                     effectiveTime: route.effectiveTime && Object.keys(route.effectiveTime).length > 0 ? {
                         week: route.effectiveTime.week || [],
                         startTime: route.effectiveTime.startTime !== undefined ? route.effectiveTime.startTime : 0,
@@ -254,6 +272,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     noticeType: selectedRow.noticeType || 'FeiShu',
                     noticeTmplId: selectedRow.noticeTmplId || '',
                     hook: selectedRow.hook || '',
+                    headers: headersMapToArray(selectedRow.headers),
                     sign: selectedRow.sign || '',
                     subject: selectedRow.email?.subject || '',
                     to: selectedRow.email?.to || [],
@@ -289,6 +308,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     noticeType: 'FeiShu',
                     noticeTmplId: '',
                     hook: '',
+                    headers: [],
                     sign: '',
                     subject: '',
                     to: [],
@@ -331,6 +351,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     noticeTmplId: route.noticeTmplId || '',
                     severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
                     hook: route.hook || '',
+                    headers: headersArrayToMap(route.headers),
                     sign: route.sign || '',
                     subject: route.subject || '',
                     to: route.to || [],
@@ -364,6 +385,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     noticeTmplId: route.noticeTmplId || '',
                     severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
                     hook: route.hook || '',
+                    headers: headersArrayToMap(route.headers),
                     sign: route.sign || '',
                     subject: route.subject || '',
                     to: route.to || [],
@@ -414,7 +436,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         try {
             const formValues = form.getFieldsValue()
             const route = formValues.routes?.[routeIndex]
-            
+
             if (!route) {
                 console.error('Route not found')
                 return
@@ -423,6 +445,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
             const params = {
                 noticeType: route.noticeType || 'FeiShu',
                 hook: route.hook || '',
+                headers: headersArrayToMap(route.headers),
                 sign: route.sign || '',
                 email: {
                     subject: route.subject || '',
@@ -436,7 +459,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     to: route.to || []
                 }
             }
-            
+
             await noticeTest(params)
         } catch (error) {
             console.log(error)
@@ -559,7 +582,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                             {({ getFieldValue, setFieldsValue }) => {
                                                                 const currentNoticeType = getFieldValue(['routes', name, 'noticeType']) || 'FeiShu'
                                                                 const selectedCardIndex = cards.findIndex(card => card.value === currentNoticeType)
-                                                                
+
                                                                 const handleRouteCardClick = async (cardIndex) => {
                                                                     const selectedCard = cards[cardIndex]
                                                                     const routes = getFieldValue('routes') || []
@@ -577,7 +600,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                                         loadNoticeTemplates(selectedCard.value)
                                                                     }
                                                                 }
-                                                                
+
                                                                 return (
                                                                     <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
                                                                         {cards.map((card, cardIndex) => (
@@ -630,7 +653,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                     }}>
                                                         {({ getFieldValue }) => {
                                                             const currentNoticeType = getFieldValue(['routes', name, 'noticeType']) || 'FeiShu'
-                                                            
+
                                                             if (currentNoticeType === 'Email') {
                                                                 return (
                                                                     <>
@@ -762,6 +785,68 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                                                 <Input placeholder="选填签名信息"/>
                                                                             </Form.Item>
                                                                         )}
+
+                                                                        {/* WebHook 类型显示自定义请求头配置 */}
+                                                                        {currentNoticeType === 'WebHook' && (
+                                                                            <>
+                                                                                <label style={{ display: "block", marginBottom: "8px" }}>自定义请求头</label>
+                                                                                <Form.List name={[name, "headers"]}>
+                                                                                    {(headerFields, { add: addHeader, remove: removeHeader }) => (
+                                                                                        <>
+                                                                                            {headerFields.map(({ key: hKey, name: hName, ...hRestField }) => (
+                                                                                                <div
+                                                                                                    key={hKey}
+                                                                                                    style={{
+                                                                                                        display: "flex",
+                                                                                                        marginBottom: 8,
+                                                                                                        gap: "8px",
+                                                                                                        alignItems: "center",
+                                                                                                    }}
+                                                                                                >
+                                                                                                    <Form.Item
+                                                                                                        {...hRestField}
+                                                                                                        name={[hName, "key"]}
+                                                                                                        style={{ flex: 1, width: "300px" }}
+                                                                                                        rules={[{ required: true, message: "请输入请求头键" }]}
+                                                                                                    >
+                                                                                                        <Input placeholder="键 (例如: Content-Type)" />
+                                                                                                    </Form.Item>
+                                                                                                    <Form.Item
+                                                                                                        {...hRestField}
+                                                                                                        name={[hName, "value"]}
+                                                                                                        style={{ flex: 1, width: "300px" }}
+                                                                                                        rules={[{ required: true, message: "请输入请求头值" }]}
+                                                                                                    >
+                                                                                                        <Input placeholder="值 (例如: application/json)" />
+                                                                                                    </Form.Item>
+                                                                                                    <MinusCircleOutlined
+                                                                                                        style={{
+                                                                                                            marginTop: "-25px",
+                                                                                                            display: "flex",
+                                                                                                            justifyContent: "center",
+                                                                                                            alignItems: "center",
+                                                                                                            cursor: "pointer",
+                                                                                                        }}
+                                                                                                        onClick={() => removeHeader(hName)}
+                                                                                                    />
+                                                                                                </div>
+                                                                                            ))}
+                                                                                            <Form.Item>
+                                                                                                <Button
+                                                                                                    type="dashed"
+                                                                                                    onClick={() => addHeader()}
+                                                                                                    block
+                                                                                                    icon={<PlusOutlined />}
+                                                                                                    disabled={headerFields.length >= 10}
+                                                                                                >
+                                                                                                    添加请求头
+                                                                                                </Button>
+                                                                                            </Form.Item>
+                                                                                        </>
+                                                                                    )}
+                                                                                </Form.List>
+                                                                            </>
+                                                                        )}
                                                                     </>
                                                                 )
                                                             }
@@ -777,15 +862,15 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                     }}>
                                                         {({ getFieldValue }) => {
                                                             const currentNoticeType = getFieldValue(['routes', name, 'noticeType']) || 'FeiShu'
-                                                            
+
                                                             // 当通知类型为 WebHook、Phone、SMS 时，不显示通知模板选项
                                                             if (currentNoticeType === 'WebHook' || currentNoticeType === 'Phone' || currentNoticeType === 'SMS') {
                                                                 return null
                                                             }
-                                                            
+
                                                             // 获取当前通知类型对应的模板选项
                                                             const currentTemplateOptions = templateCacheRef.current[currentNoticeType] || templateCache[currentNoticeType] || []
-                                                            
+
                                                             return (
                                                                 <Form.Item
                                                                     {...restField}
@@ -848,7 +933,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                                         startTime: 0,
                                                                         endTime: 0
                                                                     }
-                                                                                                        
+
                                                                     return (
                                                                         <div style={{display: 'flex', gap: '10px'}}>
                                                                             <Select
@@ -884,7 +969,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                                                     const hours = time.getHours().toString().padStart(2, '0');
                                                                                     const minutes = time.getMinutes().toString().padStart(2, '0');
                                                                                     const seconds = (parseInt(hours) * 3600) + (parseInt(minutes) * 60);
-                                                                                                                        
+
                                                                                     const routes = getFieldValue('routes') || [];
                                                                                     const newRoutes = [...routes];
                                                                                     if (newRoutes[name]) {
@@ -907,7 +992,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                                                     const hours = time.getHours().toString().padStart(2, '0');
                                                                                     const minutes = time.getMinutes().toString().padStart(2, '0');
                                                                                     const seconds = (parseInt(hours) * 3600) + (parseInt(minutes) * 60);
-                                                                                                                        
+
                                                                                     const routes = getFieldValue('routes') || [];
                                                                                     const newRoutes = [...routes];
                                                                                     if (newRoutes[name]) {
@@ -956,6 +1041,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                 noticeType: 'FeiShu',
                                                 noticeTmplId: '',
                                                 hook: '',
+                                                headers: [],
                                                 sign: '',
                                                 subject: '',
                                                 to: [],
