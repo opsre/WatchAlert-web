@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {
     UserOutlined,
     BellOutlined,
@@ -12,7 +12,11 @@ import {
     SettingOutlined,
     ExceptionOutlined,
     BarChartOutlined,
-    ApiOutlined, TeamOutlined, DownOutlined, LogoutOutlined, NodeIndexOutlined
+    ApiOutlined,
+    TeamOutlined,
+    DownOutlined,
+    LogoutOutlined,
+    FileTextOutlined,
 } from '@ant-design/icons';
 import {Link, useNavigate} from 'react-router-dom';
 import {Menu, Layout, Typography, Dropdown, message, Spin, theme, Popover, Avatar, Divider} from 'antd';
@@ -23,103 +27,181 @@ import {getTenantList, getTenant} from "../../api/tenant";
 const { Sider } = Layout;
 
 const adminMenuItems = [
-    { key: '1', path: '/', icon: <AreaChartOutlined />, label: '概览' },
-    { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' },
+    // 监控中心
     {
-        key: '2',
-        icon: <BellOutlined />,
-        label: '告警管理',
+        key: 'group-monitor',
+        type: 'group',
+        label: '监控中心',
         children: [
-            { key: '2-1', path: '/ruleGroup', label: '告警规则' },
-            { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
-            { key: '2-6', path: '/recordingRules', label: '记录规则' },
+            { key: '1', path: '/', icon: <AreaChartOutlined />, label: '概览' },
+            { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' },
+            {
+                key: '2',
+                icon: <BellOutlined />,
+                label: '告警管理',
+                children: [
+                    { key: '2-1', path: '/ruleGroup', label: '告警规则' },
+                    { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
+                ]
+            },
+            { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
+            { key: '2-6', path: '/recordingRules', icon: <FileTextOutlined />, label: '记录规则' },
         ]
     },
-    { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
-    { 
-        key: '14', 
-        label: '数据分析',
-        icon: <BarChartOutlined />, 
-        children: [
-            { key: '14-1', path: '/dataAnalysis', label: '指标查询' },
-        ]
-    },
+    // 通知中心
     {
-        key: '3',
-        icon: <NotificationOutlined />,
-        label: '通知管理',
+        key: 'group-notify',
+        type: 'group',
+        label: '通知中心',
         children: [
-            { key: '3-1', path: '/noticeObjects', label: '通知对象' },
-            { key: '3-2', path: '/noticeTemplate', label: '通知模版' },
+            {
+                key: '3-1',
+                icon: <NotificationOutlined />,
+                label: '通知管理',
+                path: '/noticeObjects'
+            },
+            {
+                key: '3-2',
+                icon: <FileDoneOutlined />,
+                label: '通知模版',
+                path: '/noticeTemplate'
+            },
         ]
     },
-    { key: '4', path: '/dutyManage', icon: <CalendarOutlined />, label: '值班中心' },
+    // 数据管理
     {
-        key: '11',
-        icon: <ApiOutlined />,
-        label: '网络分析',
+        key: 'group-data',
+        type: 'group',
+        label: '数据管理',
         children: [
-            { key: '11-1', path: '/probing', label: '拨测任务' },
-            { key: '11-2', path: '/onceProbing', label: '即时拨测' }
+            { key: '6', path: '/datasource', icon: <PieChartOutlined />, label: '数据源' },
+            {
+                key: '14',
+                icon: <BarChartOutlined />,
+                label: '数据分析',
+                children: [
+                    { key: '14-1', path: '/dataAnalysis', label: '指标查询' },
+                ]
+            },
+            {
+                key: '11',
+                icon: <ApiOutlined />,
+                label: '网络分析',
+                children: [
+                    { key: '11-1', path: '/probing', label: '拨测任务' },
+                    { key: '11-2', path: '/onceProbing', label: '即时拨测' }
+                ]
+            },
         ]
     },
-    { key: '6', path: '/datasource', icon: <PieChartOutlined />, label: '数据源' },
+    // 组织管理
     {
-        key: '5',
-        icon: <UserOutlined />,
-        label: '人员组织',
+        key: 'group-org',
+        type: 'group',
+        label: '组织管理',
         children: [
-            { key: '5-1', path: '/user', label: '用户管理' },
-            { key: '5-2', path: '/userRole', label: '角色管理' }
+            {
+                key: '5',
+                icon: <UserOutlined />,
+                label: '人员组织',
+                children: [
+                    { key: '5-1', path: '/user', label: '用户管理' },
+                    { key: '5-2', path: '/userRole', label: '角色管理' }
+                ]
+            },
+            { key: '4', path: '/dutyManage', icon: <CalendarOutlined />, label: '值班中心' },
+            { key: '7', path: '/tenants', icon: <DeploymentUnitOutlined />, label: '租户管理' },
         ]
     },
-    { key: '7', path: '/tenants', icon: <DeploymentUnitOutlined />, label: '租户管理' },
-    { key: '9', path: '/auditLog', icon: <FileDoneOutlined />, label: '日志审计' },
-    { key: '10', path: '/settings', icon: <SettingOutlined />, label: '系统设置' }
+    // 系统管理
+    {
+        key: 'group-system',
+        type: 'group',
+        label: '系统管理',
+        children: [
+            { key: '9', path: '/auditLog', icon: <FileDoneOutlined />, label: '日志审计' },
+            { key: '10', path: '/settings', icon: <SettingOutlined />, label: '系统设置' },
+        ]
+    },
 ];
 
 const userMenuItems = [
-    { key: '1', path: '/', icon: <AreaChartOutlined />, label: '概览' },
-    { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' },
+    // 监控中心
     {
-        key: '2',
-        icon: <BellOutlined />,
-        label: '告警管理',
+        key: 'group-monitor',
+        type: 'group',
+        label: '监控中心',
         children: [
-            { key: '2-1', path: '/ruleGroup', label: '告警规则' },
-            { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
-            { key: '2-6', path: '/recordingRules', label: '记录规则' },
+            { key: '1', path: '/', icon: <AreaChartOutlined />, label: '概览' },
+            { key: '8', path: '/folders', icon: <DashboardOutlined />, label: '仪表盘' },
+            {
+                key: '2',
+                icon: <BellOutlined />,
+                label: '告警管理',
+                children: [
+                    { key: '2-1', path: '/ruleGroup', label: '告警规则' },
+                    { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
+                ]
+            },
+            { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
+            { key: '2-6', path: '/recordingRules', icon: <FileTextOutlined />, label: '记录规则' },
         ]
     },
-    { key: '12', path: '/faultCenter', icon: <ExceptionOutlined />, label: '故障中心' },
-    { 
-        key: '14', 
-        label: '数据分析',
-        icon: <BarChartOutlined />, 
-        children: [
-            { key: '14-1', path: '/dataAnalysis', label: '指标查询' },
-        ]
-    },
+    // 通知中心
     {
-        key: '3',
-        icon: <NotificationOutlined />,
-        label: '通知管理',
+        key: 'group-notify',
+        type: 'group',
+        label: '通知中心',
         children: [
-            { key: '3-1', path: '/noticeObjects', label: '通知对象' },
-            { key: '3-2', path: '/noticeTemplate', label: '通知模版' },
+            {
+                key: '3-1',
+                icon: <NotificationOutlined />,
+                label: '通知管理',
+                path: '/noticeObjects'
+            },
+            {
+                key: '3-2',
+                icon: <FileDoneOutlined />,
+                label: '通知模版',
+                path: '/noticeTemplate'
+            },
         ]
     },
-    { key: '4', path: '/dutyManage', icon: <CalendarOutlined />, label: '值班中心' },
+    // 数据管理
     {
-        key: '11',
-        icon: <ApiOutlined />,
-        label: '网络分析',
+        key: 'group-data',
+        type: 'group',
+        label: '数据管理',
         children: [
-            { key: '11-1', path: '/probing', label: '拨测任务' },
-            { key: '11-2', path: '/onceProbing', label: '即时拨测' }
+            { key: '6', path: '/datasource', icon: <PieChartOutlined />, label: '数据源' },
+            {
+                key: '14',
+                icon: <BarChartOutlined />,
+                label: '数据分析',
+                children: [
+                    { key: '14-1', path: '/dataAnalysis', label: '指标查询' },
+                ]
+            },
+            {
+                key: '11',
+                icon: <ApiOutlined />,
+                label: '网络分析',
+                children: [
+                    { key: '11-1', path: '/probing', label: '拨测任务' },
+                    { key: '11-2', path: '/onceProbing', label: '即时拨测' }
+                ]
+            },
         ]
     },
-    { key: '6', path: '/datasource', icon: <PieChartOutlined />, label: '数据源' },
+    // 组织管理
+    {
+        key: 'group-org',
+        type: 'group',
+        label: '组织管理',
+        children: [
+            { key: '4', path: '/dutyManage', icon: <CalendarOutlined />, label: '值班中心' },
+        ]
+    },
 ];
 
 export const ComponentSider = () => {
@@ -143,7 +225,15 @@ export const ComponentSider = () => {
     }, [navigate]);
 
     const convertToMenuItems = useCallback((items) => {
-        return items.map(item => {
+        const convertItem = (item) => {
+            if (item.type === 'group') {
+                return {
+                    key: item.key,
+                    type: 'group',
+                    label: item.label,
+                    children: item.children.map(child => convertItem(child)),
+                };
+            }
             if (item.children) {
                 return {
                     key: item.key,
@@ -162,23 +252,32 @@ export const ComponentSider = () => {
                 label: item.label,
                 onClick: () => handleMenuClick(item.key, item.path),
             };
-        });
+        };
+        return items.map(item => convertItem(item));
     }, [handleMenuClick]);
 
     const menuItems = useMemo(() => {
         let baseMenuItems = userInfo?.role === 'admin' ? adminMenuItems : userMenuItems;
         
-        // 如果不是管理员但是是租户管理者，添加租户管理菜单
+        // 如果不是管理员但是是租户管理者，添加租户管理到组织管理分组
         if (userInfo?.role !== 'admin' && userInfo?.username === currentTenant?.manager) {
-            baseMenuItems = [
-                ...baseMenuItems,
-                { 
-                    key: '7', 
-                    path: `/tenants/detail/${localStorage.getItem('TenantID')}`, 
-                    icon: <DeploymentUnitOutlined />, 
-                    label: '租户管理' 
+            baseMenuItems = baseMenuItems.map(group => {
+                if (group.key === 'group-org') {
+                    return {
+                        ...group,
+                        children: [
+                            ...group.children,
+                            { 
+                                key: '7', 
+                                path: `/tenants/detail/${localStorage.getItem('TenantID')}`, 
+                                icon: <DeploymentUnitOutlined />, 
+                                label: '租户管理' 
+                            }
+                        ]
+                    };
                 }
-            ];
+                return group;
+            });
         }
         
         return convertToMenuItems(baseMenuItems);
@@ -216,7 +315,7 @@ export const ComponentSider = () => {
     useEffect(() => {
         fetchUserInfo()
         
-        // 添加现代化黑橙主题样式
+        // 添加现代化黑金主题样式
         const style = document.createElement('style');
         style.textContent = `
             /* 主菜单项样式 */
@@ -225,17 +324,18 @@ export const ComponentSider = () => {
                 border-radius: 8px;
                 margin: 4px 8px;
                 padding: 0 16px;
-                height: 44px;
-                line-height: 44px;
+                height: 38px;
+                line-height: 38px;
+                font-size: 13px;
                 transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
-            /* 选中状态 - 橙色渐变背景 */
+            /* 选中状态 - 渐变背景 */
             .ant-menu-dark .ant-menu-item-selected {
-                background: linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%);
+                background: linear-gradient(135deg, rgb(255, 203, 125) 0%, rgb(167, 135, 83) 100%);
                 color: #000;
                 font-weight: 600;
-                box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
+                box-shadow: 0 4px 12px rgba(167, 135, 83, 0.3);
                 transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
@@ -246,14 +346,14 @@ export const ComponentSider = () => {
             
             /* 悬停效果 */
             .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) {
-                background: rgba(255, 153, 0, 0.1);
+                background: rgba(167, 135, 83, 0.1);
                 transform: translateX(6px);
-                color: #FF9900;
+                color: rgb(255, 203, 125);
                 transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-item:hover:not(.ant-menu-item-selected) .ant-menu-item-icon {
-                color: #FF9900;
+                color: rgb(255, 203, 125);
                 transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
@@ -263,16 +363,17 @@ export const ComponentSider = () => {
                 border-radius: 8px;
                 margin: 4px 8px;
                 padding: 0 16px;
-                height: 44px;
-                line-height: 44px;
+                height: 38px;
+                line-height: 38px;
+                font-size: 13px;
                 transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
-                background: linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%);
+                background: linear-gradient(135deg, rgb(255, 203, 125) 0%, rgb(167, 135, 83) 100%);
                 color: #000;
                 font-weight: 600;
-                box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
+                box-shadow: 0 4px 12px rgba(167, 135, 83, 0.3);
                 transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
@@ -282,20 +383,20 @@ export const ComponentSider = () => {
             }
             
             .ant-menu-dark .ant-menu-submenu-title:hover:not(.ant-menu-submenu-selected) {
-                background: rgba(255, 153, 0, 0.1);
-                color: #FF9900;
+                background: rgba(167, 135, 83, 0.1);
+                color: rgb(255, 203, 125);
                 transform: translateX(6px);
                 transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             .ant-menu-dark .ant-menu-submenu-title:hover:not(.ant-menu-submenu-selected) .ant-menu-submenu-arrow {
-                color: #FF9900;
+                color: rgb(255, 203, 125);
                 transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
             /* 即使子菜单被选中，父级菜单悬停时仍应有高亮效果 */
             .ant-menu-dark .ant-menu-submenu-selected:hover > .ant-menu-submenu-title {
-                background: linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%) !important;
+                background: linear-gradient(135deg, rgb(255, 203, 125) 0%, rgb(167, 135, 83) 100%) !important;
                 color: #000;
                 transform: translateX(0px);
             }
@@ -317,9 +418,9 @@ export const ComponentSider = () => {
             .ant-menu-dark .ant-menu-sub .ant-menu-item {
                 margin: 2px 8px;
                 padding-left: 24px;
-                height: 36px;
-                line-height: 36px;
-                font-size: 13px;
+                height: 32px;
+                line-height: 32px;
+                font-size: 12px;
                 transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
             }
             
@@ -335,13 +436,13 @@ export const ComponentSider = () => {
             }
             
             .ant-layout-sider-children::-webkit-scrollbar-thumb {
-                background: rgba(255, 153, 0, 0.5);
+                background: rgba(167, 135, 83, 0.5);
                 border-radius: 3px;
                 transition: background 0.3s ease;
             }
             
             .ant-layout-sider-children::-webkit-scrollbar-thumb:hover {
-                background: #FFB84D;
+                background: rgb(255, 203, 125);
             }
             
             /* 侧边栏容器滚动条样式 */
@@ -356,13 +457,13 @@ export const ComponentSider = () => {
             }
             
             .sidebar-menu-container::-webkit-scrollbar-thumb {
-                background: rgba(255, 153, 0, 0.3);
+                background: rgba(167, 135, 83, 0.3);
                 border-radius: 3px;
                 transition: background 0.3s ease;
             }
             
             .sidebar-menu-container::-webkit-scrollbar-thumb:hover {
-                background: #FF9900;
+                background: rgb(167, 135, 83);
             }
             
             /* 菜单子项动画 */
@@ -385,6 +486,30 @@ export const ComponentSider = () => {
             /* 启用原生滚动性能优化 */
             .ant-menu-item, .ant-menu-submenu-title {
                 will-change: transform;
+            }
+            
+            /* 分组标题样式 */
+            .ant-menu-dark .ant-menu-item-group-title {
+                color: rgba(255, 255, 255, 0.45);
+                font-size: 11px;
+                font-weight: normal;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                padding: 12px 16px 4px;
+                margin-top: 4px;
+            }
+            
+            .ant-menu-dark .ant-menu-item-group:first-child .ant-menu-item-group-title {
+                margin-top: 0;
+                padding-top: 8px;
+            }
+            
+            .ant-menu-dark .ant-menu-item-group-list .ant-menu-item {
+                margin: 2px 8px;
+            }
+            
+            .ant-menu-dark .ant-menu-item-group-list .ant-menu-submenu-title {
+                margin: 2px 8px;
             }
         `;
         document.head.appendChild(style);
@@ -539,7 +664,7 @@ export const ComponentSider = () => {
         >
             {/* 顶部Logo和租户选择区域 */}
             <div style={{
-                padding: '16px 16px 0',
+                marginLeft: '10px',
                 position: 'sticky',
                 top: 0,
                 zIndex: 1,
@@ -549,12 +674,12 @@ export const ComponentSider = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 16,
-                    marginTop: '-70px',
+                    marginLeft: '30px'
                 }}>
                     <img
                         src={logoIcon}
                         alt="WatchAlert Logo"
-                        style={{ width: "160px", height: "140px", borderRadius: "8px", marginLeft: "14px" }}
+                        style={{ width: "150px", height: "auto" }}
                     />
                 </div>
 
@@ -570,38 +695,40 @@ export const ComponentSider = () => {
                 >
                     <div style={{
                         display: 'flex',
-                        marginTop: '-40px',
                         alignItems: 'center',
                         padding: '8px 12px',
                         borderRadius: '4px',
                         cursor: 'pointer',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        marginBottom: '16px',
-                        marginLeft: '8px'
+                        background: 'rgba(255, 255, 255, 0.06)',
+                        border: '1px solid rgba(167, 135, 83, 0.15)',
+                        transition: 'all 0.2s ease',
                     }}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                        e.currentTarget.style.background = 'rgba(167, 135, 83, 0.12)';
+                        e.currentTarget.style.borderColor = 'rgba(167, 135, 83, 0.3)';
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                        e.currentTarget.style.borderColor = 'rgba(167, 135, 83, 0.15)';
                     }}
                     >
-                        <TeamOutlined style={{color: '#fff', fontSize: '14px', marginRight: '8px'}}/>
+                        <TeamOutlined style={{color: 'rgb(255, 203, 125)', fontSize: '14px', marginRight: '8px'}}/>
                         <Typography.Text
-                            style={{color: '#fff', fontSize: '14px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                            style={{color: '#fff', fontSize: '13px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
                             {getTenantName()}
                         </Typography.Text>
-                        <DownOutlined style={{color: '#fff', fontSize: '12px'}}/>
+                        <DownOutlined style={{color: 'rgba(255, 255, 255, 0.5)', fontSize: '10px'}}/>
                     </div>
                 </Dropdown>
             </div>
 
             <Divider style={{
-                margin: '0 16px 16px', 
-                background: 'linear-gradient(90deg, transparent 0%, #FF9900 50%, transparent 100%)',
-                height: '2px',
+                margin: '0 16px 12px', 
+                background: 'linear-gradient(90deg, transparent 0%, rgb(167, 135, 83) 50%, transparent 100%)',
+                height: '1px',
                 borderRadius: '1px',
-                marginLeft: '5px'
+                minWidth: 'auto',
+                width: 'calc(100% - 32px)',
             }}/>
 
             {/* 主内容，预留底部空间 */}
@@ -671,7 +798,7 @@ export const ComponentSider = () => {
                 bottom: 0,
                 width: '100%',
                 padding: '16px',
-                borderTop: '1px solid rgba(255, 153, 0, 0.2)',
+                borderTop: '1px solid rgba(167, 135, 83, 0.2)',
                 background: 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, #000 100%)',
                 backdropFilter: 'blur(10px)',
             }}>
@@ -690,7 +817,7 @@ export const ComponentSider = () => {
                     }}>
                         <Avatar
                             style={{
-                                background: "linear-gradient(135deg, #ffcb7dff 0%, #a78753ff 100%)",
+                                background: "linear-gradient(135deg, rgb(255, 203, 125) 0%, rgb(167, 135, 83) 100%)",
                                 color: "#000",
                                 fontWeight: "bold",
                                 display: "flex",

@@ -1,0 +1,117 @@
+.home-container {
+  padding: 68px;
+  min-height: calc(100% + 40px);
+  margin: -20px;
+  border-radius: 8px;
+}
+
+.home-content {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* 统计卡片 */
+.stat-card {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: default;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 告警分布 */
+.distribution-bar {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+}
+
+.distribution-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 面板 */
+.panel {
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.25s ease;
+}
+
+.panel:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 告警列表项 */
+.alert-item {
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  transition: background 0.2s ease, transform 0.15s ease;
+  cursor: default;
+}
+
+.alert-item:hover {
+  transform: translateX(3px);
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+.alert-item:last-child {
+  margin-bottom: 0;
+}
+
+.alert-link {
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.alert-link:hover {
+  color: #1677ff !important;
+}
+
+/* 空状态居中 */
+.empty-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding-top: 60px;
+}

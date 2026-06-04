@@ -10,6 +10,7 @@ import SlackImg from "./img/slack.svg"
 import WebHook from "./img/webhook.svg"
 import PhoneImg from "./img/phone.svg";
 import SMSImg from "./img/sms.svg";
+import SREFlowImg from "./img/sreflow.svg"
 import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
 import {getNoticeTmplList} from "../../api/noticeTmpl";
 import {getUserList} from "../../api/user";
@@ -80,6 +81,7 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
         { imgSrc: WebHook, text: 'WebHook', value: 'WebHook' },
         { imgSrc: PhoneImg, text: '电话', value: 'Phone' },
         { imgSrc: SMSImg, text: '短信', value: 'SMS' },
+        { imgSrc: SREFlowImg, text: 'SREFlow', value: 'SREFlow' },
     ], [])
 
     // 全局状态保持不变，但生效时间将存储在各个路由中
@@ -257,6 +259,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                     severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
                     noticeTmplId: route.noticeTmplId || '',
                     headers: headersMapToArray(route.headers),
+                    // SREFlow 类型从 headers 中提取 workspaceId
+                    workspaceId: route.noticeType === 'SREFlow' && route.headers ? (route.headers['X-Workspace-Id'] || '') : '',
                     effectiveTime: route.effectiveTime && Object.keys(route.effectiveTime).length > 0 ? {
                         week: route.effectiveTime.week || [],
                         startTime: route.effectiveTime.startTime !== undefined ? route.effectiveTime.startTime : 0,
@@ -346,26 +350,33 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                 tenantId: 'default',
                 name: data.name,
                 dutyId: data.dutyId || null,
-                routes: data.routes?.map(route => ({
-                    noticeType: route.noticeType || noticeType,
-                    noticeTmplId: route.noticeTmplId || '',
-                    severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
-                    hook: route.hook || '',
-                    headers: headersArrayToMap(route.headers),
-                    sign: route.sign || '',
-                    subject: route.subject || '',
-                    to: route.to || [],
-                    cc: route.cc || [],
-                    effectiveTime: route.effectiveTime && Object.keys(route.effectiveTime).length > 0 ? {
-                        week: route.effectiveTime.week || [],
-                        startTime: route.effectiveTime.startTime !== undefined ? route.effectiveTime.startTime : 0,
-                        endTime: route.effectiveTime.endTime !== undefined ? route.effectiveTime.endTime : 0
-                    } : {
-                        week: [],
-                        startTime: 0,
-                        endTime: 0
+                routes: data.routes?.map(route => {
+                    // SREFlow 类型将 workspaceId 放入 headers 的 X-Workspace-Id
+                    let headers = headersArrayToMap(route.headers)
+                    if (route.noticeType === 'SREFlow' && route.workspaceId) {
+                        headers = { ...headers, 'X-Workspace-Id': route.workspaceId }
                     }
-                })) || [],
+                    return {
+                        noticeType: route.noticeType || noticeType,
+                        noticeTmplId: route.noticeTmplId || '',
+                        severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
+                        hook: route.hook || '',
+                        headers: headers,
+                        sign: route.sign || '',
+                        subject: route.subject || '',
+                        to: route.to || [],
+                        cc: route.cc || [],
+                        effectiveTime: route.effectiveTime && Object.keys(route.effectiveTime).length > 0 ? {
+                            week: route.effectiveTime.week || [],
+                            startTime: route.effectiveTime.startTime !== undefined ? route.effectiveTime.startTime : 0,
+                            endTime: route.effectiveTime.endTime !== undefined ? route.effectiveTime.endTime : 0
+                        } : {
+                            week: [],
+                            startTime: 0,
+                            endTime: 0
+                        }
+                    }
+                }) || [],
             }
             await createNotice(params)
             handleList()
@@ -380,26 +391,33 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                 tenantId: selectedRow.tenantId || 'default',
                 name: data.name,
                 dutyId: data.dutyId || null,
-                routes: data.routes?.map(route => ({
-                    noticeType: route.noticeType || noticeType,
-                    noticeTmplId: route.noticeTmplId || '',
-                    severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
-                    hook: route.hook || '',
-                    headers: headersArrayToMap(route.headers),
-                    sign: route.sign || '',
-                    subject: route.subject || '',
-                    to: route.to || [],
-                    cc: route.cc || [],
-                    effectiveTime: route.effectiveTime && Object.keys(route.effectiveTime).length > 0 ? {
-                        week: route.effectiveTime.week || [],
-                        startTime: route.effectiveTime.startTime !== undefined ? route.effectiveTime.startTime : 0,
-                        endTime: route.effectiveTime.endTime !== undefined ? route.effectiveTime.endTime : 0
-                    } : {
-                        week: [],
-                        startTime: 0,
-                        endTime: 0
+                routes: data.routes?.map(route => {
+                    // SREFlow 类型将 workspaceId 放入 headers 的 X-Workspace-Id
+                    let headers = headersArrayToMap(route.headers)
+                    if (route.noticeType === 'SREFlow' && route.workspaceId) {
+                        headers = { ...headers, 'X-Workspace-Id': route.workspaceId }
                     }
-                })) || [],
+                    return {
+                        noticeType: route.noticeType || noticeType,
+                        noticeTmplId: route.noticeTmplId || '',
+                        severitys: Array.isArray(route.severitys) ? route.severitys : (route.severitys ? [route.severitys] : ['P0']),
+                        hook: route.hook || '',
+                        headers: headers,
+                        sign: route.sign || '',
+                        subject: route.subject || '',
+                        to: route.to || [],
+                        cc: route.cc || [],
+                        effectiveTime: route.effectiveTime && Object.keys(route.effectiveTime).length > 0 ? {
+                            week: route.effectiveTime.week || [],
+                            startTime: route.effectiveTime.startTime !== undefined ? route.effectiveTime.startTime : 0,
+                            endTime: route.effectiveTime.endTime !== undefined ? route.effectiveTime.endTime : 0
+                        } : {
+                            week: [],
+                            startTime: 0,
+                            endTime: 0
+                        }
+                    }
+                }) || [],
                 updateBy: 'current_user',
                 uuid: selectedRow.uuid
             }
@@ -442,10 +460,16 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                 return
             }
 
+            // SREFlow 类型将 workspaceId 放入 headers 的 X-Workspace-Id
+            let headers = headersArrayToMap(route.headers)
+            if (route.noticeType === 'SREFlow' && route.workspaceId) {
+                headers = { ...headers, 'X-Workspace-Id': route.workspaceId }
+            }
+
             const params = {
                 noticeType: route.noticeType || 'FeiShu',
                 hook: route.hook || '',
-                headers: headersArrayToMap(route.headers),
+                headers: headers,
                 sign: route.sign || '',
                 email: {
                     subject: route.subject || '',
@@ -764,6 +788,28 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                                         </Form.Item>
                                                                     </>
                                                                 )
+                                                            } else if (currentNoticeType === 'SREFlow') {
+                                                                return (
+                                                                    <>
+                                                                        <Form.Item
+                                                                            {...restField}
+                                                                            name={[name, "hook"]}
+                                                                            label="Hook地址"
+                                                                            rules={[{required: true, pattern: /^(http|https):\/\//}]}
+                                                                        >
+                                                                            <Input placeholder="http(s)://xxx.xxx"/>
+                                                                        </Form.Item>
+
+                                                                        <Form.Item
+                                                                            {...restField}
+                                                                            name={[name, "workspaceId"]}
+                                                                            label="空间ID"
+                                                                            rules={[{required: true, message: '请输入空间ID'}]}
+                                                                        >
+                                                                            <Input placeholder="请输入空间ID (X-Workspace-Id)"/>
+                                                                        </Form.Item>
+                                                                    </>
+                                                                )
                                                             } else {
                                                                 return (
                                                                     <>
@@ -863,8 +909,8 @@ export const CreateNoticeObjectModal = ({ visible, onClose, selectedRow, type, h
                                                         {({ getFieldValue }) => {
                                                             const currentNoticeType = getFieldValue(['routes', name, 'noticeType']) || 'FeiShu'
 
-                                                            // 当通知类型为 WebHook、Phone、SMS 时，不显示通知模板选项
-                                                            if (currentNoticeType === 'WebHook' || currentNoticeType === 'Phone' || currentNoticeType === 'SMS') {
+                                                            // 当通知类型为 WebHook、Phone、SMS、SREFlow 时，不显示通知模板选项
+                                                            if (currentNoticeType === 'WebHook' || currentNoticeType === 'Phone' || currentNoticeType === 'SMS' || currentNoticeType === 'SREFlow') {
                                                                 return null
                                                             }
 

@@ -6,6 +6,7 @@ import { ReactComponent as WebHookIcon } from "./img/webhook.svg"
 import { ReactComponent as SlackIcon } from "./img/slack.svg"
 import { ReactComponent as PhoneIcon } from "./img/phone.svg"
 import { ReactComponent as SMSIcon } from "./img/sms.svg"
+import { ReactComponent as SREFlowIcon }  from "./img/sreflow.svg"
 
 
 const NOTIFICATION_TYPES = {
@@ -40,6 +41,10 @@ const NOTIFICATION_TYPES = {
     SMS: {
         icon: SMSIcon,
         label: "短信"
+    },
+    SREFlow: {
+        icon: SREFlowIcon,
+        label: "SREFlow"
     }
 }
 
@@ -59,4 +64,3 @@ export const NotificationTypeIcon = ({ type }) => {
         </div>
     )
 }
-

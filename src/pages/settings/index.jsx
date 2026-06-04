@@ -593,7 +593,7 @@ export const SystemSettings = () => {
                                                 { type: 'url', message: '请输入有效的URL地址' }
                                             ]}
                                         >
-                                            <Input placeholder="AI 接口地址，必须包含 http(s)://"/>
+                                            <Input placeholder="AI 接口地址，https://x.ai/v1/chat/completions"/>
                                         </MyFormItem>
                                         <MyFormItem
                                             name="appKey"

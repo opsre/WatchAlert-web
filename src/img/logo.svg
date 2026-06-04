@@ -1,17 +1,16 @@
-<svg width="180" height="60" viewBox="0 0 180 60" xmlns="http://www.w3.org/2000/svg">
+<svg width="160" height="36" viewBox="0 0 160 36" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#FF9500;stop-opacity:1" />
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:rgb(255, 203, 125);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgb(167, 135, 83);stop-opacity:1" />
     </linearGradient>
   </defs>
   
-  <!-- Watch 文字 -->
-  <text x="15" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff">Watch</text>
+  <!-- Watch text -->
+  <text x="5" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+        font-size="22" font-weight="700" letter-spacing="-0.5" fill="#ffffff">Watch</text>
   
-  <!-- Alert 背景框 -->
-  <rect x="87" y="12" width="72" height="36" fill="url(#orangeGrad)" rx="6"/>
-  
-  <!-- Alert 文字 -->
-  <text x="94" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1a1a1a">Alert</text>
+  <!-- Alert text with gradient, tightly next to Watch -->
+  <text x="70" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+        font-size="22" font-weight="700" letter-spacing="-0.5" fill="url(#brandGrad)">Alert</text>
 </svg>
