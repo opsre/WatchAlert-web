@@ -30,6 +30,7 @@ export const TableWithPagination = ({
   showTotal,
   loading,
   locale,
+  onRow,
   // 新增多选相关属性
   rowSelection,
   selectedRowKeys,
@@ -59,6 +60,7 @@ export const TableWithPagination = ({
           overflow: 'hidden',
         }}
         rowKey={rowKey}
+        onRow={onRow}
         rowSelection={
           rowSelection || onSelectChange
             ? {

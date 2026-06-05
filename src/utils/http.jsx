@@ -41,8 +41,11 @@ axios.interceptors.response.use(
     (error) => {
         switch (error?.response?.status){
             case 401:
+                // 保存当前路径以便登录后跳回
+                const currentPath = window.location.pathname + window.location.search;
                 // 清除认证信息
                 localStorage.clear();
+                localStorage.setItem('redirectPath', currentPath);
                 // 显示退出登录提示
                 message.warning('身份验证已过期，正在退出登录...');
                 // 延迟跳转到登录页面，确保用户能看到提示

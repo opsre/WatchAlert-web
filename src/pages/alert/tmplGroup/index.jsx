@@ -1,6 +1,6 @@
 "use client"
 
-import { Button, Input, Table, Popconfirm, Divider, Menu, Badge, Tooltip, Space, Empty, Dropdown, Modal } from "antd"
+import { Button, Input, Table, Popconfirm, Badge, Tooltip, Modal, Empty, Dropdown } from "antd"
 import { useState, useEffect } from "react"
 import RuleTemplateGroupCreateModal from "./RuleTemplateGroupCreateModal"
 import { Link, useParams } from "react-router-dom"
@@ -9,9 +9,9 @@ import { ReactComponent as Metric } from "../assets/metric.svg"
 import { ReactComponent as Log } from "../assets/log.svg"
 import { ReactComponent as Trace } from "../assets/trace.svg"
 import { ReactComponent as Event } from "../assets/event.svg"
-import { SearchOutlined, PlusOutlined, DeleteOutlined, EditOutlined, MoreOutlined } from "@ant-design/icons"
+import { SearchOutlined, PlusOutlined, DeleteOutlined, EditOutlined, MoreOutlined, AppstoreOutlined } from "@ant-design/icons"
 import {HandleShowTotal} from "../../../utils/lib";
-import { TableWithPagination } from "../../../utils/TableWithPagination"
+import { TableWithPagination } from "../../../utils/TableWithPagination";
 import { Breadcrumb } from "../../../components/Breadcrumb";
 
 const { Search } = Input
@@ -218,22 +218,22 @@ export const RuleTemplateGroup = () => {
         {
             key: "Metrics",
             label: "Metrics",
-            icon: <Metric style={{ height: "20px", width: "20px" }} />,
+            icon: <Metric style={{ height: "14px", width: "14px" }} />,
         },
         {
             key: "Logs",
             label: "Logs",
-            icon: <Log style={{ height: "20px", width: "20px" }} />,
+            icon: <Log style={{ height: "14px", width: "14px" }} />,
         },
         {
             key: "Traces",
             label: "Traces",
-            icon: <Trace style={{ height: "20px", width: "20px" }} />,
+            icon: <Trace style={{ height: "14px", width: "14px" }} />,
         },
         {
             key: "Events",
             label: "Events",
-            icon: <Event style={{ height: "20px", width: "20px" }} />,
+            icon: <Event style={{ height: "14px", width: "14px" }} />,
         },
     ]
 
@@ -265,96 +265,148 @@ export const RuleTemplateGroup = () => {
     return (
         <>
         <Breadcrumb items={['告警管理', '模版组']} />
-        <div style={{ display: "flex", borderRadius: "8px" }}>
-            {/* Sidebar */}
-            <div style={{ width: "150px" }}>
-                <Menu
-                    onClick={handleClick}
-                    mode="vertical"
-                    style={{ border: "none", width: "100%" }}
-                    selectedKeys={[selectedType]}
-                >
-                    {menuItems.map((item) => (
-                        <Menu.Item key={item.key}>
-                            <div
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    fontSize: "14px",
-                                }}
-                            >
-                                {item.icon}
-                                {item.label}
-                            </div>
-                        </Menu.Item>
-                    ))}
-                </Menu>
+        <div style={{ display: 'flex', height: '100%' }}>
+            {/* 卡片式 sidebar */}
+            <div style={{ width: '210px', flexShrink: 0, paddingRight: '12px' }}>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: 'calc(100vh - 120px)',
+                    overflow: 'hidden',
+                    background: '#fff',
+                    borderRadius: '10px',
+                    border: '1px solid #f0f0f0',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                }}>
+                    {/* 头部 */}
+                    <div style={{
+                        padding: '10px 12px',
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                    }}>
+                        <AppstoreOutlined style={{ fontSize: '14px', color: '#595959' }} />
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#262626' }}>模版类型</span>
+                        <Badge
+                            count={menuItems.length}
+                            style={{ backgroundColor: '#f0f0f0', color: '#8c8c8c', fontSize: '11px', boxShadow: 'none' }}
+                        />
+                    </div>
+
+                    {/* 类型卡片列表 */}
+                    <div style={{ flex: 1, overflow: 'auto', padding: '0 8px 8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {menuItems.map(item => {
+                                const isSelected = item.key === selectedType
+                                return (
+                                    <div
+                                        key={item.key}
+                                        style={{
+                                            padding: '9px 12px',
+                                            borderRadius: '7px',
+                                            cursor: 'pointer',
+                                            userSelect: 'none',
+                                            background: isSelected ? '#f5f0e6' : '#fff',
+                                            border: `1px solid ${isSelected ? 'rgba(167, 135, 83, 0.45)' : '#f0f0f0'}`,
+                                            boxShadow: isSelected
+                                                ? '0 1px 4px rgba(167, 135, 83, 0.12)'
+                                                : '0 0.5px 2px rgba(0,0,0,0.04)',
+                                            transition: 'all 0.12s ease',
+                                        }}
+                                        onClick={() => handleClick({ key: item.key })}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                flexShrink: 0,
+                                            }}>
+                                                {item.icon}
+                                            </span>
+                                            <span style={{
+                                                fontSize: '12px',
+                                                fontWeight: isSelected ? 500 : 400,
+                                                color: isSelected ? 'rgb(120, 95, 50)' : '#262626',
+                                            }}>
+                                                {item.label}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* Vertical divider */}
-            <Divider type="vertical" style={{ height: "auto", margin: "0 16px" }} />
+            {/* 主内容区 */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginLeft: '20px' }}>
+                <div style={{
+                    background: '#fff',
+                    borderRadius: '8px',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                }}>
+                    {/* 搜索栏 */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                        <Search
+                            allowClear
+                            placeholder="输入搜索关键字"
+                            onSearch={onSearch}
+                            style={{ width: 300 }}
+                            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                        />
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={() => setVisible(true)}
+                            style={{ backgroundColor: '#000000' }}
+                        >
+                            创建
+                        </Button>
+                    </div>
 
-            {/* Main content */}
-            <div style={{ flex: 1 }}>
-                {/* Search bar */}
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <Search
-                        allowClear
-                        placeholder="输入搜索关键字"
-                        onSearch={onSearch}
-                        style={{ width: 300 }}
-                        prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-                    />
-                    <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={() => setVisible(true)}
-                        style={{
-                            backgroundColor: "#000000",
+                    <TableWithPagination
+                        columns={columns}
+                        dataSource={list}
+                        loading={loading}
+                        pagination={pagination}
+                        onPageChange={(page, pageSize) => {
+                            setPagination({ ...pagination, index: page, size: pageSize });
+                            handleList(page, pageSize);
                         }}
-                    >
-                        创建
-                    </Button>
+                        onPageSizeChange={(current, pageSize) => {
+                            setPagination({ ...pagination, index: current, size: pageSize });
+                            handleList(current, pageSize);
+                        }}
+                        scrollY={height - 250}
+                        rowKey={record => record.id}
+                        showTotal={HandleShowTotal}
+                        locale={{
+                            emptyText: <Empty description="暂无模版组" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
+                        }}
+                    />
+
+                    {/* Modals */}
+                    <RuleTemplateGroupCreateModal
+                        visible={visible}
+                        onClose={handleModalClose}
+                        openType="create"
+                        tmplType={selectedType}
+                        handleList={handleList}
+                    />
+                    <RuleTemplateGroupCreateModal
+                        visible={updateVisible}
+                        onClose={handleUpdateModalClose}
+                        tmplType={selectedType}
+                        selectedRow={selectedRow}
+                        openType="update"
+                        handleList={handleList}
+                    />
                 </div>
-
-                <TableWithPagination
-                    columns={columns}
-                    dataSource={list}
-                    loading={loading}
-                    pagination={pagination}
-                    onPageChange={(page, pageSize) => {
-                        setPagination({ ...pagination, index: page, size: pageSize });
-                        handleList(page, pageSize);
-                    }}
-                    onPageSizeChange={(current, pageSize) => {
-                        setPagination({ ...pagination, index: current, size: pageSize });
-                        handleList(current, pageSize);
-                    }}
-                    scrollY={height - 250}
-                    rowKey={record => record.id}
-                    showTotal={HandleShowTotal}
-                    locale={{
-                        emptyText: <Empty description="暂无模版组" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
-                    }}
-                />
-
-                {/* Modals */}
-                <RuleTemplateGroupCreateModal
-                    visible={visible}
-                    onClose={handleModalClose}
-                    openType="create"
-                    tmplType={selectedType}
-                    handleList={handleList}
-                />
-                <RuleTemplateGroupCreateModal
-                    visible={updateVisible}
-                    onClose={handleUpdateModalClose}
-                    tmplType={selectedType}
-                    selectedRow={selectedRow}
-                    openType="update"
-                    handleList={handleList}
-                />
             </div>
         </div>
         </>

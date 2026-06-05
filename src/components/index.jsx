@@ -201,11 +201,13 @@ const Components = (props) => {
                         type="primary"
                         key="login"
                         onClick={() => {
+                            const currentPath = window.location.pathname + window.location.search
                             localStorage.clear()
+                            localStorage.setItem('redirectPath', currentPath)
                             window.location.href = "/login"
                         }}
                         style={{
-                            background: "linear-gradient(135deg, #FF9900 0%, #FFB84D 100%)",
+                            background: "linear-gradient(135deg, rgb(255, 203, 125) 0%, rgb(167, 135, 83) 100%)",
                             borderColor: "#FF9900",
                             color: "#000",
                             fontWeight: "600",
@@ -299,7 +301,7 @@ const Components = (props) => {
                                 borderTop: "1px solid rgba(255, 153, 0, 0.1)",
                             }}
                         >
-                            <span style={{ color: "#FF9900" }}>WatchAlert</span> 提供轻量级一站式监控报警服务!
+                            <span style={{ color: "rgb(167, 135, 83)" }}>WatchAlert</span> 提供轻量级一站式监控报警服务!
                         </div>
                     </Layout>
                 </Layout>

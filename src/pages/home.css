@@ -1,5 +1,5 @@
 .home-container {
-  padding: 68px;
+  padding: 38px;
   min-height: calc(100% + 40px);
   margin: -20px;
   border-radius: 8px;
@@ -8,6 +8,79 @@
 .home-content {
   max-width: 1600px;
   margin: 0 auto;
+}
+
+/* 平台介绍区域 */
+.hero-section {
+  margin-bottom: 24px;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #fafbff 0%, #f5f3ff 50%, #faf5ff 100%);
+}
+
+.hero-content {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.hero-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-capabilities {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  flex-shrink: 0;
+  width: 680px;
+}
+
+.capability-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.capability-item:hover {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+  border-color: rgba(102, 126, 234, 0.15);
+  transform: translateY(-1px);
+}
+
+.capability-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #667eea;
+}
+
+@media (max-width: 1024px) {
+  .hero-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .hero-capabilities {
+    width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-capabilities {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* 统计卡片 */

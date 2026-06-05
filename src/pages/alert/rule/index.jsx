@@ -52,6 +52,8 @@ import { RuleGroupSidebar } from './sidebar';
 import { getRuleGroupList } from "../../../api/rule"
 import { Breadcrumb } from "../../../components/Breadcrumb";
 
+const SIDEBAR_GROUP_CACHE_KEY = 'alertRule_selectedGroupId'
+
 export const AlertRuleList = () => {
     const { setCloneAlertRule } = useAppContext()
     const navigate = useNavigate()
@@ -380,10 +382,21 @@ export const AlertRuleList = () => {
             await handleListDatasource()
             const groups = await handleListRuleGroup()
             if (groups.length > 0) {
-                const firstGroupId = groups[0].id
-                navigate(`/ruleGroup/${firstGroupId}/rule/list`)
-                setSelectedRuleGroupId(firstGroupId)
-                handleList(firstGroupId, pagination.index, pagination.size)
+                // 优先使用 URL 中的 id，其次读取缓存，最后默认第一个
+                const cachedGroupId = localStorage.getItem(SIDEBAR_GROUP_CACHE_KEY)
+                const validIds = groups.map(g => String(g.id))
+                let targetGroupId = null
+                if (id && validIds.includes(String(id))) {
+                    targetGroupId = id
+                } else if (cachedGroupId && validIds.includes(String(cachedGroupId))) {
+                    targetGroupId = cachedGroupId
+                } else {
+                    targetGroupId = groups[0].id
+                }
+                navigate(`/ruleGroup/${targetGroupId}/rule/list`)
+                setSelectedRuleGroupId(targetGroupId)
+                localStorage.setItem(SIDEBAR_GROUP_CACHE_KEY, String(targetGroupId))
+                handleList(targetGroupId, pagination.index, pagination.size)
             }
             isInitialMount.current = false
         }
@@ -441,6 +454,7 @@ export const AlertRuleList = () => {
 
     const handleRuleGroupChange = (groupId) => {
         setSelectedRuleGroupId(groupId)
+        localStorage.setItem(SIDEBAR_GROUP_CACHE_KEY, String(groupId))
         const newPagination = { ...pagination, index: 1 }
         updatePagination(newPagination)
         handleList(groupId, 1, pagination.size)
@@ -1158,7 +1172,7 @@ rules:
         <>
         <Breadcrumb items={['告警管理', '告警规则']} />
         <div style={{ display: 'flex', height: '95%' }}>
-            <div style={{ width: '180px', flexShrink: 0 }}>
+            <div style={{ width: '210px', flexShrink: 0, paddingRight: '12px' }}>
                 <RuleGroupSidebar
                     selectedRuleGroupId={selectedRuleGroupId}
                     onRuleGroupChange={handleRuleGroupChange}

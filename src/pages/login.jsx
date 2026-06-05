@@ -17,7 +17,9 @@ export const Login = () => {
     useEffect(() => {
         const token = localStorage.getItem('Authorization');
         if (token) {
-            navigate('/');
+            const redirectPath = localStorage.getItem('redirectPath') || '/';
+            localStorage.removeItem('redirectPath');
+            navigate(redirectPath);
         }
     }, [navigate]);
 
@@ -53,7 +55,9 @@ export const Login = () => {
                 localStorage.setItem('Authorization', info.token);
                 localStorage.setItem('Identifier', info.identifier);
                 localStorage.setItem('UserId', info.userId);
-                navigate('/');
+                const redirectPath = localStorage.getItem('redirectPath') || '/';
+                localStorage.removeItem('redirectPath');
+                navigate(redirectPath);
             }
         } catch (error) {
             message.error('用户名或密码错误');
@@ -95,7 +99,9 @@ export const Login = () => {
                 localStorage.setItem('Identifier', info.identifier);
                 localStorage.setItem('UserId', info.userId);
                 message.success('初始化成功，已自动登录');
-                navigate('/');
+                const redirectPath = localStorage.getItem('redirectPath') || '/';
+                localStorage.removeItem('redirectPath');
+                navigate(redirectPath);
             }
         } catch (error) {
             console.error(error);

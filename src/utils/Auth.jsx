@@ -19,7 +19,9 @@ const Auth = (WrappedComponent) => {
                 if (!token) {
                     const res = await getCookieConvertToken()
                     if (res.code !== 200) {
+                        const currentPath = window.location.pathname + window.location.search
                         localStorage.clear()
+                        localStorage.setItem('redirectPath', currentPath)
                         navigate("/login")
                     } else {
                         localStorage.setItem("Authorization", res?.data?.token)
@@ -44,8 +46,9 @@ const Auth = (WrappedComponent) => {
                 (response) => response,
                 (error) => {
                     if (error.response?.status === 401) {
-                        // Clear local storage and redirect to login
+                        const currentPath = window.location.pathname + window.location.search
                         localStorage.clear()
+                        localStorage.setItem('redirectPath', currentPath)
                         navigate("/login")
                         message.error("登录已过期，请重新登录")
                     }

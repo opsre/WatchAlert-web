@@ -5,7 +5,7 @@ import { Row, Col, Select, message, Typography, Spin, Empty, Tag, theme, Progres
 import { getDashboardInfo } from "../api/other"
 import { FaultCenterList } from "../api/faultCenter"
 import { noticeRecordMetric } from "../api/notice"
-import { Users, Server, Shield, Clock, AlertTriangle, TrendingUp, Activity, RefreshCw } from "lucide-react"
+import { Users, Server, Shield, Clock, AlertTriangle, TrendingUp, Activity, RefreshCw, Bell, Zap, Globe, Layers, LineChart } from "lucide-react"
 import { NoticeMetricChart } from "./chart/noticeMetricChart"
 import { FormatTime } from "../utils/lib"
 import "./home.css"
@@ -182,6 +182,78 @@ export const Home = () => {
   return (
     <div className="home-container">
       <div className="home-content">
+
+        {/* ─── 平台介绍区域 ────────────────────────────── */}
+        <div className="hero-section panel" style={panelStyle}>
+          <div className="hero-content">
+            <div className="hero-text">
+              <p style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: '#595959',
+                margin: 0,
+                lineHeight: 1.8,
+                maxWidth: 520,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
+                一款专为云原生环境设计 的轻量级监控告警引擎，
+              </p>
+              <p style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: '#595959',
+                margin: 0,
+                lineHeight: 1.8,
+                maxWidth: 520,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
+                聚焦于可观测性（Metrics、Logs、Traces）与系统稳定性保障。
+              </p>
+              <p style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: '#595959',
+                margin: 0,
+                lineHeight: 1.8,
+                maxWidth: 520,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
+                使用 <a href="https://cairry.github.io/sreflow-docs/" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'underline' }}>AI 驱动的 SRE 工作流自动化平台</a>，从你的第一个 Workflow 开始，让告警响应快人一步。
+              </p>
+            </div>
+
+            <div className="hero-capabilities">
+              {[
+                { icon: Globe, label: '多源接入', desc: 'Metrics / Logs / Traces 等' },
+                { icon: Zap, label: '智能规则', desc: '简单易用、支持多条件组合...' },
+                { icon: Bell, label: '多渠道通知', desc: '飞书 / 钉钉 / 企微 / 邮件...' },
+                { icon: Server, label: '故障中心', desc: '统一故障管理与事件追踪' },
+                { icon: Layers, label: '服务发现', desc: 'HTTP SD 动态目标管理' },
+                { icon: LineChart, label: '记录规则', desc: '预计算指标，提升查询性能' },
+              ].map((item) => (
+                <div key={item.label} className="capability-item">
+                  <div className="capability-icon">
+                    <item.icon size={16} strokeWidth={2} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#262626', lineHeight: 1.4 }}>
+                      {item.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#8c8c8c', lineHeight: 1.4 }}>
+                      {item.desc}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* ─── 统计卡片 ──────────────────────────────────── */}
         <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>

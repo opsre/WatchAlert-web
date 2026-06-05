@@ -17,6 +17,7 @@ import {
     DownOutlined,
     LogoutOutlined,
     FileTextOutlined,
+    ClusterOutlined,
 } from '@ant-design/icons';
 import {Link, useNavigate} from 'react-router-dom';
 import {Menu, Layout, Typography, Dropdown, message, Spin, theme, Popover, Avatar, Divider} from 'antd';
@@ -92,6 +93,7 @@ const adminMenuItems = [
                     { key: '11-2', path: '/onceProbing', label: '即时拨测' }
                 ]
             },
+            { key: '15', path: '/prometheusTargets', icon: <ClusterOutlined />, label: '服务发现' },
         ]
     },
     // 组织管理
@@ -191,6 +193,7 @@ const userMenuItems = [
                     { key: '11-2', path: '/onceProbing', label: '即时拨测' }
                 ]
             },
+            { key: '15', path: '/prometheusTargets', icon: <ClusterOutlined />, label: '服务发现' },
         ]
     },
     // 组织管理

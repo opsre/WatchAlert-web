@@ -1,10 +1,8 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react'
-import { Typography, message, Tooltip, Button, Modal, Input } from 'antd'
-import { FolderOutlined, PlusOutlined, DeleteOutlined, SearchOutlined, CaretDownOutlined, CaretRightOutlined, EditOutlined } from '@ant-design/icons'
+import React, { useEffect, useState, useMemo } from 'react'
+import { message, Tooltip, Button, Modal, Input, Badge } from 'antd'
+import { FolderOutlined, PlusOutlined, DeleteOutlined, SearchOutlined, CaretDownOutlined, CaretRightOutlined, EditOutlined, AppstoreOutlined } from '@ant-design/icons'
 import { getRuleGroupList, deleteRuleGroup } from '../../../api/rule'
 import { AlertRuleGroupCreateModal } from './createGroup.jsx'
-
-const { Text } = Typography
 
 // ==================== 构建树形结构 ====================
 const buildGroupTree = (groups) => {
@@ -20,7 +18,6 @@ const buildGroupTree = (groups) => {
             ...group,
             children: [],
             displayName: parts[parts.length - 1],
-            isExpanded: true,
             isReal: true
         }
         groupMap.set(group.id, node)
@@ -43,7 +40,6 @@ const buildGroupTree = (groups) => {
                     name: currentPath,
                     displayName: parts[i],
                     children: [],
-                    isExpanded: true,
                     isReal: false
                 }
                 groupMap.set(virtualId, virtualNode)
@@ -58,7 +54,6 @@ const buildGroupTree = (groups) => {
         
         if (parts.length === 1) {
             // 顶层节点
-            // 不需要 push 到 tree，这里后面统一收集
         } else {
             const parentName = parts.slice(0, -1).join(':')
             const parentNode = nameToNode.get(parentName)
@@ -88,157 +83,151 @@ const buildGroupTree = (groups) => {
 }
 
 // ==================== 单个树节点组件 ====================
-const TreeNode = React.memo(({
+const TreeNode = ({
     node,
     selectedRuleGroupId,
     onRuleGroupChange,
-    handleDeleteRuleGroup,
-    handleUpdateRuleGroup,
+    onDeleteGroup,
+    onUpdateGroup,
     hoveredGroupId,
     setHoveredGroupId,
-    toggleExpand
+    toggleExpand,
+    collapsedKeys,
+    depth = 0,
 }) => {
-    const isSelected = node.id === selectedRuleGroupId
-    const isHovered = hoveredGroupId === node.id
+    const isSelected = String(node.id) === selectedRuleGroupId
+    const isHovered = hoveredGroupId === String(node.id)
     const hasChildren = node.children?.length > 0
-
-    // ==================== 点击逻辑（按你的最新需求） ====================
-    const handleNodeClick = useCallback((e) => {
-        if (!node.isReal) {
-            return;                    // 虚拟父节点（xxxx）不允许选中
-        }
-        if (e.target.closest('button')) return;
-
-        onRuleGroupChange(node.id)
-    }, [node.isReal, node.id, onRuleGroupChange])
-
-    const handleExpandClick = useCallback((e) => {
-        e.stopPropagation()
-        toggleExpand(node.id)
-    }, [node.id, toggleExpand])
+    const isExpanded = !collapsedKeys.has(String(node.id))
 
     return (
-        <div style={{ marginBottom: '2px' }}>
+        <div style={{ marginBottom: '4px' }}>
             <div
                 style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    height: '36px',
-                    padding: '0 12px',
-                    margin: '0 8px',
-                    borderRadius: '4px',
+                    padding: '8px 10px',
+                    borderRadius: '7px',
                     cursor: node.isReal ? 'pointer' : 'default',
-                    userSelect: 'none'
+                    userSelect: 'none',
+                    background: isSelected ? '#f5f0e6'
+                        : isHovered && node.isReal ? '#fafafa' : 'transparent',
+                    border: `1px solid ${
+                        isSelected ? 'rgba(167, 135, 83, 0.45)'
+                        : isHovered && node.isReal ? '#f0f0f0' : 'transparent'
+                    }`,
+                    boxShadow: isSelected
+                        ? '0 1px 4px rgba(167, 135, 83, 0.12)'
+                        : 'none',
+                    transition: 'all 0.12s ease',
+                    marginLeft: `${depth * 10}px`,
                 }}
-                onClick={handleNodeClick}
-                onMouseEnter={() => setHoveredGroupId(node.id)}
+                onClick={(e) => {
+                    if (!node.isReal || e.target.closest('button')) return
+                    onRuleGroupChange(node.id)
+                }}
+                onMouseEnter={() => setHoveredGroupId(String(node.id))}
                 onMouseLeave={() => setHoveredGroupId(null)}
             >
-                {/* 箭头 - 始终可点击（即使是虚拟节点） */}
-                {hasChildren ? (
-                    <span
-                        onClick={handleExpandClick}
-                        style={{ 
-                            marginRight: '6px', 
-                            fontSize: '12px', 
-                            color: '#8c8c8c', 
-                            width: '16px', 
-                            cursor: 'pointer' 
-                        }}
-                    >
-                        {node.isExpanded ? <CaretDownOutlined /> : <CaretRightOutlined />}
-                    </span>
-                ) : (
-                    <span style={{ marginRight: '6px', width: '16px' }} />
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {hasChildren ? (
+                        <span
+                            onClick={(e) => { e.stopPropagation(); toggleExpand(String(node.id)) }}
+                            style={{ fontSize: '11px', color: '#8c8c8c', cursor: 'pointer', flexShrink: 0, width: '14px', textAlign: 'center' }}
+                        >
+                            {isExpanded ? <CaretDownOutlined /> : <CaretRightOutlined />}
+                        </span>
+                    ) : (
+                        <span style={{ width: '14px', flexShrink: 0 }} />
+                    )}
 
-                {/* 名称 */}
-                <Tooltip title={node.name} placement="right">
-                    <span style={{
-                        flex: 1,
+                    <FolderOutlined style={{
                         fontSize: '13px',
-                        color: isSelected ? 'rgb(255, 203, 125)' : (node.isReal ? '#595959' : '#bfbfbf'),
-                        fontWeight: isSelected ? 600 : 400,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        cursor: node.isReal ? 'pointer' : 'default'
-                    }}>
-                        {node.displayName}
-                    </span>
-                </Tooltip>
+                        color: isSelected ? 'rgb(167, 135, 83)' : (node.isReal ? '#bfbfbf' : '#d9d9d9'),
+                        flexShrink: 0,
+                    }} />
 
-                {/* 操作按钮：只有真实节点才显示 */}
-                {isHovered && node.isReal && (
-                    <div style={{ display: 'flex', gap: '2px' }}>
-                        <Button
-                            type="text"
-                            size="small"
-                            icon={<EditOutlined style={{ fontSize: '12px' }} />}
-                            onClick={(e) => { e.stopPropagation(); handleUpdateRuleGroup(node); }}
-                            style={{ padding: '2px', height: '20px', width: '20px', minWidth: '20px' }}
-                        />
-                        <Button
-                            type="text"
-                            size="small"
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={(e) => handleDeleteRuleGroup(node, e)}
-                            style={{ padding: '2px', height: '20px', width: '20px', minWidth: '20px' }}
-                        />
-                    </div>
-                )}
+                    <Tooltip title={node.name} placement="right">
+                        <span style={{
+                            flex: 1,
+                            fontSize: '12px',
+                            lineHeight: '1.4',
+                            color: isSelected ? 'rgb(120, 95, 50)'
+                                : node.isReal ? '#262626' : '#bfbfbf',
+                            fontWeight: isSelected ? 500 : 400,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                        }}>
+                            {node.displayName}
+                        </span>
+                    </Tooltip>
+
+                    {/* hover 操作按钮（内联右侧） */}
+                    {isHovered && node.isReal && (
+                        <div style={{ display: 'flex', gap: '2px', flexShrink: 0, marginTop: '-4px' }}>
+                            <Tooltip title="编辑">
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    icon={<EditOutlined style={{ fontSize: '12px', color: '#595959' }} />}
+                                    onClick={(e) => { e.stopPropagation(); onUpdateGroup(node) }}
+                                    style={{ padding: '2px', height: '20px', width: '20px', minWidth: '20px' }}
+                                />
+                            </Tooltip>
+                            <Tooltip title="删除">
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    icon={<DeleteOutlined style={{ fontSize: '12px' }} />}
+                                    onClick={(e) => onDeleteGroup(node, e)}
+                                    style={{ padding: '2px', height: '20px', width: '20px', minWidth: '20px', color: '#ff4d4f' }}
+                                />
+                            </Tooltip>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* 子节点 */}
-            {hasChildren && node.isExpanded && (
-                <div style={{ paddingLeft: '20px' }}>
+            {hasChildren && isExpanded && (
+                <div style={{ marginTop: '2px' }}>
                     {node.children.map(child => (
                         <TreeNode
                             key={child.id}
                             node={child}
                             selectedRuleGroupId={selectedRuleGroupId}
                             onRuleGroupChange={onRuleGroupChange}
-                            handleDeleteRuleGroup={handleDeleteRuleGroup}
-                            handleUpdateRuleGroup={handleUpdateRuleGroup}
+                            onDeleteGroup={onDeleteGroup}
+                            onUpdateGroup={onUpdateGroup}
                             hoveredGroupId={hoveredGroupId}
                             setHoveredGroupId={setHoveredGroupId}
                             toggleExpand={toggleExpand}
+                            collapsedKeys={collapsedKeys}
+                            depth={depth + 1}
                         />
                     ))}
                 </div>
             )}
         </div>
     )
-})
+}
 
 // ==================== 主组件 ====================
 export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => {
     const [ruleGroupList, setRuleGroupList] = useState([])
     const [filteredRuleGroupList, setFilteredRuleGroupList] = useState([])
-    const [loading, setLoading] = useState(false)
     const [createModalVisible, setCreateModalVisible] = useState(false)
     const [updateModalVisible, setUpdateModalVisible] = useState(false)
     const [hoveredGroupId, setHoveredGroupId] = useState(null)
     const [searchVisible, setSearchVisible] = useState(false)
     const [searchValue, setSearchValue] = useState('')
     const [selectedGroup, setSelectedGroup] = useState(null)
-    const [treeData, setTreeData] = useState([])
+    const [collapsedKeys, setCollapsedKeys] = useState(new Set())
 
-    // 构建树并更新展开状态
     const groupTree = useMemo(() => buildGroupTree(filteredRuleGroupList), [filteredRuleGroupList])
 
-    // 同步 treeData（用于控制展开状态）
-    useEffect(() => {
-        setTreeData(groupTree)
-    }, [groupTree])
-
-    // 获取列表
     useEffect(() => {
         handleListRuleGroup()
     }, [])
 
-    // 搜索
     useEffect(() => {
         if (searchValue.trim() === '') {
             setFilteredRuleGroupList(ruleGroupList)
@@ -251,33 +240,23 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
     }, [searchValue, ruleGroupList])
 
     const handleListRuleGroup = async () => {
-        setLoading(true)
         try {
             const res = await getRuleGroupList({ index: 1, size: 1000 })
             const list = res?.data?.list || res?.data || []
             setRuleGroupList(Array.isArray(list) ? list : [])
+            setFilteredRuleGroupList(Array.isArray(list) ? list : [])
         } catch (error) {
             console.error('获取规则组列表失败:', error)
             message.error('获取规则组列表失败')
-        } finally {
-            setLoading(false)
         }
     }
 
     const toggleExpand = (id) => {
-        setTreeData(prevTree => {
-            const updateNode = (nodes) => {
-                return nodes.map(node => {
-                    if (node.id === id) {
-                        return { ...node, isExpanded: !node.isExpanded }
-                    }
-                    if (node.children.length > 0) {
-                        return { ...node, children: updateNode(node.children) }
-                    }
-                    return node
-                })
-            }
-            return updateNode(prevTree)
+        setCollapsedKeys(prev => {
+            const next = new Set(prev)
+            if (next.has(id)) next.delete(id)
+            else next.add(id)
+            return next
         })
     }
 
@@ -286,19 +265,17 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
         if (searchVisible) setSearchValue('')
     }
 
-    const handleOpenCreateModal = () => setCreateModalVisible(true)
-    const handleCloseCreateModal = () => setCreateModalVisible(false)
-    const handleOpenUpdateModal = () => setUpdateModalVisible(true)
-    const handleCloseUpdateModal = () => setUpdateModalVisible(false)
-
     const handleDeleteRuleGroup = async (group, e) => {
         e.stopPropagation()
         Modal.confirm({
             title: '确认删除',
             content: `确定要删除规则组「${group.name}」吗？`,
+            okText: '确定',
+            cancelText: '取消',
+            okType: 'danger',
             onOk: async () => {
                 try {
-                    await deleteRuleGroup({ id: group.id, name: group.name, })
+                    await deleteRuleGroup({ id: group.id, name: group.name })
                     handleListRuleGroup()
                 } catch (error) {
                     message.error('删除失败')
@@ -316,81 +293,99 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            height: 'calc(100vh - 150px)',
+            height: 'calc(100vh - 120px)',
+            overflow: 'hidden',
             background: '#fff',
-            borderRight: '1px solid #e8e8e8',
-            overflow: 'hidden'
+            borderRadius: '10px',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
         }}>
-            {/* 头部工具栏 */}
-            <div style={{ padding: '8px 12px', borderBottom: '1px solid #e8e8e8', flexShrink: 0 }}>
+            {/* 头部 */}
+            <div style={{
+                padding: '10px 12px',
+                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+            }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    {!searchVisible && (
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <FolderOutlined style={{ fontSize: '16px', marginRight: 8 }} />
-                        </div>
-                    )}
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: searchVisible ? 0 : 'auto' }}>
-                        {searchVisible && (
-                            <Input
-                                size="small"
-                                placeholder="搜索规则组"
-                                value={searchValue}
-                                onChange={e => setSearchValue(e.target.value)}
-                                style={{ width: '140px' }}
-                                autoFocus
-                            />
-                        )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <AppstoreOutlined style={{ fontSize: '14px', color: '#595959' }} />
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#262626' }}>规则组</span>
+                        <Badge
+                            count={filteredRuleGroupList.length}
+                            style={{ backgroundColor: '#f0f0f0', color: '#8c8c8c', fontSize: '11px', boxShadow: 'none' }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                         <Tooltip title={searchVisible ? "关闭搜索" : "搜索"}>
-                            <Button type="text" size="small" icon={<SearchOutlined />} onClick={handleToggleSearch} />
+                            <Button type="text" size="small" icon={<SearchOutlined />} onClick={handleToggleSearch}
+                                style={{ color: searchVisible ? '#000' : '#8c8c8c' }} />
                         </Tooltip>
                         <Tooltip title="创建规则组">
-                            <Button type="text" size="small" icon={<PlusOutlined />} onClick={handleOpenCreateModal} />
+                            <Button type="text" size="small" icon={<PlusOutlined />}
+                                onClick={() => setCreateModalVisible(true)}
+                                style={{ color: '#8c8c8c' }} />
                         </Tooltip>
                     </div>
                 </div>
+                {searchVisible && (
+                    <Input
+                        size="small"
+                        placeholder="搜索规则组..."
+                        value={searchValue}
+                        onChange={e => setSearchValue(e.target.value)}
+                        allowClear
+                        autoFocus
+                        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                        style={{ borderRadius: '6px' }}
+                    />
+                )}
             </div>
 
             {/* 树形列表 */}
-            <div style={{ flex: 1, overflow: 'auto', marginLeft: '-20px' }}>
-                {treeData.map(node => (
+            <div style={{ flex: 1, overflow: 'auto', padding: '0 8px 8px' }}>
+                {groupTree.map(node => (
                     <TreeNode
                         key={node.id}
                         node={node}
                         selectedRuleGroupId={selectedRuleGroupId}
                         onRuleGroupChange={onRuleGroupChange}
-                        handleDeleteRuleGroup={handleDeleteRuleGroup}
-                        handleUpdateRuleGroup={handleUpdateRuleGroup}
+                        onDeleteGroup={handleDeleteRuleGroup}
+                        onUpdateGroup={handleUpdateRuleGroup}
                         hoveredGroupId={hoveredGroupId}
                         setHoveredGroupId={setHoveredGroupId}
                         toggleExpand={toggleExpand}
+                        collapsedKeys={collapsedKeys}
+                        depth={0}
                     />
                 ))}
 
-                {treeData.length === 0 && (
-                    <div style={{ textAlign: 'center', color: '#999', padding: '40px 0' }}>
-                        暂无规则组
+                {groupTree.length === 0 && (
+                    <div style={{
+                        textAlign: 'center',
+                        color: '#bfbfbf',
+                        padding: '40px 12px',
+                        fontSize: '13px',
+                    }}>
+                        {searchValue ? '未找到匹配的规则组' : '暂无规则组'}
                     </div>
                 )}
             </div>
 
-            {/* 创建弹窗 */}
             <AlertRuleGroupCreateModal
                 visible={createModalVisible}
-                onClose={handleCloseCreateModal}
+                onClose={() => setCreateModalVisible(false)}
                 type="create"
                 handleList={handleListRuleGroup}
             />
-
-            {/* 更新弹窗 */}
             <AlertRuleGroupCreateModal
                 visible={updateModalVisible}
-                onClose={handleCloseUpdateModal}
+                onClose={() => setUpdateModalVisible(false)}
                 type="update"
-                handleList={handleListRuleGroup}
                 selectedRow={selectedGroup}
+                handleList={handleListRuleGroup}
             />
-
         </div>
     )
 }

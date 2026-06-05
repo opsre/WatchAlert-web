@@ -257,10 +257,16 @@ export const RecordingRuleIndex = () => {
             await handleListDatasource()
             const groups = await handleListRuleGroup()
             if (groups.length > 0) {
-                const firstGroupId = groups[0].id
-                navigate(`/recordingRules/${firstGroupId}/list`)
-                setSelectedRuleGroupId(firstGroupId)
-                handleList(firstGroupId, pagination.index, pagination.size)
+                // 优先使用 sessionStorage 缓存的组 ID，否则取第一个
+                const cachedGroupId = sessionStorage.getItem('recordingRule_selectedGroupId')
+                const targetGroup = cachedGroupId
+                    ? groups.find(g => String(g.id) === cachedGroupId) || groups[0]
+                    : groups[0]
+                const targetGroupId = targetGroup.id
+                navigate(`/recordingRules/${targetGroupId}/list`)
+                setSelectedRuleGroupId(targetGroupId)
+                sessionStorage.setItem('recordingRule_selectedGroupId', String(targetGroupId))
+                handleList(targetGroupId, pagination.index, pagination.size)
             }
             setIsInitialMount(false)
         }
@@ -340,6 +346,7 @@ export const RecordingRuleIndex = () => {
 
     const handleRuleGroupChange = (groupId) => {
         setSelectedRuleGroupId(groupId)
+        sessionStorage.setItem('recordingRule_selectedGroupId', String(groupId))
         const newPagination = { ...pagination, index: 1 }
         updatePagination(newPagination)
         handleList(groupId, 1, pagination.size)
@@ -479,7 +486,7 @@ export const RecordingRuleIndex = () => {
         <>
             <Breadcrumb items={['告警管理', '记录规则']} />
             <div style={{ display: 'flex', height: '100%' }}>
-                <div style={{ width: '180px', flexShrink: 0 }}>
+                <div style={{ width: '210px', flexShrink: 0, paddingRight: '12px' }}>
                     <RuleGroupSidebar
                         selectedRuleGroupId={String(selectedRuleGroupId)}
                         onRuleGroupChange={handleRuleGroupChange}

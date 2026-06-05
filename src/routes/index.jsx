@@ -32,6 +32,7 @@ import {FaultCenterDetail} from "../pages/faultCenter/detail";
 import { RecordingRuleIndex } from "../pages/alert/recordingRule";
 import { RecordingRuleCreatePage } from "../pages/alert/recordingRule/create";
 import { DataAnalysis } from "../pages/exploer";
+import { PrometheusServiceDiscovery } from "../pages/promethues/sd";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default [
@@ -182,6 +183,14 @@ export default [
     {
         path: '/dataAnalysis',
         element: <ComponentsContent name="数据分析 / 指标查询" c={<DataAnalysis />} />
+    },
+    {
+        path: 'prometheusTargets',
+        element: <ComponentsContent c={<PrometheusServiceDiscovery />} />
+    },
+    {
+        path: '/prometheusTargets/:id/list',
+        element: <ComponentsContent c={<PrometheusServiceDiscovery />} />
     },
     {
         path: '/*',
