@@ -30,7 +30,16 @@ const VALIDATION_PATTERNS = {
     url: /^https?:\/\/.+/,
     domainIp: /^([a-zA-Z0-9.-]+|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/,
     tcp: /^([a-zA-Z0-9.-]+|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\d+$/,
-    domain: /^[a-zA-Z0-9.-]+$/
+    domain: /^([a-zA-Z0-9.-]+)(?::(\d+))?$/
+}
+
+const isValidPort = (port) => {
+    if (!port) {
+        return true
+    }
+
+    const portNumber = Number.parseInt(port, 10)
+    return portNumber >= 1 && portNumber <= 65535
 }
 
 const PROTOCOL_OPTIONS = [
@@ -143,8 +152,9 @@ export const CreateProbingRule = ({ type }) => {
                     }
                     break
                 case "SSL":
-                    if (!VALIDATION_PATTERNS.domain.test(endpoint)) {
-                        return Promise.reject("请输入有效的域名，例如：github.com")
+                    const match = VALIDATION_PATTERNS.domain.exec(endpoint)
+                    if (!match || !isValidPort(match[2])) {
+                        return Promise.reject("请输入有效的域名，例如：github.com 或 github.com:443")
                     }
                     break
                 default:
@@ -513,7 +523,7 @@ export const CreateProbingRule = ({ type }) => {
                             <Input
                                 placeholder={protocolType === "ICMP" 
                                     ? "请输入端点，多个端点请用英文逗号分隔，例如：github.com,8.8.8.8"
-                                    : "请输入端点，多个端点请用英文逗号分隔，例如：github.com,example.com"
+                                    : "请输入端点，多个端点请用英文逗号分隔，例如：github.com,example.com:443"
                                 }
                             />
                         )}
