@@ -10,6 +10,15 @@ import { Breadcrumb } from "../../components/Breadcrumb";
 
 const { Panel } = Collapse
 
+const isValidPort = (port) => {
+    if (!port) {
+        return true
+    }
+
+    const portNumber = Number.parseInt(port, 10)
+    return portNumber >= 1 && portNumber <= 65535
+}
+
 // Context for managing nested form item names
 const MyFormItemContext = React.createContext([])
 
@@ -68,7 +77,7 @@ export const OnceProbing = () => {
         const urlPattern = /^(https?:\/\/)[a-zA-Z0-9.-]+(?::\d+)?(?:\/[^\s]*)?$/
         const domainIpPattern = /^(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3})$/
         const tcpPattern = /^(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3}):\d+$/
-        const domainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/
+        const domainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?::(\d+))?$/
 
         if (!value) {
             return Promise.reject("请输入端点")
@@ -88,9 +97,10 @@ export const OnceProbing = () => {
                     ? Promise.resolve()
                     : Promise.reject("请输入有效的 IP/域名:port")
             case "SSL":
-                return domainPattern.test(value)
+                const match = domainPattern.exec(value)
+                return match && isValidPort(match[2])
                     ? Promise.resolve()
-                    : Promise.reject("请输入有效的 域名")
+                    : Promise.reject("请输入有效的 域名或域名:端口")
             default:
                 return Promise.resolve()
         }
@@ -432,7 +442,7 @@ export const OnceProbing = () => {
         HTTP: "请输入端点，如：https://github.com",
         ICMP: "请输入端点，如：127.0.0.1 / github.com",
         TCP: "请输入端点，如：127.0.0.1:80",
-        SSL: "请输入端点，如：github.com",
+        SSL: "请输入端点，如：github.com 或 github.com:443",
     }
 
     return (
