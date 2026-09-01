@@ -907,19 +907,27 @@ export const AlertRule = ({ type }) => {
 
     return (
         <>
-        <Breadcrumb items={['告警管理', '规则', '详情']} />
-        <div style={{
-            textAlign: 'left',
-            width: '100%',
-            // flex: 1,
-            alignItems: 'flex-start',
-            maxHeight: 'calc((-120px + 100vh))',
-            overflowY: 'auto',
-        }}>
+        <Breadcrumb items={['告警管理', '规则', type === 'edit' ? '编辑规则' : '创建规则']} />
+        <main className="alert-rule-page">
+            <nav className="alert-rule-steps" aria-label="告警规则创建步骤">
+                <div className={`alert-rule-step is-active`}>
+                    <span>1</span><div><strong>基础信息</strong><small>名称、描述与标签</small></div>
+                </div>
+                <div className={`alert-rule-step is-active`}>
+                    <span>2</span><div><strong>触发条件</strong><small>数据源与查询逻辑</small></div>
+                </div>
+                <div className="alert-rule-step is-active">
+                    <span>3</span><div><strong>告警推送</strong><small>告警事件推送目的</small></div>
+                </div>
+            </nav>
+
+            <div className="alert-rule-workspace">
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
-                <div>
-                    <strong style={{fontSize: '20px'}}>基础配置</strong>
-                    <div style={{display: 'flex', gap: '10px'}}>
+                <section className="rule-form-section">
+                    <div className="rule-section-heading">
+                        <div><span className="rule-section-index">01</span><h2>基础信息</h2></div>
+                    </div>
+                    <div className="rule-form-grid">
                         <MyFormItem
                             name="ruleName"
                             label="规则名称"
@@ -1003,12 +1011,12 @@ export const AlertRule = ({ type }) => {
                             )}
                         </Form.List>
                     </MyFormItem>
-                </div>
+                </section>
 
-                <Divider/>
-
-                <div>
-                    <strong style={{fontSize: '20px'}}>规则配置</strong>
+                <section className="rule-form-section rule-definition-section">
+                    <div className="rule-section-heading">
+                        <div><span className="rule-section-index">02</span><h2>触发条件</h2></div>
+                    </div>
 
                     <div style={{display: 'flex'}}>
                         <div>
@@ -1023,16 +1031,18 @@ export const AlertRule = ({ type }) => {
                                 {cards?.map((card, index) => (
                                     <Card
                                         key={index}
+                                        className={`datasource-card ${selectedCard === index ? 'is-selected' : ''} ${type !== 'add' ? 'is-readonly' : ''}`}
                                         style={{
                                             height: 100,
                                             width: 120,
                                             position: 'relative',
                                             cursor: (type !== 'add') ? 'not-allowed' : 'pointer',
-                                            border: selectedCard === index ? '2px solid #1890ff' : '1px solid #d9d9d9',
                                             pointerEvents: (type !== 'add') ? 'none' : 'auto',
-                                            flexShrink: 0,  // 防止卡片被压缩
+                                            flexShrink: 0,
                                         }}
                                         onClick={() => handleCardClick(index)}
+                                        role="button"
+                                        aria-pressed={selectedCard === index}
                                     >
                                         <div style={{
                                             display: 'flex',
@@ -1040,7 +1050,6 @@ export const AlertRule = ({ type }) => {
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             height: '100%',
-                                            marginTop: '-10px'
                                         }}>
                                             <img src={card.imgSrc}
                                                  style={{height: '50px', width: '100px', objectFit: 'contain'}}
@@ -1050,6 +1059,7 @@ export const AlertRule = ({ type }) => {
                                                 textAlign: 'center',
                                                 marginTop: '5px'
                                             }}>{card.text}</p>
+                                            {selectedCard === index && <span className="datasource-card-selected">已选择</span>}
                                         </div>
                                     </Card>
                                 ))}
@@ -1984,11 +1994,14 @@ export const AlertRule = ({ type }) => {
                             />
                         </div>
                     </MyFormItem>
-                </div>
+                </section>
 
-                <Divider/>
+                <section className="rule-form-section rule-delivery-section">
+                    <div className="rule-section-heading">
+                        <div><span className="rule-section-index">03</span><h2>告警推送</h2></div>
+                    </div>
 
-                <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
+                    <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
                     <MyFormItem
                         name="faultCenterId"
                         label="事件推送给 WatchAlert 故障中心"
@@ -1999,7 +2012,7 @@ export const AlertRule = ({ type }) => {
                             {/* 选择器 */}
                             <Select
                                 placeholder="选择故障中心"
-                                style={{width: '90%'}}
+                                style={{width: '89%'}}
                                 options={faultCenters}
                                 showSearch
                                 optionFilterProp="label"
@@ -2010,6 +2023,18 @@ export const AlertRule = ({ type }) => {
                                 onChange={setSelectedFaultCenter}
                             />
 
+                            {/* 刷新按钮 */}
+                            <Tooltip title="刷新列表">
+                                <RedoOutlined
+                                    onClick={handleGetFaultCenterList}
+                                    style={{
+                                        cursor: 'pointer',
+                                        color: '#1890ff',
+                                        transition: 'all 0.3s',
+                                    }}
+                                />
+                            </Tooltip>
+
                             {/* 操作按钮组 */}
                             <div style={{
                                 display: 'flex',
@@ -2018,20 +2043,8 @@ export const AlertRule = ({ type }) => {
                                 borderLeft: '1px solid #e8e8e8',
                                 paddingLeft: 10,
                                 height: 32,
-                                marginLeft: "13px"
                             }}>
-                                {/* 刷新按钮 */}
-                                <Tooltip title="刷新列表">
-                                    <RedoOutlined
-                                        onClick={handleGetFaultCenterList}
-                                        style={{
-                                            cursor: 'pointer',
-                                            color: '#1890ff',
-                                            transition: 'all 0.3s',
-                                        }}
-                                    />
-                                </Tooltip>
-
+                            
                                 {/* 创建按钮 */}
                                 <Tooltip title="创建新故障中心">
                                     <a
@@ -2078,19 +2091,22 @@ export const AlertRule = ({ type }) => {
                     </MyFormItem>
                 </div>
 
-                <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        style={{
-                            backgroundColor: '#000000'
-                        }}
-                    >
-                        提交
-                    </Button>
+                <div className="rule-submit-bar">
+                    <div className="rule-submit-status">
+                        <span className={`rule-status-dot ${enabled ? 'is-enabled' : ''}`}></span>
+                        <span>{enabled ? '保存后立即启用规则' : '保存为禁用状态，可稍后启用'}</span>
+                    </div>
+                    <div className="rule-submit-actions">
+                        <Button onClick={() => window.history.back()}>取消</Button>
+                        <Button type="primary" htmlType="submit" className="rule-submit-button">
+                            {type === 'edit' ? '保存修改' : '创建规则'}
+                        </Button>
+                    </div>
                 </div>
+                </section>
             </Form>
-        </div>
+            </div>
+        </main>
         </>
     )
 }

@@ -5,90 +5,78 @@ import {
     Select,
     Modal,
     message,
-    Alert,
-    Checkbox
+    Checkbox,
+    InputNumber,
+    Spin
 } from 'antd'
 import React, { useState, useEffect, useCallback } from 'react'
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
+import { MinusCircleOutlined, PlusOutlined, BarChartOutlined } from '@ant-design/icons'
 import { RecordingRuleCreate, RecordingRuleGet, RecordingRuleUpdate } from '../../../api/recordingRule'
 import { getDatasource, getDatasourceList } from '../../../api/datasource'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Breadcrumb } from "../../../components/Breadcrumb"
-import { PrometheusPromQL } from "../../promethues";
-import { SearchViewMetrics } from "../preview/searchViewMetrics.tsx";
-import { useAppContext } from '../../../context/RuleContext';
+import { Breadcrumb } from '../../../components/Breadcrumb'
+import { PrometheusPromQL } from '../../promethues'
+import { SearchViewMetrics } from '../preview/searchViewMetrics.tsx'
+import { useAppContext } from '../../../context/RuleContext'
+import './create.css'
 
-const MyFormItemContext = React.createContext([])
-const { Option } = Select;
-
-function toArr(str) {
-    return Array.isArray(str) ? str : [str]
-}
-
-const MyFormItem = ({ name, ...props }) => {
-    const prefixPath = React.useContext(MyFormItemContext)
-    const concatName = name !== undefined ? [...prefixPath, ...toArr(name)] : undefined
-    return <Form.Item name={concatName} {...props} />
-}
-
+const { Option } = Select
+const METRIC_NAME_PATTERN = /^[a-zA-Z0-9_:]+$/
+const LABEL_PATTERN = /^[a-zA-Z0-9_]+$/
 
 export const RecordingRuleCreatePage = ({ type = 'add' }) => {
-    const searchParams = new URLSearchParams(window.location.search);
+    const searchParams = new URLSearchParams(window.location.search)
     const { id: ruleGroupId, ruleId } = useParams()
     const navigate = useNavigate()
-    const { appState } = useAppContext();
+    const { appState } = useAppContext()
     const [form] = Form.useForm()
     const [datasourceList, setDatasourceList] = useState([])
     const [enabled, setEnabled] = useState(true)
-    const [metricAddress, setMetricAddress] = useState("")
-    const [promQL, setPromQL] = useState("")
-    const [selectedItems, setSelectedItems] = useState([])
+    const [metricAddress, setMetricAddress] = useState('')
+    const [promQL, setPromQL] = useState('')
+    const [selectedDatasourceId, setSelectedDatasourceId] = useState(null)
     const [openMetricQueryModel, setOpenMetricQueryModel] = useState(false)
-    const [viewMetricsModalKey, setViewMetricsModalKey] = useState(0);
-    const [loading, setLoading] = useState(false);
+    const [viewMetricsModalKey, setViewMetricsModalKey] = useState(0)
+    const [loading, setLoading] = useState(false)
 
-    const initBasicInfo = (selectedRow) => {
-        const labelsArray = Object.entries(selectedRow.labels || {}).map(([key, value]) => ({
-            key,
-            value,
-        }))
+    const initBasicInfo = (selectedRow = {}) => {
+        const labelsArray = Object.entries(selectedRow.labels || {}).map(([key, value]) => ({ key, value }))
+        const datasourceId = selectedRow.datasourceId || null
 
-        // 设置表单值
         form.setFieldsValue({
             metricName: selectedRow.metricName,
             description: selectedRow.description || '',
-            datasourceId: selectedRow.datasourceId,
+            datasourceType: selectedRow.datasourceType || 'Prometheus',
+            datasourceId,
             evalInterval: selectedRow.evalInterval,
             labels: labelsArray,
-            promQL: selectedRow.promQL
+            promQL: selectedRow.promQL || ''
         })
+        setEnabled(selectedRow.enabled ?? true)
+        setPromQL(selectedRow.promQL || '')
+        setSelectedDatasourceId(datasourceId)
+
+        if (datasourceId) {
+            handleGetDatasourceInfo(datasourceId).then(setMetricAddress)
+        }
     }
 
-    useEffect(() => {
-        if (searchParams.get("clone") === "true"){
-            const copyData = appState?.cloneRecodingRule
-            initBasicInfo(copyData)
+    const handleGetDatasourceInfo = async (id) => {
+        try {
+            const res = await getDatasource({ id })
+            return res?.data?.http?.url || ''
+        } catch (error) {
+            console.error(`Error fetching datasource for ID ${id}:`, error)
+            return ''
         }
-    },[])
+    }
 
-    // 获取数据源列表
     const fetchRuleData = useCallback(async () => {
         try {
             setLoading(true)
-            const res = await RecordingRuleGet({ ruleId: ruleId, ruleGroupId: parseInt(ruleGroupId, 10) })
-            const data = res?.data
-            if (data) {
-                setEnabled(data.enabled)
-                setPromQL(data.promQL)
-                setSelectedItems(data.datasourceId)
-
-                initBasicInfo(data)
-
-                // Fetch datasource info to get the URL
-                if (data.datasourceId) {
-                    const url = await handleGetDatasourceInfo(data.datasourceId)
-                    setMetricAddress(url)
-                }
+            const res = await RecordingRuleGet({ ruleId, ruleGroupId: parseInt(ruleGroupId, 10) })
+            if (res?.data) {
+                initBasicInfo(res.data)
             }
         } catch (error) {
             console.error('Failed to fetch rule data:', error)
@@ -96,388 +84,287 @@ export const RecordingRuleCreatePage = ({ type = 'add' }) => {
         } finally {
             setLoading(false)
         }
-    }, [ruleId, ruleGroupId, form])
-    
+    }, [ruleId, ruleGroupId])
+
     const fetchDatasourceList = useCallback(async () => {
         try {
             const res = await getDatasourceList()
-            const filteredData = res?.data?.filter(item => 
-                item.type === "Prometheus" && item.write.enabled === "On"
+            const filteredData = (res?.data || []).filter(item =>
+                item.type === 'Prometheus' && item.write?.enabled === 'On'
             )
-
             setDatasourceList(filteredData)
         } catch (error) {
             console.error('获取数据源列表失败:', error)
+            message.error('获取数据源列表失败')
         }
     }, [])
-
-    const handleGetPromQL = () =>{
-        if (promQL){
-            return promQL
-        }
-        return form.getFieldValue('promQL')
-    }
-
-    const handleSelectedDsItem = async (id) => {
-        // 获取数据源信息
-        const url = await handleGetDatasourceInfo(id);
-
-        setSelectedItems(id);
-
-        // 更新metricAddress
-        setMetricAddress(url);
-    };
-
-    const handleGetDatasourceInfo = async (id)  => {
-        try {
-            const params = {
-                id: id,
-            }
-            const res = await getDatasource(params)
-
-            if (res?.data?.http?.url) {
-                return res?.data?.http?.url
-            }
-            return ""
-        } catch (error) {
-            console.error(`Error fetching datasource for ID ${id}:`, error)
-        }
-    }
-
-    // 表单提交
-    const handleSubmit = async (values) => {
-        try {
-            if (promQL === ""){
-                message.error("PromQL 不可为空")
-                return
-            }
-
-            const formattedLabels = values.labels?.reduce((acc, { key, value }) => {
-                if (key) {
-                    acc[key] = value
-                }
-                return acc
-            }, {})
-
-            if (type === 'add') {
-                const params = {
-                    description: values.description || '',
-                    datasourceType: values.datasourceType,
-                    datasourceId: values.datasourceId,
-                    metricName: values.metricName,
-                    promQL: promQL,
-                    labels: formattedLabels,
-                    evalInterval: Number(values.evalInterval),
-                    enabled: enabled,
-                    ruleGroupId: parseInt(ruleGroupId, 10)
-                }
-
-                await RecordingRuleCreate(params)
-                message.success('记录规则创建成功')
-                navigate(`/recordingRules/${ruleGroupId}/list`)
-            } else if (type === 'edit') {
-                const params = {
-                    ruleId: ruleId,
-                    ruleGroupId: parseInt(ruleGroupId, 10),
-                    description: values.description || '',
-                    datasourceType: values.datasourceType,
-                    datasourceId: values.datasourceId,
-                    metricName: values.metricName,
-                    promQL: promQL,
-                    labels: formattedLabels,
-                    evalInterval: Number(values.evalInterval),
-                    enabled: enabled,
-                }
-
-                await RecordingRuleUpdate(params)
-                message.success('记录规则更新成功')
-                navigate(`/recordingRules/${ruleGroupId}/list`)
-            }
-        } catch (error) {
-            console.error(type === 'add' ? '创建记录规则失败:' : '更新记录规则失败:', error)
-            message.error(type === 'add' ? '创建记录规则失败' : '更新记录规则失败')
-        }
-    }
 
     useEffect(() => {
         fetchDatasourceList()
 
         if (type === 'edit' && ruleId) {
             fetchRuleData()
+        } else if (searchParams.get('clone') === 'true' && appState?.cloneRecodingRule) {
+            initBasicInfo(appState.cloneRecodingRule)
         }
-    }, [type, ruleId, fetchDatasourceList, fetchRuleData])
+        // 仅在进入页面时初始化，避免克隆数据被表单编辑覆盖。
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
-    // 当数据源列表加载完成后，确保表单值正确显示
-    useEffect(() => {
-        if (type === 'edit' && datasourceList.length > 0 && form.getFieldValue('datasourceId')) {
-            // 重新设置数据源值以确保Select组件能正确显示
-            const currentDsId = form.getFieldValue('datasourceId')
-            form.setFieldsValue({ datasourceId: currentDsId })
+    const handleSelectedDatasource = async (datasourceId) => {
+        setSelectedDatasourceId(datasourceId)
+        setMetricAddress(await handleGetDatasourceInfo(datasourceId))
+    }
+
+    const handleSubmit = async (values) => {
+        const currentPromQL = (promQL || values.promQL || '').trim()
+        if (!currentPromQL) {
+            message.error('PromQL 不可为空')
+            return
         }
-    }, [datasourceList, type, form])
 
-    const handleQueryMetrics = async () => {
-        setOpenMetricQueryModel(true)
-    };
+        try {
+            const labels = values.labels?.reduce((acc, { key, value }) => {
+                if (key) acc[key] = value
+                return acc
+            }, {})
 
-    const handleCloseMetricModel = () =>{
-        setOpenMetricQueryModel(false)
+            const params = {
+                ruleGroupId: parseInt(ruleGroupId, 10),
+                description: values.description || '',
+                datasourceType: 'Prometheus',
+                datasourceId: values.datasourceId,
+                metricName: values.metricName,
+                promQL: currentPromQL,
+                labels,
+                evalInterval: Number(values.evalInterval),
+                enabled
+            }
+
+            if (type === 'edit') {
+                await RecordingRuleUpdate({ ...params, ruleId })
+                message.success('记录规则更新成功')
+            } else {
+                await RecordingRuleCreate(params)
+                message.success('记录规则创建成功')
+            }
+            navigate(`/recordingRules/${ruleGroupId}/list`)
+        } catch (error) {
+            console.error(type === 'add' ? '创建记录规则失败:' : '更新记录规则失败:', error)
+            message.error(type === 'add' ? '创建记录规则失败' : '更新记录规则失败')
+        }
     }
 
-    const handleInputChange = (e) => {
-        // 移除输入值中的空格
-        const newValue = e.target.value.replace(/\s/g, '')
-        e.target.value = newValue
+    const handleInputChange = (event) => {
+        event.target.value = event.target.value.replace(/\s/g, '')
     }
 
-    if (loading) {
-        return <div style={{ padding: '20px', textAlign: 'center' }}>加载中...</div>
-    }
+    const hasDatasource = Boolean(selectedDatasourceId)
 
     return (
         <>
-            <Breadcrumb items={['告警管理', '记录规则', type === 'edit' ? '编辑' : '创建']} />
+            <Breadcrumb items={['告警管理', '记录规则', type === 'edit' ? '编辑规则' : '创建规则']} />
+            <main className="recording-rule-page">
+                <nav className="recording-rule-steps" aria-label="记录规则创建步骤">
+                    <div className="recording-rule-step is-active">
+                        <span>1</span><div><strong>基础信息</strong><small>指标名称与标签</small></div>
+                    </div>
+                    <div className={`recording-rule-step is-active`}>
+                        <span>2</span><div><strong>计算定义</strong><small>数据源与 PromQL</small></div>
+                    </div>
+                    <div className="recording-rule-step is-active">
+                        <span>3</span><div><strong>发布规则</strong><small>频率与启用状态</small></div>
+                    </div>
+                </nav>
 
-            <div style={{
-                textAlign: 'left',
-                width: '100%',
-                alignItems: 'flex-start',
-                maxHeight: 'calc((-120px + 100vh))',
-                overflowY: 'auto',
-                marginTop: '10px'
-            }}>        
+                <div className="recording-rule-workspace">
                     <Form
                         form={form}
+                        className="recording-rule-form"
                         layout="vertical"
                         onFinish={handleSubmit}
                         preserve={false}
-                        initialValues={{
-                            evalInterval: 60,
-                        }}
+                        initialValues={{ datasourceType: 'Prometheus', evalInterval: 60 }}
                     >
-                        {/* 基础信息 */}
-                        <div>                            
-                            <Form.Item
-                                label="指标名称"
-                                name="metricName"
-                                rules={[
-                                    { required: true, message: '请输入指标名称' },
-                                    { 
-                                        pattern: /^[a-zA-Z0-9_:]+$/,
-                                        message: '只允许输入英文、数字、下划线(_)和英文冒号(:)'
-                                    }
-                                ]}
-                            >
-                                <Input placeholder="请输入指标名称" />
-                            </Form.Item>
+                        <section className="recording-form-section">
+                            <div className="recording-section-heading">
+                                <div><span className="recording-section-index">01</span><h2>基础信息</h2></div>
+                            </div>
+                            <div className="recording-form-grid">
+                                <Form.Item
+                                    label="指标名称"
+                                    name="metricName"
+                                    rules={[
+                                        { required: true, message: '请输入指标名称' },
+                                        { pattern: METRIC_NAME_PATTERN, message: '只允许输入英文、数字、下划线(_)和英文冒号(:)' }
+                                    ]}
+                                >
+                                    <Input placeholder="例如：service:http_requests:rate5m" />
+                                </Form.Item>
+                                <Form.Item label="描述" name="description">
+                                    <Input placeholder="说明该指标的业务含义和计算方式（可选）" />
+                                </Form.Item>
+                            </div>
 
-                            <label>额外标签</label>
-                            <div style={{marginTop: '8px'}}>
+                            <Form.Item label="额外标签" >
                                 <Form.List name="labels">
                                     {(fields, { add, remove }) => (
-                                        <>
+                                        <div>
                                             {fields.map(({ key, name, ...restField }) => (
-                                                <div
-                                                    key={key}
-                                                    style={{
-                                                        display: "flex",
-                                                        marginBottom: 8,
-                                                        gap: "8px",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
+                                                <div key={key} className="recording-label-row">
                                                     <Form.Item
                                                         {...restField}
-                                                        name={[name, "key"]}
-                                                        style={{ flex: 3 }}
+                                                        name={[name, 'key']}
                                                         rules={[
-                                                            { required: true, message: "请输入标签键（key）" },
-                                                            { 
-                                                                pattern: /^[a-zA-Z0-9_]+$/,
-                                                                message: '只允许输入英文、数字、下划线(_)'
-                                                            }
+                                                            { required: true, message: '请输入标签键' },
+                                                            { pattern: LABEL_PATTERN, message: '标签键只允许英文、数字和下划线(_)' }
                                                         ]}
                                                     >
-                                                        <Input placeholder="键（key）" onChange={handleInputChange}/>
+                                                        <Input placeholder="标签键，例如：environment" onChange={handleInputChange} />
                                                     </Form.Item>
-
                                                     <Form.Item
                                                         {...restField}
-                                                        name={[name, "value"]}
-                                                        style={{ flex: 3 }}
+                                                        name={[name, 'value']}
                                                         rules={[
-                                                            { required: true, message: "请输入标签值（value）" },
-                                                            { 
-                                                                pattern: /^[a-zA-Z0-9_]+$/,
-                                                                message: '只允许输入英文、数字、下划线(_)'
-                                                            }
+                                                            { required: true, message: '请输入标签值' },
+                                                            { pattern: LABEL_PATTERN, message: '标签值只允许英文、数字和下划线(_)' }
                                                         ]}
                                                     >
-                                                        <Input placeholder="值（value）" onChange={handleInputChange}/>
+                                                        <Input placeholder="标签值，例如：production" onChange={handleInputChange} />
                                                     </Form.Item>
-
-                                                    <MinusCircleOutlined
-                                                        style={{
-                                                            marginTop: "-25px",
-                                                            display: "flex",
-                                                            justifyContent: "center",
-                                                            alignItems: "center",
-                                                            cursor: "pointer",
-                                                        }}
+                                                    <Button
+                                                        type="text"
+                                                        danger
+                                                        className="recording-remove-label"
+                                                        aria-label="删除标签"
+                                                        icon={<MinusCircleOutlined />}
                                                         onClick={() => remove(name)}
                                                     />
                                                 </div>
                                             ))}
+
 
                                             <Form.Item>
                                                 <Button
                                                     type="dashed"
                                                     onClick={() => add()}
                                                     block
-                                                    icon={<PlusOutlined />}
+                                                    icon={<PlusOutlined/>}
                                                     disabled={fields.length >= 10}
                                                 >
                                                     添加标签
                                                 </Button>
                                             </Form.Item>
-                                        </>
+                                        </div>
                                     )}
                                 </Form.List>
-                            </div>
-                     
-                            <Form.Item
-                                label="数据源"
-                                name="datasourceId"
-                                rules={[{ required: true, message: '请选择数据源' }]}
-                            >
-                                <Select
-                                    placeholder="请选择数据源"
-                                    showSearch
-                                    optionFilterProp="children"
-                                    onChange={(value)=>{handleSelectedDsItem(value)}}
-                                    filterOption={(input, option) =>
-                                        (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
-                                    }
-                                >
-                                    {datasourceList.map((ds) => (
-                                        <Option key={ds.id} value={ds.id}>
-                                            {ds.name}
-                                        </Option>
-                                    ))}
-                                </Select>
                             </Form.Item>
-                      
-                            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                <MyFormItem
-                                    name="promQL"
-                                    label={<><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>PromQL</>}
-                                    style={{width: '100%', height: '100%'}}
-                                >
-                                    <PrometheusPromQL
-                                        addr={metricAddress}
-                                        value={handleGetPromQL}
-                                        setPromQL={setPromQL}
-                                    />
-                                </MyFormItem>
-                                <Button
-                                    type="primary"
-                                    style={{backgroundColor: '#000', borderColor: '#000', marginTop: '5px'}}
-                                    onClick={() => {
-                                        if (selectedItems.length === 0) {
-                                            message.error("请先选择数据源")
-                                            return
-                                        }
-                                        handleQueryMetrics()
-                                    }}
-                                >
-                                    数据预览
-                                </Button>
-                            </div>
-                    
-                            <Form.Item
-                                label="执行频率"
-                                name="evalInterval"
-                                rules={[
-                                    { required: true, message: '请输入执行频率' },
-                                    { 
-                                        validator: (_, value) => {
-                                            if (!value || value >= 30) {
-                                                return Promise.resolve()
-                                            }
-                                            return Promise.reject(new Error('执行频率不能低于30秒'))
-                                        }
-                                    }
-                                ]}
-                            >
-                                <Input
-                                    type="number"
-                                    min={30} 
-                                    style={{ width: '100%' }} 
-                                    placeholder="请输入执行频率" 
-                                    addonAfter={"秒"}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value !== '' && !/^\d+$/.test(value)) {
-                                            e.target.value = value.replace(/\D/g, ''); // 移除非数字字符
-                                        }
-                                    }}
-                                />
-                            </Form.Item>
+                        </section>
 
-                            <div style={{display: 'flex', alignItems: 'center'}}>
-                                <span style={{marginRight: 8}}>启用/禁用</span>
-                                <Checkbox
-                                    style={{marginTop: '0', marginRight: '10px'}}
-                                    checked={enabled}
-                                    onChange={(e) => setEnabled(e.target.checked)}
-                                />
+                        <section className="recording-form-section">
+                            <div className="recording-section-heading">
+                                <div><span className="recording-section-index">02</span><h2>计算定义</h2></div>
                             </div>
-                        </div>
+                            <div className="recording-form-grid">
+                                <Form.Item
+                                    label="写入数据源"
+                                    name="datasourceId"
+                                    rules={[{ required: true, message: '请选择数据源' }]}
+                                >
+                                    <Select
+                                        placeholder="请选择支持远端写入的 Prometheus 数据源"
+                                        showSearch
+                                        optionFilterProp="children"
+                                        onChange={handleSelectedDatasource}
+                                        filterOption={(input, option) =>
+                                            (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                                        }
+                                    >
+                                        {datasourceList.map((datasource) => (
+                                            <Option key={datasource.id} value={datasource.id}>{datasource.name}</Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                                <Form.Item
+                                    label="执行频率"
+                                    name="evalInterval"
+                                    rules={[{ required: true, message: '请输入执行频率' }]}
+                                >
+                                    <InputNumber min={30} precision={0} addonAfter="秒" style={{ width: '100%' }} />
+                                </Form.Item>
+                            </div>
+                            <div className="recording-query-panel">
+                                <div className="recording-query-header">
+                                    <div>
+                                        <strong><span className="recording-required">*</span>PromQL</strong>
+                                        <span>查询结果将按执行频率写入目标数据源。</span>
+                                    </div>
+                                    <Button
+                                        icon={<BarChartOutlined />}
+                                        disabled={!hasDatasource}
+                                        onClick={() => setOpenMetricQueryModel(true)}
+                                    >
+                                        数据预览
+                                    </Button>
+                                </div>
+                                <Form.Item name="promQL" rules={[{ required: true, message: '请输入 PromQL' }]}>
+                                    <PrometheusPromQL addr={metricAddress} value={() => promQL || form.getFieldValue('promQL')} setPromQL={setPromQL} />
+                                </Form.Item>
+                            </div>
+                        </section>
 
-                        <div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px'}}>
-                            <Button onClick={() => navigate(-1)}>
-                                取消
-                            </Button>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                style={{
-                                    backgroundColor: '#000000'
-                                }}
-                                loading={loading}
-                            >
-                                {type === 'edit' ? '更新' : '提交'}
-                            </Button>
-                        </div>
+                        <section className="recording-form-section recording-publish-section">
+                            <div className="recording-section-heading">
+                                <div><span className="recording-section-index">03</span><h2>发布规则</h2></div>
+                            </div>
+                            <div className="recording-enable-row">
+                                <div>
+                                    <strong>启用规则</strong>
+                                    <span>{enabled ? '保存后立即开始计算和写入指标' : '保存为禁用状态，可稍后在规则列表中启用'}</span>
+                                </div>
+                                <Checkbox checked={enabled} onChange={(event) => setEnabled(event.target.checked)} />
+                            </div>
+                            <div className="recording-submit-bar">
+                                <div className="recording-submit-status">
+                                    <span className={`recording-status-dot ${enabled ? 'is-enabled' : ''}`} />
+                                    <span>{enabled ? '规则将处于启用状态' : '规则将处于禁用状态'}</span>
+                                </div>
+                                <div className="recording-submit-actions">
+                                    <Button onClick={() => navigate(-1)}>取消</Button>
+                                    <Button type="primary" htmlType="submit" loading={loading} className="recording-submit-button">
+                                        {type === 'edit' ? '保存修改' : '创建规则'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </section>
                     </Form>
-            </div>
+                </div>
+            </main>
 
             <Modal
                 centered
                 key={viewMetricsModalKey}
                 open={openMetricQueryModel}
                 onCancel={() => {
-                    handleCloseMetricModel()
-                    setViewMetricsModalKey(prev => prev + 1); // Change key to force remount
+                    setOpenMetricQueryModel(false)
+                    setViewMetricsModalKey((key) => key + 1)
                 }}
                 width={1000}
-                footer={null} // 不显示底部按钮
-                styles={{
-                    body: {
-                        height: '80vh', // 固定高度
-                        overflowY: 'auto', // 支持垂直滚动
-                        padding: '12px',
-                    },
-                }}
+                footer={null}
+                styles={{ body: { height: '80vh', overflowY: 'auto', padding: '12px' } }}
             >
                 <SearchViewMetrics
                     key={`search-view-${viewMetricsModalKey}`}
-                    datasourceType={"Prometheus"}
-                    datasourceId={[selectedItems]}
-                    promQL={promQL}
-                    displayMode='both'
+                    datasourceType="Prometheus"
+                    datasourceId={selectedDatasourceId ? [selectedDatasourceId] : []}
+                    promQL={promQL || form.getFieldValue('promQL')}
+                    displayMode="both"
                 />
             </Modal>
+
+            {loading && type === 'edit' && (
+                <div className="recording-loading-mask"><Spin tip="正在加载规则信息..." /></div>
+            )}
         </>
     )
 }
