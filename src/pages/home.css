@@ -12,74 +12,226 @@
 
 /* 平台介绍区域 */
 .hero-section {
+  position: relative;
   margin-bottom: 24px;
-  padding: 28px 32px;
-  background: linear-gradient(135deg, #fafbff 0%, #f5f3ff 50%, #faf5ff 100%);
+  padding: 30px 32px;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(129, 140, 248, 0.16), transparent 27%),
+    linear-gradient(135deg, #fafbff 0%, #f5f3ff 50%, #faf5ff 100%);
 }
 
 .hero-content {
   display: flex;
-  gap: 40px;
-  align-items: flex-start;
+  gap: 48px;
+  align-items: center;
 }
 
 .hero-text {
   flex: 1;
   min-width: 0;
+  max-width: 540px;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px 5px 6px;
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hero-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #fff;
+}
+
+.hero-title {
+  margin: 16px 0 10px;
+  color: #1f2937;
+  font-size: clamp(23px, 2.2vw, 30px);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+}
+
+.hero-description {
+  max-width: 510px;
+  margin: 0;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.hero-outcomes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.hero-outcome {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.hero-outcome svg {
+  color: #6366f1;
+}
+
+.hero-flow {
+  margin-top: 17px;
+  color: #98a2b3;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+}
+
+.hero-flow span {
+  margin: 0 5px;
+  color: #818cf8;
+}
+
+.hero-capabilities-wrap {
+  flex: 0 1 680px;
+  min-width: 0;
+}
+
+.hero-capabilities-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hero-capabilities-heading span:last-child {
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .hero-capabilities {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  flex-shrink: 0;
-  width: 680px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .capability-item {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 12px;
+  min-height: 67px;
+  padding: 11px;
+  border: 1px solid rgba(99, 102, 241, 0.09);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.72);
   transition: all 0.2s ease;
 }
 
 .capability-item:hover {
   background: #fff;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
-  border-color: rgba(102, 126, 234, 0.15);
-  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.22);
+  box-shadow: 0 5px 14px rgba(79, 70, 229, 0.08);
+  transform: translateY(-2px);
 }
 
 .capability-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  color: #667eea;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e9d5ff 100%);
+  color: #5b5ce2;
+}
+
+.capability-title {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.capability-description {
+  margin-top: 2px;
+  color: #98a2b3;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1200px) {
+  .hero-content {
+    gap: 30px;
+  }
+
+  .hero-capabilities-wrap {
+    flex-basis: 610px;
+  }
 }
 
 @media (max-width: 1024px) {
   .hero-content {
     flex-direction: column;
-    gap: 20px;
+    align-items: stretch;
+    gap: 24px;
   }
-  .hero-capabilities {
-    width: 100%;
-    grid-template-columns: repeat(3, 1fr);
+
+  .hero-text {
+    max-width: none;
+  }
+
+  .hero-capabilities-wrap {
+    flex-basis: auto;
   }
 }
 
 @media (max-width: 640px) {
+  .home-container {
+    padding: 24px 16px;
+  }
+
+  .hero-section {
+    padding: 24px 20px;
+  }
+
+  .hero-title {
+    font-size: 23px;
+  }
+
+  .hero-outcomes {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .hero-capabilities-heading span:last-child {
+    display: none;
+  }
+
   .hero-capabilities {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .capability-item {
+    min-height: 76px;
   }
 }
 

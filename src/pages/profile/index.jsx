@@ -1,4 +1,4 @@
-import { Avatar, Form, Input, Button, message, Tabs, Table, Modal, Space, Tooltip } from "antd";
+import { Avatar, Form, Input, Button, message, Segmented, Table, Modal, Space, Tooltip } from "antd";
 import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import React, { useEffect, useState } from "react";
 import { getUserInfo, updateUser } from "../../api/user";
@@ -16,6 +16,7 @@ export default function Profile() {
     const [loadingApiKeys, setLoadingApiKeys] = useState(false);
     const [apiKeyModalVisible, setApiKeyModalVisible] = useState(false);
     const [editingApiKey, setEditingApiKey] = useState(null);
+    const [activeSection, setActiveSection] = useState('profile');
     const [apiKeyForm] = Form.useForm();
 
     useEffect(() => {
@@ -243,10 +244,16 @@ export default function Profile() {
         <>
             <Breadcrumb items={['个人中心']} />
             <div className="container mx-auto p-4 mt-10">
-                <Tabs defaultActiveKey="profile" items={[{
-                    label: '个人信息',
-                    key: 'profile',
-                    children: (
+                <Segmented
+                    value={activeSection}
+                    onChange={(value) => setActiveSection(String(value))}
+                    options={[
+                        { label: '个人信息', value: 'profile' },
+                        { label: 'API密钥管理', value: 'apikeys' },
+                    ]}
+                />
+                <div style={{ marginTop: 16 }}>
+                    {activeSection === 'profile' && (
                         <div className="flex flex-col lg:flex-row gap-6">
                             {/* Left Column - Profile Info */}
                             <div className="lg:w-1/3 space-y-6 border-r border-white pr-6">
@@ -369,11 +376,8 @@ export default function Profile() {
                                 </section>
                             </div>
                         </div>
-                    )
-                }, {
-                    label: 'API密钥管理',
-                    key: 'apikeys',
-                    children: (
+                    )}
+                    {activeSection === 'apikeys' && (
                         <div>
                             <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
                                 <Button type="primary" style={{ backgroundColor: "#000000" }} onClick={showCreateApiKeyModal}>
@@ -430,8 +434,8 @@ export default function Profile() {
                                 </Form>
                             </Modal>
                         </div>
-                    )
-                }]} />
+                    )}
+                </div>
             </div>
         </>
     );

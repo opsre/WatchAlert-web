@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useContext, useMemo } from "react"
-import {Alert, Tabs, Form, Input, Select, Button, Collapse, Table, Tag, Progress, Spin, Typography, Space, message} from "antd"
+import {Alert, Segmented, Form, Input, Select, Button, Collapse, Table, Tag, Progress, Spin, Typography, Space, message} from "antd"
 import Marquee from "react-fast-marquee"
 import { ProbingOnce } from "../../api/probing"
 import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
@@ -43,7 +43,7 @@ export const OnceProbing = () => {
     const [form] = Form.useForm()
     const [loading, setLoading] = useState(false)
 
-    const tabs = [
+    const probingTypeOptions = [
         { key: "1", label: "HTTP" },
         { key: "2", label: "ICMP" },
         { key: "3", label: "TCP" },
@@ -448,7 +448,7 @@ export const OnceProbing = () => {
     return (
         <Spin spinning={loading} tip="加载中...">
             <Breadcrumb items={['网络分析', '即时拨测']} />
-            <div>
+            <div style={{ marginBottom: "12px" }}>
                 <Alert
                     banner
                     type="info"
@@ -458,15 +458,21 @@ export const OnceProbing = () => {
                         </Marquee>
                     }
                 />
-                <Tabs defaultActiveKey="1" items={tabs} onChange={handleChangeProbingType} />
             </div>
+            
+            <Segmented
+                defaultValue="1"
+                options={probingTypeOptions.map(({ key, label }) => ({ value: key, label }))}
+                onChange={(value) => handleChangeProbingType(String(value))}
+                style={{ marginBottom: '12px' }}
+            />
+        
             <div
                 style={{
                     textAlign: "left",
                     marginTop: "-15px",
                     maxHeight: height - 300,
                     overflow: "auto",
-                    padding: "10px",
                     border: "none",
                     borderRadius: "8px",
                     backgroundColor: "#fff",

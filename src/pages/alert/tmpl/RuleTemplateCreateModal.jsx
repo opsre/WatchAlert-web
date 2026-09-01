@@ -7,8 +7,7 @@ import {
     Select,
     InputNumber,
     Divider,
-    Card,
-    Tabs
+    Card
 } from 'antd'
 import React, { useState, useEffect } from 'react'
 import {createRuleTmpl, updateRuleTmpl} from '../../../api/ruleTmpl'
@@ -761,7 +760,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
 
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
-                                {/*<Tabs*/}
+                                {/*<Segmented*/}
                                 {/*    activeKey={esFilterType}*/}
                                 {/*    onChange={setEsFilterType}*/}
                                 {/*    items={[*/}

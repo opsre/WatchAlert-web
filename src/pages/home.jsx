@@ -199,70 +199,56 @@ export const Home = () => {
         <div className="hero-section panel" style={panelStyle}>
           <div className="hero-content">
             <div className="hero-text">
-              <p style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: '#595959',
-                margin: 0,
-                lineHeight: 1.8,
-                maxWidth: 520,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}>
-                一款专为云原生环境设计 的轻量级监控告警引擎，
+              <div className="hero-eyebrow">
+                <span className="hero-mark"><Activity size={15} strokeWidth={2.5} /></span>
+                WatchAlert 可观测与告警平台
+              </div>
+              <h1 className="hero-title">让每一次异常，都能更快地被发现与处理</h1>
+              <p className="hero-description">
+                汇聚指标、日志与链路信号，帮助团队从告警发现、影响研判到协同处置形成闭环，
+                用更少的噪音聚焦真正需要响应的问题。
               </p>
-              <p style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: '#595959',
-                margin: 0,
-                lineHeight: 1.8,
-                maxWidth: 520,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}>
-                聚焦于可观测性（Metrics、Logs、Traces）与系统稳定性保障。
-              </p>
-              <p style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: '#595959',
-                margin: 0,
-                lineHeight: 1.8,
-                maxWidth: 520,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}>
-                使用 <a href="https://cairry.github.io/sreflow-docs/" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'underline' }}>AI 驱动的 SRE 工作流自动化平台</a>，从你的第一个 Workflow 开始，让告警响应快人一步。
-              </p>
+              <div className="hero-outcomes">
+                <div className="hero-outcome">
+                  <TrendingUp size={16} />
+                  <span>统一观测，主动发现风险</span>
+                </div>
+                <div className="hero-outcome">
+                  <Shield size={16} />
+                  <span>分级告警，降低响应噪音</span>
+                </div>
+                <div className="hero-outcome">
+                  <Users size={16} />
+                  <span>团队协同，沉淀处置经验</span>
+                </div>
+              </div>
             </div>
 
-            <div className="hero-capabilities">
-              {[
-                { icon: Globe, label: '多源接入', desc: 'Metrics / Logs / Traces 等' },
-                { icon: Zap, label: '智能规则', desc: '简单易用、支持多条件组合...' },
-                { icon: Bell, label: '多渠道通知', desc: '飞书 / 钉钉 / 企微 / 邮件...' },
-                { icon: Server, label: '故障中心', desc: '统一故障管理与事件追踪' },
-                { icon: Layers, label: '服务发现', desc: 'HTTP SD 动态目标管理' },
-                { icon: LineChart, label: '记录规则', desc: '预计算指标，提升查询性能' },
-              ].map((item) => (
-                <div key={item.label} className="capability-item">
-                  <div className="capability-icon">
-                    <item.icon size={16} strokeWidth={2} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#262626', lineHeight: 1.4 }}>
-                      {item.label}
+            <div className="hero-capabilities-wrap">
+              <div className="hero-capabilities-heading">
+                <span>核心能力</span>
+                <span>覆盖日常运维与故障响应</span>
+              </div>
+              <div className="hero-capabilities">
+                {[
+                  { icon: Globe, label: '多源接入', desc: 'Metrics / Logs / Traces 等' },
+                  { icon: Zap, label: '智能规则', desc: '简单易用，支持多条件组合' },
+                  { icon: Bell, label: '多渠道通知', desc: '飞书 / 钉钉 / 企微 / 邮件' },
+                  { icon: Server, label: '故障中心', desc: '统一管理事件与处置进度' },
+                  { icon: Layers, label: '服务发现', desc: 'HTTP SD 动态目标管理' },
+                  { icon: LineChart, label: '记录规则', desc: '预计算指标，提升查询性能' },
+                ].map((item) => (
+                  <div key={item.label} className="capability-item">
+                    <div className="capability-icon">
+                      <item.icon size={16} strokeWidth={2} />
                     </div>
-                    <div style={{ fontSize: 11, color: '#8c8c8c', lineHeight: 1.4 }}>
-                      {item.desc}
+                    <div>
+                      <div className="capability-title">{item.label}</div>
+                      <div className="capability-description">{item.desc}</div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>

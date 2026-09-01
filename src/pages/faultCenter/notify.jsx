@@ -16,6 +16,7 @@ import {
     message,
     Spin,
     Tag,
+    Radio
 } from "antd"
 import {
     EditOutlined,
@@ -29,10 +30,13 @@ import {
     InfoCircleOutlined,
     TeamOutlined,
     SettingOutlined,
+    BlockOutlined
 } from "@ant-design/icons"
 import { FaultCenterSearch, FaultCenterUpdate } from "../../api/faultCenter"
 import { useParams } from "react-router-dom"
 import { getNoticeList } from "../../api/notice"
+import { FaultCenterReset } from "../../api/faultCenter";
+import { AlarmUpgrade } from "./upgrade";
 
 const { Title, Text, Paragraph } = Typography
 const { Option } = Select
@@ -62,8 +66,7 @@ export const FaultCenterNotify = () => {
     const { id } = useParams()
     const [form] = Form.useForm()
     const [detail, setDetail] = useState({})
-    const [noticeRoutes, setNoticeRoutes] = useState([])
-    const [noticeLabels, setNoticeLabels] = useState([])
+    const [selectedAggregationType, setSelectedAggregationType] = useState("None")
     const [noticeOptions, setNoticeOptions] = useState([])
     const [basicEditable, setBasicEditable] = useState(false)
     const [routeEditable, setRouteEditable] = useState(false)
@@ -103,6 +106,7 @@ export const FaultCenterNotify = () => {
             }
 
             setDetail(data)
+            setSelectedAggregationType(data?.aggregationType || "None")
 
             // 处理 noticeRoutes 数据，兼容旧数据和新的 labels 格式
             const routes = (data.noticeRoutes || []).map((route) => {
@@ -231,6 +235,27 @@ export const FaultCenterNotify = () => {
         }
     }
 
+    // 处理聚合模式变化
+    const handleAggregationModeChange = async (e) => {
+        setSelectedAggregationType(e.target.value)
+        const params = {
+            id,
+            ["aggregationType"]: e.target.value,
+        }
+        await FaultCenterReset(params);
+    };
+
+    const radioOptions = [
+        {
+            label: '相同规则聚合',
+            value: 'Rule',
+        },
+        {
+            label: '不聚合',
+            value: 'None',
+        },
+    ];
+
     if (loading) {
         return (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "400px" }}>
@@ -241,7 +266,22 @@ export const FaultCenterNotify = () => {
 
     return (
         <div className="notify-config-container">
-            <div style={{ marginBottom: "24px" }}>
+
+            <div >
+                <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
+                    <BlockOutlined style={{ marginRight: "12px" }} />
+                    告警聚合
+                </Title>
+                <Radio.Group
+                    block
+                    options={radioOptions}
+                    defaultValue="None"
+                    value={selectedAggregationType}
+                    onChange={handleAggregationModeChange}
+                />
+            </div>
+
+            <div style={{ marginTop: "32px", paddingTop: "28px", borderTop: "1px solid #f0f0f0", marginBottom: "24px" }}>
                 <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
                     <BellOutlined style={{ marginRight: "12px" }} />
                     通知配置
@@ -723,6 +763,10 @@ export const FaultCenterNotify = () => {
                     </Col>
                 </Row>
             </Form>
+
+            <div style={{ marginTop: "32px", paddingTop: "28px", borderTop: "1px solid #f0f0f0" }}>
+                <AlarmUpgrade />
+            </div>
 
             <style jsx>{`
                 .notify-config-container .ant-form-item-label > label {

@@ -9,16 +9,15 @@ import {
   Tag,
   Space,
   Button,
-  Pagination,
   Empty,
   Tooltip,
-  Input
+  Input,
+  Select
 } from 'antd';  // 添加 Empty 组件
 import { CreateSilenceModal } from './SilenceRuleCreateModal';
 import { deleteSilence, getSilenceList } from '../../api/silence';
 import {
     BellOutlined,
-    BlockOutlined,
     DeleteOutlined,
     ExclamationCircleOutlined,
     MoreOutlined, 
@@ -27,22 +26,20 @@ import {
     SearchOutlined // 添加搜索图标
 } from "@ant-design/icons";
 import "../alert/rule/index.css";
-import {FaultCenterReset} from "../../api/faultCenter";
+import { FaultCenterList } from "../../api/faultCenter";
 import {HandleShowTotal} from "../../utils/lib";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 const { Title } = Typography
 const { Search } = Input
 const { confirm } = Modal;
 
-export const Silences = (props) => {
-    const { faultCenterId, aggregationType } = props;
+export const Silences = () => {
     const [selectedRow, setSelectedRow] = useState(null);
     const [updateVisible, setUpdateVisible] = useState(false);
     const [visible, setVisible] = useState(false);
     const [list, setList] = useState([]); // 初始化list为空数组
-    const [selectedCard, setSelectedCard] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [selectedAggregationType, setSelectedAggregationType] = useState(aggregationType)
     const [pagination, setPagination] = useState({
         index: 1,
         size: 10,
@@ -51,6 +48,21 @@ export const Silences = (props) => {
     const [searchText, setSearchText] = useState(''); // 添加搜索文本状态
     const [height, setHeight] = useState(window.innerHeight)
     const [selectStatus, setSelectStatus] = useState("1")
+    const [faultCenters, setFaultCenters] = useState([])
+    const [selectedFaultCenter, setSelectedFaultCenter] = useState(undefined)
+
+    const fetchFaultCenters = async () => {
+        try {
+            const res = await FaultCenterList()
+            setFaultCenters(res?.data || [])
+        } catch (error) {
+            console.error("获取故障中心列表失败:", error)
+        }
+    }
+
+    useEffect(() => {
+        fetchFaultCenters()
+    }, [])
 
     useEffect(() => {
         // 定义一个处理窗口大小变化的函数
@@ -69,17 +81,17 @@ export const Silences = (props) => {
 
     useEffect(() => {
         handleList();
-    }, [pagination.index, pagination.size]);  // 添加分页依赖
+    }, [pagination.index, pagination.size]);
 
     // 获取所有数据
-    const handleList = async (status) => {
+    const handleList = async ({ status = selectStatus, query = searchText, pageIndex = pagination.index } = {}) => {
         try {
             const params = {
-                index: pagination.index,
+                index: pageIndex,
                 size: pagination.size,
-                faultCenterId: faultCenterId,
-                query: searchText || undefined, // 添加搜索参数
-                status: status || "1"
+                faultCenterId: selectedFaultCenter || undefined,
+                query: query || undefined,
+                status,
             };
 
             setLoading(true);
@@ -114,7 +126,7 @@ export const Silences = (props) => {
     const handleDelete = async (record) => {
         try {
             const params = {
-                faultCenterId: faultCenterId,
+                faultCenterId: record.faultCenterId || record.fault_center_id || selectedFaultCenter,
                 id: record.id,
                 name: record.name,
             };
@@ -135,32 +147,6 @@ export const Silences = (props) => {
         setSelectedRow(null); // 清除选中行
     };
 
-    useEffect(() => {
-        if (selectedCard === null) {
-            setSelectedCard(0);
-        }
-    }, []);
-
-    // 处理聚合模式变化
-    const handleAggregationModeChange = async (e) => {
-        setSelectedAggregationType(e.target.value)
-        const params = {
-            id: faultCenterId,
-            ["aggregationType"]: e.target.value,
-        }
-        await FaultCenterReset(params);
-    };
-
-    const radioOptions = [
-        {
-            label: '相同规则聚合',
-            value: 'Rule',
-        },
-        {
-            label: '不聚合',
-            value: 'None',
-        },
-    ];
 
     // 格式化时间
     const formatDate = (timestamp) => {
@@ -330,45 +316,31 @@ export const Silences = (props) => {
     // 处理搜索
     const handleSearch = (value) => {
         setSearchText(value);
-        // 重置到第一页并搜索
-        setPagination({
-            ...pagination,
-            index: 1
-        });
-        handleList();
+        setPagination((current) => ({
+            ...current,
+            index: 1,
+        }));
+        handleList({ query: value, pageIndex: 1 });
     };
 
-    const changeStatus = async ({ target: { value } }) => {
+    const changeStatus = ({ target: { value } }) => {
         setSelectStatus(value)
-        handleList(value)
+        setPagination((current) => ({
+            ...current,
+            index: 1,
+        }))
+        handleList({ status: value, pageIndex: 1 })
     }
 
     return (
-        <div style={{ marginTop: "5px" }}>
-            <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
-                <BlockOutlined style={{ marginRight: "12px" }} />
-                告警聚合
-            </Title>
-            <Radio.Group
-                block
-                options={radioOptions}
-                defaultValue="None"
-                value={selectedAggregationType}
-                onChange={handleAggregationModeChange}
-                style={{ marginBottom: "24px" }}
-            />
-
-            <Title level={4} style={{ marginTop: '20px', fontSize: "16px" }}>
-                <PauseCircleOutlined style={{ marginRight: "12px" }} />
-                静默规则
-            </Title>
-            
+        <div>
+            <Breadcrumb items={['通知管理', '通知对象']} />            
             <div style={{ 
                 display: 'flex', 
                 marginBottom: '16px',
                 justifyContent: 'space-between',
             }}>
-                <div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                     <Radio.Group
                         options={[
                             { label: "全部", value: "all" },
@@ -376,7 +348,7 @@ export const Silences = (props) => {
                             { label: "生效中", value: "1" },
                             { label: "已失效", value: "2" },
                         ]}
-                        defaultValue={selectStatus}
+                        value={selectStatus}
                         onChange={changeStatus}
                         optionType="button"
                     />
@@ -407,10 +379,10 @@ export const Silences = (props) => {
             </div>
 
             <div style={{ display: 'flex' }}>
-                <CreateSilenceModal visible={visible} onClose={handleModalClose} type='create' handleList={handleList} faultCenterId={faultCenterId} />
+                <CreateSilenceModal visible={visible} onClose={handleModalClose} type='create' handleList={handleList} faultCenterId={selectedFaultCenter} />
 
                 <CreateSilenceModal visible={updateVisible} onClose={handleUpdateModalClose} selectedRow={selectedRow}
-                                    type='update' handleList={handleList} faultCenterId={faultCenterId} />
+                                    type='update' handleList={handleList} faultCenterId={selectedRow?.faultCenterId || selectedRow?.fault_center_id || selectedFaultCenter} />
             </div>
 
             <div style={{

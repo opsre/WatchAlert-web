@@ -133,7 +133,7 @@ export const NoticeObjects = () => {
                                     key: 'copy',
                                     icon: <CopyOutlined />,
                                     label: '复制',
-                                    onClick: (e) => handleCopy(record, e)
+                                    onClick: ({ domEvent }) => handleCopy(record, domEvent)
                                 },
                                 {
                                     key: 'delete',

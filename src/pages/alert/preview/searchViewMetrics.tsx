@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Spin, Tag, Empty, Card, Typography, Space, Divider, Row, Col, Alert, Tabs, Table } from "antd"
+import { Spin, Tag, Empty, Card, Typography, Space, Divider, Row, Col, Alert, Segmented, Table } from "antd"
 import {
     ClockCircleOutlined,
     TagsOutlined,
@@ -381,7 +381,7 @@ export const SearchViewMetrics = ({
         } else if (displayMode === 'chart') {
             return renderChartView()
         } else {
-            // both 模式，显示 tabs
+            // both 模式，显示 Segmented 选择器
             const tabItems = [
                 {
                     key: 'card',
@@ -406,12 +406,16 @@ export const SearchViewMetrics = ({
             ]
 
             return (
-                <Tabs
-                    activeKey={activeTab}
-                    onChange={handleTabChange}
-                    items={tabItems}
-                    style={{ marginTop: "10px" }}
-                />
+                <div style={{ marginTop: "10px" }}>
+                    <Segmented
+                        value={activeTab}
+                        onChange={(value) => handleTabChange(String(value))}
+                        options={tabItems.map(({ key, label }) => ({ value: key, label }))}
+                    />
+                    <div style={{ marginTop: "16px" }}>
+                        {activeTab === 'card' ? renderCardView() : renderChartView()}
+                    </div>
+                </div>
             )
         }
     }

@@ -42,6 +42,7 @@ const adminMenuItems = [
                 label: '告警管理',
                 children: [
                     { key: '2-1', path: '/ruleGroup', label: '告警规则' },
+                    { key: '2-2', path: '/silenceRules', label: '静默规则' },
                     { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
                 ]
             },
@@ -142,6 +143,7 @@ const userMenuItems = [
                 label: '告警管理',
                 children: [
                     { key: '2-1', path: '/ruleGroup', label: '告警规则' },
+                    { key: '2-2', path: '/silenceRules', label: '静默规则' },
                     { key: '2-5', path: '/tmplType/Metrics/group', label: '规则模版' },
                 ]
             },

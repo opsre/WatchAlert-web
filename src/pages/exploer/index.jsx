@@ -12,13 +12,13 @@ import {
     Row,
     Col,
     Alert,
-    Tabs,
     Table,
     DatePicker,
     InputNumber,
     Spin,
     Tag,
     message,
+    Segmented
 } from "antd"
 import {
     PlusOutlined,
@@ -616,29 +616,34 @@ export const DataAnalysis = () => {
                         </Col>
                     </Row>
                     
-                    <Tabs
-                        activeKey={activeTab}
-                        onChange={handleTabChange}
-                        items={[
+                    <Segmented
+                        value={activeTab}
+                        onChange={(value) => handleTabChange(String(value))}
+                        options={[
                             {
-                                key: 'card',
+                                value: 'card',
                                 label: (
                                     <span>
                                         <AppstoreOutlined style={{ marginRight: '8px' }} />
                                         Card
                                     </span>
                                 ),
-                                children: <MetricTable metrics={cardData} loading={loading} />,
                             },
                             {
-                                key: 'chart',
+                                value: 'chart',
                                 label: (
                                     <span>
                                         <LineChartOutlined style={{ marginRight: '8px' }} />
                                         Graph
                                     </span>
                                 ),
-                                children: (
+                            },
+                        ]}
+                    />
+                    <div style={{ marginTop: '16px' }}>
+                        {activeTab === 'card' ? (
+                            <MetricTable metrics={cardData} loading={loading} />
+                        ) : (
                                     <div>
                                         {/* 时间范围和步长设置 - 在视图下方，数据上方 */}
                                         <Row gutter={16} align="middle" style={{ marginBottom: '16px' }}>
@@ -670,11 +675,8 @@ export const DataAnalysis = () => {
                                         {/* 图表和数据表格 */}
                                         <ChartView chartData={chartData} metrics={cardData} loading={loading} />
                                     </div>
-                                ),
-                            },
-                        ]}
-                        destroyInactiveTabPane={true}
-                    />
+                        )}
+                    </div>
                     
                     {/* 移除按钮（除了第一个查询） */}
                     {index > 0 && (

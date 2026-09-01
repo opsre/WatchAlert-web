@@ -20,7 +20,7 @@ import {
     Menu, Radio, Checkbox, Tooltip, Typography,
     List,
     Form,
-    Card, Avatar, Popconfirm,
+    Card, Avatar, Popconfirm, Row, Col,
 } from "antd"
 import {
     AddEventComment,
@@ -66,8 +66,90 @@ import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
 import { noticeRecordList } from "../../api/notice"
 import { NotificationTypeIcon } from "../notice/notification-type-icon"
+import { FaultCenterSlo } from "../../api/faultCenter"
+import moment from "moment"
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from "recharts"
 
 const { Text } = Typography
+
+const formatSloDuration = (seconds) => {
+    if (seconds === null || seconds === undefined || Number.isNaN(Number(seconds))) return "-"
+
+    const total = Math.abs(Math.floor(Number(seconds)))
+    const days = Math.floor(total / 86400)
+    const hours = Math.floor((total % 86400) / 3600)
+    const minutes = Math.floor((total % 3600) / 60)
+    const secs = total % 60
+    const parts = []
+
+    if (days) parts.push(`${days}天`)
+    if (hours) parts.push(`${hours}小时`)
+    if (minutes) parts.push(`${minutes}分`)
+    if (secs || parts.length === 0) parts.push(`${secs}秒`)
+
+    return parts.join(" ")
+}
+
+const getSloAverage = (data, key) => {
+    const values = (Array.isArray(data) ? data : [])
+        .map((item) => Number(item[key]))
+        .filter((value) => Number.isFinite(value))
+
+    if (values.length === 0) return null
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
+}
+
+const SloMetricCard = ({ title, subtitle, dataKey, data, loading, gradientId, icon }) => (
+    <div
+        style={{
+            height: 250,
+            padding: 20,
+            border: "1px solid #ddddddff",
+            borderRadius: 12,
+            background: "#fff",
+        }}
+    >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            <div>
+                <Text strong style={{ display: "block", fontSize: 13 }}>{title}</Text>
+                <Text type="secondary" style={{ display: "block", marginTop: 2, fontSize: 11 }}>{subtitle}</Text>
+            </div>
+            <span aria-hidden="true" style={{ fontSize: 18 }}>{icon}</span>
+        </div>
+        <Text type="secondary" style={{ display: "block", marginBottom: 16, fontSize: 12 }}>
+            7日平均: {formatSloDuration(getSloAverage(data, dataKey))}
+        </Text>
+        <Spin spinning={loading}>
+            <ResponsiveContainer width="100%" height={140}>
+                <AreaChart data={data}>
+                    <defs>
+                        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#cacacaff" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="#cacacaff" stopOpacity={0.05} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#cacacaff" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={{ stroke: "#cacacaff" }} tickLine={{ stroke: "#cacacaff" }} />
+                    <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={{ stroke: "#cacacaff" }} tickLine={{ stroke: "#cacacaff" }} tickFormatter={(value) => `${value}s`} width={40} />
+                    <RechartsTooltip
+                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #cacacaff", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", fontSize: 12 }}
+                        labelStyle={{ color: "#000000ff", fontWeight: 600 }}
+                        formatter={(value) => formatSloDuration(value)}
+                    />
+                    <Area
+                        type="monotone"
+                        dataKey={dataKey}
+                        stroke="#000000ff"
+                        strokeWidth={1.5}
+                        fill={`url(#${gradientId})`}
+                        dot={{ fill: "#000000ff", strokeWidth: 1, r: 2, stroke: "#fff" }}
+                        activeDot={{ r: 6, strokeWidth: 2 }}
+                    />
+                </AreaChart>
+            </ResponsiveContainer>
+        </Spin>
+    </div>
+)
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -108,6 +190,8 @@ export const AlertCurrentEvent = (props) => {
     const [newComment, setNewComment] = useState("")
     const [sortOrder,setSortOrder] = useState(null)
     const [metricData, setMetricData] = useState({})
+    const [sloChartData, setSloChartData] = useState([])
+    const [sloLoading, setSloLoading] = useState(false)
     const [noticeSelectEventId, setNoticeSelectEventId] = useState('')
     const [noticeRecords, setNoticeRecords] = useState([])  
     const [noticeDrawerOpen, setNoticeDrawerOpen] = useState(false)  
@@ -402,6 +486,40 @@ export const AlertCurrentEvent = (props) => {
         }
     }, [])
 
+    const fetchSloMetrics = async () => {
+        if (!id) {
+            setSloChartData([])
+            return
+        }
+
+        try {
+            setSloLoading(true)
+            const res = await FaultCenterSlo({
+                tenantId: localStorage.getItem("TenantID"),
+                id,
+            })
+            const mtta = Array.isArray(res?.data?.mtta) ? res.data.mtta : []
+            const mttr = Array.isArray(res?.data?.mttr) ? res.data.mttr : []
+
+            setSloChartData(
+                Array.from({ length: 7 }, (_, index) => ({
+                    date: moment().subtract(6 - index, "days").format("MM-DD"),
+                    mtta: Math.round(Number(mtta[index] ?? 0)),
+                    mttr: Math.round(Number(mttr[index] ?? 0)),
+                })),
+            )
+        } catch (error) {
+            console.error("获取 SLO 数据失败:", error)
+            setSloChartData([])
+        } finally {
+            setSloLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchSloMetrics()
+    }, [id])
+
     useEffect(() => {
         // 当过滤条件改变时，重置到第一页并获取数据
         if (isFiltering) {
@@ -512,6 +630,7 @@ export const AlertCurrentEvent = (props) => {
 
     const handleRefresh = () => {
         handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
+        fetchSloMetrics()
     }
 
     const handleCloseAiAnalyze = () => {
@@ -1167,6 +1286,33 @@ export const AlertCurrentEvent = (props) => {
                     </div>
                 </div>
             </Drawer>
+
+            {id && (
+                <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+                    <Col xs={24} lg={12}>
+                        <SloMetricCard
+                            title="平均修复时间 (MTTR)"
+                            subtitle="Mean Time To Repair"
+                            dataKey="mttr"
+                            data={sloChartData}
+                            loading={sloLoading}
+                            gradientId="currentEventMttrGradient"
+                            icon="⚡"
+                        />
+                    </Col>
+                    <Col xs={24} lg={12}>
+                        <SloMetricCard
+                            title="平均响应时间 (MTTA)"
+                            subtitle="Mean Time To Acknowledge"
+                            dataKey="mtta"
+                            data={sloChartData}
+                            loading={sloLoading}
+                            gradientId="currentEventMttaGradient"
+                            icon="⏱️"
+                        />
+                    </Col>
+                </Row>
+            )}
 
             <div style={{ marginBottom: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

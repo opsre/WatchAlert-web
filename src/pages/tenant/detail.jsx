@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {Descriptions,Tabs} from "antd";
+import {Descriptions, Segmented} from "antd";
 import {TenantSecurity} from "./security";
 import {TenantQuota} from "./quota";
 import {TenantUsers} from "./users";
@@ -11,6 +11,7 @@ import { Breadcrumb } from "../../components/Breadcrumb";
 export const TenantDetail = ()=>{
     const { id } = useParams()
     const [tenantInfo,setTenantInfo] = useState({})
+    const [activeTab, setActiveTab] = useState('1')
 
     useEffect(() => {
         handleGetTenantInfo();
@@ -82,7 +83,14 @@ export const TenantDetail = ()=>{
 
                 <div style={{marginTop:'20px'}}>
                     <span style={{fontSize:'16px',color:'rgba(0, 0, 0, 0.88)',fontWeight:'600'}}>高级配置</span>
-                    <Tabs defaultActiveKey="1" items={itemsTabs} />
+                    <Segmented
+                        value={activeTab}
+                        onChange={(value) => setActiveTab(String(value))}
+                        options={itemsTabs.map(({ key, label }) => ({ value: key, label }))}
+                    />
+                    <div style={{ marginTop: '16px' }}>
+                        {itemsTabs.find((item) => item.key === activeTab)?.children}
+                    </div>
                 </div>
             </div>
         </>

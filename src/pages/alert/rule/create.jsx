@@ -1633,7 +1633,7 @@ export const AlertRule = ({ type }) => {
 
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
-                                {/*<Tabs*/}
+                                {/*<Segmented*/}
                                 {/*    activeKey={esFilterType}*/}
                                 {/*    onChange={setEsFilterType}*/}
                                 {/*    items={[*/}

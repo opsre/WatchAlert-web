@@ -62,7 +62,7 @@ export default [
     },
     {
         path: '/silenceRules',
-        element: <ComponentsContent name="静默规则" c={<Silences />} />
+        element: <ComponentsContent name="告警管理 / 静默规则" c={<Silences />} />
     },
     {
         path: '/tmplType/:tmplType/group',
