@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
     deleteDashboardFolder,
-    getFolderList,
-    searchDashboard
+    getFolderList
 } from '../../../api/dashboard';
 import CreateFolderModal from './create';
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined} from "@ant-design/icons";

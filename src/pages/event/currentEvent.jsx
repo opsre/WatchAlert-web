@@ -33,7 +33,7 @@ import {
 import TextArea from "antd/es/input/TextArea"
 import { ReqAiAnalyze } from "../../api/ai"
 import MarkdownRenderer from "../../utils/MarkdownRenderer"
-import { Clock } from "lucide-react"
+import { ClockIcon as Clock } from "lucide-react"
 import {
     DownOutlined,
     ReloadOutlined,

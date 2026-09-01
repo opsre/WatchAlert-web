@@ -2,7 +2,7 @@
 
 import { Calendar, Button, message, Spin } from "antd"
 import React, { useState, useEffect, useCallback } from "react"
-import {CalendarIcon, Plus, Users} from "lucide-react"
+import { CalendarIcon } from "lucide-react"
 import { UpdateCalendarModal } from "./UpdateCalendar"
 import { searchCalendar } from "../../../api/duty"
 import { useParams } from "react-router-dom"

@@ -17,7 +17,6 @@ import { Breadcrumb } from "../../../components/Breadcrumb"
 import { PrometheusPromQL } from "../../promethues";
 import { SearchViewMetrics } from "../preview/searchViewMetrics.tsx";
 import { useAppContext } from '../../../context/RuleContext';
-import { number } from 'framer-motion'
 
 const MyFormItemContext = React.createContext([])
 const { Option } = Select;

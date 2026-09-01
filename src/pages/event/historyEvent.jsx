@@ -26,7 +26,7 @@ import { DownloadOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/ic
 import dayjs from "dayjs"
 import { AddEventComment, DeleteEventComment, getHisEventList, ListEventComments } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
-import { Clock } from "lucide-react"
+import { ClockIcon as Clock } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { exportAlarmRecordToHTML } from "../../utils/exportAlarmRecordToHTML"
 import {

@@ -3,7 +3,6 @@ import { Table, message, Button, Drawer, Select, Input, Tag } from "antd"
 import { listAuditLog, searchAuditLog } from "../../api/auditLog"
 import moment from "moment"
 import JsonViewer from "react-json-view"
-import {FileText} from "lucide-react";
 import {HandleShowTotal} from "../../utils/lib";
 import {ReloadOutlined} from "@ant-design/icons";
 import { TableWithPagination } from "../../utils/TableWithPagination"

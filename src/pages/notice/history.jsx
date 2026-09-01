@@ -20,7 +20,7 @@ import {
 import { noticeRecordList } from "../../api/notice"
 import TextArea from "antd/es/input/TextArea"
 import { NotificationTypeIcon } from "./notification-type-icon"
-import { SearchIcon, AlertTriangle } from "lucide-react"
+import { SearchIcon, AlertTriangleIcon as AlertTriangle } from "lucide-react"
 import {HandleShowTotal} from "../../utils/lib";
 import {ReloadOutlined} from "@ant-design/icons";
 

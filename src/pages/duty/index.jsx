@@ -7,7 +7,6 @@ import { deleteDutyManager, getDutyManagerList } from '../../api/duty';
 import {Link} from "react-router-dom";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
-import {Users} from "lucide-react";
 import { Breadcrumb } from "../../components/Breadcrumb";
 
 export const DutyManage = () => {

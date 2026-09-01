@@ -1,6 +1,5 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import './global.css';
 import { checkUser, loginUser, registerUser, getOidcInfo } from '../api/user';
@@ -145,10 +144,7 @@ export const Login = () => {
 
             {/* 右侧登录区域 */}
             <div className="w-full md:w-1/2 flex items-center justify-center px-6 py-12">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
+                <div
                     className="bg-white text-black rounded-2xl shadow-xl w-full max-w-md p-8"
                 >
                     <h1 className="text-2xl font-medium mb-2">欢迎回来</h1>
@@ -238,7 +234,7 @@ export const Login = () => {
                             <p className="text-black text-center text-sm py-3 rounded-lg cursor-pointer hover:underline" onClick={()=> setShowOidcButtons(false)}>Login as administrator</p>
                         </div>
                     )}
-                </motion.div>
+                </div>
             </div>
         </div>
     );
