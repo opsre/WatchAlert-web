@@ -334,7 +334,7 @@ export const Silences = () => {
 
     return (
         <div>
-            <Breadcrumb items={['通知管理', '通知对象']} />            
+            <Breadcrumb items={['告警管理', '静默规则']} />            
             <div style={{ 
                 display: 'flex', 
                 marginBottom: '16px',
