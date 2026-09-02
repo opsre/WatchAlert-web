@@ -303,7 +303,7 @@ export const CreateProbingRule = ({ type }) => {
                                     </div>
                                 </MyFormItem>
                             </div>
-                            <Form.Item label="任务标签">
+                            <Form.Item label="任务标签" style={{marginTop: '10px', marginBottom: '5px'}}>
                                 <Form.List name="labels">
                                     {(fields, { add, remove }) => (
                                         <div>
@@ -418,7 +418,7 @@ export const CreateProbingRule = ({ type }) => {
                                 <div className="probing-submit-status"><span className={`probing-status-dot ${enabled ? "is-enabled" : ""}`} /><span>{enabled ? "任务将处于启用状态" : "任务将处于禁用状态"}</span></div>
                                 <Space className="probing-submit-actions">
                                     <Button onClick={() => navigate(-1)}>取消</Button>
-                                    <Button type="primary" htmlType="submit" loading={submitLoading} className="probing-submit-button">{type === "edit" ? "保存修改" : "创建任务"}</Button>
+                                    <Button type="primary" htmlType="submit" loading={submitLoading} className="probing-submit-button">提交</Button>
                                 </Space>
                             </div>
                         </section>

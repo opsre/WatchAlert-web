@@ -221,18 +221,6 @@ export const AlertRuleList = () => {
             ),
         },
         {
-            title: "描述",
-            dataIndex: "description",
-            key: "description",
-            width: "auto",
-            render: (text, record, index) => {
-                if (!text) {
-                    return "没有留下任何描述~"
-                }
-                return text
-            },
-        },
-        {
             title: "更新时间",
             dataIndex: "updateAt",
             key: "updateAt",

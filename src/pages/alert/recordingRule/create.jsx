@@ -206,7 +206,7 @@ export const RecordingRuleCreatePage = ({ type = 'add' }) => {
                                 </Form.Item>
                             </div>
 
-                            <Form.Item label="额外标签" >
+                            <Form.Item label="额外标签" style={{marginTop: '10px', marginBottom: '-10px'}}>
                                 <Form.List name="labels">
                                     {(fields, { add, remove }) => (
                                         <div>
@@ -332,7 +332,7 @@ export const RecordingRuleCreatePage = ({ type = 'add' }) => {
                                 <div className="recording-submit-actions">
                                     <Button onClick={() => navigate(-1)}>取消</Button>
                                     <Button type="primary" htmlType="submit" loading={loading} className="recording-submit-button">
-                                        {type === 'edit' ? '保存修改' : '创建规则'}
+                                        {type === 'edit' ? '提交' : '创建规则'}
                                     </Button>
                                 </div>
                             </div>

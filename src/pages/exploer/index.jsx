@@ -617,6 +617,7 @@ export const DataAnalysis = () => {
                     </Row>
                     
                     <Segmented
+                        style={{marginTop: '10px'}}
                         value={activeTab}
                         onChange={(value) => handleTabChange(String(value))}
                         options={[
@@ -640,7 +641,7 @@ export const DataAnalysis = () => {
                             },
                         ]}
                     />
-                    <div style={{ marginTop: '16px' }}>
+                    <div style={{ marginTop: '10px' }}>
                         {activeTab === 'card' ? (
                             <MetricTable metrics={cardData} loading={loading} />
                         ) : (

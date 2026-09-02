@@ -927,29 +927,19 @@ export const AlertRule = ({ type }) => {
                     <div className="rule-section-heading">
                         <div><span className="rule-section-index">01</span><h2>基础信息</h2></div>
                     </div>
-                    <div className="rule-form-grid">
-                        <MyFormItem
-                            name="ruleName"
-                            label="规则名称"
-                            rules={[{required: true}]}
-                            style={{width: '100%'}}
-                        >
-                            <Input
-                                value={spaceValue}
-                                onChange={handleInputChange}
-                                disabled={type === 'update'}/>
-                        </MyFormItem>
+                    <MyFormItem
+                        name="ruleName"
+                        label="规则名称"
+                        rules={[{required: true}]}
+                        style={{width: '100%'}}
+                    >
+                        <Input
+                            value={spaceValue}
+                            onChange={handleInputChange}
+                            disabled={type === 'update'}/>
+                    </MyFormItem>
 
-                        <MyFormItem
-                            name="description"
-                            label="描述"
-                            style={{width: '100%'}}
-                        >
-                            <Input/>
-                        </MyFormItem>
-                    </div>
-
-                    <MyFormItem label="额外标签" >
+                    <MyFormItem label="额外标签" style={{marginTop: '10px', marginBottom: '-10px'}}>
                         <Form.List name="externalLabels">
                             {(fields, {add, remove}) => (
                                 <>
@@ -2099,7 +2089,7 @@ export const AlertRule = ({ type }) => {
                     <div className="rule-submit-actions">
                         <Button onClick={() => window.history.back()}>取消</Button>
                         <Button type="primary" htmlType="submit" className="rule-submit-button">
-                            {type === 'edit' ? '保存修改' : '创建规则'}
+                            提交
                         </Button>
                     </div>
                 </div>
