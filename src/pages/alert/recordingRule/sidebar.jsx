@@ -224,7 +224,6 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
     const [createModalVisible, setCreateModalVisible] = useState(false)
     const [updateModalVisible, setUpdateModalVisible] = useState(false)
     const [hoveredGroupId, setHoveredGroupId] = useState(null)
-    const [searchVisible, setSearchVisible] = useState(false)
     const [searchValue, setSearchValue] = useState('')
     const [selectedGroup, setSelectedGroup] = useState(null)
     const [collapsedKeys, setCollapsedKeys] = useState(new Set())
@@ -265,11 +264,6 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
             else next.add(id)
             return next
         })
-    }
-
-    const handleToggleSearch = () => {
-        setSearchVisible(!searchVisible)
-        if (searchVisible) setSearchValue('')
     }
 
     const handleDeleteGroup = async (group, e) => {
@@ -325,10 +319,6 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
                         />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                        <Tooltip title={searchVisible ? "关闭搜索" : "搜索"}>
-                            <Button type="text" size="small" icon={<SearchOutlined />} onClick={handleToggleSearch}
-                                style={{ color: searchVisible ? '#000' : '#8c8c8c' }} />
-                        </Tooltip>
                         <Tooltip title="创建规则组">
                             <Button type="text" size="small" icon={<PlusOutlined />}
                                 onClick={() => setCreateModalVisible(true)}
@@ -336,18 +326,16 @@ export const RuleGroupSidebar = ({ selectedRuleGroupId, onRuleGroupChange }) => 
                         </Tooltip>
                     </div>
                 </div>
-                {searchVisible && (
-                    <Input
-                        size="small"
-                        placeholder="搜索规则组..."
-                        value={searchValue}
-                        onChange={e => setSearchValue(e.target.value)}
-                        allowClear
-                        autoFocus
-                        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-                        style={{ borderRadius: '6px' }}
-                    />
-                )}
+                <Input
+                    size="small"
+                    placeholder="搜索规则组..."
+                    value={searchValue}
+                    onChange={e => setSearchValue(e.target.value)}
+                    allowClear
+                    autoFocus
+                    prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                    style={{ borderRadius: '6px' }}
+                />
             </div>
 
             {/* 树形列表 */}
