@@ -133,11 +133,6 @@ export const Home = () => {
     }
   }, [selectedFaultCenter, fetchDashboardInfo])
 
-  const handleRefresh = useCallback(() => {
-    fetchFaultCenters()
-    fetchMetricData()
-  }, [fetchFaultCenters, fetchMetricData])
-
   // ─── 派生数据 ───────────────────────────────────────────────
   const SEVERITY_COLORS = useMemo(() => ({
     P0: token.colorError,
@@ -261,55 +256,6 @@ export const Home = () => {
             </Col>
           ))}
         </Row>
-
-        {/* ─── 告警分布条 ─────────────────────────────────── */}
-        <div className="distribution-bar panel" style={panelStyle}>
-          <div style={{ display: "flex", alignItems: "center", gap: 28, flex: 1, flexWrap: "wrap" }}>
-            {Object.entries(SEVERITY_COLORS).map(([level, color]) => {
-              const count = dashboardInfo?.alarmDistribution?.[level] ?? 0
-              const percent = totalAlerts > 0 ? Math.round((count / totalAlerts) * 100) : 0
-              return (
-                <div key={level} className="distribution-item">
-                  <Tag
-                    color={color}
-                    style={{ margin: 0, borderRadius: 6, fontWeight: 600, minWidth: 32, textAlign: "center" }}
-                  >
-                    {level}
-                  </Tag>
-                  <Text strong style={{ fontSize: 20, minWidth: 28 }}>{count}</Text>
-                  <Progress
-                    percent={percent}
-                    size="small"
-                    showInfo={false}
-                    strokeColor={color}
-                    trailColor={token.colorFillSecondary}
-                    style={{ width: 80, margin: 0 }}
-                  />
-                  <Text type="secondary" style={{ fontSize: 12, minWidth: 32 }}>{percent}%</Text>
-                </div>
-              )
-            })}
-          </div>
-          {/* 刷新按钮 */}
-          <Tooltip title="刷新数据">
-            <div
-              onClick={handleRefresh}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                transition: "background 0.2s",
-                background: token.colorFillQuaternary,
-              }}
-            >
-              <RefreshCw size={15} color={token.colorTextSecondary} />
-            </div>
-          </Tooltip>
-        </div>
 
         {/* ─── 图表 + 告警列表 ───────────────────────────── */}
         <Row gutter={[20, 20]} style={{ marginTop: 24 }}>
