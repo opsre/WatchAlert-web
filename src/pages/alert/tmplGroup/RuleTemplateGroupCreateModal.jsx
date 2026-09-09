@@ -39,7 +39,6 @@ const RuleTemplateGroupCreateModal = ({ visible, onClose, selectedRow, openType,
                 id: selectedRow.id,
                 name: selectedRow.name,
                 type: selectedRow.type,
-                description: selectedRow.description,
             })
         }
 
@@ -96,10 +95,6 @@ const RuleTemplateGroupCreateModal = ({ visible, onClose, selectedRow, openType,
                         value={spaceValue}
                         onChange={handleInputChange}
                         onKeyPress={handleKeyPress} />
-                </MyFormItem>
-
-                <MyFormItem name="description" label="描述">
-                    <Input />
                 </MyFormItem>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

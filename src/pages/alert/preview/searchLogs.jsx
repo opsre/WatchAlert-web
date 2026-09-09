@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react"
 import { Spin, Tag, Empty, Pagination, Typography, Space } from "antd"
 import { FileTextOutlined, MessageOutlined } from "@ant-design/icons"
-import { SearchViewLogsContent } from "../../../api/datasource"
+import { SearchLogs } from "../../../api/datasource"
 
 const { Title, Text } = Typography
 
-export const SearchViewLogs = ({ type, datasourceId, index, query }) => {
+export const SearchViewLogs = ({ type, datasourceId, index, query, logScope }) => {
     const [logs, setLogs] = useState(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
@@ -19,11 +19,12 @@ export const SearchViewLogs = ({ type, datasourceId, index, query }) => {
             try {
                 setLoading(true)
                 setError(null)
-                const { code, data, msg } = await SearchViewLogsContent({
+                const { code, data, msg } = await SearchLogs({
                     type,
                     datasourceId,
                     index,
                     query,
+                    logScope,
                 })
 
                 if (code === 200) {
@@ -40,7 +41,7 @@ export const SearchViewLogs = ({ type, datasourceId, index, query }) => {
         }
 
         fetchLogs()
-    }, [type, datasourceId, index, query])
+    }, [type, datasourceId, index, query, logScope])
 
     const handlePageChange = (page) => {
         setCurrentPage(page)

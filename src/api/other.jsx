@@ -26,9 +26,9 @@ async function getJaegerService(params) {
     }
 }
 
-async function queryPromMetrics(params) {
+async function queryMetrics(params) {
     try {
-        const res = await http('get', `/api/w8t/datasource/promQuery`, params);
+        const res = await http('get', `/api/w8t/datasource/query`, params);
         return res;
     } catch (error) {
         HandleApiError(error)
@@ -36,9 +36,9 @@ async function queryPromMetrics(params) {
     }
 }
 
-async function queryRangePromMetrics(params) {
+async function queryRangeMetrics(params) {
     try {
-        const res = await http('get', `/api/w8t/datasource/promQueryRange`, params);
+        const res = await http('get', `/api/w8t/datasource/queryRange`, params);
         return res;
     } catch (error) {
         HandleApiError(error)
@@ -90,8 +90,8 @@ async function listAPIKeys(params) {
 export {
     getDashboardInfo,
     getJaegerService,
-    queryPromMetrics,
-    queryRangePromMetrics,
+    queryMetrics,
+    queryRangeMetrics,
     createAPIKey,
     updateAPIKey,
     deleteAPIKey,

@@ -48,7 +48,7 @@ import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
 import { EventMetricChart } from "../chart/eventMetricChart"
-import { queryRangePromMetrics } from "../../api/other"
+import { queryRangeMetrics } from "../../api/other"
 import { noticeRecordList } from "../../api/notice"
 import { NotificationTypeIcon } from "../notice/notification-type-icon"
 
@@ -646,7 +646,7 @@ export const AlertHistoryEvent = (props) => {
                 endTime: selectedEvent.recover_time || Math.floor(Date.now() / 1000),
                 step: 10,
             }
-            const res = await queryRangePromMetrics(params)
+            const res = await queryRangeMetrics(params)
             const results = res?.data
             const allResults = []
 

@@ -70,7 +70,7 @@ async function deleteDatasource(params) {
 
 async function DatasourcePing(params) {
     try {
-        const res = await http('post', `/api/w8t/datasource/dataSourcePing`, params);
+        const res = await http('post', `/api/w8t/datasource/ping`, params);
         message.open({
             type: 'success',
             content: '数据源测试通过',
@@ -82,33 +82,9 @@ async function DatasourcePing(params) {
     }
 }
 
-async function ElasticSearchData(params) {
+async function SearchLogs(params) {
     try {
-        const res = await http('post', `/api/w8t/datasource/esSearch`, params);
-        message.open({
-            type: 'success',
-            content: '查询ES内容成功',
-        });
-        return res;
-    } catch (error) {
-        HandleApiError(error)
-        return error
-    }
-}
-
-async function SearchViewLogsContent(params) {
-    try {
-        const res = await http('post', `/api/w8t/datasource/searchViewLogsContent`, params);
-        return res;
-    } catch (error) {
-        HandleApiError(error)
-        return error
-    }
-}
-
-async function QueryMetrics(params) {
-    try {
-        const res = await http('get', `/api/w8t/datasource/queryMetrics`, params);
+        const res = await http('post', `/api/w8t/datasource/searchLogs`, params);
         return res;
     } catch (error) {
         HandleApiError(error)
@@ -123,7 +99,5 @@ export {
     deleteDatasource,
     getDatasource,
     DatasourcePing,
-    ElasticSearchData,
-    SearchViewLogsContent,
-    QueryMetrics
+    SearchLogs,
 }

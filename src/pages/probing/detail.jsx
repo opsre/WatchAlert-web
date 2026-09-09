@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spin, Select, message } from 'antd';
 import { ProbingList } from '../../api/probing';
-import { queryRangePromMetrics } from '../../api/other';
+import { queryRangeMetrics } from '../../api/other';
 import { EventMetricChart } from '../chart/eventMetricChart';
 import { Breadcrumb } from '../../components/Breadcrumb';
 
@@ -147,7 +147,7 @@ export const ProbingMetrics = () => {
 
             console.log(`查询参数 ${metric.title}:`, params);
 
-            const result = await queryRangePromMetrics(params);
+            const result = await queryRangeMetrics(params);
             console.log(`获取指标 ${metric.title} 数据:`, result);
             
             // 处理API响应数据结构

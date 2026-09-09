@@ -143,7 +143,6 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                 annotations: selectedRow.annotations,
                 datasourceId: selectedRow.datasourceId,
                 datasourceType: selectedRow.datasourceType,
-                description: selectedRow.description,
                 enabled: selectedRow.enabled,
                 evalInterval: selectedRow.evalInterval,
                 forDuration: selectedRow.forDuration,
@@ -361,31 +360,20 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
                 <div>
                     <strong style={{fontSize: '20px'}}>基础配置</strong>
-                    <div style={{display: 'flex'}}>
-                        <MyFormItem
-                            name="ruleName"
-                            label="规则名称"
-                            style={{
-                                marginRight: '10px',
-                                width: '50%',
-                            }}
-                            rules={[{required: true}]}
-                        >
-                            <Input
-                                value={spaceValue}
-                                onChange={handleInputChange}
-                                onKeyPress={handleKeyPress}
-                                disabled={type === 'update'}/>
-                        </MyFormItem>
-
-                        <MyFormItem
-                            name="description"
-                            label="描述"
-                            style={{width: '50%'}}
-                        >
-                            <Input/>
-                        </MyFormItem>
-                    </div>
+                    <MyFormItem
+                        name="ruleName"
+                        label="规则名称"
+                        style={{
+                            width: '100%',
+                        }}
+                        rules={[{required: true}]}
+                    >
+                        <Input
+                            value={spaceValue}
+                            onChange={handleInputChange}
+                            onKeyPress={handleKeyPress}
+                            disabled={type === 'update'}/>
+                    </MyFormItem>
                 </div>
 
                 <Divider/>

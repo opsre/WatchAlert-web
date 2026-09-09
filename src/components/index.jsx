@@ -18,6 +18,7 @@ const Components = (props) => {
     const [error, setError] = useState(false)
     const [isRendered, setIsRendered] = useState(false)
     const contentRef = useRef(null)
+    const [serviceErrorMsg, setServiceErrorMsg] = useState("服务暂时不可用，请稍后重试或联系管理员") // 新增：服务异常详细信息
 
     const {
         token: { colorBgContainer, borderRadiusLG },
@@ -222,13 +223,59 @@ const Components = (props) => {
         </div>
     )
 
+    const SystemErrorScreen = () => {
+        return (
+            <div
+                style={{
+                    height: "100vh",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    background: "linear-gradient(135deg, #000000 0%, #1a1a1a 100%)",
+                }}
+            >
+                <Result
+                    status="error"
+                    title={<span style={{ color: "#FFFFFF" }}>服务异常</span>}
+                    subTitle={<span style={{ color: "#CCCCCC" }}>{serviceErrorMsg}</span>}
+                    extra={[
+                        <Button
+                            type="primary"
+                            key="retry"
+                            onClick={() => {
+                                setServiceErrorMsg("服务暂时不可用，请稍后重试或联系管理员")
+                                setError(true)
+                                // 直接刷新页面
+                                window.location.reload()
+                            }}
+                            style={{
+                                background: "linear-gradient(135deg, rgb(255, 203, 125) 0%, rgb(167, 135, 83) 100%)",
+                                borderColor: "#FF9900",
+                                color: "#000",
+                                fontWeight: "600",
+                                boxShadow: "0 4px 12px rgba(255, 153, 0, 0.3)",
+                                border: "none"
+                            }}
+                        >
+                            重试
+                        </Button>
+                    ]}
+                />
+            </div>
+        )
+    }
+
     // 状态检查优先级：加载中 > 错误/认证失败 > 渲染内容
     if (loading) {
         return <FullScreenLoading />
     }
 
-    if (error || !authorization || !tenantId) {
+    if (!authorization || !tenantId) {
         return <ErrorScreen />
+    }
+
+    if (error) {
+        return <SystemErrorScreen />
     }
 
     // 主内容区域

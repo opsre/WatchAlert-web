@@ -16,7 +16,7 @@ import { getDatasource, getDatasourceList } from '../../../api/datasource'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Breadcrumb } from '../../../components/Breadcrumb'
 import { PrometheusPromQL } from '../../promethues'
-import { SearchViewMetrics } from '../preview/searchViewMetrics.tsx'
+import { SearchViewMetrics } from '../preview/searchMetrics.tsx'
 import { useAppContext } from '../../../context/RuleContext'
 import './create.css'
 

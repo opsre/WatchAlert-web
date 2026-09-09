@@ -1,4 +1,5 @@
-import {Modal, Form, Input, Button, Select, Drawer, Divider} from 'antd'
+import {Tooltip, Form, Input, Button, Select, Drawer, Divider} from 'antd'
+import {RedoOutlined} from '@ant-design/icons'
 import React, { useState, useEffect } from 'react'
 import {FaultCenterCreate} from "../../api/faultCenter";
 import {getNoticeList} from "../../api/notice";
@@ -105,30 +106,79 @@ export const CreateFaultCenter = ({ visible, onClose, handleList }) => {
                 <Divider />
 
                 <strong style={{fontSize: '16px'}}>通知策略</strong>
-                <MyFormItem
-                    name="noticeIds"
-                    label="通知对象"
-                    tooltip="默认通知对象"
-                    style={{
-                        marginRight: '10px',
-                        width: '100%',
-                    }}
-                    rules={[
-                        {
-                            required: true,
-                        },
-                    ]}
-                >
-                    <Select
-                        mode={"multiple"}
+                <div style={{ display: 'flex' }}>
+                    <MyFormItem
+                        name="noticeIds"
+                        label="通知对象"
+                        tooltip="默认通知对象"
                         style={{
-                            width: '100%',
+                            width: '82%',
                         }}
-                        allowClear
-                        placeholder="选择通知对象"
-                        options={noticeOptions}
-                    />
-                </MyFormItem>
+                        rules={[
+                            {
+                                required: true,
+                            },
+                        ]}
+                    >
+                        <Select
+                            mode={"multiple"}
+                            allowClear
+                            placeholder="选择通知对象"
+                            options={noticeOptions}
+                        />
+                    </MyFormItem>
+
+                    {/* 刷新按钮 */}
+                    <Tooltip title="刷新列表">
+                        <RedoOutlined
+                            onClick={handleGetNoticeData}
+                            style={{
+                                marginTop: 5,
+                                marginLeft: 10,
+                                cursor: 'pointer',
+                                color: '#1890ff',
+                                transition: 'all 0.3s',
+                            }}
+                        />
+                    </Tooltip>
+
+                    <div style={{
+                        display: 'flex',
+                        gap: 8,
+                        alignItems: 'center',
+                        borderLeft: '1px solid #e8e8e8',
+                        marginLeft: 10,
+                        paddingLeft: 10,
+                        height: 32,
+                        marginTop: '30px'
+                    }}>
+                            
+                        {/* 创建按钮 */}
+                        <Tooltip title="创建新的通知对象">
+                            <a
+                                href="/noticeObjects"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    padding: '4px 8px',
+                                    borderRadius: 4,
+                                    background: '#f5f5f5',
+                                    transition: 'all 0.3s',
+                                    color: '#666',
+                                    '&:hover': {
+                                        background: '#1890ff',
+                                        color: '#fff',
+                                        textDecoration: 'none'
+                                    }
+                                }}
+                            >
+                                前往创建
+                            </a>
+                        </Tooltip>
+                    </div>
+                </div>
 
                 <MyFormItem
                     name="repeatNoticeInterval"

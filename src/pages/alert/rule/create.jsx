@@ -44,9 +44,9 @@ import { useAppContext } from '../../../context/RuleContext';
 import TextArea from "antd/es/input/TextArea";
 import {FaultCenterList} from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
-import {SearchViewLogs} from "../preview/searchViewLogs";
+import {SearchViewLogs} from "../preview/searchLogs.jsx";
 import SqlEditor from "../../../utils/sqlEditor";
-import {SearchViewMetrics} from "../preview/searchViewMetrics.tsx";
+import {SearchViewMetrics} from "../preview/searchMetrics.tsx";
 import {Breadcrumb} from "../../../components/Breadcrumb"
 
 const format = 'HH:mm';
@@ -1273,25 +1273,42 @@ export const AlertRule = ({ type }) => {
                         <MyFormItemGroup prefix={['lokiConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
-                                <MyFormItem
-                                    name="logQL"
-                                    label="查询语句"
-                                    rules={[{required: true}]}
-                                >
-                                    <Input/>
-                                </MyFormItem>
-                                <MyFormItem
-                                    name="logScope"
-                                    label="查询区间"
-                                    rules={[{required: true}]}
-                                >
-                                    <InputNumber
-                                        style={{width: '100%'}}
-                                        addonAfter={'分钟'}
-                                        placeholder="10"
-                                        min={1}
-                                    />
-                                </MyFormItem>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                    <MyFormItem
+                                        name="logScope"
+                                        label="查询区间"
+                                        rules={[{required: true}]}
+                                    >
+                                        <InputNumber
+                                            style={{width: '100%'}}
+                                            addonBefore={'近'}
+                                            addonAfter={'分钟'}
+                                            placeholder="10"
+                                            min={1}
+                                        />
+                                    </MyFormItem>
+                                    <MyFormItem
+                                        name="logQL"
+                                        label="查询语句"
+                                        style={{width: '100%', height: '100%'}}
+                                        rules={[{required: true}]}
+                                    >
+                                        <Input/>
+                                    </MyFormItem>
+                                    <Button
+                                        type="primary"
+                                        style={{backgroundColor: '#000', borderColor: '#000', marginTop: '5px'}}
+                                        onClick={() => {
+                                            if (selectedItems.length === 0) {
+                                                message.error("请先选择数据源")
+                                                return
+                                            }
+                                            setOpenSearchContentModal(true)
+                                        }}
+                                    >
+                                        数据预览
+                                    </Button>
+                                </div>
                             </div>
                         </MyFormItemGroup>
                     }
@@ -1345,6 +1362,7 @@ export const AlertRule = ({ type }) => {
                                         style={{
                                             width: '100%',
                                         }}
+                                        addonBefore={'近'}
                                         addonAfter={'分钟'}
                                         placeholder="10"
                                         min={1}
@@ -1356,181 +1374,187 @@ export const AlertRule = ({ type }) => {
 
                     {selectedType === 3 &&
                         <MyFormItemGroup prefix={['jaegerConfig']}>
-                            <div style={{display: 'flex', gap: '10px'}}>
-                                <MyFormItem
-                                    name='service'
-                                    label="应用服务"
-                                    style={{
-                                        width: '50%',
-                                    }}
-                                    rules={[{required: true}]}
-                                >
-                                    <Select
-                                        allowClear
-                                        showSearch
-                                        placeholder="选择需查询链路的服务"
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <div style={{display: 'flex', gap: '10px'}}>
+                                    <MyFormItem
+                                        name='service'
+                                        label="应用服务"
                                         style={{
-                                            flex: 1,
+                                            width: '50%',
                                         }}
-                                        options={jaegerServiceList}
-                                        onClick={handleGetJaegerService}
+                                        rules={[{required: true}]}
+                                    >
+                                        <Select
+                                            allowClear
+                                            showSearch
+                                            placeholder="选择需查询链路的服务"
+                                            style={{
+                                                flex: 1,
+                                            }}
+                                            options={jaegerServiceList}
+                                            onClick={handleGetJaegerService}
+                                        />
+                                    </MyFormItem>
+
+                                    <MyFormItem
+                                        name='tags'
+                                        label="告警条件"
+                                        style={{
+                                            width: '50%',
+                                        }}
+                                        rules={[{required: true}]}
+                                    >
+                                        <Input placeholder='{"http.status_code":"5.*?"}'/>
+                                    </MyFormItem>
+                                </div>
+                                <MyFormItem
+                                    name="scope"
+                                    label="查询区间"
+                                    rules={[{ required: true }]}
+                                >
+                                    <InputNumber
+                                        style={{width: '100%'}}
+                                        addonBefore={'近'}
+                                        addonAfter={'分钟'}
+                                        placeholder="10"
+                                        min={1}
                                     />
                                 </MyFormItem>
-
-                                <MyFormItem
-                                    name='tags'
-                                    label="告警条件"
-                                    style={{
-                                        width: '50%',
-                                    }}
-                                    rules={[{required: true}]}
-                                >
-                                    <Input placeholder='{"http.status_code":"5.*?"}'/>
-                                </MyFormItem>
                             </div>
-
-                            <MyFormItem
-                                name="scope"
-                                label="查询区间"
-                                rules={[{ required: true }]}
-                            >
-                                <InputNumber
-                                    style={{width: '100%'}}
-                                    addonAfter={'分钟'}
-                                    placeholder="10"
-                                    min={1}
-                                />
-                            </MyFormItem>
-
                         </MyFormItemGroup>
                     }
 
                     {selectedType === 4 &&
                         <MyFormItemGroup prefix={['cloudwatchConfig']}>
-                            <div style={{display: 'flex', gap: '10px'}}>
-                                <MyFormItem
-                                    name="namespace"
-                                    label="指标类型"
-                                    rules={[{required: true,}]}
-                                    style={{
-                                        width: '24%',
-                                    }}>
-                                    <Select
-                                        showSearch
-                                        placeholder="请选择指标类型"
-                                        options={metricTypeOptions}
-                                        onChange={setSelectMetricType}
-                                    />
-                                </MyFormItem>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <div style={{display: 'flex', gap: '10px'}}>
+                                    <MyFormItem
+                                        name="namespace"
+                                        label="指标类型"
+                                        rules={[{required: true,}]}
+                                        style={{
+                                            width: '24%',
+                                        }}>
+                                        <Select
+                                            showSearch
+                                            placeholder="请选择指标类型"
+                                            options={metricTypeOptions}
+                                            onChange={setSelectMetricType}
+                                        />
+                                    </MyFormItem>
 
-                                <MyFormItem
-                                    name="metricName"
-                                    label="指标名称"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
-                                    style={{
-                                        width: '24%',
-                                    }}>
-                                    <Select
-                                        showSearch
-                                        placeholder="请选择指标名称"
-                                        options={metricNameOptions}
-                                    />
-                                </MyFormItem>
+                                    <MyFormItem
+                                        name="metricName"
+                                        label="指标名称"
+                                        rules={[
+                                            {
+                                                required: true,
+                                            },
+                                        ]}
+                                        style={{
+                                            width: '24%',
+                                        }}>
+                                        <Select
+                                            showSearch
+                                            placeholder="请选择指标名称"
+                                            options={metricNameOptions}
+                                        />
+                                    </MyFormItem>
 
-                                <MyFormItem
-                                    name="statistic"
-                                    label="统计类型"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
-                                    style={{
-                                        width: '24%',
-                                    }}>
-                                    <Select
-                                        placeholder="请选择统计类型"
-                                        options={statisticOptions}
-                                    />
-                                </MyFormItem>
+                                    <MyFormItem
+                                        name="statistic"
+                                        label="统计类型"
+                                        rules={[
+                                            {
+                                                required: true,
+                                            },
+                                        ]}
+                                        style={{
+                                            width: '24%',
+                                        }}>
+                                        <Select
+                                            placeholder="请选择统计类型"
+                                            options={statisticOptions}
+                                        />
+                                    </MyFormItem>
 
+                                    <MyFormItem
+                                        name="threshold"
+                                        label="告警条件"
+                                        style={{
+                                            width: '24%',
+                                        }}
+                                        rules={[
+                                            {
+                                                required: true,
+                                            },
+                                        ]}>
+                                        <InputNumber placeholder="输入阈值, 如 80" addonBefore={
+                                            <Select onChange={setCwExpr} placeholder=">" value={cwExpr ? cwExpr : '>'}>
+                                                <Option value=">">{'>'}</Option>
+                                                <Option value=">=">{'>='}</Option>
+                                                <Option value="<">{'<'}</Option>
+                                                <Option value="==">{'=='}</Option>
+                                                <Option value="!=">{'!='}</Option>
+                                            </Select>
+                                        }/>
+                                    </MyFormItem>
+                                </div>
+                                <div style={{display: 'flex', gap: '10px'}}>
+                                    <MyFormItem
+                                        name="dimension"
+                                        label="端点类型"
+                                        rules={[
+                                            {
+                                                required: true,
+                                            },
+                                        ]}
+                                        style={{
+                                            width: '50%',
+                                        }}>
+                                        <Select
+                                            showSearch
+                                            placeholder="请选择端点类型"
+                                            options={dimensionOptions}
+                                            onChange={setSelectDimension}
+                                        />
+                                    </MyFormItem>
+                                    <MyFormItem
+                                        name="endpoints"
+                                        label="目标"
+                                        rules={[
+                                            {
+                                                required: true,
+                                            },
+                                        ]}
+                                        style={{
+                                            width: '50%',
+                                        }}>
+                                        <Select
+                                            showSearch
+                                            mode="multiple"
+                                            placeholder="请选择目标"
+                                            options={endpointOptions}
+                                            tokenSeparators={[',']}
+                                        />
+                                    </MyFormItem>
+                                </div>
                                 <MyFormItem
-                                    name="threshold"
-                                    label="告警条件"
-                                    style={{
-                                        width: '24%',
-                                    }}
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}>
-                                    <InputNumber placeholder="输入阈值, 如 80" addonBefore={
-                                        <Select onChange={setCwExpr} placeholder=">" value={cwExpr ? cwExpr : '>'}>
-                                            <Option value=">">{'>'}</Option>
-                                            <Option value=">=">{'>='}</Option>
-                                            <Option value="<">{'<'}</Option>
-                                            <Option value="==">{'=='}</Option>
-                                            <Option value="!=">{'!='}</Option>
-                                        </Select>
-                                    }/>
+                                    name="period"
+                                    label="查询区间"
+                                    rules={[{required: true}]}
+                                >
+                                    <InputNumber
+                                        style={{width: '100%'}}
+                                        addonBefore={'近'}
+                                        addonAfter={<span>分钟</span>}
+                                        placeholder="10"
+                                        min={1}
+                                    />
                                 </MyFormItem>
                             </div>
-                            <div style={{display: 'flex', gap: '10px'}}>
-                                <MyFormItem
-                                    name="dimension"
-                                    label="端点类型"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
-                                    style={{
-                                        width: '50%',
-                                    }}>
-                                    <Select
-                                        showSearch
-                                        placeholder="请选择端点类型"
-                                        options={dimensionOptions}
-                                        onChange={setSelectDimension}
-                                    />
-                                </MyFormItem>
-                                <MyFormItem
-                                    name="endpoints"
-                                    label="目标"
-                                    rules={[
-                                        {
-                                            required: true,
-                                        },
-                                    ]}
-                                    style={{
-                                        width: '50%',
-                                    }}>
-                                    <Select
-                                        showSearch
-                                        mode="multiple"
-                                        placeholder="请选择目标"
-                                        options={endpointOptions}
-                                        tokenSeparators={[',']}
-                                    />
-                                </MyFormItem>
-                            </div>
-                            <MyFormItem
-                                name="period"
-                                label="查询区间"
-                                rules={[{required: true}]}
-                            >
-                                <InputNumber
-                                    style={{width: '100%'}}
-                                    addonAfter={<span>分钟</span>}
-                                    placeholder="10"
-                                    min={1}
-                                />
-                            </MyFormItem>
                         </MyFormItemGroup>
                     }
 
@@ -1602,6 +1626,7 @@ export const AlertRule = ({ type }) => {
                                 >
                                     <InputNumber
                                         style={{width: '100%'}}
+                                        addonBefore={'近'}
                                         addonAfter={<span>分钟</span>}
                                         placeholder="10"
                                         min={1}
@@ -1795,6 +1820,19 @@ export const AlertRule = ({ type }) => {
                             <div className="log-rule-config-container">
                                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                                     <MyFormItem
+                                        name="logScope"
+                                        label="查询区间"
+                                        rules={[{required: true}]}
+                                    >
+                                        <InputNumber
+                                            style={{width: '100%'}}
+                                            addonBefore={'近'}
+                                            addonAfter={'分钟'}
+                                            placeholder="10"
+                                            min={1}
+                                        />
+                                    </MyFormItem>
+                                    <MyFormItem
                                         name="logQL"
                                         label="查询语句"
                                         style={{width: '100%', height: '100%'}}
@@ -1816,19 +1854,7 @@ export const AlertRule = ({ type }) => {
                                         数据预览
                                     </Button>
                                 </div>
-                                    <MyFormItem
-                                        name="logScope"
-                                        label="查询区间"
-                                        rules={[{required: true}]}
-                                    >
-                                        <InputNumber
-                                            style={{width: '100%'}}
-                                            addonAfter={'分钟'}
-                                            placeholder="10"
-                                            min={1}
-                                        />
-                                    </MyFormItem>
-                                </div>
+                            </div>
                         </MyFormItemGroup>
                     }
 
@@ -1884,9 +1910,11 @@ export const AlertRule = ({ type }) => {
                             type={getSelectedTypeName(selectedType)}
                             datasourceId={selectedItems[0]}
                             index={form.getFieldValue(["elasticSearchConfig","index"])}
+                            logScope={getSelectedTypeName(selectedType) === "Loki" ? form.getFieldValue(["lokiConfig","logScope"]) : undefined}
                             query={encodeBase64(
                                 (
-                                    getSelectedTypeName(selectedType) === "VictoriaLogs" ? form.getFieldValue(["victoriaLogsConfig","logQL"])
+                                    getSelectedTypeName(selectedType) === "Loki" ? form.getFieldValue(["lokiConfig","logQL"])
+                                        : getSelectedTypeName(selectedType) === "VictoriaLogs" ? form.getFieldValue(["victoriaLogsConfig","logQL"])
                                         : getSelectedTypeName(selectedType) === "ElasticSearch" ? esRawJson
                                             : getSelectedTypeName(selectedType) === "ClickHouse" ? form.getFieldValue(["clickhouseConfig","logQL"])
                                                 : "-"
@@ -2002,7 +2030,7 @@ export const AlertRule = ({ type }) => {
                             {/* 选择器 */}
                             <Select
                                 placeholder="选择故障中心"
-                                style={{width: '89%'}}
+                                style={{width: '90%'}}
                                 options={faultCenters}
                                 showSearch
                                 optionFilterProp="label"
@@ -2018,6 +2046,8 @@ export const AlertRule = ({ type }) => {
                                 <RedoOutlined
                                     onClick={handleGetFaultCenterList}
                                     style={{
+                                        marginLeft: 5,
+                                        marginRight: 5,
                                         cursor: 'pointer',
                                         color: '#1890ff',
                                         transition: 'all 0.3s',
@@ -2036,7 +2066,7 @@ export const AlertRule = ({ type }) => {
                             }}>
                             
                                 {/* 创建按钮 */}
-                                <Tooltip title="创建新故障中心">
+                                <Tooltip title="创建新的故障中心">
                                     <a
                                         href="/faultCenter"
                                         target="_blank"

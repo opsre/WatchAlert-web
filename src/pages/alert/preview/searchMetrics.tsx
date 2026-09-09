@@ -9,7 +9,7 @@ import {
     AppstoreOutlined,
 } from "@ant-design/icons"
 import { EventMetricChart } from '../../chart/eventMetricChart'
-import {queryPromMetrics, queryRangePromMetrics} from '../../../api/other'
+import {queryMetrics, queryRangeMetrics} from '../../../api/other'
 
 const { Title, Text } = Typography
 
@@ -62,7 +62,7 @@ export const SearchViewMetrics = ({
                 query: promQL,
             }
 
-            const res = await queryPromMetrics(params)
+            const res = await queryMetrics(params)
 
             if (res.code !== 200) {
                 throw new Error(res.msg || "请求失败")
@@ -109,7 +109,7 @@ export const SearchViewMetrics = ({
                 step: step,
             }
 
-            const res = await queryRangePromMetrics(params)
+            const res = await queryRangeMetrics(params)
 
             if (res.code !== 200) {
                 throw new Error(res.msg || "请求失败")

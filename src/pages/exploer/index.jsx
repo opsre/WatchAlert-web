@@ -31,7 +31,7 @@ import {
     TagsOutlined,
 } from "@ant-design/icons"
 import { EventMetricChart } from '../chart/eventMetricChart'
-import { queryPromMetrics, queryRangePromMetrics } from '../../api/other'
+import { queryMetrics, queryRangeMetrics } from '../../api/other'
 import { getDatasourceList } from '../../api/datasource'
 import { PrometheusPromQL } from '../promethues'
 import { Breadcrumb } from "../../components/Breadcrumb"
@@ -392,7 +392,7 @@ export const DataAnalysis = () => {
                 query: queryObj.promQL,
             }
 
-            const res = await queryPromMetrics(params)
+            const res = await queryMetrics(params)
             console.log('卡片视图查询结果:', res)
 
             if (res.code !== 200) {
@@ -418,7 +418,7 @@ export const DataAnalysis = () => {
                 step: step,
             }
 
-            const res = await queryRangePromMetrics(params)
+            const res = await queryRangeMetrics(params)
             console.log('图表视图查询结果:', res)
 
             if (res.code !== 200) {

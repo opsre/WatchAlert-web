@@ -68,19 +68,6 @@ export const RuleTemplateGroup = () => {
             ),
         },
         {
-            title: "描述",
-            dataIndex: "description",
-            key: "description",
-            ellipsis: {
-                showTitle: false,
-            },
-            render: (text) => (
-                <Tooltip placement="topLeft" title={text || "-"}>
-                    <span>{text || "-"}</span>
-                </Tooltip>
-            ),
-        },
-        {
             title: "操作",
             dataIndex: "operation",
             width: 60,

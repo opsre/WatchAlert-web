@@ -53,7 +53,7 @@ import {
     RenderTruncatedText
 } from "../../utils/lib";
 import { EventMetricChart } from "../chart/eventMetricChart"
-import { queryRangePromMetrics } from "../../api/other"
+import { queryRangeMetrics } from "../../api/other"
 import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
@@ -216,6 +216,7 @@ export const AlertCurrentEvent = (props) => {
         "recovered": { color: "green", text: "已恢复" },
         "processing": { color: "purple", text: "处理中" },
         "muting": { color: "gray", text: "静默中" },
+        "suppression": { color: "gray", text: "抑制中" },
     }
 
     const rowSelection = {
@@ -1079,7 +1080,7 @@ export const AlertCurrentEvent = (props) => {
                 startTime: selectedEvent.first_trigger_time - 300,
                 step: 10,
             }
-            const res = await queryRangePromMetrics(parmas)
+            const res = await queryRangeMetrics(parmas)
             let results = res.data
             const allResults = []
             if (results && Array.isArray(results) && results.length > 0) {
@@ -1366,6 +1367,7 @@ export const AlertCurrentEvent = (props) => {
                                 { value: "alerting", label: "告警中" },
                                 { value: "processing", label: "处理中" },
                                 { value: "muting", label: "静默中" },
+                                { value: "suppression", label: "抑制中" },
                                 { value: "pending_recovery", label: "待恢复" },
                             ]}
                         />

@@ -167,7 +167,7 @@ export const AlertRuleList = () => {
             title: "告警等级",
             dataIndex: "severity",
             key: "severity",
-            width: "150px",
+            width: "140px",
             render: (text, record) => {
                 const severities = GetSeverity(record);
                 return (
@@ -182,43 +182,69 @@ export const AlertRuleList = () => {
             }
         },
         {
-            title: "数据源类型",
+            title: "数据源",
             dataIndex: "datasourceType",
             key: "datasourceType",
             width: "auto",
             render: (text, record) => {
+                // 获取数据源名称列表
+                const names = getDatasourceNamesByIds(record.datasourceId)
+                    .split(", ")
+                    .filter(name => name.trim() !== ""); // 过滤空字符串
+                
+                // 图标映射
+                const iconMap = {
+                    "Prometheus": <PrometheusImg style={{ height: "20px", width: "20px" }} />,
+                    "CloudWatch": <AwsImg style={{ height: "20px", width: "20px" }} />,
+                    "Loki": <LokiImg style={{ height: "20px", width: "20px" }} />,
+                    "Jaeger": <JaegerImg style={{ height: "20px", width: "20px" }} />,
+                    "AliCloudSLS": <AlicloudImg style={{ height: "20px", width: "20px" }} />,
+                    "VictoriaLogs": <VLogImg style={{ height: "20px", width: "20px" }} />,
+                    "KubernetesEvent": <K8sImg style={{ height: "20px", width: "20px" }} />,
+                    "ElasticSearch": <ESImg style={{ height: "20px", width: "20px" }} />,
+                    "ClickHouse": <CkImg style={{ height: "20px", width: "20px" }} />,
+                };
+                
+                const icon = iconMap[text] || null;
+                const maxDisplay = 1; // 默认显示数量
+                
+                // 根据数据源数量决定显示内容
+                const displayNames = names.length > maxDisplay ? names.slice(0, maxDisplay) : names;
+                const remainingCount = names.length - maxDisplay;
+                const hasMore = names.length > maxDisplay;
+
                 return (
-                    <div style={{ display: "flex" }}>
-                        {text === "Prometheus" && <PrometheusImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "CloudWatch" && <AwsImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "Loki" && <LokiImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "Jaeger" && <JaegerImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "AliCloudSLS" && <AlicloudImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "VictoriaLogs" && <VLogImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "KubernetesEvent" && <K8sImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "ElasticSearch" && <ESImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "ClickHouse" && <CkImg style={{ height: "25px", width: "25px" }} />}
-                        <div style={{ marginLeft: "5px", marginTop: "3px", fontSize: "12px" }}>{text}</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                        {icon}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", alignItems: "center" }}>
+                            {displayNames.map((name, index) => (
+                                <Tag color="processing" key={index} style={{ fontSize: '12px', margin: 0 }}>
+                                    {name}
+                                </Tag>
+                            ))}
+                            {hasMore && (
+                                <Tooltip 
+                                    title={names.slice(maxDisplay).join("、")}
+                                    placement="top"
+                                >
+                                    <Tag 
+                                        color="default" 
+                                        style={{ 
+                                            fontSize: '12px', 
+                                            margin: 0, 
+                                            cursor: 'pointer',
+                                            backgroundColor: '#f5f5f5',
+                                            borderColor: '#d9d9d9'
+                                        }}
+                                    >
+                                        +{remainingCount}
+                                    </Tag>
+                                </Tooltip>
+                            )}
+                        </div>
                     </div>
-                )
+                );
             },
-        },
-        {
-            title: "数据源",
-            dataIndex: "datasourceId",
-            key: "datasourceId",
-            width: "auto",
-            render: (text, record) => (
-                <span>
-                    {getDatasourceNamesByIds(record.datasourceId)
-                        .split(", ")
-                        ?.map((name, index) => (
-                            <Tag color="processing" key={index}>
-                                {name}
-                            </Tag>
-                        ))}
-                </span>
-            ),
         },
         {
             title: "更新时间",

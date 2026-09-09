@@ -69,26 +69,15 @@ async function deleteUser(params) {
 }
 
 async function getUserInfo() {
-    try {
-        const res = await http('get', `/api/system/userInfo`);
-        return res;
-    } catch (error) {
-        HandleApiError(error)
-        return error
-    }
+    return await http('get', `/api/system/userInfo`);
 }
 
 async function checkUser(params) {
-    try {
-        const queryString = Object.keys(params)
-            .map(key => params[key] !== undefined ? `${key}=${params[key]}` : '')
-            .filter(Boolean)
-            .join('&');
-        const res = await http('get', `/api/system/checkUser?${queryString}`);
-        return res;
-    } catch (error) {
-        return error
-    }
+    const queryString = Object.keys(params)
+        .map(key => params[key] !== undefined ? `${key}=${params[key]}` : '')
+        .filter(Boolean)
+        .join('&');
+    return await http('get', `/api/system/checkUser?${queryString}`);
 }
 
 async function changeUserPass(params) {
