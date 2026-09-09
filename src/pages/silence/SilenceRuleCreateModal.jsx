@@ -35,11 +35,11 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
             form.setFieldsValue({
                 name: selectedRow.name,
                 comment: selectedRow.comment,
-                labels: selectedRow.labels || [{ key: "", operator: "=", value: "" }],
+                labels: selectedRow.labels || [{ key: "", operator: "==", value: "" }],
             })
         } else {
             form.setFieldsValue({
-                labels: [{ key: "", operator: "=", value: "" }],
+                labels: [{ key: "", operator: "==", value: "" }],
             })
         }
     }, [selectedRow, form])
@@ -129,7 +129,7 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
 
     // 添加label处理
     const handleAddLabel = useCallback((add) => {
-        add({ key: "", operator: "=", value: "" }) // 关键修复：为新添加的label设置默认值
+        add({ key: "", operator: "==", value: "" }) // 关键修复：为新添加的label设置默认值
     }, [])
 
     return (
@@ -189,8 +189,10 @@ export const CreateSilenceModal = ({ visible, onClose, selectedRow, type, handle
                                             style={{ width: "120px" }}
                                         >
                                             <Select placeholder="选择操作符">
-                                                <Option value="=">等于</Option>
-                                                <Option value="!=">不等于</Option>
+                                                <Option value="==">==</Option>
+                                                <Option value="=~">=~</Option>
+                                                <Option value="!=">!=</Option>
+                                                <Option value="!~">!~</Option>
                                             </Select>
                                         </Form.Item>
 

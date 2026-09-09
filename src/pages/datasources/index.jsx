@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Button, Input, Table, Tag, Popconfirm, Tooltip, Space, message} from 'antd';
+import {Button, Input, Table, Tag, Popconfirm, Tooltip, Space, message, Dropdown, Modal} from 'antd';
 import { CreateDatasourceModal } from './DatasourceCreateModal';
 import { deleteDatasource, getDatasourceList } from '../../api/datasource';
 import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
@@ -7,15 +7,16 @@ import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
 import { ReactComponent as AwsImg } from "../alert/rule/img/AWSlogo.svg"
 import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
-import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
+
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
 import './index.css'
-import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 export const Datasources = () => {
     const { Search } = Input
@@ -76,9 +77,7 @@ export const Datasources = () => {
                         {text === "AliCloudSLS" && (
                             <AlicloudImg style={{height: "25px", width: "25px"}}/>
                         )}
-                        {text === "VictoriaMetrics" && (
-                            <VMImg style={{height: "25px", width: "25px"}}/>
-                        )}
+
                         {text === "Kubernetes" && (
                             <K8sImg style={{height: "25px", width: "25px"}}/>
                         )}
@@ -157,30 +156,45 @@ export const Datasources = () => {
         {
             title: '操作',
             dataIndex: 'operation',
-            fixed: 'right', // 设置操作列固定
-            width: 120,
+            fixed: 'right',
+            width: 60,
             render: (_, record) => (
-                <Space size="middle">
-                    <Tooltip title="更新">
-                        <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            onClick={() => handleUpdateModalOpen(record)}
-                            style={{ color: "#1677ff" }}
-                        />
-                    </Tooltip>
-                    <Tooltip title="删除">
-                        <Popconfirm
-                            title="确定要删除吗?"
-                            onConfirm={() => handleDelete(record)}
-                            okText="确定"
-                            cancelText="取消"
-                            placement="left"
-                        >
-                            <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                        </Popconfirm>
-                    </Tooltip>
-                </Space>
+                <Dropdown
+                    menu={{
+                        items: [
+                            {
+                                key: 'edit',
+                                icon: <EditOutlined />,
+                                label: '更新',
+                                onClick: () => handleUpdateModalOpen(record)
+                            },
+                            {
+                                key: 'delete',
+                                icon: <DeleteOutlined />,
+                                label: '删除',
+                                danger: true,
+                                onClick: () => {
+                                    Modal.confirm({
+                                        title: "确定要删除吗?",
+                                        content: `数据源名称: ${record.name}`,
+                                        okText: "确定",
+                                        cancelText: "取消",
+                                        okType: 'danger',
+                                        onOk: () => handleDelete(record)
+                                    })
+                                }
+                            }
+                        ]
+                    }}
+                    trigger={['click']}
+                    placement="bottomRight"
+                >
+                    <Button
+                        type="text"
+                        icon={<MoreOutlined />}
+                        style={{ color: "#666" }}
+                    />
+                </Dropdown>
             ),
         },
     ]);
@@ -211,7 +225,7 @@ export const Datasources = () => {
     const handleList = async () => {
         try {
             const res = await getDatasourceList()
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }
@@ -221,6 +235,7 @@ export const Datasources = () => {
         try {
             const params = {
                 id: record.id,
+                name: record.name,
             }
             await deleteDatasource(params)
             handleList()
@@ -248,7 +263,7 @@ export const Datasources = () => {
                 query: value,
             }
             const res = await getDatasourceList(params)
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }
@@ -257,6 +272,7 @@ export const Datasources = () => {
 
     return (
         <>
+            <Breadcrumb items={['数据源']} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
                     <Search
@@ -289,7 +305,7 @@ export const Datasources = () => {
                     dataSource={list}
                     columns={columns}
                     scroll={{
-                        y: height - 280, // 动态设置滚动高度
+                        y: height - 250, // 动态设置滚动高度
                         x: 'max-content', // 水平滚动
                     }}
                     style={{

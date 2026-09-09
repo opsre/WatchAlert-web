@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import {Table, Button, Tag, Input, Popconfirm, message, Tooltip, Space, Switch, Drawer, Typography, Divider} from 'antd';
+import {Table, Button, Tag, Input, Popconfirm, message, Tooltip, Space, Switch, Drawer, Typography, Divider, Dropdown, Modal} from 'antd';
 import {ProbingChangeState, ProbingDelete, ProbingList} from "../../api/probing";
 import {Link, useNavigate} from "react-router-dom";
-import {CopyOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, QuestionCircleOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, QuestionCircleOutlined, MoreOutlined} from "@ant-design/icons";
 import {HandleApiError, HandleShowTotal} from "../../utils/lib";
 import {useAppContext} from "../../context/RuleContext";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 
 export const Probing = () => {
@@ -60,28 +61,49 @@ export const Probing = () => {
             title: '端点',
             key: 'endpoint',
             width: 'auto',
-            render: (record) => (
-                <Link 
-                    to={`/probing/${record.ruleId}/detail`}
-                    style={{
+            render: (record) => {
+                const endpoint = record.probingEndpointConfig?.endpoint || '';
+                // 根据英文逗号分隔多个端点
+                const endpoints = endpoint.split(',').map(s => s.trim()).filter(s => s);
+                
+                return (
+                    <Link 
+                        to={`/probing/${record.ruleId}/detail`}
+                        style={{
                             color: "#1677ff",
                             display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
+                            flexDirection: "column",
+                            gap: "4px",
                         }}
-                >
-                    {record.probingEndpointConfig?.endpoint && record.probingEndpointConfig.endpoint.length > 80 
-                                ? `${record.probingEndpointConfig.endpoint.substring(0, 80)}...`
-                                : record.probingEndpointConfig?.endpoint}
-                </Link>
-            ),
+                    >
+                        {endpoints.map((ep, index) => {
+                            // 如果超过 100 个字符，显示省略号
+                            const displayText = ep.length > 50 ? `${ep.substring(0, 50)}...` : ep;
+                            return (
+                                <div 
+                                    key={index}
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title={ep} // 鼠标悬停显示完整内容
+                                >
+                                    {displayText}
+                                </div>
+                            );
+                        })}
+                    </Link>
+                );
+            },
         }
     ], []);
 
     const handleDelete = useCallback(async (record) => {
         try {
             const params = {
-                ruleId: record.ruleId
+                ruleId: record.ruleId,
+                name: record.name,
             }
             await ProbingDelete(params)
             handleList();
@@ -136,7 +158,7 @@ export const Probing = () => {
             title: '状态',
             dataIndex: 'enabled',
             key: 'enabled',
-            width: "100px",
+            width: "80px",
             render: (enabled, record) => (
                 <Switch
                     checked={enabled}
@@ -162,30 +184,47 @@ export const Probing = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 100,
-            render: (_, record) => (
-                <Space size="middle">
-                    <Tooltip title="克隆">
+            width: 60,
+            render: (_, record) => {
+                const items = [
+                    {
+                        key: 'clone',
+                        icon: <CopyOutlined />,
+                        label: '克隆',
+                        onClick: () => handleClone(record)
+                    },
+                    {
+                        key: 'delete',
+                        icon: <DeleteOutlined />,
+                        label: '删除',
+                        danger: true,
+                        onClick: () => {
+                            Modal.confirm({
+                                title: "确定要删除此任务吗?",
+                                content: `任务名称: ${record.ruleName}`,
+                                okText: "确定",
+                                cancelText: "取消",
+                                okType: 'danger',
+                                onOk: () => handleDelete(record)
+                            })
+                        }
+                    }
+                ];
+
+                return (
+                    <Dropdown
+                        menu={{ items }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
                         <Button
                             type="text"
-                            icon={<CopyOutlined />}
-                            onClick={() => handleClone(record)}
-                            style={{ color: "#615454" }}
+                            icon={<MoreOutlined />}
+                            style={{ color: "#666" }}
                         />
-                    </Tooltip>
-                    <Tooltip title="删除">
-                        <Popconfirm
-                            title="确定要删除此任务吗?"
-                            onConfirm={() => handleDelete(record)}
-                            okText="确定"
-                            cancelText="取消"
-                            placement="left"
-                        >
-                            <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                        </Popconfirm>
-                    </Tooltip>
-                </Space>
-            ),
+                    </Dropdown>
+                );
+            },
         },
     ], [handleClone, handleDelete]);
 
@@ -233,7 +272,7 @@ export const Probing = () => {
             setLoading(true);
             // 不传递 ruleType 参数，获取所有类型的任务
             const res = await ProbingList({});
-            setDataList(res.data);
+            setDataList(res?.data);
         } catch (error) {
             console.error(error);
         } finally {
@@ -248,7 +287,7 @@ export const Probing = () => {
             const res = await ProbingList({
                 query: value,
             });
-            setDataList(res.data);
+            setDataList(res?.data);
         } catch (error) {
             console.error(error);
         }
@@ -260,6 +299,7 @@ export const Probing = () => {
 
     return (
         <>
+            <Breadcrumb items={['网络分析', '拨测任务']} />
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
                 <div style={{display: 'flex', gap: '10px'}}>
                     <Search
@@ -311,7 +351,7 @@ export const Probing = () => {
                     dataSource={dataList}
                     loading={loading}
                     scroll={{
-                        y: height - 280,
+                        y: height - 250,
                         x: 'max-content',
                     }}
                     style={{

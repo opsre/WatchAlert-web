@@ -7,8 +7,7 @@ import {
     Select,
     InputNumber,
     Divider,
-    Card,
-    Tabs
+    Card
 } from 'antd'
 import React, { useState, useEffect } from 'react'
 import {createRuleTmpl, updateRuleTmpl} from '../../../api/ruleTmpl'
@@ -18,13 +17,16 @@ import PrometheusImg from "../rule/img/Prometheus.svg";
 import LokiImg from "../rule/img/L.svg";
 import AlicloudImg from "../rule/img/alicloud.svg";
 import JaegerImg from "../rule/img/jaeger.svg";
-import VMImg from "../rule/img/victoriametrics.svg";
+
 import K8sImg from "../rule/img/Kubernetes.svg";
 import ESImg from "../rule/img/ElasticSearch.svg";
 import VLogImg from "../rule/img/victorialogs.svg"
+import CKImg from "../rule/img/clickhouse.svg"
 import {getKubernetesReasonList, getKubernetesResourceList} from "../../../api/kubernetes";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
 import {PlusOutlined} from "@ant-design/icons";
+import SqlEditor from "../../../utils/sqlEditor";
+import TextArea from "antd/es/input/TextArea";
 
 const MyFormItemContext = React.createContext([])
 const { Option } = Select;
@@ -67,10 +69,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
             imgSrc: JaegerImg,
             text: 'Jaeger',
         },
-        {
-            imgSrc: VMImg,
-            text: 'VictoriaMetrics',
-        },
+
         {
             imgSrc: K8sImg,
             text: 'KubernetesEvent',
@@ -82,6 +81,10 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         {
             imgSrc: VLogImg,
             text: 'VictoriaLogs',
+        },
+        {
+            imgSrc: CKImg,
+            text: 'ClickHouse',
         }
     ];
     const [selectedCard, setSelectedCard] = useState(0);
@@ -104,10 +107,10 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         Loki: 1,
         AliCloudSLS: 2,
         Jaeger: 3,
-        VictoriaMetrics: 4,
-        KubernetesEvent: 5,
-        ElasticSearch: 6,
-        VictoriaLogs: 7
+        KubernetesEvent: 4,
+        ElasticSearch: 5,
+        VictoriaLogs: 6,
+        ClickHouse: 7,
     };
 
     const datasourceCardMap = {
@@ -115,10 +118,10 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         1: "Loki",
         2: "AliCloudSLS",
         3: "Jaeger",
-        4: "VictoriaMetrics",
-        5: "KubernetesEvent",
-        6: "ElasticSearch",
-        7: "VictoriaLogs",
+        4: "KubernetesEvent",
+        5: "ElasticSearch",
+        6: "VictoriaLogs",
+        7: "ClickHouse",
     };
 
     const handleInputChange = (e) => {
@@ -438,7 +441,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
 
                     <br/>
 
-                    {(selectedType === 0 || selectedType === 4) &&
+                    {selectedType === 0 &&
                         <>
                             <div className="rule-config-container">
                                 <MyFormItemGroup prefix={['prometheusConfig']}>
@@ -449,7 +452,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                         />
                                     </MyFormItem>
 
-                                    <MyFormItem name="" label="* 告警条件" rules={[{required: !exprRule}]}>
+                                    <MyFormItem name="" label={<><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>告警条件</>} rules={[{required: !exprRule}]}>
                                         {exprRule?.map((label, index) => (
                                             <div className="rule-item" key={index} style={{gap: '10px'}}>
                                                 <MyFormItem
@@ -461,14 +464,14 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                                         showSearch
                                                         value={label.severity}
                                                         onChange={(e) => updateExprRule(index, 'severity', e)}
-                                                        placeholder="普通"
+                                                        placeholder="P2"
                                                     >
                                                         <Option value="P0"
-                                                                disabled={disableSeverity('P0')}>紧急</Option>
+                                                                disabled={disableSeverity('P0')}>P0</Option>
                                                         <Option value="P1"
-                                                                disabled={disableSeverity('P1')}>告警</Option>
+                                                                disabled={disableSeverity('P1')}>P1</Option>
                                                         <Option value="P2"
-                                                                disabled={disableSeverity('P2')}>普通</Option>
+                                                                disabled={disableSeverity('P2')}>P2</Option>
                                                     </Select>
                                                 </MyFormItem>
 
@@ -520,17 +523,43 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                             name="annotations"
                                             label="告警详情"
                                             tooltip="获取 Label 变量, 示例: ${labels.job}, ${labels.instance}。凡是 Target 中的变量均可通过`${labels.xxx}`获取。"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                },
-                                            ]}>
-                                            <Input/>
+                                            rules={[{required: true}]}
+                                        >
+                                            <TextArea rows={2}
+                                                      placeholder="输入告警事件的详细消息内容，如：服务器: ${labels.instance}，发生故障请紧急排查!"
+                                                      maxLength={10000}/>
                                         </MyFormItem>
                                     </div>
                                 </MyFormItemGroup>
                             </div>
                         </>
+                    }
+
+                    {selectedType === 1 &&
+                        <MyFormItemGroup prefix={['lokiConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <MyFormItem
+                                    name="logQL"
+                                    label="LogQL"
+                                    rules={[{required: true}]}
+                                >
+                                    <Input/>
+                                </MyFormItem>
+                                <MyFormItem
+                                    name="logScope"
+                                    label="查询区间"
+                                    rules={[{required: true}]}
+                                >
+                                    <InputNumber
+                                        style={{width: '100%'}}
+                                        addonAfter={'分钟'}
+                                        placeholder="10"
+                                        min={1}
+                                    />
+                                </MyFormItem>
+                            </div>
+                        </MyFormItemGroup>
                     }
 
                     {selectedType === 2 &&
@@ -585,33 +614,6 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 1 &&
-                        <MyFormItemGroup prefix={['lokiConfig']}>
-                            <span>规则配置</span>
-                            <div className="log-rule-config-container">
-                                <MyFormItem
-                                    name="logQL"
-                                    label="LogQL"
-                                    rules={[{required: true}]}
-                                >
-                                    <Input/>
-                                </MyFormItem>
-                                <MyFormItem
-                                    name="logScope"
-                                    label="查询区间"
-                                    rules={[{required: true}]}
-                                >
-                                    <InputNumber
-                                        style={{width: '100%'}}
-                                        addonAfter={'分钟'}
-                                        placeholder="10"
-                                        min={1}
-                                    />
-                                </MyFormItem>
-                            </div>
-                        </MyFormItemGroup>
-                    }
-
                     {selectedType === 3 &&
                         <MyFormItemGroup prefix={['jaegerConfig']}>
                             <div style={{display: 'flex', gap: '10px'}}>
@@ -623,10 +625,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                     }}
                                     rules={[{required: true}]}
                                 >
-                                    <Select showSearch style={{width: '100%'}} placeholder="StatusCode =~ 5xx">
-                                        <Option
-                                            value='%7B"http.status_code"%3A"5.%2A%3F"%7D'>{'StatusCode =~ 5xx'}</Option>
-                                    </Select>
+                                    <Input placeholder='{"http.status_code":"5.*?"}'/>
                                 </MyFormItem>
                             </div>
 
@@ -646,7 +645,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 5 &&
+                    {selectedType === 4 &&
                         <MyFormItemGroup prefix={['kubernetesConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -739,163 +738,164 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 6 &&
+                    {selectedType === 5 &&
                         <MyFormItemGroup prefix={['elasticSearchConfig']}>
-                            <div style={{display: 'flex', gap: '10px'}}>
+                            {/*<div style={{display: 'flex', gap: '10px'}}>*/}
+                                {/*<MyFormItem*/}
+                                {/*    name="scope"*/}
+                                {/*    label="查询区间"*/}
+                                {/*    rules={[{required: true}]}*/}
+                                {/*    style={{*/}
+                                {/*        width: '50%',*/}
+                                {/*    }}*/}
+                                {/*>*/}
+                                {/*    <InputNumber*/}
+                                {/*        style={{width: '100%'}}*/}
+                                {/*        addonAfter={<span>分钟</span>}*/}
+                                {/*        placeholder="10"*/}
+                                {/*        min={1}*/}
+                                {/*    />*/}
+                                {/*</MyFormItem>*/}
+                            {/*</div>*/}
+
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                {/*<Segmented*/}
+                                {/*    activeKey={esFilterType}*/}
+                                {/*    onChange={setEsFilterType}*/}
+                                {/*    items={[*/}
+                                {/*        {*/}
+                                {/*            label: '查询语句',*/}
+                                {/*            key: 'RawJson',*/}
+                                {/*        },*/}
+                                {/*        {*/}
+                                {/*            label: '字段匹配',*/}
+                                {/*            key: 'Field',*/}
+                                {/*        }*/}
+                                {/*    ]}*/}
+                                {/*/>*/}
+
+                                {/*{esFilterType === "Field" &&*/}
+                                {/*    <>*/}
+                                {/*        <MyFormItem*/}
+                                {/*            name="filterCondition"*/}
+                                {/*            label="匹配关系"*/}
+                                {/*            rules={[{*/}
+                                {/*                required: true,*/}
+                                {/*            }]}>*/}
+                                {/*            <Select*/}
+                                {/*                placeholder="请选择匹配关系"*/}
+                                {/*                style={{*/}
+                                {/*                    flex: 1,*/}
+                                {/*                }}*/}
+                                {/*                value={filterCondition}*/}
+                                {/*                onChange={setFilterCondition}*/}
+                                {/*                options={[*/}
+                                {/*                    {*/}
+                                {/*                        label: 'And（表示"与"，所有子查询都必须匹配）',*/}
+                                {/*                        value: 'And',*/}
+                                {/*                    },*/}
+                                {/*                    {*/}
+                                {/*                        label: 'Or（表示"或"，至少有一个子查询需要匹配）',*/}
+                                {/*                        value: 'Or'*/}
+                                {/*                    },*/}
+                                {/*                    {*/}
+                                {/*                        label: 'Not（表示"非"，所有子查询都不能匹配）',*/}
+                                {/*                        value: 'Not'*/}
+                                {/*                    }*/}
+                                {/*                ]}*/}
+                                {/*            />*/}
+                                {/*        </MyFormItem>*/}
+
+                                {/*        <MyFormItem*/}
+                                {/*            name="queryWildcard"*/}
+                                {/*            label="匹配模式"*/}
+                                {/*            rules={[{*/}
+                                {/*                required: true,*/}
+                                {/*            }]}>*/}
+                                {/*            <Radio.Group*/}
+                                {/*                block*/}
+                                {/*                options={[*/}
+                                {/*                    {*/}
+                                {/*                        label: '模糊匹配',*/}
+                                {/*                        value: 1,*/}
+                                {/*                    },*/}
+                                {/*                    {*/}
+                                {/*                        label: '精准匹配',*/}
+                                {/*                        value: 0,*/}
+                                {/*                    },*/}
+                                {/*                ]}*/}
+                                {/*                defaultValue={false}*/}
+                                {/*                value={1}*/}
+                                {/*                onChange={handleQueryWildcardChange}*/}
+                                {/*            />*/}
+                                {/*        </MyFormItem>*/}
+
+                                {/*        <MyFormItem name="" label="" rules={[{required: !esfilter}]}>*/}
+                                {/*            {esfilter?.map((label, index) => (*/}
+                                {/*                <div className="rule-item" key={index} style={{gap: '10px'}}>*/}
+                                {/*                    <MyFormItem*/}
+                                {/*                        name={['filter', index, 'field']}*/}
+                                {/*                        label="字段名"*/}
+                                {/*                        rules={[{required: true, message: '请输入字段名'}]}*/}
+                                {/*                        style={{width: '50%', gap: '10px'}}*/}
+                                {/*                    >*/}
+                                {/*                        <Input*/}
+                                {/*                            onChange={(e) => updateEsFilter(index, 'field', e.target.value)}/>*/}
+                                {/*                    </MyFormItem>*/}
+
+                                {/*                    <MyFormItem*/}
+                                {/*                        name={['filter', index, 'value']}*/}
+                                {/*                        label="字段值"*/}
+                                {/*                        rules={[{required: true, message: '请输入字段值'}]}*/}
+                                {/*                        validateStatus={errors[index] ? 'error' : ''}*/}
+                                {/*                        help={errors[index]}*/}
+                                {/*                        style={{width: '50%'}}*/}
+                                {/*                    >*/}
+                                {/*                        <Input*/}
+                                {/*                            value={label.expr}*/}
+                                {/*                            style={{width: '100%'}}*/}
+                                {/*                            onChange={(e) => updateEsFilter(index, 'value', e.target.value)}*/}
+                                {/*                        />*/}
+                                {/*                    </MyFormItem>*/}
+
+                                {/*                    <Button onClick={() => removeEsFilter(index)}*/}
+                                {/*                            style={{marginTop: '35px'}}*/}
+                                {/*                            disabled={index === 0}>*/}
+                                {/*                        -*/}
+                                {/*                    </Button>*/}
+                                {/*                </div>*/}
+                                {/*            ))}*/}
+                                {/*        </MyFormItem>*/}
+                                {/*        <Button type="link" onClick={addEsFilter} style={{*/}
+                                {/*            display: 'block',*/}
+                                {/*            textAlign: 'center',*/}
+                                {/*            width: '100%',*/}
+                                {/*            marginTop: '-30px'*/}
+                                {/*        }}>*/}
+                                {/*            添加一个新的筛选规则*/}
+                                {/*        </Button>*/}
+                                {/*    </>*/}
+                                {/*}*/}
                                 <MyFormItem
                                     name="index"
                                     label="索引名称"
                                     tooltip="🔔：支持固定索引名称；支持按时间自动轮转，例如：索引名称为 test.YYYY-MM-dd，今日日期2025.02.23，那么索引名字会轮转为test.2025-02-23"
-                                    rules={[{required: true,}]}
+                                    rules={[{required: true}]}
                                     style={{
-                                        width: '50%',
+                                        width: '100%',
                                     }}>
                                     <Input/>
                                 </MyFormItem>
 
-                                <MyFormItem
-                                    name="scope"
-                                    label="查询区间"
-                                    rules={[{required: true}]}
-                                    style={{
-                                        width: '50%',
-                                    }}
-                                >
-                                    <InputNumber
-                                        style={{width: '100%'}}
-                                        addonAfter={<span>分钟</span>}
-                                        placeholder="10"
-                                        min={1}
-                                    />
-                                </MyFormItem>
-                            </div>
-
-                            <span>规则配置</span>
-                            <div className="log-rule-config-container">
-                                <Tabs
-                                    activeKey={esFilterType}
-                                    onChange={setEsFilterType}
-                                    items={[
-                                        {
-                                            label: '查询语句',
-                                            key: 'RawJson',
-                                        },
-                                        {
-                                            label: '字段匹配',
-                                            key: 'Field',
-                                        }
-                                    ]}
-                                />
-
-                                {esFilterType === "Field" &&
-                                    <>
-                                        <MyFormItem
-                                            name="filterCondition"
-                                            label="匹配关系"
-                                            rules={[{
-                                                required: true,
-                                            }]}>
-                                            <Select
-                                                placeholder="请选择匹配关系"
-                                                style={{
-                                                    flex: 1,
-                                                }}
-                                                value={filterCondition}
-                                                onChange={setFilterCondition}
-                                                options={[
-                                                    {
-                                                        label: 'And（表示"与"，所有子查询都必须匹配）',
-                                                        value: 'And',
-                                                    },
-                                                    {
-                                                        label: 'Or（表示"或"，至少有一个子查询需要匹配）',
-                                                        value: 'Or'
-                                                    },
-                                                    {
-                                                        label: 'Not（表示"非"，所有子查询都不能匹配）',
-                                                        value: 'Not'
-                                                    }
-                                                ]}
-                                            />
-                                        </MyFormItem>
-
-                                        <MyFormItem
-                                            name="queryWildcard"
-                                            label="匹配模式"
-                                            rules={[{
-                                                required: true,
-                                            }]}>
-                                            <Radio.Group
-                                                block
-                                                options={[
-                                                    {
-                                                        label: '模糊匹配',
-                                                        value: 1,
-                                                    },
-                                                    {
-                                                        label: '精准匹配',
-                                                        value: 0,
-                                                    },
-                                                ]}
-                                                defaultValue={false}
-                                                value={1}
-                                                onChange={handleQueryWildcardChange}
-                                            />
-                                        </MyFormItem>
-
-                                        <MyFormItem name="" label="" rules={[{required: !esfilter}]}>
-                                            {esfilter?.map((label, index) => (
-                                                <div className="rule-item" key={index} style={{gap: '10px'}}>
-                                                    <MyFormItem
-                                                        name={['filter', index, 'field']}
-                                                        label="字段名"
-                                                        rules={[{required: true, message: '请输入字段名'}]}
-                                                        style={{width: '50%', gap: '10px'}}
-                                                    >
-                                                        <Input
-                                                            onChange={(e) => updateEsFilter(index, 'field', e.target.value)}/>
-                                                    </MyFormItem>
-
-                                                    <MyFormItem
-                                                        name={['filter', index, 'value']}
-                                                        label="字段值"
-                                                        rules={[{required: true, message: '请输入字段值'}]}
-                                                        validateStatus={errors[index] ? 'error' : ''}
-                                                        help={errors[index]}
-                                                        style={{width: '50%'}}
-                                                    >
-                                                        <Input
-                                                            value={label.expr}
-                                                            style={{width: '100%'}}
-                                                            onChange={(e) => updateEsFilter(index, 'value', e.target.value)}
-                                                        />
-                                                    </MyFormItem>
-
-                                                    <Button onClick={() => removeEsFilter(index)}
-                                                            style={{marginTop: '35px'}}
-                                                            disabled={index === 0}>
-                                                        -
-                                                    </Button>
-                                                </div>
-                                            ))}
-                                        </MyFormItem>
-                                        <Button type="link" onClick={addEsFilter} style={{
-                                            display: 'block',
-                                            textAlign: 'center',
-                                            width: '100%',
-                                            marginTop: '-30px'
-                                        }}>
-                                            添加一个新的筛选规则
-                                        </Button>
-                                    </>
-                                }
                                 {esFilterType === "RawJson" && (
-                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px'}}>
                                         <MyFormItem
+                                            label={<><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>查询语句</>}
                                             rules={[{required: true}]}
                                             style={{width: '100%', height: '100%'}}
                                         >
-                                            <VSCodeEditor onChange={setEsRawJson} value={esRawJson}/>
+                                            <VSCodeEditor onChange={setEsRawJson} value={esRawJson} height={"50px"}/>
                                         </MyFormItem>
                                     </div>
                                 )}
@@ -903,7 +903,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 7 &&
+                    {selectedType === 6 &&
                         <MyFormItemGroup prefix={['victoriaLogsConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -926,6 +926,24 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                                         min={1}
                                     />
                                 </MyFormItem>
+                            </div>
+                        </MyFormItemGroup>
+                    }
+
+                    {selectedType === 7 &&
+                        <MyFormItemGroup prefix={['clickhouseConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px'}}>
+                                    <MyFormItem
+                                        name="logQL"
+                                        label="查询语句"
+                                        rules={[{required: true}]}
+                                        style={{width: '100%', height: '100%'}}
+                                    >
+                                        <SqlEditor/>
+                                    </MyFormItem>
+                                </div>
                             </div>
                         </MyFormItemGroup>
                     }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { message } from "antd"
 import axios from "axios"
@@ -11,8 +11,7 @@ const Auth = (WrappedComponent) => {
     // Return a new component
     return function WithAuthComponent(props) {
         const navigate = useNavigate()
-        const [errorCount, setErrorCount] = useState(0)
-
+        
         // Check if user is logged in
         useEffect(() => {
             const checkUser = async () => {
@@ -20,12 +19,14 @@ const Auth = (WrappedComponent) => {
                 if (!token) {
                     const res = await getCookieConvertToken()
                     if (res.code !== 200) {
+                        const currentPath = window.location.pathname + window.location.search
                         localStorage.clear()
+                        localStorage.setItem('redirectPath', currentPath)
                         navigate("/login")
                     } else {
-                        localStorage.setItem("Authorization", res.data.token)
-                        localStorage.setItem("Username", res.data.username)
-                        localStorage.setItem("UserId", res.data.userId)
+                        localStorage.setItem("Authorization", res?.data?.token)
+                        localStorage.setItem("Username", res?.data?.username)
+                        localStorage.setItem("UserId", res?.data?.userId)
                         navigate("/")
                     }
                 }
@@ -34,21 +35,22 @@ const Auth = (WrappedComponent) => {
             checkUser()
         }, [navigate])
 
-        // Set global request headers
+        // Set global request headers and response interceptor
         useEffect(() => {
             const token = localStorage.getItem("Authorization")
             if (token) {
                 axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
             }
-        }, [])
-
-        // Response interceptor
-        useEffect(() => {
+            
             const interceptor = axios.interceptors.response.use(
                 (response) => response,
                 (error) => {
                     if (error.response?.status === 401) {
-                        setErrorCount((prevCount) => prevCount + 1)
+                        const currentPath = window.location.pathname + window.location.search
+                        localStorage.clear()
+                        localStorage.setItem('redirectPath', currentPath)
+                        navigate("/login")
+                        message.error("登录已过期，请重新登录")
                     }
                     return Promise.reject(error)
                 }
@@ -57,16 +59,7 @@ const Auth = (WrappedComponent) => {
             return () => {
                 axios.interceptors.response.eject(interceptor) // Clean up interceptor
             }
-        }, [])
-
-        // Check error count and show message
-        useEffect(() => {
-            if (errorCount > 0) {
-                localStorage.clear()
-                navigate("/login") // Redirect to login page
-                message.error("登录已过期，请重新登录")
-            }
-        }, [errorCount, navigate])
+        }, [navigate])
 
         // Render the wrapped component with all props
         return <WrappedComponent {...props} />

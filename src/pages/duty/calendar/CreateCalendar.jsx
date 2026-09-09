@@ -55,9 +55,9 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
             const res = await GetCalendarUsers(params)
 
             // 假设 res.data 是 [][]DutyUser 结构
-            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-                const loadedGroups = res.data
-                    .filter((userList) => Array.isArray(userList)) // 确保每个 userList 都是数组
+            if (res?.data && Array.isArray(res?.data) && res?.data?.length > 0) {
+                const loadedGroups = res?.data
+                    ?.filter((userList) => Array.isArray(userList)) // 确保每个 userList 都是数组
                     .map((userList, index) => {
                         // 根据组内第一个用户的userid生成稳定的颜色索引
                         let colorIndex = index
@@ -110,7 +110,7 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
                 joinDuty: "true",
             }
             const res = await getUserList(params)
-            const options = res.data.map((item) => ({
+            const options = res?.data?.map((item) => ({
                 username: item.username,
                 userid: item.userid,
             }))
@@ -263,7 +263,7 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
                                                         setSearchVisible(true)
                                                     }}
                                                     style={{ marginBottom: 12, width: "100%" }}
-                                                    disabled={group.users.length >= 3} // 当成员数达到3时禁用按钮
+                                                    disabled={group.users.length >= 8} // 当成员数达到8时禁用按钮
                                                 >
                                                     + 添加组内人员
                                                 </Button>
@@ -389,6 +389,8 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
                             <Select onChange={setDateType} value={dateType}>
                                 <Option value="day">{"天"}</Option>
                                 <Option value="week">{"周"}</Option>
+                                <Option value="month">{"月"}</Option>
+                                <Option value="year">{"年"}</Option>
                             </Select>
                         }
                     />

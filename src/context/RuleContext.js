@@ -24,13 +24,15 @@ export const AppContextProvider = ({ children }) => {
     const setRuleTemplate = (ruleTemplate) => updateAppState('ruleTemplate', ruleTemplate);
     const setCloneProbeRule = (cloneProbeRule) => updateAppState('cloneProbeRule', cloneProbeRule);
     const setCloneAlertRule = (cloneAlertRule) => updateAppState('cloneAlertRule', cloneAlertRule);
+    const setCloneRecodingRule = (cloneRecodingRule) => updateAppState('cloneRecodingRule', cloneRecodingRule);
 
     return (
         <AppContext.Provider value={{
             appState,
             setRuleTemplate,
             setCloneProbeRule,
-            setCloneAlertRule
+            setCloneAlertRule,
+            setCloneRecodingRule
         }}>
             {children}
         </AppContext.Provider>

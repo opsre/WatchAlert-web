@@ -1,4 +1,4 @@
-import {Button, Input, Table, Popconfirm, Space, Tooltip, Tag} from 'antd';
+import {Button, Input, Table, Popconfirm, Space, Tooltip, Tag, Dropdown, Modal} from 'antd';
 import React, { useState, useEffect } from 'react';
 import NoticeTemplateCreateModal from './NoticeTemplateCreateModal';
 import { getNoticeTmplList, deleteNoticeTmpl } from '../../../api/noticeTmpl';
@@ -7,9 +7,11 @@ import { ReactComponent as DingdingIcon } from '../img/dingding.svg';
 import { ReactComponent as EmailIcon } from '../img/Email.svg';
 import { ReactComponent as WeChatIcon } from '../img/qywechat.svg'
 import { ReactComponent as SlackIcon } from '../img/slack.svg'
-import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, PlusOutlined, CopyOutlined, MoreOutlined } from "@ant-design/icons";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../../utils/lib";
+import {Breadcrumb} from "../../../components/Breadcrumb";
+
 
 const { Search } = Input;
 
@@ -17,6 +19,7 @@ export const NoticeTemplate = () => {
     const [selectedRow, setSelectedRow] = useState(null);
     const [updateVisible, setUpdateVisible] = useState(false);
     const [visible, setVisible] = useState(false);
+    const [createSelectedRow, setCreateSelectedRow] = useState(null);
     const [list, setList] = useState([]);
 
     // 表头
@@ -140,31 +143,52 @@ export const NoticeTemplate = () => {
         {
             title: '操作',
             dataIndex: 'operation',
-            width: 120,
+            width: 60,
             fixed: 'right',
             render: (_, record) =>
                 list.length >= 1 ? (
-                    <Space size="middle">
-                        <Tooltip title="更新">
-                            <Button
-                                type="text"
-                                icon={<EditOutlined />}
-                                onClick={() => handleUpdateModalOpen(record)}
-                                style={{ color: "#1677ff" }}
-                            />
-                        </Tooltip>
-                        <Tooltip title="删除">
-                            <Popconfirm
-                                title="确定要删除此模版吗?"
-                                onConfirm={() => handleDelete(record)}
-                                okText="确定"
-                                cancelText="取消"
-                                placement="left"
-                            >
-                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                            </Popconfirm>
-                        </Tooltip>
-                    </Space>
+                    <Dropdown
+                        menu={{
+                            items: [
+                                {
+                                    key: 'edit',
+                                    icon: <EditOutlined />,
+                                    label: '更新',
+                                    onClick: () => handleUpdateModalOpen(record)
+                                },
+                                {
+                                    key: 'copy',
+                                    icon: <CopyOutlined />,
+                                    label: '复制',
+                                    onClick: ({ domEvent }) => handleCopy(record, domEvent)
+                                },
+                                {
+                                    key: 'delete',
+                                    icon: <DeleteOutlined />,
+                                    label: '删除',
+                                    danger: true,
+                                    onClick: () => {
+                                        Modal.confirm({
+                                            title: "确定要删除此模版吗?",
+                                            content: `模版名称: ${record.name}`,
+                                            okText: "确定",
+                                            cancelText: "取消",
+                                            okType: 'danger',
+                                            onOk: () => handleDelete(record)
+                                        })
+                                    }
+                                }
+                            ]
+                        }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
+                        <Button
+                            type="text"
+                            icon={<MoreOutlined />}
+                            style={{ color: "#666" }}
+                        />
+                    </Dropdown>
                 ) : null,
         },
     ];
@@ -188,18 +212,20 @@ export const NoticeTemplate = () => {
 
     const handleList = async () => {
         const res = await getNoticeTmplList();
-        setList(res.data);
+        setList(res?.data);
     };
 
     const handleDelete = async (record) => {
         const params = {
             id: record.id,
+            name: record.name,
         };
         await deleteNoticeTmpl(params);
         handleList();
     };
 
     const handleModalClose = () => {
+        setCreateSelectedRow(null); // 关闭弹窗时清空数据
         setVisible(false);
     };
 
@@ -222,14 +248,30 @@ export const NoticeTemplate = () => {
                 query: value,
             };
             const res = await getNoticeTmplList(params);
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             console.error(error);
         }
     };
+    // 新增：处理复制逻辑
+    const handleCopy = (record, e) => {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        
+        // 深拷贝切断引用
+        const copiedRecord = JSON.parse(JSON.stringify(record));
+        copiedRecord.name = `${copiedRecord.name}-复制`;
+        
+        // 设置状态并打开抽屉
+        setCreateSelectedRow(copiedRecord);
+        setVisible(true); 
+    };
 
     return (
         <>
+            <Breadcrumb items={['通知管理', '通知模版']} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
                     <Search
@@ -242,7 +284,10 @@ export const NoticeTemplate = () => {
                 <div>
                     <Button
                         type="primary"
-                        onClick={() => setVisible(true)}
+                        onClick={() => {
+                            setCreateSelectedRow(null); // 确保正常创建时清空状态
+                            setVisible(true)
+                        }}
                         style={{
                             backgroundColor: '#000000'
                         }}
@@ -253,7 +298,13 @@ export const NoticeTemplate = () => {
                 </div>
             </div>
 
-            <NoticeTemplateCreateModal visible={visible} onClose={handleModalClose} type="create" handleList={handleList} />
+            <NoticeTemplateCreateModal 
+                visible={visible} 
+                onClose={handleModalClose} 
+                selectedRow={createSelectedRow} 
+                type='create' 
+                handleList={handleList} 
+            />
 
             <NoticeTemplateCreateModal
                 visible={updateVisible}
@@ -268,7 +319,7 @@ export const NoticeTemplate = () => {
                     columns={columns}
                     dataSource={list}
                     scroll={{
-                        y: height - 280, // 动态设置滚动高度
+                        y: height - 250, // 动态设置滚动高度
                         x: 'max-content', // 水平滚动
                     }}
                     style={{

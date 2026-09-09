@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getDashboardFullUrl, getFolderInfo} from '../../../api/dashboard';
 import { useParams } from 'react-router-dom'
+import { Breadcrumb } from '../../../components/Breadcrumb';
+
 
 export const GrafanaDashboardComponent = () => {
     const { fid,did } = useParams()
@@ -17,12 +19,12 @@ export const GrafanaDashboardComponent = () => {
             }
             const resInfo = await getFolderInfo(fParams)
             const params = {
-                theme: resInfo.data.theme,
-                host:  resInfo.data.grafanaHost,
+                theme: resInfo?.data?.theme,
+                host:  resInfo?.data?.grafanaHost,
                 uid: did
             }
             const res = await getDashboardFullUrl(params)
-            setIframeSrc(res.data)
+            setIframeSrc(res?.data)
         } catch (error) {
             console.error(error)
         }
@@ -30,8 +32,8 @@ export const GrafanaDashboardComponent = () => {
 
     return (
         <>
-            <div >Loading...</div>
-            <div style={{ marginLeft: '-24px', marginTop: '-43px', height: '78vh' }}>
+            <Breadcrumb items={['仪表盘', '详情']} />
+            <div style={{ marginLeft: '-24px', height: '78vh' }}>
                 <iframe
                     src={iframeSrc}
                     frameborder="0"

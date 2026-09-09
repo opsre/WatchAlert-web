@@ -1,12 +1,14 @@
-import {Input, Table, Button, Popconfirm, Tooltip, Space} from 'antd';
+import {Input, Table, Button, Popconfirm, Tooltip, Space, Dropdown, Modal} from 'antd';
 import React, { useState, useEffect } from 'react';
 import UserCreateModal from './UserCreateModal';
 import UserChangePass from './UserChangePass';
 import { deleteUser, getUserList } from '../../../api/user';
-import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined} from "@ant-design/icons";
 import {HandleShowTotal} from "../../../utils/lib";
 import {Link} from "react-router-dom";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
 
 const { Search } = Input;
 
@@ -76,41 +78,53 @@ export const User = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 200,
-            render: (_, record) => (
-                list.length >= 1 && (
-                    <div>
+            width: 60,
+            render: (_, record) =>
+                list.length >= 1 ? (
+                    <Dropdown
+                        menu={{
+                            items: [
+                                {
+                                    key: 'reset-password',
+                                    label: '重置密码',
+                                    disabled: record.create_by === 'LDAP',
+                                    onClick: () => openChangePassModal(record)
+                                },
+                                {
+                                    key: 'edit',
+                                    icon: <EditOutlined />,
+                                    label: '更新',
+                                    onClick: () => handleUpdateModalOpen(record)
+                                },
+                                {
+                                    key: 'delete',
+                                    icon: <DeleteOutlined />,
+                                    label: '删除',
+                                    danger: true,
+                                    disabled: record.userid === "admin",
+                                    onClick: () => {
+                                        Modal.confirm({
+                                            title: "确定要删除此用户吗?",
+                                            content: `用户名: ${record.username}`,
+                                            okText: "确定",
+                                            cancelText: "取消",
+                                            okType: 'danger',
+                                            onOk: () => handleDelete(record)
+                                        })
+                                    }
+                                }
+                            ]
+                        }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
                         <Button
-                            type="link"
-                            onClick={() => openChangePassModal(record)}
-                            disabled={record.create_by === 'LDAP'}
-                        >
-                            重置密码
-                        </Button>
-                        <Space size="middle">
-                            <Tooltip title="更新">
-                                <Button
-                                    type="text"
-                                    icon={<EditOutlined />}
-                                    onClick={() => handleUpdateModalOpen(record)}
-                                    style={{ color: "#1677ff" }}
-                                />
-                            </Tooltip>
-                            <Tooltip title="删除">
-                                <Popconfirm
-                                    title="确定要删除此用户吗?"
-                                    onConfirm={() => handleDelete(record)}
-                                    okText="确定"
-                                    cancelText="取消"
-                                    placement="left"
-                                >
-                                    <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                                </Popconfirm>
-                            </Tooltip>
-                        </Space>
-                    </div>
-                )
-            ),
+                            type="text"
+                            icon={<MoreOutlined />}
+                            style={{ color: "#666" }}
+                        />
+                    </Dropdown>
+                ) : null,
         },
     ];
 
@@ -124,7 +138,7 @@ export const User = () => {
     const handleList = async () => {
         try {
             const res = await getUserList();
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             console.error(error);
         }
@@ -159,7 +173,7 @@ export const User = () => {
                 query: value
             }
             const res = await getUserList(params)
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             console.error(error);
         }
@@ -172,6 +186,7 @@ export const User = () => {
 
     return (
         <>
+            <Breadcrumb items={['人员组织', '用户管理']} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Search
                     allowClear
@@ -225,7 +240,7 @@ export const User = () => {
                     dataSource={list}
                     rowKey="userid"
                     scroll={{
-                        y: height - 280, // 动态设置滚动高度
+                        y: height - 250, // 动态设置滚动高度
                         x: 'max-content', // 水平滚动
                     }}
                     style={{

@@ -3,10 +3,10 @@ import { Table, message, Button, Drawer, Select, Input, Tag } from "antd"
 import { listAuditLog, searchAuditLog } from "../../api/auditLog"
 import moment from "moment"
 import JsonViewer from "react-json-view"
-import {FileText} from "lucide-react";
 import {HandleShowTotal} from "../../utils/lib";
 import {ReloadOutlined} from "@ant-design/icons";
 import { TableWithPagination } from "../../utils/TableWithPagination"
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 export const AuditLog = () => {
     const { Search } = Input
@@ -116,12 +116,12 @@ export const AuditLog = () => {
 
             // Update pagination with response data
             setPagination({
-                index: res.data.index || 1, // Use response index or default to 1
-                size: res.data.size || 10, // Use response size or default to 10
-                total: res.data.total || 0, // Use response total or default to 0
+                index: res?.data?.index || 1, // Use response index or default to 1
+                size: res?.data?.size || 10, // Use response size or default to 10
+                total: res?.data?.total || 0, // Use response total or default to 0
             })
 
-            setList(res.data.list || [])
+            setList(res?.data?.list || [])
         } catch (error) {
             message.error(typeof error === "string" ? error : "Failed to fetch audit logs")
         }
@@ -179,12 +179,12 @@ export const AuditLog = () => {
             const res = await searchAuditLog(params)
 
             setPagination({
-                current: res.data.index || 1,
-                pageSize: res.data.size || 10,
-                total: res.data.total || 0,
+                current: res?.data?.index || 1,
+                pageSize: res?.data?.size || 10,
+                total: res?.data?.total || 0,
             })
 
-            setList(res.data.list || [])
+            setList(res?.data?.list || [])
         } catch (error) {
             console.error(error)
         }
@@ -192,7 +192,8 @@ export const AuditLog = () => {
 
     return (
         <div>
-            <Drawer anchor="right" title="事件Body详情" onClose={onCloseDrawer} open={drawerOpen}>
+            <Breadcrumb items={['审计日志']} />
+            <Drawer anchor="right" title="事件Body详情" width={500} onClose={onCloseDrawer} open={drawerOpen}>
                 <JsonViewer src={annotationsJson} displayObjectSize={false} />
             </Drawer>
             <div style={{ display: "flex", justifyContent: "space-between", width: "50vh" }}>
@@ -255,7 +256,7 @@ export const AuditLog = () => {
                 pagination={pagination}
                 onPageChange={handlePageChange}
                 onPageSizeChange={handlePageSizeChange}
-                scrollY={height - 280}
+                scrollY={height - 250}
                 rowKey={record => record.id}
                 showTotal={HandleShowTotal}
             />

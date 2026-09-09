@@ -75,6 +75,13 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
             setNotifyType(selectedRow.noticeType)
             setSelectedNotifyCard(t)
             console.log(t)
+        }else {
+            // 当 selectedRow 为空（即纯新建）时，强制重置表单和各个状态
+            form.resetFields()
+            setSpaceValue('')
+            setIsChecked(false)
+            setNotifyType('FeiShu')
+            setSelectedNotifyCard(0)
         }
     }, [selectedRow, form])
 
@@ -175,10 +182,11 @@ const NoticeTemplateCreateModal = ({ visible, onClose, selectedRow, type, handle
 
     return (
         <Drawer
-            title="创建通知模版"
+            title={type === 'update' ? '更新通知模版' : '创建通知模版'}
             open={visible}
             onClose={onClose}
             size='large'
+            destroyOnClose={true}
             footer={
             <div style={{display: 'flex', justifyContent: 'flex-end'}}>
                 <Button

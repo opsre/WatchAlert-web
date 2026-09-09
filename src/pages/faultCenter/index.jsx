@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom"
 import { FaultCenterDelete, FaultCenterList } from "../../api/faultCenter"
 import { MoreOutlined, DeleteOutlined, ExclamationCircleOutlined, PlusOutlined } from "@ant-design/icons"
 import { CreateFaultCenter } from "./create"
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 const { confirm } = Modal
 const { Title } = Typography
@@ -22,7 +24,7 @@ export const FaultCenter = () => {
     const handleList = async () => {
         try {
             const res = await FaultCenterList()
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }
@@ -30,7 +32,7 @@ export const FaultCenter = () => {
 
     const handleDelete = async (record) => {
         try {
-            const params = { id: record.id }
+            const params = { id: record.id, name: record.name }
             await FaultCenterDelete(params)
             handleList() // 删除后刷新列表
         } catch (error) {
@@ -42,7 +44,7 @@ export const FaultCenter = () => {
         try {
             const params = { query: value }
             const res = await FaultCenterList(params)
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }
@@ -88,39 +90,102 @@ export const FaultCenter = () => {
         pageContainer: {
             display: "flex",
             flexDirection: "column",
-            height: "70vh", // 使用视口高度
             overflow: "hidden", // 防止整个页面滚动
         },
         headerSection: {
-            padding: "10px",
             backgroundColor: "#fff",
             zIndex: 10,
         },
         scrollContainer: {
             flex: 1,
             overflowY: "auto", // 启用垂直滚动
-            padding: "0 10px",
         },
-        cardTitle: {
-            fontSize: "16px",
-            fontWeight: "bold",
-            marginBottom: "8px",
+        cardHeader: {
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "center",
+            alignItems: "flex-start",
+            marginBottom: "6px",
         },
-        label: {
-            color: "#878383",
+        cardTitle: {
+            fontSize: "15px",
+            fontWeight: "600",
+            color: "#1f2d3d",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
         },
         value: (color) => ({
             color: color,
             fontWeight: "bold",
             marginLeft: "8px",
-            fontSize: "15px",
+            fontSize: "16px",
         }),
         cardHover: {
-            transform: "scale(1.05)",
-            transition: "transform 0.3s ease",
+            transform: "translateY(-4px) scale(1.01)",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+        },
+        cardContainer: {
+            margin: "4px",
+            transition: "all 0.3s ease",
+        },
+        card: {
+            borderRadius: "10px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            border: "1px solid #f0f0f0",
+            transition: "all 0.3s ease",
+            height: "145px",
+            display: "flex",
+            flexDirection: "column",
+            padding: "16px",
+            position: "relative",
+            overflow: "hidden",
+            background: "linear-gradient(135deg, #ffffff 0%, #fafafa 100%)",
+        },
+        cardContent: {
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: "6px",
+        },
+        statItem: {
+            textAlign: "center",
+            flex: 1,
+        },
+        statValue: (color) => ({
+            fontSize: "18px",
+            fontWeight: "700",
+            color: color,
+            lineHeight: 1.2,
+        }),
+        statLabel: {
+            fontSize: "11px",
+            color: "#8c8c8c",
+            marginTop: "3px",
+        },
+        cardFooter: {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderTop: "1px solid #f5f5f5",
+            paddingTop: "8px",
+            marginTop: "4px",
+        },
+        createTime: {
+            fontSize: "11px",
+            color: "#bfbfbf",
+        },
+        moreIcon: {
+            fontSize: "16px",
+            cursor: "pointer",
+            padding: "4px",
+            borderRadius: "4px",
+            transition: "background-color 0.2s",
+            color: "#8c8c8c",
+        },
+        moreIconHover: {
+            backgroundColor: "#f5f5f5",
         },
     }
 
@@ -145,117 +210,126 @@ export const FaultCenter = () => {
     }
 
     return (
-        <div style={styles.pageContainer}>
-            {/* 固定在顶部的搜索和创建按钮 */}
-            <div style={styles.headerSection}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", gap: "10px" }}>
-                        <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
-                    </div>
+        <>
+            <Breadcrumb items={['故障中心']} />
+            <div style={styles.pageContainer}>
+                {/* 固定在顶部的搜索和创建按钮 */}
+                <div style={styles.headerSection}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                            <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
+                        </div>
 
-                    <div>
-                        <Button type="primary" style={{ backgroundColor: "#000000" }} onClick={() => setVisible(true)} icon={<PlusOutlined />}>
-                            创建
-                        </Button>
+                        <div>
+                            <Button type="primary" style={{ backgroundColor: "#000000" }} onClick={() => setVisible(true)} icon={<PlusOutlined />}>
+                                创建
+                            </Button>
+                        </div>
                     </div>
                 </div>
+
+                <CreateFaultCenter visible={visible} onClose={handleModalClose} handleList={handleList} type="create" />
+
+                {/* 可滚动的内容区域 */}
+                <div style={styles.scrollContainer}>
+                    {/* 空状态展示 */}
+                    {list?.length === 0 && (
+                        <div
+                            style={{
+                                height: "70vh",
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                marginTop: -40,
+                            }}
+                        >
+                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"暂无故障中心数据"} style={{ marginBottom: 32 }}>
+                                <Title level={4} style={{ marginBottom: 16 }}>
+                                    开始创建第一个故障中心
+                                </Title>
+                                <span style={{ marginBottom: 24 }}>通过创建故障中心来统一管理您的告警信息</span>
+                            </Empty>
+                        </div>
+                    )}
+
+                    <Row gutter={[16, 16]} style={{ display: "flex", flexWrap: "wrap", marginTop: "20px" }}>
+                        {list?.map((item) => (
+                            <Col key={item.id} xs={24} sm={12} md={8} lg={6} xl={6}>
+                                <div
+                                    style={styles.cardContainer}
+                                    onClick={() => handleCardClick(item.id)}
+                                    onMouseEnter={() => setHoveredCard(item.id)}
+                                    onMouseLeave={() => setHoveredCard(null)}
+                                >
+                                    <Card 
+                                        style={{
+                                            ...styles.card,
+                                            ...(hoveredCard === item.id ? styles.cardHover : {})
+                                        }}
+                                        bodyStyle={{ padding: 0, height: '100%', display: 'flex', flexDirection: 'column' }}
+                                    >
+                                        {/* 标题部分 */}
+                                        <div style={styles.cardHeader}>
+                                            <div>
+                                                <div style={styles.cardTitle}>
+                                                    {item.name}
+                                                </div>
+                                            </div>
+                                            <Dropdown overlay={renderMenu(item)} trigger={"click"} overlayStyle={{ zIndex: 9999 }}>
+                                                <MoreOutlined
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                    }}
+                                                    style={styles.moreIcon}
+                                                    onMouseEnter={(e) => e.target.style.backgroundColor = "#f5f5f5"}
+                                                    onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"}
+                                                />
+                                            </Dropdown>
+                                        </div>
+
+                                        {/* 内容部分 */}
+                                        <div style={styles.cardContent}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                                {/* 预告警 */}
+                                                <div style={styles.statItem}>
+                                                    <div style={styles.statValue(item.currentPreAlertNumber > 0 ? "#ffe465" : "#10b981")}>
+                                                        {item.currentPreAlertNumber ? item.currentPreAlertNumber : 0}
+                                                    </div>
+                                                    <div style={styles.statLabel}>预告警</div>
+                                                </div>
+
+                                                {/* 待处理 */}
+                                                <div style={styles.statItem}>
+                                                    <div style={styles.statValue(item.currentAlertNumber > 0 ? "#ef4444" : "#10b981")}>
+                                                        {item.currentAlertNumber ? item.currentAlertNumber : 0}
+                                                    </div>
+                                                    <div style={styles.statLabel}>待处理</div>
+                                                </div>
+
+                                                {/* 待恢复 */}
+                                                <div style={styles.statItem}>
+                                                    <div style={styles.statValue(item.currentRecoverNumber > 0 ? "#f97316" : "#10b981")}>
+                                                        {item.currentRecoverNumber ? item.currentRecoverNumber : 0}
+                                                    </div>
+                                                    <div style={styles.statLabel}>待恢复</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* 底部 */}
+                                        <div style={styles.cardFooter}>
+                                            <span></span>
+                                            <span style={styles.createTime}>{formatDate(item.createAt)}</span>
+                                        </div>
+                                    </Card>
+                                </div>
+                            </Col>
+                        ))}
+                    </Row>
+                </div>
             </div>
-
-            <CreateFaultCenter visible={visible} onClose={handleModalClose} handleList={handleList} type="create" />
-
-            {/* 可滚动的内容区域 */}
-            <div style={styles.scrollContainer}>
-                {/* 空状态展示 */}
-                {list.length === 0 && (
-                    <div
-                        style={{
-                            height: "70vh",
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            marginTop: -40,
-                        }}
-                    >
-                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"暂无故障中心数据"} style={{ marginBottom: 32 }}>
-                            <Title level={4} style={{ marginBottom: 16 }}>
-                                开始创建第一个故障中心
-                            </Title>
-                            <span style={{ marginBottom: 24 }}>通过创建故障中心来统一管理您的告警信息</span>
-                        </Empty>
-                    </div>
-                )}
-
-                <Row gutter={[18, 18]} style={{ display: "flex", flexWrap: "wrap", marginTop: "20px" }}>
-                    {list.map((item) => (
-                        <Col key={item.id} xs={24} sm={24} md={8} lg={8} style={{ flex: "320px" }}>
-                            <div
-                                onClick={() => handleCardClick(item.id)}
-                                onMouseEnter={() => setHoveredCard(item.id)}
-                                onMouseLeave={() => setHoveredCard(null)}
-                                style={{
-                                    cursor: "pointer",
-                                    transform: hoveredCard === item.id ? styles.cardHover.transform : "scale(1)",
-                                    transition: styles.cardHover.transition,
-                                }}
-                            >
-                                <Card style={{ textAlign: "left" }}>
-                                    {/* 标题部分 */}
-                                    <div style={styles.cardTitle}>
-                                        <span>{item.name}</span>
-                                        <Dropdown overlay={renderMenu(item)} trigger={["click"]} overlayStyle={{ zIndex: 9999 }}>
-                                            <MoreOutlined
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                }}
-                                                style={{ fontSize: "18px", cursor: "pointer" }}
-                                            />
-                                        </Dropdown>
-                                    </div>
-
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
-                                        {/* 待处理 */}
-                                        <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                            <span style={styles.value(item.currentAlertNumber > 0 ? "#ff7373" : "#93fa8f")}>
-                                                {item.currentAlertNumber ? item.currentAlertNumber : 0}
-                                            </span>
-                                            <span style={styles.label}> 待处理</span>
-                                        </div>
-
-                                        {/* 预告警 */}
-                                        <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                            <span style={styles.value(item.currentPreAlertNumber > 0 ? "#ffe465" : "#93fa8f")}>
-                                                {item.currentPreAlertNumber ? item.currentPreAlertNumber : 0}
-                                            </span>
-                                            <span style={styles.label}> 预告警</span>
-                                        </div>
-
-                                        {/* 待恢复 */}
-                                        <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                            <span style={styles.value(item.currentRecoverNumber > 0 ? "orange" : "#93fa8f")}>
-                                                {item.currentRecoverNumber ? item.currentRecoverNumber : 0}
-                                            </span>
-                                            <span style={styles.label}> 待恢复</span>
-                                        </div>
-
-                                        {/* 静默中 */}
-                                        <div style={{ flex: "1 1 calc(50% - 8px)" }}>
-                                            <span style={styles.value(item.currentMuteNumber > 0 ? "#878383" : "#93fa8f")}>{item.currentMuteNumber ? item.currentMuteNumber : 0}</span>
-                                            <span style={styles.label}> 静默中</span>
-                                        </div>
-                                    </div>
-
-                                    <br/>
-                                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                                        <span style={{ color: "gray" }}>{formatDate(item.createAt)}</span>
-                                    </div>
-                                </Card>
-                            </div>
-                        </Col>
-                    ))}
-                </Row>
-            </div>
-        </div>
+        </>
     )
 }
 

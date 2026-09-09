@@ -8,7 +8,6 @@ import {
     XAxis,
     YAxis,
     Tooltip,
-    Legend,
     ResponsiveContainer,
 } from "recharts"
 
@@ -30,26 +29,22 @@ const METRIC_COLORS = [
     '#fa8c16', // 深橙色
 ]
 
+const getMetricResult = (data) => {
+    if (!data) {
+        return []
+    }
+
+    if (Array.isArray(data)) {
+        return data[0]?.data?.result || []
+    }
+
+    return data?.data?.result || data?.result || []
+}
+
 export const EventMetricChart = ({ data }) => {
-        if (!data) {
-        return (
-            <div style={{ textAlign: "center", padding: "40px" }}>
-                <Text type="secondary">暂无图表数据</Text>
-            </div>
-        )
-    }
+    const result = getMetricResult(data)
 
-    if (!data[0] || !data[0].data) {
-        return (
-            <div style={{ textAlign: "center", padding: "40px" }}>
-                <Text type="secondary">数据结构错误</Text>
-            </div>
-        )
-    }
-
-    const result = data[0].data.result
-
-    if (!result || !Array.isArray(result) || result.length === 0) {
+    if (!Array.isArray(result) || result.length === 0) {
         return (
             <div style={{ textAlign: "center", padding: "40px" }}>
                 <Text type="secondary">暂无指标数据</Text>
@@ -59,10 +54,9 @@ export const EventMetricChart = ({ data }) => {
 
     // 提取所有时间戳并去重排序
     const allTimestamps = new Set()
-    result?.forEach(item => {
-        if (item?.values && item?.values?.length > 0) {
-            item?.values?.forEach(([timestamp]) => {
-                // 确保时间戳是数字
+    result.forEach(item => {
+        if (Array.isArray(item?.values) && item.values.length > 0) {
+            item.values.forEach(([timestamp]) => {
                 const ts = typeof timestamp === 'string' ? parseFloat(timestamp) : timestamp
                 allTimestamps.add(ts)
             })
@@ -70,19 +64,17 @@ export const EventMetricChart = ({ data }) => {
     })
     const timestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
-    // 构建图表数据
     const chartData = timestamps.map(timestamp => {
         const dataPoint = { timestamp }
-        
-        result?.forEach((item, index) => {
-            // 构建包含所有 label 的名称
-            const labels = Object.entries(item.metric)
+
+        result.forEach((item, index) => {
+            const labels = Object.entries(item?.metric || {})
                 .filter(([key]) => key !== '__name__' )
                 .map(([key, value]) => `${key}=${value}`)
                 .join(', ')
-            
+
             const seriesName = labels ? `{${labels}}` : `series-${index}`
-            const valueEntry = item.values?.find(([ts]) => {
+            const valueEntry = item?.values?.find(([ts]) => {
                 const tsNum = typeof ts === 'string' ? parseFloat(ts) : ts
                 return tsNum === timestamp
             })
@@ -91,39 +83,38 @@ export const EventMetricChart = ({ data }) => {
 
         return dataPoint
     })
-    
-    // 获取所有系列名称
-    const seriesNames = result?.map((item, index) => {
-        const labels = Object.entries(item.metric)
+
+    const seriesNames = result.map((item, index) => {
+        const labels = Object.entries(item?.metric || {})
             .filter(([key]) => key !== '__name__')
             .map(([key, value]) => `${key}=${value}`)
             .join(', ')
-        
-        return `{${labels}}`
+
+        return labels ? `{${labels}}` : `series-${index}`
     })
 
     return (
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={260}>
             <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                     {seriesNames?.map((name, index) => (
-                        <linearGradient 
-                            key={`gradient-${index}`} 
-                            id={`color-${index}`} 
-                            x1="0" 
-                            y1="0" 
-                            x2="0" 
+                        <linearGradient
+                            key={`gradient-${index}`}
+                            id={`color-${index}`}
+                            x1="0"
+                            y1="0"
+                            x2="0"
                             y2="1"
                         >
-                            <stop 
-                                offset="5%" 
-                                stopColor={METRIC_COLORS[index % METRIC_COLORS.length]} 
-                                stopOpacity={0.3} 
+                            <stop
+                                offset="5%"
+                                stopColor={METRIC_COLORS[index % METRIC_COLORS.length]}
+                                stopOpacity={0.3}
                             />
-                            <stop 
-                                offset="95%" 
-                                stopColor={METRIC_COLORS[index % METRIC_COLORS.length]} 
-                                stopOpacity={0} 
+                            <stop
+                                offset="95%"
+                                stopColor={METRIC_COLORS[index % METRIC_COLORS.length]}
+                                stopOpacity={0}
                             />
                         </linearGradient>
                     ))}
@@ -152,7 +143,6 @@ export const EventMetricChart = ({ data }) => {
                     tickLine={false}
                     tick={{ fill: "#666", fontSize: 12 }}
                     tickFormatter={(value) => {
-                        // 优化大数值显示，避免显示过多的0
                         if (Math.abs(value) >= 1000000) {
                             return `${(value / 1000000).toFixed(1)}M`;
                         } else if (Math.abs(value) >= 1000) {
@@ -169,14 +159,20 @@ export const EventMetricChart = ({ data }) => {
                         borderRadius: 8,
                         border: "none",
                         padding: "12px",
-                        maxWidth: '600px',
+                        maxWidth: '1000px',
+                        maxHeight: '1000px',
+                        overflowY: 'auto',
+                        overflowX: 'auto',
                         whiteSpace: 'normal',
                         wordBreak: 'break-word',
+                        zIndex: 9999,
                     }}
+                    isAnimationActive={false}
+                    filterNull={false}
                     itemStyle={{
                         color: "#ffffff",
                         fontSize: "12px",
-                        padding: "4px 0",
+                        padding: "2px 0",
                         whiteSpace: 'normal',
                         wordBreak: 'break-all',
                         lineHeight: '1.5',
@@ -184,12 +180,12 @@ export const EventMetricChart = ({ data }) => {
                     labelStyle={{
                         color: "#ffffff",
                         fontWeight: "500",
-                        marginBottom: "8px",
+                        marginBottom: "4px",
                         whiteSpace: 'normal',
                     }}
                     labelFormatter={(label) => {
                         const date = new Date(label * 1000)
-                        return `时间: ${date.toLocaleString('zh-CN', { 
+                        return `时间: ${date.toLocaleString('zh-CN', {
                             year: 'numeric',
                             month: '2-digit',
                             day: '2-digit',
@@ -200,19 +196,9 @@ export const EventMetricChart = ({ data }) => {
                     }}
                     formatter={(value, name) => {
                         if (value === null || value === undefined) return ['无数据', name]
-                        return [value, name]
+                        return [typeof value === 'number' ? value.toFixed(2) : value, name]
                     }}
                 />
-
-                {/* 隐藏图例 */}
-                {/* <Legend 
-                    wrapperStyle={{
-                        paddingTop: '20px',
-                        maxHeight: '150px',
-                        overflowY: 'auto',
-                    }}
-                    iconType="line"
-                /> */}
 
                 {seriesNames?.map((name, index) => (
                     <Line

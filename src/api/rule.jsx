@@ -66,16 +66,10 @@ async function searchRuleInfo(params) {
 
 async function getRuleGroupList(params) {
     try {
-        const headers = {
-            'TenantID': 'xxxxxxxxx'
-        }
-        const res = await http('get', '/api/w8t/ruleGroup/ruleGroupList', params, headers);
+        const res = await http('get', '/api/w8t/ruleGroup/ruleGroupList', params);
         return res;
     } catch (error) {
-        message.open({
-            type: 'error',
-            content: '规则组列表获取失败',
-        });
+        HandleApiError(error)
         return error
     }
 }
@@ -130,6 +124,10 @@ async function RuleImport(params) {
     return await http('post', `/api/w8t/rule/import`,params);
 }
 
+async function RuleChange(params) {
+    return await http('post', `/api/w8t/rule/change`,params);
+}
+
 export {
     getRuleList,
     createRule,
@@ -141,5 +139,6 @@ export {
     updateRuleGroup,
     deleteRuleGroup,
     RuleChangeStatus,
-    RuleImport
+    RuleImport,
+    RuleChange
 } 

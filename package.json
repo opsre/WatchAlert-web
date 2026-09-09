@@ -67,6 +67,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "resolutions": {
+    "@ant-design/icons-svg": "4.6.0"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",

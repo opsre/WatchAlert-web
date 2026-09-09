@@ -20,25 +20,26 @@ import {
     Menu, Radio, Checkbox, Tooltip, Typography,
     List,
     Form,
-    Card, Avatar, Popconfirm,
+    Card, Avatar, Popconfirm, Row, Col,
 } from "antd"
 import {
     AddEventComment,
     DeleteEventComment,
     getCurEventList,
     ListEventComments,
-    ProcessAlertEvent
+    ProcessAlertEvent,
+    DeleteAlertEvent,
 } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
 import { ReqAiAnalyze } from "../../api/ai"
 import MarkdownRenderer from "../../utils/MarkdownRenderer"
-import { Clock } from "lucide-react"
+import { ClockIcon as Clock } from "lucide-react"
 import {
     DownOutlined,
     ReloadOutlined,
     SearchOutlined,
     FilterOutlined,
-    EllipsisOutlined,
+    MoreOutlined,
     DownloadOutlined
 } from "@ant-design/icons"
 import { CreateSilenceModal } from "../silence/SilenceRuleCreateModal";
@@ -58,15 +59,97 @@ import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
 import { ReactComponent as AwsImg } from "../alert/rule/img/AWSlogo.svg"
 import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
-import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
+
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
 import { noticeRecordList } from "../../api/notice"
 import { NotificationTypeIcon } from "../notice/notification-type-icon"
+import { FaultCenterSlo } from "../../api/faultCenter"
+import moment from "moment"
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from "recharts"
 
 const { Text } = Typography
+
+const formatSloDuration = (seconds) => {
+    if (seconds === null || seconds === undefined || Number.isNaN(Number(seconds))) return "-"
+
+    const total = Math.abs(Math.floor(Number(seconds)))
+    const days = Math.floor(total / 86400)
+    const hours = Math.floor((total % 86400) / 3600)
+    const minutes = Math.floor((total % 3600) / 60)
+    const secs = total % 60
+    const parts = []
+
+    if (days) parts.push(`${days}天`)
+    if (hours) parts.push(`${hours}小时`)
+    if (minutes) parts.push(`${minutes}分`)
+    if (secs || parts.length === 0) parts.push(`${secs}秒`)
+
+    return parts.join(" ")
+}
+
+const getSloAverage = (data, key) => {
+    const values = (Array.isArray(data) ? data : [])
+        .map((item) => Number(item[key]))
+        .filter((value) => Number.isFinite(value))
+
+    if (values.length === 0) return null
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
+}
+
+const SloMetricCard = ({ title, subtitle, dataKey, data, loading, gradientId, icon }) => (
+    <div
+        style={{
+            height: 250,
+            padding: 20,
+            border: "1px solid #ddddddff",
+            borderRadius: 12,
+            background: "#fff",
+        }}
+    >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            <div>
+                <Text strong style={{ display: "block", fontSize: 13 }}>{title}</Text>
+                <Text type="secondary" style={{ display: "block", marginTop: 2, fontSize: 11 }}>{subtitle}</Text>
+            </div>
+            <span aria-hidden="true" style={{ fontSize: 18 }}>{icon}</span>
+        </div>
+        <Text type="secondary" style={{ display: "block", marginBottom: 16, fontSize: 12 }}>
+            7日平均: {formatSloDuration(getSloAverage(data, dataKey))}
+        </Text>
+        <Spin spinning={loading}>
+            <ResponsiveContainer width="100%" height={140}>
+                <AreaChart data={data}>
+                    <defs>
+                        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#cacacaff" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="#cacacaff" stopOpacity={0.05} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#cacacaff" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={{ stroke: "#cacacaff" }} tickLine={{ stroke: "#cacacaff" }} />
+                    <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={{ stroke: "#cacacaff" }} tickLine={{ stroke: "#cacacaff" }} tickFormatter={(value) => `${value}s`} width={40} />
+                    <RechartsTooltip
+                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #cacacaff", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", fontSize: 12 }}
+                        labelStyle={{ color: "#000000ff", fontWeight: 600 }}
+                        formatter={(value) => formatSloDuration(value)}
+                    />
+                    <Area
+                        type="monotone"
+                        dataKey={dataKey}
+                        stroke="#000000ff"
+                        strokeWidth={1.5}
+                        fill={`url(#${gradientId})`}
+                        dot={{ fill: "#000000ff", strokeWidth: 1, r: 2, stroke: "#fff" }}
+                        activeDot={{ r: 6, strokeWidth: 2 }}
+                    />
+                </AreaChart>
+            </ResponsiveContainer>
+        </Spin>
+    </div>
+)
 
 export const AlertCurrentEvent = (props) => {
     const { id } = props
@@ -101,12 +184,14 @@ export const AlertCurrentEvent = (props) => {
         filterOptions: [], // ruleName, ruleType, alertLevel
         itemsPerPage: 10, // 导出HTML的每页项目数
     })
-    // 选中的告警状态
+    // 选中的事件状态
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [comments, setComments] = useState( [])
     const [newComment, setNewComment] = useState("")
     const [sortOrder,setSortOrder] = useState(null)
     const [metricData, setMetricData] = useState({})
+    const [sloChartData, setSloChartData] = useState([])
+    const [sloLoading, setSloLoading] = useState(false)
     const [noticeSelectEventId, setNoticeSelectEventId] = useState('')
     const [noticeRecords, setNoticeRecords] = useState([])  
     const [noticeDrawerOpen, setNoticeDrawerOpen] = useState(false)  
@@ -125,11 +210,12 @@ export const AlertCurrentEvent = (props) => {
     }
 
     const statusMap = {
-        "pre_alert": { color: "#ffe465", text: "预告警" },
+        "pre_alert": { color: "yellow", text: "预告警" },
         "alerting": { color: "red", text: "告警中" },
-        "silenced": { color: "grey", text: "静默中" },
         "pending_recovery": { color: "orange", text: "待恢复" },
         "recovered": { color: "green", text: "已恢复" },
+        "processing": { color: "purple", text: "处理中" },
+        "muting": { color: "gray", text: "静默中" },
     }
 
     const rowSelection = {
@@ -141,7 +227,7 @@ export const AlertCurrentEvent = (props) => {
 
     const logoMap = {
         Prometheus: <PrometheusImg style={{ width: 16, height: 16 }} />,
-        VictoriaMetrics: <VMImg style={{ width: 16, height: 16 }} />,
+
         AliCloudSLS: <AlicloudImg style={{ width: 16, height: 16 }} />,
         Jaeger: <JaegerImg style={{ width: 16, height: 16 }} />,
         CloudWatch: <AwsImg style={{ width: 16, height: 16 }} />,
@@ -149,7 +235,7 @@ export const AlertCurrentEvent = (props) => {
         ElasticSearch: <ESImg style={{ width: 16, height: 16 }} />,
         VictoriaLogs: <VLogImg style={{ width: 16, height: 16 }} />,
         ClickHouse: <CkImg style={{ width: 16, height: 16 }} />,
-        Kubernetes: <K8sImg style={{ width: 16, height: 16 }} />,
+        KubernetesEvent: <K8sImg style={{ width: 16, height: 16 }} />,
     }
 
     const columns = [
@@ -304,7 +390,7 @@ export const AlertCurrentEvent = (props) => {
             },
         },
         {
-            title: "告警状态",
+            title: "事件状态",
             dataIndex: "status",
             key: "status",
             width: "100px",
@@ -312,11 +398,7 @@ export const AlertCurrentEvent = (props) => {
                 const status = statusMap[text]
                 return (
                     <div>
-                        {(text === "alerting" && record.confirmState?.confirmUsername) && (
-                            <Tag style={{ color:"#980d9e", background:"#f6edff", borderColor: "rgb(204 121 208)" }}>处理中</Tag>
-                        ) || 
-                            <Tag color={status.color}>{status.text}</Tag>
-                        }
+                        <Tag color={status.color}>{status.text}</Tag>
                     </div>
                 )
             },
@@ -347,27 +429,40 @@ export const AlertCurrentEvent = (props) => {
         {
             title: "操作",
             key: "action",
-            width: "100px",
+            width: "30px",
             render: (_, record) => {
-                const menu = (
-                    <Menu>
-                        <Menu.Item onClick={() => {handleClaimOne(record)}} >
-                            去认领
-                        </Menu.Item>
-                        {record.status !== "silenced" && (
-                            <Menu.Item onClick={() => {handleSilenceModalOpen(record)}} >
-                                去静默
-                            </Menu.Item>
-                        )}
-                        <Menu.Item onClick={() => openAiAnalyze(record)} disabled={analyzeLoading}>
-                            {analyzeLoading ? "Ai 分析中" : "Ai 分析"}
-                        </Menu.Item>
-                    </Menu>
-                );
+                const items = [
+                    {
+                        key: 'claim',
+                        label: '认领它',
+                        onClick: () => handleClaimOne(record)
+                    },
+                    ...(record.status !== "silenced" ? [{
+                        key: 'silence',
+                        label: '静默它',
+                        onClick: () => handleSilenceModalOpen(record)
+                    }] : []),
+                    {
+                        key: 'delete',
+                        label: '删除它',
+                        danger: true,
+                        onClick: () => handleDeleteOne(record)
+                    },
+                    {
+                        key: 'ai-analyze',
+                        label: analyzeLoading ? "Ai 分析中" : "Ai 分析",
+                        onClick: () => openAiAnalyze(record),
+                        disabled: analyzeLoading
+                    }
+                ];
 
                 return (
-                    <Dropdown overlay={menu} trigger={['click']}>
-                        <EllipsisOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+                    <Dropdown
+                        menu={{ items }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
+                        <MoreOutlined style={{ fontSize: 16, cursor: 'pointer', color: "#666" }} />
                     </Dropdown>
                 );
             },
@@ -391,6 +486,40 @@ export const AlertCurrentEvent = (props) => {
         }
     }, [])
 
+    const fetchSloMetrics = async () => {
+        if (!id) {
+            setSloChartData([])
+            return
+        }
+
+        try {
+            setSloLoading(true)
+            const res = await FaultCenterSlo({
+                tenantId: localStorage.getItem("TenantID"),
+                id,
+            })
+            const mtta = Array.isArray(res?.data?.mtta) ? res.data.mtta : []
+            const mttr = Array.isArray(res?.data?.mttr) ? res.data.mttr : []
+
+            setSloChartData(
+                Array.from({ length: 7 }, (_, index) => ({
+                    date: moment().subtract(6 - index, "days").format("MM-DD"),
+                    mtta: Math.round(Number(mtta[index] ?? 0)),
+                    mttr: Math.round(Number(mttr[index] ?? 0)),
+                })),
+            )
+        } catch (error) {
+            console.error("获取 SLO 数据失败:", error)
+            setSloChartData([])
+        } finally {
+            setSloLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchSloMetrics()
+    }, [id])
+
     useEffect(() => {
         // 当过滤条件改变时，重置到第一页并获取数据
         if (isFiltering) {
@@ -408,29 +537,15 @@ export const AlertCurrentEvent = (props) => {
 
     const handleSilenceModalOpen = (record) => {
         const excludeKeys = ['value']; // 要排除的 key 列表
+        const labelsArray = Object.entries(record.labels || {})
+            .filter(([key]) => !excludeKeys.includes(key))
+            .map(([key, value]) => ({
+                key,
+                operator: "=",
+                value,
+            }));
 
-        // 如果 record.labels 中包含 fingerprint，就只取 fingerprint
-        if (record.labels && 'fingerprint' in record.labels) {
-            setSelectedSilenceRow({
-                labels: [{
-                    key: 'fingerprint',
-                    operator: '=',
-                    value: record.labels.fingerprint,
-                }]
-            });
-        } else {
-            // 否则，继续原来逻辑：过滤掉 excludeKeys 的字段
-            const labelsArray = Object.entries(record.labels || {})
-                .filter(([key]) => !excludeKeys.includes(key))
-                .map(([key, value]) => ({
-                    key,
-                    operator: "=",
-                    value,
-                }));
-
-            setSelectedSilenceRow({ labels: labelsArray });
-        }
-
+        setSelectedSilenceRow({ labels: labelsArray });
         setSilenceVisible(true);
     };
 
@@ -462,17 +577,17 @@ export const AlertCurrentEvent = (props) => {
             }
             const res = await getCurEventList(params)
             if (res?.data?.list) {
-                setCurrentEventList(res.data.list)
+                setCurrentEventList(res?.data?.list)
 
                 // 更新分页信息
                 setCurrentPagination({
                     ...currentPagination,
-                    pageIndex: res.data.index,
-                    pageTotal: res.data.total,
+                    pageIndex: res?.data?.index,
+                    pageTotal: res?.data?.total,
                 })
 
                 // 检查是否有数据但当前页为空
-                if (res.data.total > 0 && res.data.list.length === 0 && pageIndex > 1) {
+                if (res?.data?.total > 0 && res?.data?.list?.length === 0 && pageIndex > 1) {
                     // 自动跳转到第一页
                     setCurrentPagination((prev) => ({
                         ...prev,
@@ -515,6 +630,7 @@ export const AlertCurrentEvent = (props) => {
 
     const handleRefresh = () => {
         handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
+        fetchSloMetrics()
     }
 
     const handleCloseAiAnalyze = () => {
@@ -575,7 +691,7 @@ export const AlertCurrentEvent = (props) => {
             const res = await ReqAiAnalyze(formData)
             setAiAnalyzeContent({
                 ...params,
-                content: res.data,
+                content: res?.data,
             })
         } catch (error) {
             message.error("AI分析请求失败: " + error.message)
@@ -617,7 +733,7 @@ export const AlertCurrentEvent = (props) => {
             const res = await ReqAiAnalyze(formData)
             setAiAnalyzeContent({
                 ...params,
-                content: res.data,
+                content: res?.data,
             })
         } catch (error) {
             message.error("深度分析请求失败: " + error.message)
@@ -654,6 +770,11 @@ export const AlertCurrentEvent = (props) => {
                 key: "batchClaim",
                 label: "批量认领",
                 onClick: () => handleBatchClaim(),
+            },
+            {
+                key: "batchDelete",
+                label: "批量删除",
+                onClick: () => handleBatchDelete(),
             },
         ],
     }
@@ -693,6 +814,39 @@ export const AlertCurrentEvent = (props) => {
         })
     }
 
+    const handleBatchDelete = () => {
+        setBatchProcessing(true)
+        if (selectedRowKeys.length === 0) {
+            message.warning("请先选择要删除的事件")
+            setBatchProcessing(false)
+            return
+        }
+
+        Modal.confirm({
+            title: "确认批量删除",
+            content: `确定要删除选中的 ${selectedRowKeys.length} 个事件吗？`,
+            onOk: async () => {
+                try {
+                    const params = {
+                        faultCenterId: id,
+                        fingerprints: selectedRowKeys
+                    }
+                    await DeleteAlertEvent(params)
+                    message.success(`成功删除 ${selectedRowKeys.length} 个事件`)
+                    setSelectedRowKeys([]) // 清空选择
+                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize) // 刷新列表
+                } catch (error) {
+                    message.error("删除失败: " + error.message)
+                } finally {
+                    setBatchProcessing(false)
+                }
+            },
+            onCancel: () => {
+                setBatchProcessing(false)
+            },
+        })
+    }
+
     // 单条去认领
     const handleClaimOne = (record) => {
         Modal.confirm({
@@ -711,6 +865,30 @@ export const AlertCurrentEvent = (props) => {
                     handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
                 } catch (error) {
                     message.error("认领失败: " + error.message)
+                } finally {
+                    setBatchProcessing(false)
+                }
+            },
+        })
+    }
+
+    // 单条删除
+    const handleDeleteOne = (record) => {
+        Modal.confirm({
+            title: "确认删除",
+            content: `确定要删除规则 "${record.rule_name}" 的事件吗？`,
+            onOk: async () => {
+                try {
+                    setBatchProcessing(true)
+                    const params = {
+                        faultCenterId: id,
+                        fingerprints: [record.fingerprint],
+                    }
+                    await DeleteAlertEvent(params)
+                    message.success("删除成功")
+                    handleCurrentEventList(currentPagination.pageIndex, currentPagination.pageSize)
+                } catch (error) {
+                    message.error("删除失败: " + error.message)
                 } finally {
                     setBatchProcessing(false)
                 }
@@ -794,7 +972,7 @@ export const AlertCurrentEvent = (props) => {
             }
             const res = await getCurEventList(params)
             if (res?.data?.list) {
-                event = res.data.list.sort((a, b) => b.first_trigger_time - a.first_trigger_time)
+                event = res?.data?.list?.sort((a, b) => b.first_trigger_time - a.first_trigger_time)
             }
         } catch (error) {
             HandleApiError(error)
@@ -822,7 +1000,7 @@ export const AlertCurrentEvent = (props) => {
                 fingerprint: selectedEvent.fingerprint,
             };
             const res = await ListEventComments(comment);
-            setComments(res.data);
+            setComments(res?.data);
         } catch (error) {
             HandleApiError(error)
         }
@@ -876,6 +1054,11 @@ export const AlertCurrentEvent = (props) => {
         }
     }
 
+    const isPrometheusEvent = (event) => {
+        const datasourceType = event?.datasource_type?.trim()?.toLowerCase()
+        return datasourceType === "prometheus"
+    }
+
     useEffect(() => {
         if (drawerOpen && selectedEvent) {
             handleListComments();
@@ -886,11 +1069,10 @@ export const AlertCurrentEvent = (props) => {
     // 获取图表数据
     const fetchMetricData = async () => {
         try {
-            console.log("datasource_type ->",selectedEvent.datasource_type)
-            if (selectedEvent.datasource_type !== "Prometheus" && selectedEvent.datasource_type !== "VictoriaMetrics") {
+            if (!isPrometheusEvent(selectedEvent)) {
                 return
             }
-            
+
             const parmas = {
                 datasourceIds: selectedEvent.datasource_id,
                 query: selectedEvent.searchQL,
@@ -898,7 +1080,31 @@ export const AlertCurrentEvent = (props) => {
                 step: 10,
             }
             const res = await queryRangePromMetrics(parmas)
-            setMetricData(res)
+            let results = res.data
+            const allResults = []
+            if (results && Array.isArray(results) && results.length > 0) {
+                // 处理 matrix 类型的数据，将 values 转换为 value 格式
+                const processedResults = results.flatMap(r => 
+                    r.data?.result?.map(item => ({
+                        ...item,
+                        // 取最后一个值作为当前值
+                        value: item.values && item.values.length > 0 
+                            ? item.values[item.values.length - 1] 
+                            : (item.value || null)
+                    })) || []
+                )
+                console.log('图表视图 - 处理后的数据数量:', processedResults.length)
+                console.log('图表视图 - 第一条数据示例:', processedResults[0])
+                allResults.push(...processedResults)
+            }
+
+            setMetricData([{
+                        status: 'success',
+                        data: {
+                            resultType: 'matrix',
+                            result: allResults
+                        }
+                    }])
         } catch (error) {
             message.error("加载图表数据失败")
             console.error("Failed to load metric data:", error)
@@ -915,11 +1121,11 @@ export const AlertCurrentEvent = (props) => {
                 eventId: eventId,
             }
             const res = await noticeRecordList(params)
-            setNoticeRecords(res.data.list || [])
+            setNoticeRecords(res?.data?.list || [])
             setNoticePagination({
-                pageIndex: res.data.index,
-                pageSize: res.data.size,
-                pageTotal: res.data.total,
+                pageIndex: res?.data?.index,
+                pageSize: res?.data?.size,
+                pageTotal: res?.data?.total,
             })
         } catch (error) {
             message.error("获取通知记录失败: " + error.message)
@@ -1081,6 +1287,33 @@ export const AlertCurrentEvent = (props) => {
                 </div>
             </Drawer>
 
+            {id && (
+                <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+                    <Col xs={24} lg={12}>
+                        <SloMetricCard
+                            title="平均修复时间 (MTTR)"
+                            subtitle="Mean Time To Repair"
+                            dataKey="mttr"
+                            data={sloChartData}
+                            loading={sloLoading}
+                            gradientId="currentEventMttrGradient"
+                            icon="⚡"
+                        />
+                    </Col>
+                    <Col xs={24} lg={12}>
+                        <SloMetricCard
+                            title="平均响应时间 (MTTA)"
+                            subtitle="Mean Time To Acknowledge"
+                            dataKey="mtta"
+                            data={sloChartData}
+                            loading={sloLoading}
+                            gradientId="currentEventMttaGradient"
+                            icon="⏱️"
+                        />
+                    </Col>
+                </Row>
+            )}
+
             <div style={{ marginBottom: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Space wrap>
@@ -1094,20 +1327,20 @@ export const AlertCurrentEvent = (props) => {
                             prefix={<SearchOutlined />}
                         />
                         <Select
-                            placeholder="选择类型"
+                            placeholder="数据源类型"
                             style={{ width: 150 }}
                             allowClear
                             value={selectedDataSource || null}
                             onChange={handleDataSourceChange}
                             options={[
                                 { value: "Prometheus", label: "Prometheus" },
-                                { value: "VictoriaMetrics", label: "VictoriaMetrics" },
                                 { value: "AliCloudSLS", label: "AliCloudSLS" },
                                 { value: "Jaeger", label: "Jaeger" },
                                 { value: "Loki", label: "Loki" },
                                 { value: "ElasticSearch", label: "ElasticSearch" },
                                 { value: "VictoriaLogs", label: "VictoriaLogs" },
                                 { value: "ClickHouse", label: "ClickHouse" },
+                                { value: "KubernetesEvent", label: "Kubernetes" },
                             ]}
                         />
                         <Select
@@ -1123,7 +1356,7 @@ export const AlertCurrentEvent = (props) => {
                             ]}
                         />
                         <Select
-                            placeholder="告警状态"
+                            placeholder="事件状态"
                             style={{ width: 150 }}
                             allowClear
                             value={selectedStatus || null}
@@ -1131,7 +1364,8 @@ export const AlertCurrentEvent = (props) => {
                             options={[
                                 { value: "pre_alert", label: "预告警" },
                                 { value: "alerting", label: "告警中" },
-                                { value: "silenced", label: "静默中" },
+                                { value: "processing", label: "处理中" },
+                                { value: "muting", label: "静默中" },
                                 { value: "pending_recovery", label: "待恢复" },
                             ]}
                         />
@@ -1216,13 +1450,15 @@ export const AlertCurrentEvent = (props) => {
             >
                 {selectedEvent && (
                     <div>
-                        {(selectedEvent.datasource_type === "Prometheus" || selectedEvent.datasource_type === "VictoriaMetrics") && (
+                        {isPrometheusEvent(selectedEvent) && (
                             <div style={{
                                     marginLeft: '-20px',
+                                    height: 260,
+                                    marginBottom: '24px',
                                 }}
                             >
                                 <Spin spinning={loading}>
-                                    <EventMetricChart data={metricData.data} />
+                                    <EventMetricChart data={metricData} />
                                 </Spin>
                             </div>
                         )}
@@ -1273,7 +1509,7 @@ export const AlertCurrentEvent = (props) => {
                                         <>
                                             {(selectedEvent.status === "alerting" && selectedEvent.confirmState?.confirmUsername) && (
                                                 <Tag style={{ color:"#980d9e", background:"#f6edff", borderColor: "rgb(204 121 208)" }}>处理中</Tag>
-                                            ) || 
+                                            ) ||
                                                 <Tag color={statusMap[selectedEvent.status].color}>{statusMap[selectedEvent.status].text}</Tag>
                                             }
                                         </>

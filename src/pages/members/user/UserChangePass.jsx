@@ -36,6 +36,10 @@ const UserChangePass = ({ visible, onClose, userid, username }) => {
                             required: true,
                             message: 'Please input your password!',
                         },
+                        {
+                            min: 6,
+                            message: "密码至少需要6位字符！"
+                        }
                     ]}
                     hasFeedback
                 >
@@ -51,6 +55,10 @@ const UserChangePass = ({ visible, onClose, userid, username }) => {
                         {
                             required: true,
                             message: 'Please confirm your password!',
+                        },
+                        {
+                            min: 6,
+                            message: "密码至少需要6位字符！"
                         },
                         ({ getFieldValue }) => ({
                             validator(_, value) {

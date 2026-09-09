@@ -13,10 +13,12 @@ import {
     DownOutlined,
     ImportOutlined,
     EditOutlined,
-    PlusOutlined
+    PlusOutlined,
+    MoreOutlined
 } from "@ant-design/icons"
 import {HandleShowTotal} from "../../../utils/lib";
 import { TableWithPagination } from "../../../utils/TableWithPagination"
+import { Breadcrumb } from "../../../components/Breadcrumb";
 
 const MyFormItemContext = React.createContext([])
 const { Search } = Input
@@ -88,28 +90,36 @@ export const RuleTemplate = () => {
             {
                 title: "操作",
                 dataIndex: "operation",
-                width: 120,
+                width: 60,
                 fixed: "right",
                 render: (_, record) =>
                     list.length >= 1 ? (
-                        <Space size="middle">
-                            <Tooltip title="更新">
-                                <Button
-                                    type="text"
-                                    icon={<EditOutlined />}
-                                    onClick={() => handleUpdateTmpl(record)}
-                                    style={{ color: "#1677ff" }}
-                                />
-                            </Tooltip>
-                            <Tooltip title="应用">
-                                <Button
-                                    type="text"
-                                    icon={<ImportOutlined />}
-                                    onClick={() => handleOpenSelectedRuleGroup(record)}
-                                    style={{ color: "#059136" }}
-                                />
-                            </Tooltip>
-                        </Space>
+                        <Dropdown
+                            menu={{
+                                items: [
+                                    {
+                                        key: 'edit',
+                                        icon: <EditOutlined />,
+                                        label: '更新',
+                                        onClick: () => handleUpdateTmpl(record)
+                                    },
+                                    {
+                                        key: 'apply',
+                                        icon: <ImportOutlined />,
+                                        label: '应用',
+                                        onClick: () => handleOpenSelectedRuleGroup(record)
+                                    }
+                                ]
+                            }}
+                            trigger={['click']}
+                            placement="bottomRight"
+                        >
+                            <Button
+                                type="text"
+                                icon={<MoreOutlined />}
+                                style={{ color: "#666" }}
+                            />
+                        </Dropdown>
                     ) : null,
             },
         ],
@@ -137,12 +147,12 @@ export const RuleTemplate = () => {
         const res = await getRuleTmplList(params);
     
         setPagination({
-            index: res.data.index,
-            size: res.data.size,
-            total: res.data.total,
+            index: res?.data?.index,
+            size: res?.data?.size,
+            total: res?.data?.total,
         })
 
-        setList(res.data.list);
+        setList(res?.data?.list);
         // 清空选择
         setSelectedRowKeys([]);
     }, [tmplType, ruleGroupName])
@@ -153,7 +163,7 @@ export const RuleTemplate = () => {
             size: 9999,
         }
         const res = await getRuleGroupList(params)
-        const newData = res.data.list.map((item) => ({
+        const newData = res?.data?.list?.map((item) => ({
             label: item.name,
             value: item.id,
         }))
@@ -173,7 +183,7 @@ export const RuleTemplate = () => {
                     type: tmplType,
                 }
                 const res = await getRuleTmplList(params)
-                setList(res.data.list)
+                setList(res?.data?.list)
                 // 清空选择
                 setSelectedRowKeys([])
             } catch (error) {
@@ -369,6 +379,7 @@ export const RuleTemplate = () => {
 
     return (
         <>
+            <Breadcrumb items={['告警管理', '模版']} />
             <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
@@ -510,7 +521,7 @@ export const RuleTemplate = () => {
                     setPagination({ ...pagination, index: current, size: pageSize });
                     handleList(current, pageSize);
                 }}
-                scrollY={height - 280}
+                scrollY={height - 250}
                 rowKey={record => `${record.ruleGroupName}-${record.ruleName}`}  // 使用组合键作为唯一标识
                 showTotal={HandleShowTotal}
                 // 启用多选功能

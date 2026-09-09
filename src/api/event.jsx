@@ -33,7 +33,11 @@ async function getHisEventList(params) {
 }
 
 async function ProcessAlertEvent(params) {
-    return await http('post', `/api/w8t/event/processAlertEvent`,params);
+    return await http('post', `/api/w8t/event/process`,params);
+}
+
+async function DeleteAlertEvent(params) {
+    return await http('post', `/api/w8t/event/delete`,params);
 }
 
 async function ListEventComments(params) {
@@ -52,6 +56,7 @@ export {
     getCurEventList,
     getHisEventList,
     ProcessAlertEvent,
+    DeleteAlertEvent,
     ListEventComments,
     AddEventComment,
     DeleteEventComment,

@@ -20,7 +20,7 @@ import {
 import { noticeRecordList } from "../../api/notice"
 import TextArea from "antd/es/input/TextArea"
 import { NotificationTypeIcon } from "./notification-type-icon"
-import { SearchIcon, AlertTriangle } from "lucide-react"
+import { SearchIcon, AlertTriangleIcon as AlertTriangle } from "lucide-react"
 import {HandleShowTotal} from "../../utils/lib";
 import {ReloadOutlined} from "@ant-design/icons";
 
@@ -206,11 +206,11 @@ export const NoticeRecords = ({ noticeObjectId }) => {
 
             const res = await noticeRecordList(params)
 
-            setList(res.data.list || [])
+            setList(res?.data?.list || [])
             setPagination({
-                pageIndex: res.data.index,
+                pageIndex: res?.data?.index,
                 pageSize,
-                pageTotal: res.data.total,
+                pageTotal: res?.data?.total,
             })
         } catch (error) {
             console.error("Failed to load records:", error)
@@ -311,7 +311,7 @@ export const NoticeRecords = ({ noticeObjectId }) => {
                 dataSource={list}
                 loading={loading}
                 scroll={{
-                    y: height - 280,
+                    y: height - 250,
                     x: "max-content",
                 }}
                 pagination={{

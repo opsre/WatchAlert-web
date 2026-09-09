@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip, Drawer, Select} from 'antd';
+import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip, Drawer, Select, Dropdown, Modal} from 'antd';
 import { CreateNoticeObjectModal } from './NoticeObjectCreateModal';
-import { deleteNotice, getNoticeList } from '../../api/notice';
+import { deleteNotice, getNoticeList, createNotice } from '../../api/notice';
 import {getDutyManagerList} from "../../api/duty";
-import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
 import { noticeRecordList } from '../../api/notice';
 import { NoticeRecords } from './history';
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 export const NoticeObjects = () => {
     const { Search } = Input
@@ -19,6 +21,7 @@ export const NoticeObjects = () => {
     const [height, setHeight] = useState(window.innerHeight);
     const [historyDrawerVisible, setHistoryDrawerVisible] = useState(false);
     const [selectedNoticeObject, setSelectedNoticeObject] = useState(null);
+    const [createSelectedRow, setCreateSelectedRow] = useState(null); // 用于存放复制时带入的数据
     const columns = [
         {
             title: '名称',
@@ -114,30 +117,51 @@ export const NoticeObjects = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 100,
+            width: 60,
             render: (_, record) =>
                 list.length >= 1 ? (
-                    <Space size="middle">
-                        <Tooltip title="更新">
-                            <Button
-                                type="text"
-                                icon={<EditOutlined />}
-                                onClick={() => handleUpdateModalOpen(record)}
-                                style={{ color: "#1677ff" }}
-                            />
-                        </Tooltip>
-                        <Tooltip title="删除">
-                            <Popconfirm
-                                title="确定要删除吗?"
-                                onConfirm={() => handleDelete(record)}
-                                okText="确定"
-                                cancelText="取消"
-                                placement="left"
-                            >
-                                <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                            </Popconfirm>
-                        </Tooltip>
-                    </Space>
+                    <Dropdown
+                        menu={{
+                            items: [
+                                {
+                                    key: 'edit',
+                                    icon: <EditOutlined />,
+                                    label: '更新',
+                                    onClick: () => handleUpdateModalOpen(record)
+                                },
+                                {
+                                    key: 'copy',
+                                    icon: <CopyOutlined />,
+                                    label: '复制',
+                                    onClick: ({ domEvent }) => handleCopy(record, domEvent)
+                                },
+                                {
+                                    key: 'delete',
+                                    icon: <DeleteOutlined />,
+                                    label: '删除',
+                                    danger: true,
+                                    onClick: () => {
+                                        Modal.confirm({
+                                            title: "确定要删除吗?",
+                                            content: `通知对象名称: ${record.name}`,
+                                            okText: "确定",
+                                            cancelText: "取消",
+                                            okType: 'danger',
+                                            onOk: () => handleDelete(record)
+                                        })
+                                    }
+                                }
+                            ]
+                        }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
+                        <Button
+                            type="text"
+                            icon={<MoreOutlined />}
+                            style={{ color: "#666" }}
+                        />
+                    </Dropdown>
                 ) : null,
         },
     ]
@@ -162,7 +186,7 @@ export const NoticeObjects = () => {
 
         try {
             const res = await getNoticeList()
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             message.error(error);
         }
@@ -175,7 +199,7 @@ export const NoticeObjects = () => {
     const handleDutyManagerList = async () => {
         try {
             const res = await getDutyManagerList()
-            setDutyList(res.data);
+            setDutyList(res?.data);
         } catch (error) {
             message.error(error);
         }
@@ -198,7 +222,8 @@ export const NoticeObjects = () => {
     const handleDelete = async (record) => {
         try {
             const params = {
-                uuid: record.uuid
+                uuid: record.uuid,
+                name: record.name,
             }
             await deleteNotice(params)
             handleList();
@@ -206,9 +231,29 @@ export const NoticeObjects = () => {
             message.error(error);
         }
     };
+    
+    const handleCopy = (record, e) => {
+        // 1. 阻止事件冒泡，防止表格被意外选中或拦截
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        
+        // 2. 打印日志用于调试（按 F12 可以在控制台看到这行输出）
+        console.log("【调试】点击了复制按钮，当前行数据：", record);
+
+        // 3. 使用深拷贝，彻底切断与原表格数据的引用关联
+        const copiedRecord = JSON.parse(JSON.stringify(record));
+        copiedRecord.name = `${copiedRecord.name}-复制`;
+        
+        // 4. 设置状态并打开抽屉
+        setCreateSelectedRow(copiedRecord);
+        setVisible(true); 
+    };
 
     const handleModalClose = () => {
         setVisible(false);
+        setCreateSelectedRow(null); // 关闭弹窗时清空复制产生的数据
     };
 
     const onSearch = async (value) => {
@@ -217,7 +262,7 @@ export const NoticeObjects = () => {
                 query: value,
             }
             const res = await getNoticeList(params)
-            setList(res.data)
+            setList(res?.data)
         } catch (error) {
             console.error(error)
         }
@@ -235,6 +280,7 @@ export const NoticeObjects = () => {
 
     return (
         <>
+            <Breadcrumb items={['通知管理', '通知对象']} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
                     <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
@@ -242,7 +288,9 @@ export const NoticeObjects = () => {
                 <div>
                     <Button
                         type="primary"
-                        onClick={() => setVisible(true)}
+                        onClick={() => {
+                            setCreateSelectedRow(null); // 确保正常创建时是个空表单
+                            setVisible(true)}}
                         style={{
                             backgroundColor: '#000000'
                         }}
@@ -253,7 +301,13 @@ export const NoticeObjects = () => {
                 </div>
             </div>
 
-            <CreateNoticeObjectModal visible={visible} onClose={handleModalClose} type='create' handleList={handleList} />
+            <CreateNoticeObjectModal 
+                visible={visible} 
+                onClose={handleModalClose} 
+                selectedRow={createSelectedRow} 
+                type='create' 
+                handleList={handleList} 
+            />
 
             <CreateNoticeObjectModal visible={updateVisible} onClose={handleUpdateModalClose} selectedRow={selectedRow} type='update' handleList={handleList} />
 
@@ -262,7 +316,7 @@ export const NoticeObjects = () => {
                     columns={columns}
                     dataSource={list}
                     scroll={{
-                        y: height - 280, // 动态设置滚动高度
+                        y: height - 250, // 动态设置滚动高度
                         x: 'max-content', // 水平滚动
                     }}
                     style={{

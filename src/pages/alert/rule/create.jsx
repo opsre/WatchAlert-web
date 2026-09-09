@@ -33,7 +33,7 @@ import AlicloudImg from "./img/alicloud.svg"
 import JaegerImg from "./img/jaeger.svg"
 import AwsImg from "./img/AWSlogo.svg"
 import LokiImg from "./img/L.svg"
-import VMImg from "./img/victoriametrics.svg"
+
 import K8sImg from "./img/Kubernetes.svg"
 import ESImg from "./img/ElasticSearch.svg"
 import VLogImg from "./img/victorialogs.svg"
@@ -47,6 +47,7 @@ import VSCodeEditor from "../../../utils/VSCodeEditor";
 import {SearchViewLogs} from "../preview/searchViewLogs";
 import SqlEditor from "../../../utils/sqlEditor";
 import {SearchViewMetrics} from "../preview/searchViewMetrics.tsx";
+import {Breadcrumb} from "../../../components/Breadcrumb"
 
 const format = 'HH:mm';
 const MyFormItemContext = React.createContext([])
@@ -90,7 +91,7 @@ export const AlertRule = ({ type }) => {
     // 初始化时间数据的状态
     const [week,setWeek] = useState(null)
     const [startTime, setStartTime] = useState(0);
-    const [endTime, setEndTime] = useState(86340);
+    const [endTime, setEndTime] = useState(0);
     const weekOptions = [
         {
             label:'周一',
@@ -155,11 +156,10 @@ export const AlertRule = ({ type }) => {
         AliCloudSLS: 2,
         Jaeger: 3,
         CloudWatch: 4,
-        VictoriaMetrics: 5,
-        KubernetesEvent: 6,
-        ElasticSearch: 7,
-        VictoriaLogs: 8,
-        ClickHouse: 9,
+        KubernetesEvent: 5,
+        ElasticSearch: 6,
+        VictoriaLogs: 7,
+        ClickHouse: 8,
     };
     const datasourceCardMap = {
         0: "Prometheus",
@@ -167,11 +167,10 @@ export const AlertRule = ({ type }) => {
         2: "AliCloudSLS",
         3: "Jaeger",
         4: "CloudWatch",
-        5: "VictoriaMetrics",
-        6: "KubernetesEvent",
-        7: "ElasticSearch",
-        8: "VictoriaLogs",
-        9: "ClickHouse",
+        5: "KubernetesEvent",
+        6: "ElasticSearch",
+        7: "VictoriaLogs",
+        8: "ClickHouse",
     }
 
     useEffect(() => {
@@ -207,6 +206,13 @@ export const AlertRule = ({ type }) => {
             if (searchParams.get("isClone") === "1"){
                 const copyData = appState?.cloneAlertRule
                 initBasicInfo(copyData)
+            }
+            // 如果不是编辑模式也不是克隆模式，则为创建模式，设置默认值
+            if (type !== "edit" && searchParams.get("isClone") !== "1") {
+                // 设置执行频率默认值为5
+                form.setFieldsValue({
+                    evalInterval: 5
+                });
             }
         }
     }, [])
@@ -246,6 +252,7 @@ export const AlertRule = ({ type }) => {
                 annotations: selectedRow?.prometheusConfig?.annotations,
                 forDuration: selectedRow?.prometheusConfig?.forDuration,
                 rules: selectedRow?.prometheusConfig?.rules,
+                callbakPromQLs: selectedRow?.prometheusConfig?.callbakPromQLs || [],
             },
             alicloudSLSConfig: {
                 project: selectedRow?.alicloudSLSConfig?.project,
@@ -490,6 +497,12 @@ export const AlertRule = ({ type }) => {
 
     // 创建
     const handleFormSubmit = async (values) => {
+        // 验证执行频率，确保不低于5秒
+        if (values.evalInterval && Number(values.evalInterval) < 5) {
+            message.error('执行频率不能低于5秒');
+            return;
+        }
+        
         const formattedLabels = values.externalLabels?.reduce((acc, { key, value }) => {
             if (key) {
                 acc[key] = value
@@ -535,7 +548,7 @@ export const AlertRule = ({ type }) => {
         }
         const res = await getJaegerService(params)
 
-        const newData = res.data.data?.map((item) => ({
+        const newData = res?.data?.data?.map((item) => ({
             label: item,
             value: item
         }))
@@ -569,10 +582,7 @@ export const AlertRule = ({ type }) => {
             imgSrc: AwsImg,
             text: 'CloudWatch',
         },
-        {
-            imgSrc: VMImg,
-            text: 'VictoriaMetrics',
-        },
+
         {
             imgSrc: K8sImg,
             text: 'KubernetesEvent',
@@ -600,7 +610,7 @@ export const AlertRule = ({ type }) => {
     }
 
     const addExprRule = () => {
-        if(exprRule.length < 3){
+        if(exprRule?.length < 3){
             setExprRule([...exprRule, { severity: '', expr: '' }]);
         }
     }
@@ -779,6 +789,25 @@ export const AlertRule = ({ type }) => {
         return form.getFieldValue(['prometheusConfig', 'promQL'])
     }
 
+    // Callback PromQL state management
+    const handleGetCallbackPromQL = (index) => {
+        return form.getFieldValue(['prometheusConfig', 'callbakPromQLs', index, 'value']) || '';
+    }
+
+    const handleSetCallbackPromQL = (index, value) => {
+        const currentCallbacks = form.getFieldValue(['prometheusConfig', 'callbakPromQLs']) || [];
+        const updatedCallbacks = [...currentCallbacks];
+        if (!updatedCallbacks[index]) {
+            updatedCallbacks[index] = {};
+        }
+        updatedCallbacks[index].value = value;
+        form.setFieldsValue({
+            prometheusConfig: {
+                callbakPromQLs: updatedCallbacks
+            }
+        });
+    }
+
     useEffect(() => {
         form.setFieldsValue({ prometheusConfig: { promQL: promQL } });
     }, [promQL])
@@ -877,41 +906,40 @@ export const AlertRule = ({ type }) => {
     }
 
     return (
-        <div style={{
-            textAlign: 'left',
-            width: '100%',
-            // flex: 1,
-            alignItems: 'flex-start',
-            marginTop: '-10px',
-            maxHeight: 'calc((-120px + 100vh))',
-            overflowY: 'auto',
-        }}>
+        <>
+        <Breadcrumb items={['告警管理', '规则', type === 'edit' ? '编辑规则' : '创建规则']} />
+        <main className="alert-rule-page">
+            <nav className="alert-rule-steps" aria-label="告警规则创建步骤">
+                <div className={`alert-rule-step is-active`}>
+                    <span>1</span><div><strong>基础信息</strong><small>名称、描述与标签</small></div>
+                </div>
+                <div className={`alert-rule-step is-active`}>
+                    <span>2</span><div><strong>触发条件</strong><small>数据源与查询逻辑</small></div>
+                </div>
+                <div className="alert-rule-step is-active">
+                    <span>3</span><div><strong>告警推送</strong><small>告警事件推送目的</small></div>
+                </div>
+            </nav>
+
+            <div className="alert-rule-workspace">
             <Form form={form} name="form_item_path" layout="vertical" onFinish={handleFormSubmit}>
-                <div>
-                    <strong style={{fontSize: '20px'}}>基础配置</strong>
-                    <div style={{display: 'flex', gap: '10px'}}>
-                        <MyFormItem
-                            name="ruleName"
-                            label="规则名称"
-                            rules={[{required: true}]}
-                            style={{width: '100%'}}
-                        >
-                            <Input
-                                value={spaceValue}
-                                onChange={handleInputChange}
-                                disabled={type === 'update'}/>
-                        </MyFormItem>
-
-                        <MyFormItem
-                            name="description"
-                            label="描述"
-                            style={{width: '100%'}}
-                        >
-                            <Input/>
-                        </MyFormItem>
+                <section className="rule-form-section">
+                    <div className="rule-section-heading">
+                        <div><span className="rule-section-index">01</span><h2>基础信息</h2></div>
                     </div>
+                    <MyFormItem
+                        name="ruleName"
+                        label="规则名称"
+                        rules={[{required: true}]}
+                        style={{width: '100%'}}
+                    >
+                        <Input
+                            value={spaceValue}
+                            onChange={handleInputChange}
+                            disabled={type === 'update'}/>
+                    </MyFormItem>
 
-                    <MyFormItem label="额外标签" >
+                    <MyFormItem label="额外标签" style={{marginTop: '10px', marginBottom: '-10px'}}>
                         <Form.List name="externalLabels">
                             {(fields, {add, remove}) => (
                                 <>
@@ -930,6 +958,7 @@ export const AlertRule = ({ type }) => {
                                                 name={[name, "key"]}
                                                 style={{flex: 3}}
                                                 rules={[{required: true, message: "请输入标签键（key）"}]}
+                                                normalize={(value) => value?.replace(/\s/g, "")}
                                             >
                                                 <Input placeholder="键（key）" onChange={handleInputChange}/>
                                             </Form.Item>
@@ -939,6 +968,7 @@ export const AlertRule = ({ type }) => {
                                                 name={[name, "value"]}
                                                 style={{flex: 3}}
                                                 rules={[{required: true, message: "请输入标签值（value）"}]}
+                                                normalize={(value) => value?.replace(/\s/g, "")}
                                             >
                                                 <Input placeholder="值（value）" onChange={handleInputChange}/>
                                             </Form.Item>
@@ -971,35 +1001,38 @@ export const AlertRule = ({ type }) => {
                             )}
                         </Form.List>
                     </MyFormItem>
-                </div>
+                </section>
 
-                <Divider/>
-
-                <div>
-                    <strong style={{fontSize: '20px'}}>规则配置</strong>
+                <section className="rule-form-section rule-definition-section">
+                    <div className="rule-section-heading">
+                        <div><span className="rule-section-index">02</span><h2>触发条件</h2></div>
+                    </div>
 
                     <div style={{display: 'flex'}}>
                         <div>
-                            <p>数据源类型</p>
+                            <><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>数据源类型</>
                             <div style={{
                                 display: 'flex',
                                 gap: '10px',
                                 flexWrap: 'wrap',  // 添加这行使卡片自动换行
                                 maxWidth: '100%',  // 可选：限制容器最大宽度
+                                marginTop: '8px'
                             }}>
                                 {cards?.map((card, index) => (
                                     <Card
                                         key={index}
+                                        className={`datasource-card ${selectedCard === index ? 'is-selected' : ''} ${type !== 'add' ? 'is-readonly' : ''}`}
                                         style={{
                                             height: 100,
                                             width: 120,
                                             position: 'relative',
                                             cursor: (type !== 'add') ? 'not-allowed' : 'pointer',
-                                            border: selectedCard === index ? '2px solid #1890ff' : '1px solid #d9d9d9',
                                             pointerEvents: (type !== 'add') ? 'none' : 'auto',
-                                            flexShrink: 0,  // 防止卡片被压缩
+                                            flexShrink: 0,
                                         }}
                                         onClick={() => handleCardClick(index)}
+                                        role="button"
+                                        aria-pressed={selectedCard === index}
                                     >
                                         <div style={{
                                             display: 'flex',
@@ -1007,7 +1040,6 @@ export const AlertRule = ({ type }) => {
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             height: '100%',
-                                            marginTop: '-10px'
                                         }}>
                                             <img src={card.imgSrc}
                                                  style={{height: '50px', width: '100px', objectFit: 'contain'}}
@@ -1017,6 +1049,7 @@ export const AlertRule = ({ type }) => {
                                                 textAlign: 'center',
                                                 marginTop: '5px'
                                             }}>{card.text}</p>
+                                            {selectedCard === index && <span className="datasource-card-selected">已选择</span>}
                                         </div>
                                     </Card>
                                 ))}
@@ -1044,7 +1077,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItem>
                     </div>
 
-                    {(selectedType === 0 || selectedType === 5) &&
+                    {selectedType === 0 &&
                         <>
                             <span>规则配置</span>
                             <div className="rule-config-container">
@@ -1077,7 +1110,7 @@ export const AlertRule = ({ type }) => {
                                         </Button>
                                     </div>
 
-                                    <MyFormItem name="" label="告警条件" rules={[{required: !exprRule}]}>
+                                    <MyFormItem name="" label={<><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>告警条件</>} rules={[{required: !exprRule}]}>
                                         {exprRule?.map((label, index) => (
                                             <div className="rule-item" key={index} style={{gap: '10px'}}>
                                                 <MyFormItem
@@ -1132,12 +1165,11 @@ export const AlertRule = ({ type }) => {
                                                     -
                                                 </Button>
 
-
                                             </div>
                                         ))}
                                     </MyFormItem>
 
-                                    <div className="action-buttons" style={{marginTop: '-35px'}}>
+                                    <div style={{marginTop: '-35px'}}>
                                         <Button icon={<PlusOutlined/>} type="dashed" block onClick={addExprRule} disabled={exprRule?.length === 3}>
                                             添加规则条件
                                         </Button>
@@ -1153,6 +1185,56 @@ export const AlertRule = ({ type }) => {
                                             <TextArea rows={2}
                                                       placeholder="输入告警事件的详细消息内容，如：服务器: ${labels.instance}，发生故障请紧急排查!"
                                                       maxLength={10000}/>
+                                        </MyFormItem>
+                                    </div>
+
+                                    <div>
+                                        <MyFormItem label="回调 PromQL" tooltip="告警触发后运行自定义 PromQL，并将结果写入至 Label 中">
+                                            <Form.List name={['prometheusConfig', 'callbakPromQLs']}>
+                                                {(fields, {add, remove}) => (
+                                                    <>
+                                                        {fields.map(({key, name, ...restField}) => (
+                                                            <div key={key} style={{ display: 'flex', alignItems: 'center' }}>
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'key']}
+                                                                    style={{ marginRight: 8, flex: 1 }}
+                                                                    normalize={(value) => value?.replace(/\s/g, '')}
+                                                                    rules={[
+                                                                        { required: true, message: 'Please input key!' },
+                                                                        { pattern: /^\S+$/, message: 'Key cannot contain spaces!' }
+                                                                    ]}
+                                                                >
+                                                                    <Input 
+                                                                        placeholder="标识 (英文)"
+                                                                    />
+                                                                </Form.Item>
+                                                                <Form.Item
+                                                                    {...restField}
+                                                                    name={[name, 'value']}
+                                                                    style={{ marginRight: 8, flex: 5 }}
+                                                                    rules={[{ required: true, message: 'Please input PromQL!' }]}
+                                                                >
+                                                                    <PrometheusPromQL
+                                                                        addr={metricAddress}
+                                                                        value={handleGetCallbackPromQL(name)}
+                                                                        setPromQL={(value) => handleSetCallbackPromQL(name, value)}
+                                                                    />
+                                                                </Form.Item>
+
+                                                                <Button style={{ marginTop: "-25px" }} onClick={() => remove(name)}>
+                                                                    -
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+                                                        <Form.Item style={{marginBottom: "-10px"}}>
+                                                            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                                                                添加回调 PromQL
+                                                            </Button>
+                                                        </Form.Item>
+                                                    </>
+                                                )}
+                                            </Form.List>
                                         </MyFormItem>
                                     </div>
                                 </MyFormItemGroup>
@@ -1185,6 +1267,33 @@ export const AlertRule = ({ type }) => {
                                 </Modal>
                             </div>
                         </>
+                    }
+
+                    {selectedType === 1 &&
+                        <MyFormItemGroup prefix={['lokiConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <MyFormItem
+                                    name="logQL"
+                                    label="查询语句"
+                                    rules={[{required: true}]}
+                                >
+                                    <Input/>
+                                </MyFormItem>
+                                <MyFormItem
+                                    name="logScope"
+                                    label="查询区间"
+                                    rules={[{required: true}]}
+                                >
+                                    <InputNumber
+                                        style={{width: '100%'}}
+                                        addonAfter={'分钟'}
+                                        placeholder="10"
+                                        min={1}
+                                    />
+                                </MyFormItem>
+                            </div>
+                        </MyFormItemGroup>
                     }
 
                     {selectedType === 2 &&
@@ -1276,10 +1385,7 @@ export const AlertRule = ({ type }) => {
                                     }}
                                     rules={[{required: true}]}
                                 >
-                                    <Select showSearch style={{width: '100%'}} placeholder="StatusCode =~ 5xx">
-                                        <Option
-                                            value='%7B"http.status_code"%3A"5.%2A%3F"%7D'>{'StatusCode =~ 5xx'}</Option>
-                                    </Select>
+                                    <Input placeholder='{"http.status_code":"5.*?"}'/>
                                 </MyFormItem>
                             </div>
 
@@ -1296,33 +1402,6 @@ export const AlertRule = ({ type }) => {
                                 />
                             </MyFormItem>
 
-                        </MyFormItemGroup>
-                    }
-
-                    {selectedType === 1 &&
-                        <MyFormItemGroup prefix={['lokiConfig']}>
-                            <span>规则配置</span>
-                            <div className="log-rule-config-container">
-                                <MyFormItem
-                                    name="logQL"
-                                    label="查询语句"
-                                    rules={[{required: true}]}
-                                >
-                                    <Input/>
-                                </MyFormItem>
-                                <MyFormItem
-                                    name="logScope"
-                                    label="查询区间"
-                                    rules={[{required: true}]}
-                                >
-                                    <InputNumber
-                                        style={{width: '100%'}}
-                                        addonAfter={'分钟'}
-                                        placeholder="10"
-                                        min={1}
-                                    />
-                                </MyFormItem>
-                            </div>
                         </MyFormItemGroup>
                     }
 
@@ -1455,7 +1534,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 6 &&
+                    {selectedType === 5 &&
                         <MyFormItemGroup prefix={['kubernetesConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -1491,22 +1570,6 @@ export const AlertRule = ({ type }) => {
                                             placeholder="请选择事件类型"
                                             options={kubeReasonListOptions}
                                         />
-                                    </MyFormItem>
-
-                                    <MyFormItem
-                                        name="value"
-                                        label="告警条件"
-                                        style={{
-                                            width: '45%',
-                                        }}
-                                        rules={[
-                                            {
-                                                required: true,
-                                            },
-                                        ]}>
-                                        <InputNumber placeholder="输入阈值" addonBefore={
-                                            "当事件条数 >="
-                                        } addonAfter={"条时告警"}/>
                                     </MyFormItem>
                                 </div>
                                 <div style={{display: 'flex', gap: '10px'}}>
@@ -1548,7 +1611,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 7 &&
+                    {selectedType === 6 &&
                         <MyFormItemGroup prefix={['elasticSearchConfig']}>
                             {/*<div style={{display: 'flex', gap: '10px'}}>*/}
                                 {/*<MyFormItem*/}
@@ -1570,7 +1633,7 @@ export const AlertRule = ({ type }) => {
 
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
-                                {/*<Tabs*/}
+                                {/*<Segmented*/}
                                 {/*    activeKey={esFilterType}*/}
                                 {/*    onChange={setEsFilterType}*/}
                                 {/*    items={[*/}
@@ -1701,7 +1764,7 @@ export const AlertRule = ({ type }) => {
                                 {esFilterType === "RawJson" && (
                                     <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px'}}>
                                         <MyFormItem
-                                            label="* 查询语句"
+                                            label={<><span style={{ marginInlineEnd: '4px', color: '#ff4d4f', fontSize: '14px', fontFamily: 'SimSun,sans-serif'}}>*</span>查询语句</>}
                                             rules={[{required: true}]}
                                             style={{width: '100%', height: '100%'}}
                                         >
@@ -1726,7 +1789,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 8 &&
+                    {selectedType === 7 &&
                         <MyFormItemGroup prefix={['victoriaLogsConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -1769,7 +1832,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 9 &&
+                    {selectedType === 8 &&
                         <MyFormItemGroup prefix={['clickhouseConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -1832,7 +1895,7 @@ export const AlertRule = ({ type }) => {
                             )} />
                     </Modal>
 
-                    {(selectedType === 1 || selectedType === 2 || selectedType === 7 || selectedType === 8 || selectedType === 9) && (
+                    {(selectedType === 1 || selectedType === 2 || selectedType === 6 || selectedType === 7 || selectedType === 8) && (
                         <MyFormItem
                             name="logEvalCondition"
                             label="告警条件"
@@ -1849,7 +1912,7 @@ export const AlertRule = ({ type }) => {
                         </MyFormItem>
                     )}
 
-                    {(selectedType !== 0 && selectedType !== 5 ) &&
+                    {(selectedType !== 0) &&
                         <MyFormItem
                             name="severity" label="告警等级"
                             rules={[
@@ -1881,25 +1944,8 @@ export const AlertRule = ({ type }) => {
                             <Input
                                 type={"number"} 
                                 style={{width: '100%'}}
-                                addonAfter={
-                                    <Select
-                                        style={{width: '70px'}}
-                                        value={evalTimeType}
-                                        defaultValue={'second'}
-                                        onChange={setEvalTimeType}
-                                        options={[
-                                            {
-                                                label: '秒',
-                                                value: 'second'
-                                            },
-                                            {
-                                                label: '毫秒',
-                                                value: 'millisecond'
-                                            }
-                                        ]}
-                                    />
-                                }
-                                placeholder="10"
+                                addonAfter="秒"
+                                placeholder="5"
                                 min={1}
                             />
                         </MyFormItem>
@@ -1920,7 +1966,7 @@ export const AlertRule = ({ type }) => {
                                 style={{
                                     width: '100%',
                                 }}
-                                placeholder="请选择规则生效时间"
+                                placeholder="如果为空则表示全天候"
                                 value={week}
                                 onChange={handleChange}
                                 options={weekOptions}
@@ -1937,15 +1983,15 @@ export const AlertRule = ({ type }) => {
                                 value={secondsToDateObj(endTime)}
                             />
                         </div>
-                        <Typography.Text type="secondary" style={{marginTop: '5px', fontSize: '12px'}}>
-                            {"> 默认情况下规则随时生效。如需指定生效时间，请选择具体的时间。"}
-                        </Typography.Text>
                     </MyFormItem>
-                </div>
+                </section>
 
-                <Divider/>
+                <section className="rule-form-section rule-delivery-section">
+                    <div className="rule-section-heading">
+                        <div><span className="rule-section-index">03</span><h2>告警推送</h2></div>
+                    </div>
 
-                <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
+                    <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
                     <MyFormItem
                         name="faultCenterId"
                         label="事件推送给 WatchAlert 故障中心"
@@ -1956,7 +2002,7 @@ export const AlertRule = ({ type }) => {
                             {/* 选择器 */}
                             <Select
                                 placeholder="选择故障中心"
-                                style={{width: '90%'}}
+                                style={{width: '89%'}}
                                 options={faultCenters}
                                 showSearch
                                 optionFilterProp="label"
@@ -1967,6 +2013,18 @@ export const AlertRule = ({ type }) => {
                                 onChange={setSelectedFaultCenter}
                             />
 
+                            {/* 刷新按钮 */}
+                            <Tooltip title="刷新列表">
+                                <RedoOutlined
+                                    onClick={handleGetFaultCenterList}
+                                    style={{
+                                        cursor: 'pointer',
+                                        color: '#1890ff',
+                                        transition: 'all 0.3s',
+                                    }}
+                                />
+                            </Tooltip>
+
                             {/* 操作按钮组 */}
                             <div style={{
                                 display: 'flex',
@@ -1974,20 +2032,9 @@ export const AlertRule = ({ type }) => {
                                 alignItems: 'center',
                                 borderLeft: '1px solid #e8e8e8',
                                 paddingLeft: 10,
-                                height: 32
+                                height: 32,
                             }}>
-                                {/* 刷新按钮 */}
-                                <Tooltip title="刷新列表">
-                                    <RedoOutlined
-                                        onClick={handleGetFaultCenterList}
-                                        style={{
-                                            cursor: 'pointer',
-                                            color: '#1890ff',
-                                            transition: 'all 0.3s',
-                                        }}
-                                    />
-                                </Tooltip>
-
+                            
                                 {/* 创建按钮 */}
                                 <Tooltip title="创建新故障中心">
                                     <a
@@ -2034,18 +2081,22 @@ export const AlertRule = ({ type }) => {
                     </MyFormItem>
                 </div>
 
-                <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        style={{
-                            backgroundColor: '#000000'
-                        }}
-                    >
-                        提交
-                    </Button>
+                <div className="rule-submit-bar">
+                    <div className="rule-submit-status">
+                        <span className={`rule-status-dot ${enabled ? 'is-enabled' : ''}`}></span>
+                        <span>{enabled ? '保存后立即启用规则' : '保存为禁用状态，可稍后启用'}</span>
+                    </div>
+                    <div className="rule-submit-actions">
+                        <Button onClick={() => window.history.back()}>取消</Button>
+                        <Button type="primary" htmlType="submit" className="rule-submit-button">
+                            提交
+                        </Button>
+                    </div>
                 </div>
+                </section>
             </Form>
-        </div>
+            </div>
+        </main>
+        </>
     )
 }

@@ -2,12 +2,14 @@
 
 import { Calendar, Button, message, Spin } from "antd"
 import React, { useState, useEffect, useCallback } from "react"
-import {CalendarIcon, Plus, Users} from "lucide-react"
+import { CalendarIcon } from "lucide-react"
 import { UpdateCalendarModal } from "./UpdateCalendar"
 import { searchCalendar } from "../../../api/duty"
 import { useParams } from "react-router-dom"
 import {CreateCalendarModal} from "./CreateCalendar";
 import {PlusOutlined, ReloadOutlined} from "@ant-design/icons";
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
 
 export const fetchDutyData = async (dutyId, year, month) => {
     try {
@@ -19,7 +21,7 @@ export const fetchDutyData = async (dutyId, year, month) => {
                 }),
         }
         const res = await searchCalendar(params)
-        return res.data
+        return res?.data
     } catch (error) {
         console.error(error)
         message.error("获取日程数据失败")
@@ -212,15 +214,6 @@ export const CalendarApp = ({ tenantId }) => {
                             )}
                         </div>
                     )}
-
-                    {hasData && (
-                        <div
-                            className={`
-                                absolute top-1 right-1 w-2 h-2 rounded-full
-                                ${isToday ? "bg-white" : "bg-black"}
-                            `}
-                        />
-                    )}
                 </div>
             </div>
         )
@@ -279,6 +272,7 @@ export const CalendarApp = ({ tenantId }) => {
 
     return (
         <div>
+            <Breadcrumb items={['值班中心', '详情']} />
             <Spin spinning={loading} tip="加载中..." className="custom-spin">
                 {/* Header Section */}
                 <div className="flex items-center justify-between mb-8">

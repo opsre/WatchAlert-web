@@ -4,9 +4,9 @@ import {HandleApiError} from "../utils/lib";
 async function listAuditLog(params) {
     try {
         const queryString = Object.keys(params)
-            .map(key => params[key] !== undefined ? `${key}=${params[key]}` : '')
-            .filter(Boolean)
-            .join('&');
+            ?.map(key => params[key] !== undefined ? `${key}=${params[key]}` : '')
+            ?.filter(Boolean)
+            ?.join('&');
         const res = await http('get', `/api/w8t/auditLog/listAuditLog?${queryString}`);
         return res;
     } catch (error) {

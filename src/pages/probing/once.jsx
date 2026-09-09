@@ -1,12 +1,23 @@
 "use client"
 
 import React, { useEffect, useState, useContext, useMemo } from "react"
-import {Alert, Tabs, Form, Input, Select, Button, Collapse, Table, Tag, Progress, Spin, Typography, Space, message} from "antd"
+import {Alert, Segmented, Form, Input, Select, Button, Collapse, Table, Tag, Progress, Spin, Typography, Space, message} from "antd"
 import Marquee from "react-fast-marquee"
 import { ProbingOnce } from "../../api/probing"
 import {MinusCircleOutlined, PlusOutlined} from "@ant-design/icons";
+import { Breadcrumb } from "../../components/Breadcrumb";
+
 
 const { Panel } = Collapse
+
+const isValidPort = (port) => {
+    if (!port) {
+        return true
+    }
+
+    const portNumber = Number.parseInt(port, 10)
+    return portNumber >= 1 && portNumber <= 65535
+}
 
 // Context for managing nested form item names
 const MyFormItemContext = React.createContext([])
@@ -32,7 +43,7 @@ export const OnceProbing = () => {
     const [form] = Form.useForm()
     const [loading, setLoading] = useState(false)
 
-    const tabs = [
+    const probingTypeOptions = [
         { key: "1", label: "HTTP" },
         { key: "2", label: "ICMP" },
         { key: "3", label: "TCP" },
@@ -66,7 +77,7 @@ export const OnceProbing = () => {
         const urlPattern = /^(https?:\/\/)[a-zA-Z0-9.-]+(?::\d+)?(?:\/[^\s]*)?$/
         const domainIpPattern = /^(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3})$/
         const tcpPattern = /^(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(\d{1,3}\.){3}\d{1,3}):\d+$/
-        const domainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/
+        const domainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?::(\d+))?$/
 
         if (!value) {
             return Promise.reject("请输入端点")
@@ -86,9 +97,10 @@ export const OnceProbing = () => {
                     ? Promise.resolve()
                     : Promise.reject("请输入有效的 IP/域名:port")
             case "SSL":
-                return domainPattern.test(value)
+                const match = domainPattern.exec(value)
+                return match && isValidPort(match[2])
                     ? Promise.resolve()
-                    : Promise.reject("请输入有效的 域名")
+                    : Promise.reject("请输入有效的 域名或域名:端口")
             default:
                 return Promise.resolve()
         }
@@ -238,11 +250,11 @@ export const OnceProbing = () => {
 
             console.log('发送拨测请求:', params)
             const res = await ProbingOnce(params)
-            if (res && res.data) {
+            if (res && res?.data) {
                 // Parse the new metrics data structure
-                const parsedData = parseMetricsData(res.data)
+                const parsedData = parseMetricsData(res?.data)
                 setResponseData(parsedData)
-                console.log('拨测响应:', res.data)
+                console.log('拨测响应:', res?.data)
                 console.log('解析后数据:', parsedData)
             }
         } catch (errorInfo) {
@@ -430,12 +442,13 @@ export const OnceProbing = () => {
         HTTP: "请输入端点，如：https://github.com",
         ICMP: "请输入端点，如：127.0.0.1 / github.com",
         TCP: "请输入端点，如：127.0.0.1:80",
-        SSL: "请输入端点，如：github.com",
+        SSL: "请输入端点，如：github.com 或 github.com:443",
     }
 
     return (
         <Spin spinning={loading} tip="加载中...">
-            <div style={{ marginTop: "-15px" }}>
+            <Breadcrumb items={['网络分析', '即时拨测']} />
+            <div style={{ marginBottom: "12px" }}>
                 <Alert
                     banner
                     type="info"
@@ -445,15 +458,21 @@ export const OnceProbing = () => {
                         </Marquee>
                     }
                 />
-                <Tabs defaultActiveKey="1" items={tabs} onChange={handleChangeProbingType} />
             </div>
+            
+            <Segmented
+                defaultValue="1"
+                options={probingTypeOptions.map(({ key, label }) => ({ value: key, label }))}
+                onChange={(value) => handleChangeProbingType(String(value))}
+                style={{ marginBottom: '12px' }}
+            />
+        
             <div
                 style={{
                     textAlign: "left",
                     marginTop: "-15px",
                     maxHeight: height - 300,
                     overflow: "auto",
-                    padding: "10px",
                     border: "none",
                     borderRadius: "8px",
                     backgroundColor: "#fff",

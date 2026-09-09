@@ -102,7 +102,7 @@ export const CreateDutyModal = ({ visible, onClose, handleList, selectedRow, typ
                 joinDuty: "true",
             }
             const res = await getUserList(params)
-            const options = res.data.map((item) => ({
+            const options = res?.data?.map((item) => ({
                 username: item.username,
                 userid: item.userid
             }))

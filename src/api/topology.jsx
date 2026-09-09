@@ -2,9 +2,9 @@ import http from '../utils/http';
 import { message } from 'antd';
 import {HandleApiError} from "../utils/lib";
 
-async function TopologyList() {
+async function TopologyList(params = {}) {
     try {
-        const res = await http('get', `/api/w8t/topology/listTopology`);
+        const res = await http('get', `/api/w8t/topology/listTopology`, params);
         return res;
     } catch (error) {
         HandleApiError(error)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Spin, Tag, Empty, Card, Typography, Space, Divider, Row, Col, Alert, Tabs, Table } from "antd"
+import { Spin, Tag, Empty, Card, Typography, Space, Divider, Row, Col, Alert, Segmented, Table } from "antd"
 import {
     ClockCircleOutlined,
     TagsOutlined,
@@ -68,12 +68,20 @@ export const SearchViewMetrics = ({
                 throw new Error(res.msg || "请求失败")
             }
 
-            // 提取所有 result 数据
-            const allResults = res.data
-                .filter((item: any) => item.status === "success" && item.data?.result?.length > 0)
-                .flatMap((item: any) => item.data.result)
+            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+                const processedResults = res.data.flatMap(r => 
+                    r.data?.result?.map(item => ({
+                        ...item,
+                        // 取最后一个值作为当前值
+                        value: item.values && item.values.length > 0 
+                            ? item.values[item.values.length - 1] 
+                            : (item.value || null)
+                    })) || []
+                )
+                setMetrics(processedResults)
+            }
 
-            setMetrics(allResults)
+            
         } catch (err) {
             setError(err instanceof Error ? err.message : "网络错误")
             console.error("Fetch card data error:", err)
@@ -107,7 +115,7 @@ export const SearchViewMetrics = ({
                 throw new Error(res.msg || "请求失败")
             }
 
-            setChartData(res.data)
+            setChartData(res?.data)
         } catch (err) {
             setError(err instanceof Error ? err.message : "网络错误")
             console.error("Fetch chart data error:", err)
@@ -173,23 +181,20 @@ export const SearchViewMetrics = ({
             title: '数值',
             dataIndex: 'value',
             key: 'value',
-            width: 120,
-            render: (value: string) => (
-                <Text style={{ 
-                    fontSize: '16px', 
-                    fontWeight: 'bold',
-                    color: parseFloat(value.replace(/,/g, '')) === 0 ? '#52c41a' : '#1890ff'
-                }}>
-                    {value}
-                </Text>
+            width: 200,
+            render: (value, record) => (
+                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                    <div>
+                        <Text strong style={{ fontSize: '14px' }}>
+                            {value}
+                        </Text>
+                        <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px' }}>
+                            ({record.timestamp})
+                        </Text>
+                    </div>
+                </Space>
             )
-        },
-        {
-            title: '时间戳',
-            dataIndex: 'timestamp',
-            key: 'timestamp',
-            width: 180,
-        },
+        }
     ]
 
 
@@ -221,7 +226,10 @@ export const SearchViewMetrics = ({
         return <Alert message="查询失败" description={error} type="error" showIcon style={{ margin: "20px 0" }} />
     }
 
-    if (metrics.length === 0) {
+    // 根据 displayMode 判断是否有数据
+    const hasData = displayMode === 'chart' ? (chartData && chartData.length > 0 && chartData[0]?.data?.result?.length > 0) : (metrics.length > 0)
+
+    if (!hasData) {
         return (
             <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -373,14 +381,14 @@ export const SearchViewMetrics = ({
         } else if (displayMode === 'chart') {
             return renderChartView()
         } else {
-            // both 模式，显示 tabs
+            // both 模式，显示 Segmented 选择器
             const tabItems = [
                 {
                     key: 'card',
                     label: (
                         <span>
-                            <AppstoreOutlined />
-                            卡片视图
+                            <AppstoreOutlined style={{ marginRight: '8px' }} />
+                            Card
                         </span>
                     ),
                     children: renderCardView(),
@@ -389,8 +397,8 @@ export const SearchViewMetrics = ({
                     key: 'chart',
                     label: (
                         <span>
-                            <LineChartOutlined />
-                            图表视图
+                            <LineChartOutlined style={{ marginRight: '8px' }} />
+                            Graph
                         </span>
                     ),
                     children: renderChartView(),
@@ -398,12 +406,16 @@ export const SearchViewMetrics = ({
             ]
 
             return (
-                <Tabs
-                    activeKey={activeTab}
-                    onChange={handleTabChange}
-                    items={tabItems}
-                    style={{ marginTop: "10px" }}
-                />
+                <div style={{ marginTop: "10px" }}>
+                    <Segmented
+                        value={activeTab}
+                        onChange={(value) => handleTabChange(String(value))}
+                        options={tabItems.map(({ key, label }) => ({ value: key, label }))}
+                    />
+                    <div style={{ marginTop: "16px" }}>
+                        {activeTab === 'card' ? renderCardView() : renderChartView()}
+                    </div>
+                </div>
             )
         }
     }

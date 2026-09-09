@@ -1,13 +1,13 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from 'react';
-import {Table, Button, Popconfirm, message, Space, Tag, Tooltip } from 'antd';
+import {Table, Button, Popconfirm, message, Space, Tag, Tooltip, Dropdown, Modal} from 'antd';
 import { CreateDutyModal } from './DutyManageCreateModal';
-import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined} from '@ant-design/icons';
+import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined} from '@ant-design/icons';
 import { deleteDutyManager, getDutyManagerList } from '../../api/duty';
 import {Link} from "react-router-dom";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
-import {Users} from "lucide-react";
+import { Breadcrumb } from "../../components/Breadcrumb";
 
 export const DutyManage = () => {
     const [visible, setVisible] = useState(false);
@@ -143,29 +143,45 @@ export const DutyManage = () => {
             title: '操作',
             dataIndex: 'operation',
             fixed: 'right',
-            width: 120,
-            render: (_, record) =>
-                <Space size="middle">
-                    <Tooltip title="更新">
-                        <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            onClick={() => handleUpdateModalOpen(record)}
-                            style={{ color: "#1677ff" }}
-                        />
-                    </Tooltip>
-                    <Tooltip title="删除">
-                        <Popconfirm
-                            title="确定要删除此日程吗?"
-                            onConfirm={() => handleDelete(record)}
-                            okText="确定"
-                            cancelText="取消"
-                            placement="left"
-                        >
-                            <Button type="text" icon={<DeleteOutlined />} style={{ color: "#ff4d4f" }} />
-                        </Popconfirm>
-                    </Tooltip>
-                </Space>
+            width: 60,
+            render: (_, record) => (
+                <Dropdown
+                    menu={{
+                        items: [
+                            {
+                                key: 'edit',
+                                icon: <EditOutlined />,
+                                label: '更新',
+                                onClick: () => handleUpdateModalOpen(record)
+                            },
+                            {
+                                key: 'delete',
+                                icon: <DeleteOutlined />,
+                                label: '删除',
+                                danger: true,
+                                onClick: () => {
+                                    Modal.confirm({
+                                        title: "确定要删除此日程吗?",
+                                        content: `日程名称: ${record.name}`,
+                                        okText: "确定",
+                                        cancelText: "取消",
+                                        okType: 'danger',
+                                        onOk: () => handleDelete(record)
+                                    })
+                                }
+                            }
+                        ]
+                    }}
+                    trigger={['click']}
+                    placement="bottomRight"
+                >
+                    <Button
+                        type="text"
+                        icon={<MoreOutlined />}
+                        style={{ color: "#666" }}
+                    />
+                </Dropdown>
+            )
         },
     ]);
 
@@ -196,7 +212,7 @@ export const DutyManage = () => {
     const handleList = async () => {
         try {
             const res = await getDutyManagerList()
-            setList(res.data);
+            setList(res?.data);
         } catch (error) {
             message.error(error);
         }
@@ -205,7 +221,8 @@ export const DutyManage = () => {
     const handleDelete = async (record) => {
         try {
             const params = {
-                id: record.id
+                id: record.id,
+                name: record.name,
             }
             await deleteDutyManager(params)
             handleList();
@@ -229,6 +246,7 @@ export const DutyManage = () => {
 
     return (
         <>
+            <Breadcrumb items={['值班中心']} />
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
                     type="primary"
@@ -255,7 +273,7 @@ export const DutyManage = () => {
                     columns={columns}
                     dataSource={list}
                     scroll={{
-                        y: height - 280, // 动态设置滚动高度
+                        y: height - 250, // 动态设置滚动高度
                         x: 'max-content', // 水平滚动
                     }}
                     style={{

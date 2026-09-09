@@ -22,11 +22,11 @@ import {
     Avatar,
     Popconfirm,
 } from "antd"
-import { DownloadOutlined, ReloadOutlined } from "@ant-design/icons"
+import { DownloadOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons"
 import dayjs from "dayjs"
 import { AddEventComment, DeleteEventComment, getHisEventList, ListEventComments } from "../../api/event"
 import TextArea from "antd/es/input/TextArea"
-import { Clock } from "lucide-react"
+import { ClockIcon as Clock } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { exportAlarmRecordToHTML } from "../../utils/exportAlarmRecordToHTML"
 import {
@@ -42,7 +42,7 @@ import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
 import { ReactComponent as AwsImg } from "../alert/rule/img/AWSlogo.svg"
 import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
-import { ReactComponent as VMImg } from "../alert/rule/img/victoriametrics.svg"
+
 import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
@@ -112,7 +112,6 @@ export const AlertHistoryEvent = (props) => {
 
     const logoMap = {
         Prometheus: <PrometheusImg style={{ width: 18, height: 18 }} />,
-        VictoriaMetrics: <VMImg style={{ width: 16, height: 16 }} />,
         AliCloudSLS: <AlicloudImg style={{ width: 16, height: 16 }} />,
         Jaeger: <JaegerImg style={{ width: 16, height: 16 }} />,
         CloudWatch: <AwsImg style={{ width: 16, height: 16 }} />,
@@ -120,7 +119,7 @@ export const AlertHistoryEvent = (props) => {
         ElasticSearch: <ESImg style={{ width: 16, height: 16 }} />,
         VictoriaLogs: <VLogImg style={{ width: 16, height: 16 }} />,
         ClickHouse: <CkImg style={{ width: 16, height: 16 }} />,
-        Kubernetes: <K8sImg style={{ width: 16, height: 16 }} />,
+        KubernetesEvent: <K8sImg style={{ width: 16, height: 16 }} />,
     }
     const [noticeSelectEventId, setNoticeSelectEventId] = useState('')
     const [noticeRecords, setNoticeRecords] = useState([])  
@@ -382,13 +381,13 @@ export const AlertHistoryEvent = (props) => {
             setLoading(true)
             const res = await getHisEventList(params)
             if (res?.data?.list) {
-                setHistoryEventList(res.data.list)
+                setHistoryEventList(res?.data?.list)
                 setHistoryPagination((prev) => ({
                     ...prev,
-                    pageTotal: res.data.total,
+                    pageTotal: res?.data?.total,
                 }))
                 // If current page has no data but total > 0 and not page 1, reset to page 1
-                if (res.data.total > 0 && res.data.list.length === 0 && historyPagination.pageIndex > 1) {
+                if (res?.data?.total > 0 && res?.data?.list?.length === 0 && historyPagination.pageIndex > 1) {
                     setHistoryPagination((prev) => ({
                         ...prev,
                         pageIndex: 1, // This will trigger the main useEffect again
@@ -514,7 +513,7 @@ export const AlertHistoryEvent = (props) => {
             setExportLoading(true)
             const res = await getHisEventList(params)
             setExportLoading(false)
-            return res.data.list
+            return res?.data?.list
         } catch (error) {
             console.error(error)
             setExportLoading(false)
@@ -570,7 +569,7 @@ export const AlertHistoryEvent = (props) => {
                 fingerprint: selectedEvent.fingerprint,
             }
             const res = await ListEventComments(comment)
-            setComments(res.data)
+            setComments(res?.data)
         } catch (error) {
             HandleApiError(error)
         }
@@ -621,6 +620,11 @@ export const AlertHistoryEvent = (props) => {
         }
     }
 
+    const isPrometheusEvent = (event) => {
+        const datasourceType = event?.datasource_type?.trim()?.toLowerCase()
+        return datasourceType === "prometheus"
+    }
+
     useEffect(() => {
         if (drawerOpen && selectedEvent) {
             handleListComments()
@@ -631,15 +635,40 @@ export const AlertHistoryEvent = (props) => {
     // 获取图表数据
     const fetchMetricData = async () => {
         try {
-            const parmas = {
+            if (!isPrometheusEvent(selectedEvent)) {
+                return
+            }
+
+            const params = {
                 datasourceIds: selectedEvent.datasource_id,
                 query: selectedEvent.searchQL,
                 startTime: selectedEvent.first_trigger_time - 300,
-                endTime: selectedEvent.recover_time,
+                endTime: selectedEvent.recover_time || Math.floor(Date.now() / 1000),
                 step: 10,
             }
-            const res = await queryRangePromMetrics(parmas)
-            setMetricData(res)
+            const res = await queryRangePromMetrics(params)
+            const results = res?.data
+            const allResults = []
+
+            if (Array.isArray(results) && results.length > 0) {
+                const processedResults = results.flatMap(r =>
+                    r.data?.result?.map(item => ({
+                        ...item,
+                        value: item.values && item.values.length > 0
+                            ? item.values[item.values.length - 1]
+                            : (item.value || null)
+                    })) || []
+                )
+                allResults.push(...processedResults)
+            }
+
+            setMetricData([{
+                status: 'success',
+                data: {
+                    resultType: 'matrix',
+                    result: allResults,
+                },
+            }])
         } catch (error) {
             message.error("加载图表数据失败")
             console.error("Failed to load metric data:", error)
@@ -656,11 +685,11 @@ export const AlertHistoryEvent = (props) => {
                 eventId: eventId,
             }
             const res = await noticeRecordList(params)
-            setNoticeRecords(res.data.list || [])
+            setNoticeRecords(res?.data?.list || [])
             setNoticePagination({
-                pageIndex: res.data.index,
-                pageSize: res.data.size,
-                pageTotal: res.data.total,
+                pageIndex: res?.data?.index,
+                pageSize: res?.data?.size,
+                pageTotal: res?.data?.total,
             })
         } catch (error) {
             message.error("获取通知记录失败: " + error.message)
@@ -700,6 +729,7 @@ export const AlertHistoryEvent = (props) => {
             <Space style={{ marginBottom: 16 }} wrap>
                 <Search
                     allowClear
+                    prefix={<SearchOutlined />}
                     placeholder="输入搜索关键字"
                     onSearch={handleSearchSubmit} // On search button click or Enter
                     value={searchQuery} // Controlled component
@@ -707,24 +737,24 @@ export const AlertHistoryEvent = (props) => {
                     style={{ width: 200 }}
                 />
                 <Select
-                    placeholder="选择类型"
+                    placeholder="数据源类型"
                     style={{ width: 150 }}
                     allowClear
                     value={selectedDataSource || null}
                     onChange={handleDataSourceChange}
                     options={[
                         { value: "Prometheus", label: "Prometheus" },
-                        { value: "VictoriaMetrics", label: "VictoriaMetrics" },
                         { value: "AliCloudSLS", label: "AliCloudSLS" },
                         { value: "Jaeger", label: "Jaeger" },
                         { value: "Loki", label: "Loki" },
                         { value: "ElasticSearch", label: "ElasticSearch" },
                         { value: "VictoriaLogs", label: "VictoriaLogs" },
                         { value: "ClickHouse", labels: "ClickHouse" },
+                        { value: "KubernetesEvent", label: "Kubernetes" },
                     ]}
                 />
                 <Select
-                    placeholder="选择告警等级"
+                    placeholder="告警等级"
                     style={{ width: 150 }}
                     allowClear
                     value={selectedAlertLevel || null}
@@ -803,14 +833,18 @@ export const AlertHistoryEvent = (props) => {
             >
                 {selectedEvent && (
                     <div>
-                        <div style={{
-                                marginLeft: '-20px',
-                            }}
-                        >
-                            <Spin spinning={loading}>
-                                <EventMetricChart data={metricData.data} />
-                            </Spin>
-                        </div>
+                        {isPrometheusEvent(selectedEvent) && (
+                            <div style={{
+                                    marginLeft: '-20px',
+                                    height: 260,
+                                    marginBottom: '24px',
+                                }}
+                            >
+                                <Spin spinning={loading}>
+                                    <EventMetricChart data={metricData} />
+                                </Spin>
+                            </div>
+                        )}
 
                         <Descriptions
                             bordered

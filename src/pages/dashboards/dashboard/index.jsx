@@ -1,4 +1,4 @@
-import { Table, Input } from 'antd'
+import { Table, Input, Spin } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -6,9 +6,12 @@ import {
 } from '../../../api/dashboard';
 import { useParams } from 'react-router-dom'
 import {HandleShowTotal} from "../../../utils/lib";
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
 
 export const Dashboards = () => {
-    const [list, setList] = useState()
+    const [list, setList] = useState([])
+    const [loading, setLoading] = useState(true)
     const { id } = useParams()
     const columns = [
         {
@@ -41,38 +44,46 @@ export const Dashboards = () => {
     }, [])
 
     const handleList = async () => {
+        setLoading(true)
         try {
             const fParams = {
                 id: id
             }
             const res = await getGrafanaDashboardList(fParams)
-            const d = res.data.map((item, index) => {
+            const d = res?.data?.map((item, index) => {
                 return {
                     key: index,
                     ...item,
                 }
             })
-            setList(d)
+            setList(d || [])
         } catch (error) {
             console.error(error)
+            setList([])
+        } finally {
+            setLoading(false)
         }
     }
 
     return (
         <>
+            <Breadcrumb items={['仪表盘', '列表']} />
             <div style={{ overflowX: 'auto', marginTop: 10, height: '71vh' }}>
-                <Table
-                    columns={columns}
-                    dataSource={list}
-                    scroll={{
-                        x: 1000,
-                        y: 'calc(71vh - 71px - 40px)'
-                    }}
-                    pagination={{
-                        showTotal: HandleShowTotal,
-                        pageSizeOptions: ['10'],
-                    }}
-                />
+                <Spin spinning={loading}>
+                    <Table
+                        columns={columns}
+                        dataSource={list}
+                        loading={loading}
+                        scroll={{
+                            x: 1000,
+                            y: 'calc(71vh - 71px - 40px)'
+                        }}
+                        pagination={{
+                            showTotal: HandleShowTotal,
+                            pageSizeOptions: ['10'],
+                        }}
+                    />
+                </Spin>
             </div>
         </>
     );

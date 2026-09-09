@@ -1,6 +1,5 @@
 "use client"
-
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback, useRef } from "react"
 import {
     Button,
     Input,
@@ -14,17 +13,19 @@ import {
     Tooltip,
     Space,
     Switch,
-    Popconfirm
+    Popconfirm,
+    Form,
+    Empty,
+    Typography
 } from "antd"
-import {Link, useNavigate} from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useParams } from "react-router-dom"
-import {deleteRule, getRuleList, RuleChangeStatus, RuleImport} from "../../../api/rule"
+import { deleteRule, getRuleList, RuleImport, RuleChange, RuleChangeStatus } from "../../../api/rule"
 import { ReactComponent as PrometheusImg } from "./img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "./img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "./img/jaeger.svg"
 import { ReactComponent as AwsImg } from "./img/AWSlogo.svg"
 import { ReactComponent as LokiImg } from "./img/L.svg"
-import { ReactComponent as VMImg } from "./img/victoriametrics.svg"
 import { ReactComponent as K8sImg } from "./img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "./img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "./img/victorialogs.svg"
@@ -35,51 +36,84 @@ import {
     ExportOutlined,
     DownOutlined,
     ImportOutlined,
-
-    CopyOutlined, 
+    CopyOutlined,
     PlusOutlined,
-    CheckSquareOutlined,
-    CloseSquareOutlined
+    EditOutlined,
+    ReloadOutlined,
+    MoreOutlined
 } from "@ant-design/icons"
-import {FaultCenterList} from "../../../api/faultCenter";
+import { FaultCenterList } from "../../../api/faultCenter";
 import VSCodeEditor from "../../../utils/VSCodeEditor";
-import {copyToClipboard} from "../../../utils/copyToClipboard";
-import {HandleApiError, HandleShowTotal} from "../../../utils/lib";
-import {useAppContext} from "../../../context/RuleContext";
+import { copyToClipboard } from "../../../utils/copyToClipboard";
+import { HandleApiError, HandleShowTotal } from "../../../utils/lib";
+import { useAppContext } from "../../../context/RuleContext";
 import { TableWithPagination } from '../../../utils/TableWithPagination';
-import { RuleGroupSidebar } from './RuleGroupSidebar';
+import { RuleGroupSidebar } from './sidebar';
+import { getRuleGroupList } from "../../../api/rule"
+import { Breadcrumb } from "../../../components/Breadcrumb";
+
+const SIDEBAR_GROUP_CACHE_KEY = 'alertRule_selectedGroupId'
 
 export const AlertRuleList = () => {
     const { setCloneAlertRule } = useAppContext()
     const navigate = useNavigate()
     const { Search } = Input
+    const { Option } = Select;
     const [list, setList] = useState([])
     const [datasourceList, setDatasourceList] = useState([])
     const { id } = useParams()
     const [selectRuleStatus, setSelectRuleStatus] = useState("all")
-    const [pagination, setPagination] = useState({
-        index: 1,
-        size: 10,
-        total: 0,
-    })
+
+    // 从 sessionStorage 恢复页码状态
+    const getStoredPagination = useCallback(() => {
+        const stored = sessionStorage.getItem(`alertRule_pagination_${id}`)
+        if (stored) {
+            try {
+                return JSON.parse(stored)
+            } catch (e) {
+                console.error('Failed to parse stored pagination:', e)
+            }
+        }
+        return { index: 1, size: 10, total: 0 }
+    }, [id])
+
+    const [pagination, setPagination] = useState(() => getStoredPagination())
     const [selectedRowKeys, setSelectedRowKeys] = useState([])
+
     // 规则组相关状态
     const [selectedRuleGroupId, setSelectedRuleGroupId] = useState(id)
+    const isInitialMount = useRef(true)
+
     // 导入相关状态
     const [importDrawerVisible, setImportDrawerVisible] = useState(false)
-    const [importType, setImportType] = useState(1) // 1 'watchalert' 或 0 'prometheus'
+    const [importType, setImportType] = useState(1)
     const [selectedDatasource, setSelectedDatasource] = useState(null)
-    const [selectedDatasourceType, setSelectedDatasourceType] = useState("")
     const [selectedFaultCenter, setSelectedFaultCenter] = useState(null)
     const [faultCenterList, setFaultCenterList] = useState([])
     const [yamlContent, setYamlContent] = useState("")
     const [jsonContent, setJsonContent] = useState("")
 
+
+    // 批量修改相关状态
+    const [batchModifyVisible, setBatchModifyVisible] = useState(false)
+    const [batchModifyForm, setBatchModifyForm] = useState({
+        rule_group_id: null,
+        datasource_ids: null,
+        datasource_type: null, // 新增：数据源类型
+        eval_interval: null,
+        eval_time_type: null,
+        severity: null,
+        fault_center_id: null,
+        enabled: null
+    })
+    const [batchModifyFields, setBatchModifyFields] = useState(null)
+    const [ruleGroupList, setRuleGroupList] = useState([])
+
     // 行选择变化处理
     const handleSelectChange = (selectedKeys, selectedRows) => {
         setSelectedRowKeys(selectedKeys)
-        console.log('选中的规则:', selectedKeys, selectedRows)
     }
+
     const columns = [
         {
             title: "规则名称",
@@ -95,7 +129,7 @@ export const AlertRuleList = () => {
                             whiteSpace: 'nowrap',
                             maxWidth: '300px'
                         }}>
-                            <Link 
+                            <Link
                                 style={{
                                     color: "#1677ff",
                                     display: "flex",
@@ -110,7 +144,7 @@ export const AlertRuleList = () => {
                     <Tooltip title="点击复制 ID">
                         <span
                             style={{
-                                color: '#8c8c8c',     // 灰色字体
+                                color: '#8c8c8c',
                                 fontSize: '12px',
                                 cursor: 'pointer',
                                 userSelect: 'none',
@@ -135,14 +169,14 @@ export const AlertRuleList = () => {
             key: "severity",
             width: "150px",
             render: (text, record) => {
-                const severities = GetSeverity(record); // 获取 severity 数组
+                const severities = GetSeverity(record);
                 return (
                     <span>
-                      {severities.map((severity, index) => (
-                          <Tag color={severity === "P0" ? "red" : severity === "P1" ? "gold" : severity === "P2" ? "cyan" : "purple"} key={index}>
-                              {severity}
-                          </Tag>
-                      ))}
+                        {severities.map((severity, index) => (
+                            <Tag color={severity === "P0" ? "red" : severity === "P1" ? "gold" : severity === "P2" ? "cyan" : "purple"} key={index}>
+                                {severity}
+                            </Tag>
+                        ))}
                     </span>
                 );
             }
@@ -160,7 +194,6 @@ export const AlertRuleList = () => {
                         {text === "Loki" && <LokiImg style={{ height: "25px", width: "25px" }} />}
                         {text === "Jaeger" && <JaegerImg style={{ height: "25px", width: "25px" }} />}
                         {text === "AliCloudSLS" && <AlicloudImg style={{ height: "25px", width: "25px" }} />}
-                        {text === "VictoriaMetrics" && <VMImg style={{ height: "25px", width: "25px" }} />}
                         {text === "VictoriaLogs" && <VLogImg style={{ height: "25px", width: "25px" }} />}
                         {text === "KubernetesEvent" && <K8sImg style={{ height: "25px", width: "25px" }} />}
                         {text === "ElasticSearch" && <ESImg style={{ height: "25px", width: "25px" }} />}
@@ -177,27 +210,15 @@ export const AlertRuleList = () => {
             width: "auto",
             render: (text, record) => (
                 <span>
-                  {getDatasourceNamesByIds(record.datasourceId)
-                      .split(", ")
-                      .map((name, index) => (
-                          <Tag color="processing" key={index}>
-                              {name}
-                          </Tag>
-                      ))}
+                    {getDatasourceNamesByIds(record.datasourceId)
+                        .split(", ")
+                        ?.map((name, index) => (
+                            <Tag color="processing" key={index}>
+                                {name}
+                            </Tag>
+                        ))}
                 </span>
             ),
-        },
-        {
-            title: "描述",
-            dataIndex: "description",
-            key: "description",
-            width: "auto",
-            render: (text, record, index) => {
-                if (!text) {
-                    return "没有留下任何描述~"
-                }
-                return text
-            },
         },
         {
             title: "更新时间",
@@ -206,11 +227,11 @@ export const AlertRuleList = () => {
             width: "auto",
             render: (text) => {
                 const date = new Date(text * 1000)
-                    return (
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <span>{date.toLocaleString()}</span>
-                        </div>
-                    )
+                return (
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span>{date.toLocaleString()}</span>
+                    </div>
+                )
             },
         },
         {
@@ -220,28 +241,27 @@ export const AlertRuleList = () => {
             width: "auto",
             render: (text) => {
                 return <Tag style={{
-                                borderRadius: "12px",
-                                padding: "0 10px",
-                                fontSize: "12px",
-                                fontWeight: "500",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "4px",
-                            }}
-                        >
-                            {text || "未知用户"}
-                        </Tag>
+                    borderRadius: "12px",
+                    padding: "0 10px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                }}>
+                    {text || "未知用户"}
+                </Tag>
             },
         },
         {
             title: "状态",
             dataIndex: "enabled",
             key: "enabled",
-            width: "100px",
+            width: "80px",
             render: (enabled, record) => {
                 const handleStatusChange = async (checked) => {
                     try {
-                        const params={
+                        const params = {
                             tenantId: record.tenantId,
                             ruleGroupId: record.ruleGroupId,
                             ruleId: record.ruleId,
@@ -255,7 +275,6 @@ export const AlertRuleList = () => {
                         HandleApiError(error)
                     }
                 };
-
                 return (
                     <Switch
                         checked={enabled}
@@ -270,215 +289,281 @@ export const AlertRuleList = () => {
         {
             title: "操作",
             dataIndex: "operation",
-            fixed: "right", // 设置操作列固定
-            width: 50,
-            render: (_, record) => (
-                <Space size="middle">
-                    <Tooltip title="克隆">
+            fixed: "right",
+            width: 60,
+            render: (_, record) => {
+                const items = [
+                    {
+                        key: 'clone',
+                        icon: <CopyOutlined />,
+                        label: '克隆',
+                        onClick: () => handleClone(record)
+                    },
+                    {
+                        key: 'delete',
+                        icon: <DeleteOutlined />,
+                        label: '删除',
+                        danger: true,
+                        onClick: () => {
+                            Modal.confirm({
+                                title: "确定要删除此规则吗?",
+                                content: `规则名称: ${record.ruleName}`,
+                                okText: "确定",
+                                cancelText: "取消",
+                                okType: 'danger',
+                                onOk: () => handleDelete(record.ruleGroupId, record.ruleId, record.ruleName)
+                            })
+                        }
+                    }
+                ];
+
+                return (
+                    <Dropdown
+                        menu={{ items }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
                         <Button
                             type="text"
-                            icon={<CopyOutlined />}
-                            onClick={() => handleClone(record)}
-                            style={{ color: "#615454" }}
+                            icon={<MoreOutlined />}
+                            style={{ color: "#666" }}
                         />
-                    </Tooltip>
-                    <Tooltip title="删除">
-                        <Popconfirm
-                            title="确定要删除此规则吗?"
-                            onConfirm={() => handleDelete(record.ruleGroupId,record.ruleId)}
-                            okText="确定"
-                            cancelText="取消"
-                            placement="left"
-                        >
-                            <Button
-                                type="text"
-                                icon={<DeleteOutlined />}
-                                style={{ color: "red" }}
-                            />
-                        </Popconfirm>
-                    </Tooltip>
-                </Space>
-            ),
+                    </Dropdown>
+                );
+            },
         },
     ]
 
-
-    useEffect(() => {
-        handleList(selectedRuleGroupId, pagination.index, pagination.size)
-        handleListDatasource()
-    }, [])
-
-    useEffect(() => {
-        // 当 URL 参数 id 变化时，更新选中的规则组
-        setSelectedRuleGroupId(id)
-        handleList(id, 1, pagination.size)
+    const savePaginationToStorage = useCallback((newPagination) => {
+        sessionStorage.setItem(`alertRule_pagination_${id}`, JSON.stringify(newPagination))
     }, [id])
 
+    const updatePagination = useCallback((newPagination) => {
+        setPagination(newPagination)
+        savePaginationToStorage(newPagination)
+    }, [savePaginationToStorage])
+
+    const handleList = useCallback(async (ruleGroupId, index, size) => {
+        try {
+            const params = {
+                index: index || 1,
+                size: size || 10,
+                status: selectRuleStatus,
+                ruleGroupId: ruleGroupId,
+            }
+            const res = await getRuleList(params)
+            const newPagination = {
+                index: res?.data?.index,
+                size: res?.data?.size,
+                total: res?.data?.total,
+            }
+            updatePagination(newPagination)
+            setList(res?.data?.list)
+            setSelectedRowKeys([])
+        } catch (error) {
+            console.error(error)
+        }
+    }, [selectRuleStatus, updatePagination])
+
     useEffect(() => {
-        onSearch()
+        const initializeData = async () => {
+            await handleListDatasource()
+            const groups = await handleListRuleGroup()
+            if (groups.length > 0) {
+                // 优先使用 URL 中的 id，其次读取缓存，最后默认第一个
+                const cachedGroupId = localStorage.getItem(SIDEBAR_GROUP_CACHE_KEY)
+                const validIds = groups.map(g => String(g.id))
+                let targetGroupId = null
+                if (id && validIds.includes(String(id))) {
+                    targetGroupId = id
+                } else if (cachedGroupId && validIds.includes(String(cachedGroupId))) {
+                    targetGroupId = cachedGroupId
+                } else {
+                    targetGroupId = groups[0].id
+                }
+                navigate(`/ruleGroup/${targetGroupId}/rule/list`)
+                setSelectedRuleGroupId(targetGroupId)
+                localStorage.setItem(SIDEBAR_GROUP_CACHE_KEY, String(targetGroupId))
+                handleList(targetGroupId, pagination.index, pagination.size)
+            }
+            isInitialMount.current = false
+        }
+        if (isInitialMount.current) {
+            initializeData()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    const onSearch = useCallback(async (value) => {
+        try {
+            const params = {
+                index: pagination.index || 1,
+                size: pagination.size || 10,
+                ruleGroupId: id,
+                status: selectRuleStatus,
+                query: value,
+            }
+            const res = await getRuleList(params)
+            const newPagination = {
+                index: res?.data?.index,
+                size: res?.data?.size,
+                total: res?.data?.total,
+            }
+            updatePagination(newPagination)
+            setList(res?.data?.list)
+            setSelectedRowKeys([])
+        } catch (error) {
+            console.error(error)
+        }
+    }, [pagination.index, pagination.size, id, selectRuleStatus, updatePagination])
+
+    useEffect(() => {
+        setSelectedRuleGroupId(id)
+        const storedPagination = getStoredPagination()
+        updatePagination(storedPagination)
+        handleList(id, storedPagination.index, storedPagination.size)
+    }, [id, getStoredPagination, updatePagination, handleList])
+
+    useEffect(() => {
+        if (!isInitialMount.current) {
+            onSearch()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectRuleStatus])
 
     const handleListDatasource = async () => {
         try {
             const res = await getDatasourceList()
-            setDatasourceList(res.data)
+            setDatasourceList(res?.data)
         } catch (error) {
             console.error(error)
         }
     }
 
-    // 切换规则组
     const handleRuleGroupChange = (groupId) => {
         setSelectedRuleGroupId(groupId)
-        setPagination({ ...pagination, index: 1 })
-        // 直接刷新当前规则组的规则列表，不进行路由跳转
+        localStorage.setItem(SIDEBAR_GROUP_CACHE_KEY, String(groupId))
+        const newPagination = { ...pagination, index: 1 }
+        updatePagination(newPagination)
         handleList(groupId, 1, pagination.size)
         navigate(`/ruleGroup/${groupId}/rule/list`)
     }
 
-    const GetSeverity = (data) => {
-        // 判断是否为 Prometheus 或 VictoriaMetrics 类型
-        const isPrometheusType = data.datasourceType === 'Prometheus' || data.datasourceType === 'VictoriaMetrics';
+    const handleListRuleGroup = async () => {
+        try {
+            const params = { index: 1, size: 1000 }
+            const res = await getRuleGroupList(params)
+            const list = res?.data?.list || []
+            setRuleGroupList(list)
+            return list
+        } catch (error) {
+            console.error('Failed to fetch rule group list:', error)
+            return []
+        }
+    }
 
-        // 获取 severity 值
+    const handleRuleGroupChangeFromSidebar = useCallback(async (newGroupList) => {
+        const list = newGroupList || []
+        setRuleGroupList(list)
+        // If we were in empty state and now have rule groups, select the first one
+        if ((ruleGroupList?.length || 0) === 0 && list.length > 0) {
+            const firstGroupId = list[0].id
+            setSelectedRuleGroupId(firstGroupId)
+            handleList(firstGroupId, 1, pagination.size)
+        }
+    }, [ruleGroupList, handleList, pagination.size])
+
+    const { Text } = Typography
+
+    const renderEmptyState = () => (
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            padding: '40px',
+            marginTop: '-50px'
+        }}>
+            <Empty
+                description={null}
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
+                <Text style={{ fontSize: '14px', color: 'rgb(156, 163, 175)' }}>
+                    无可用规则组，请先创建规则组
+                </Text>
+                <Button size='small' icon={<ReloadOutlined />} onClick={() => handleListRuleGroup()}/>
+            </div>
+        </div>
+    )
+
+    const GetSeverity = (data) => {
+        const isPrometheusType = data.datasourceType === 'Prometheus';
         if (isPrometheusType && data.prometheusConfig?.rules) {
-            // 从 prometheusConfig.rules 中提取所有 severity
-            return data.prometheusConfig.rules.map((rule) => rule.severity);
+            return data?.prometheusConfig?.rules?.map((rule) => rule.severity);
         } else {
-            // 直接返回 severity 的数组（如果为空则返回空数组）
-            return data.severity ? [data.severity] : [];
+            return data?.severity ? [data?.severity] : [];
         }
     };
 
     const getDatasourceNamesByIds = (datasourceIdList) => {
         if (!Array.isArray(datasourceIdList)) return "Unknown"
-
         const matchedNames = datasourceIdList.map((id) => {
             const datasource = datasourceList.find((ds) => ds.id === id)
             return datasource ? datasource.name : "Unknown"
         })
-
-        return matchedNames.join(", ") || "Unknown" // Join multiple names with commas
-    }
-
-    const handleList = async (id, index, size) => {
-        try {
-            const params = {
-                index: index,
-                size: size,
-                status: selectRuleStatus,
-                ruleGroupId: id,
-            }
-            const res = await getRuleList(params)
-
-            setPagination({
-                index: res.data.index,
-                size: res.data.size,
-                total: res.data.total,
-            })
-
-            setList(res.data.list)
-            setSelectedRowKeys([])
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
-    const onSearch = async (value) => {
-        try {
-            const params = {
-                index: pagination.index,
-                size: pagination.size,
-                ruleGroupId: id,
-                status: selectRuleStatus,
-                query: value,
-            }
-
-            const res = await getRuleList(params)
-
-            setPagination({
-                index: res?.data?.index,
-                size: res?.data?.size,
-                total: res?.data?.total,
-            })
-
-            setList(res.data.list)
-            setSelectedRowKeys([])
-        } catch (error) {
-            console.error(error)
-        }
+        return matchedNames.join(", ") || "Unknown"
     }
 
     const changeStatus = async ({ target: { value } }) => {
-        setPagination({ ...pagination, index: 1, size: pagination.size })
+        const newPagination = { ...pagination, index: 1, size: pagination.size }
+        updatePagination(newPagination)
         setSelectRuleStatus(value)
     }
 
     const handleClone = (record) => {
-        // 实现克隆功能
-        console.log("Clone rule:", record)
-
-        // 将规则数据存储到 localStorage，以便在创建页面中获取
         const cloneData = {
             ...record,
             ruleName: `${record.ruleName} - Copy`,
             ruleId: "",
         }
-
         setCloneAlertRule(cloneData)
-
-        // 跳转到创建页面
         navigate(`/ruleGroup/${id}/rule/add?isClone=1`)
     }
 
-    // 删除单个规则
-    const handleDelete = async (ruleGroupId,ruleId) =>{
+    const handleDelete = async (ruleGroupId, ruleId, name) => {
         try {
-            await deleteRule({
-                ruleId: ruleId,
-                ruleGroupId: ruleGroupId,
-            })
+            await deleteRule({ ruleId, ruleGroupId, name: name, })
         } catch (error) {
             HandleApiError(error)
         }
-
         handleList(id, pagination.index, pagination.size)
     }
 
-    // 批量删除
     const handleBatchDelete = async () => {
         if (selectedRowKeys.length === 0) {
             message.warning("请先选择要删除的规则")
             return
         }
-
         const deletePromises = selectedRowKeys.map((key) => {
             const record = list.find((item) => item.ruleId === key)
             if (record) {
-                return deleteRule({
-                    ruleId: record.ruleId,
-                    ruleGroupId: record.ruleGroupId,
-                })
+                return deleteRule({ ruleId: record.ruleId, ruleGroupId: record.ruleGroupId })
             }
             return Promise.resolve()
         })
-
         await Promise.all(deletePromises)
         setSelectedRowKeys([])
         handleList(id, pagination.index, pagination.size)
     }
 
-    // 批量导出
     const handleBatchExport = () => {
         if (selectedRowKeys.length === 0) {
             message.warning("请先选择要导出的规则")
             return
         }
-
-        // 找出所有选中的规则
         const selectedRules = list.filter((item) => selectedRowKeys.includes(item.ruleId))
-
-        // 导出为JSON文件
         const data = JSON.stringify(selectedRules, null, 2)
         const blob = new Blob([data], { type: "application/json" })
         const url = URL.createObjectURL(blob)
@@ -489,60 +574,45 @@ export const AlertRuleList = () => {
         a.click()
         document.body.removeChild(a)
         URL.revokeObjectURL(url)
-
         message.success(`已导出 ${selectedRules.length} 条规则`)
     }
 
-    // 批量改变状态
-    const handleBatchChangeStatus = async (status) => {
-        if (selectedRowKeys.length === 0) {
-            message.warning("请先选择要启用的规则")
-            return
-        }
-
-        const enablePromises = selectedRowKeys.map((key) => {
-            const record = list.find((item) => item.ruleId === key)
-            if (record) {
-                return RuleChangeStatus({
-                    tenantId: record.tenantId,
-                    ruleGroupId: record.ruleGroupId,
-                    ruleId: record.ruleId,
-                    faultCenterId: record.faultCenterId,
-                    enabled: status,
-                });
-            }
-            return Promise.resolve()
-        })
-
-        await Promise.all(enablePromises)
-        setSelectedRowKeys([])
-        handleList(id, pagination.index, pagination.size)
-    }
-
-    // 获取故障中心列表
     const fetchFaultCenterList = async () => {
         try {
             const res = await FaultCenterList()
-            const newData = res.data?.map((item) => ({
+            const newData = res?.data?.map((item) => ({
                 label: item.name,
                 value: item.id,
             }))
-
             setFaultCenterList(newData)
         } catch (error) {
             console.error(error)
         }
     }
 
-    // 处理导入按钮点击
+    const fetchRuleGroupList = async () => {
+        try {
+            const params = {
+                index: 1,
+                size: 9999,
+            }
+            const res = await getRuleGroupList(params)
+            const newData = res?.data?.list?.map((item) => ({
+                label: item.name,
+                value: item.id,
+            }))
+            setRuleGroupList(newData)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     const handleImportClick = () => {
         setImportDrawerVisible(true)
         fetchFaultCenterList()
-        // 重置内容
         setJsonContent("")
         setYamlContent("")
     }
-
 
     const handleJsonContentChange = (value) => {
         setJsonContent(value)
@@ -552,7 +622,6 @@ export const AlertRuleList = () => {
         setYamlContent(value)
     }
 
-    // 确认导入
     const handleConfirmImport = async () => {
         if (importType === 1) {
             if (!jsonContent.trim()) {
@@ -564,22 +633,19 @@ export const AlertRuleList = () => {
                 message.error("请输入Prometheus规则YAML内容")
                 return
             }
-
             if (!selectedDatasource) {
                 message.error("请选择数据源")
                 return
             }
-
             if (!selectedFaultCenter) {
                 message.error("请选择故障中心")
                 return
             }
         }
-
         try {
             const params = {
                 ruleGroupId: id,
-                datasourceType: selectedDatasourceType || undefined,
+                datasourceType: "Prometheus",
                 datasourceIdList: [selectedDatasource] || undefined,
                 faultCenterId: selectedFaultCenter || undefined,
                 importType: importType,
@@ -594,7 +660,140 @@ export const AlertRuleList = () => {
         }
     }
 
-    // 批量操作菜单
+    const handleBatchModify = () => {
+        setBatchModifyForm({
+            rule_group_id: null,
+            datasource_ids: null,
+            eval_interval: null,
+            eval_time_type: null,
+            severity: null,
+            fault_center_id: null,
+            enabled: null
+        })
+        setBatchModifyFields(null) // 重置为 null
+        fetchRuleGroupList()
+        fetchFaultCenterList()
+        setBatchModifyVisible(true)
+    }
+
+    const handleBatchModifyFieldChange = (field, value) => {
+        setBatchModifyForm(prev => ({
+            ...prev,
+            [field]: value
+        }))
+    }
+
+    const handleConfirmBatchModify = async () => {
+        if (!batchModifyFields) {
+            message.warning("请选择要修改的字段")
+            return
+        }
+
+        const field = batchModifyFields
+        const value = batchModifyForm[field]
+
+        if (value === null || value === undefined || value === '') {
+            message.warning("请填写要修改的值")
+            return
+        }
+
+        // 特殊处理：当修改数据源时，检查类型匹配
+        if (field === 'datasource_ids' && batchModifyForm.datasource_type) {
+            // 获取选中的规则
+            const selectedRules = list.filter(item => selectedRowKeys.includes(item.ruleId));
+            
+            // 检查是否存在类型不匹配的规则
+            const mismatchedRules = selectedRules.filter(rule => 
+                rule.datasourceType !== batchModifyForm.datasource_type
+            );
+            
+            if (mismatchedRules.length > 0) {
+                // 显示警告信息
+                Modal.confirm({
+                    title: '数据源类型不匹配',
+                    content: (
+                        <div>
+                            <p>以下规则的数据源类型与选择的类型不匹配，修改将不生效：</p>
+                            <ul style={{ maxHeight: '200px', overflowY: 'auto', paddingLeft: '20px' }}>
+                                {mismatchedRules.map(rule => (
+                                    <li key={rule.ruleId} style={{ marginBottom: '4px' }}>
+                                        <strong>{rule.ruleName}</strong> (当前类型: {rule.datasourceType})
+                                    </li>
+                                ))}
+                            </ul>
+                            <p style={{ marginTop: '10px' }}>是否继续修改其他匹配的规则？</p>
+                        </div>
+                    ),
+                    okText: '继续修改',
+                    cancelText: '取消',
+                    okType: 'default',
+                    onOk: async () => {
+                        // 继续执行修改，只对类型匹配的规则进行修改
+                        await performBatchModify();
+                    },
+                    onCancel: () => {
+                        return; // 取消操作
+                    }
+                });
+                return;
+            }
+        }
+
+        // 执行修改操作
+        await performBatchModify();
+
+        async function performBatchModify() {
+            try {
+                // 构建 change 对象
+                let changeParams = {}
+                if (field === 'datasource_ids') {
+                    // 如果指定了数据源类型，验证选中的数据源是否与类型匹配
+                    if (batchModifyForm.datasource_type && Array.isArray(value)) {
+                        // 过滤出与指定类型匹配的数据源ID
+                        const filteredDatasourceIds = datasourceList
+                            .filter(ds => value.includes(ds.id) && ds.type === batchModifyForm.datasource_type)
+                            .map(ds => ds.id);
+                        
+                        if (filteredDatasourceIds.length !== value.length) {
+                            message.warning(`部分选择的数据源类型与指定类型不匹配，仅修改匹配的数据源`);
+                        }
+                        
+                        changeParams[field] = filteredDatasourceIds.length > 0 ? filteredDatasourceIds : value;
+                    } else if (batchModifyForm.datasource_type && typeof value === 'string') {
+                        // 单个数据源ID的情况
+                        const datasourceInfo = datasourceList.find(ds => ds.id === value);
+                        if (datasourceInfo && datasourceInfo.type === batchModifyForm.datasource_type) {
+                            changeParams[field] = [value];
+                        } else {
+                            message.warning(`选择的数据源类型与指定类型不匹配`);
+                            return;
+                        }
+                    } else {
+                        changeParams[field] = Array.isArray(value) ? value : [value];
+                    }
+                } else {
+                    changeParams[field] = value
+                }
+
+                const firstRule = list.find(item => selectedRowKeys.includes(item.ruleId))
+                const tenantId = firstRule?.tenantId || 'default'
+                const params = {
+                    tenantId,
+                    rule_ids: selectedRowKeys,
+                    change: changeParams
+                }
+
+                await RuleChange(params)
+                message.success(`成功修改了 ${selectedRowKeys.length} 条规则`)
+                setBatchModifyVisible(false)
+                setSelectedRowKeys([])
+                handleList(id, pagination.index, pagination.size)
+            } catch (error) {
+                HandleApiError(error)
+            }
+        }
+    }
+
     const batchOperationMenu = {
         items: [
             {
@@ -621,53 +820,356 @@ export const AlertRuleList = () => {
                 onClick: handleBatchExport,
             },
             {
-                key: "batchEnable",
-                label: "批量启用",
-                icon: <CheckSquareOutlined />,
-                onClick: () => {
-                    if (selectedRowKeys.length > 0) {
-                        Modal.confirm({
-                            title: "确认启用",
-                            content: `确定要启用选中的 ${selectedRowKeys.length} 条规则吗？`,
-                            onOk: () => handleBatchChangeStatus(true),
-                        })
-                    } else {
-                        message.warning("请先选择要启用的规则")
-                    }
-                },
+                key: "batchModify",
+                label: "批量修改",
+                icon: <EditOutlined />,
+                onClick: handleBatchModify,
             },
-            {
-                key: "batchDisable",
-                label: "批量禁用",
-                icon: <CloseSquareOutlined />,
-                onClick: () => {
-                    if (selectedRowKeys.length > 0) {
-                        Modal.confirm({
-                            title: "确认禁用",
-                            content: `确定要禁用选中的 ${selectedRowKeys.length} 条规则吗？`,
-                            onOk: () => handleBatchChangeStatus(false),
-                        })
-                    } else {
-                        message.warning("请先选择要禁用的规则")
-                    }
-                },
-            }
         ],
     }
 
+    const renderContent = () => {
+        if (!ruleGroupList || ruleGroupList.length === 0) {
+            return renderEmptyState()
+        }
+        return (
+            <>
+                <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "20px",
+                    alignItems: "center"
+                }}>
+                    <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                        <Radio.Group
+                            options={[
+                                { label: "全部", value: "all" },
+                                { label: "开启", value: "enabled" },
+                                { label: "禁用", value: "disabled" },
+                            ]}
+                            defaultValue={selectRuleStatus}
+                            onChange={changeStatus}
+                            optionType="button"
+                        />
+                        <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
+                        {selectedRowKeys.length > 0 && (
+                            <div style={{ color: '#1677ff', fontSize: '14px' }}>
+                                已选择 {selectedRowKeys.length} 项
+                            </div>
+                        )}
+                    </div>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                            <Dropdown menu={batchOperationMenu} disabled={selectedRowKeys.length === 0}>
+                                <Button>
+                                    批量操作 <DownOutlined />
+                                </Button>
+                            </Dropdown>
+                            <Button
+                                type="primary"
+                                size="default"
+                                icon={<ImportOutlined />}
+                                onClick={handleImportClick}
+                                style={{ backgroundColor: "#000000" }}
+                            >
+                                导入
+                            </Button>
+                            <Link to={`/ruleGroup/${id}/rule/add`}>
+                                <Button
+                                    type="primary"
+                                    size="default"
+                                    style={{ backgroundColor: "#000000" }}
+                                    icon={<PlusOutlined />}
+                                >
+                                    创建
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+
+                    <TableWithPagination
+                        columns={columns}
+                        dataSource={list}
+                        pagination={pagination}
+                        onPageChange={(page, pageSize) => {
+                            const newPagination = { ...pagination, index: page, size: pageSize }
+                            updatePagination(newPagination)
+                            handleList(id, page, pageSize)
+                        }}
+                        onPageSizeChange={(current, pageSize) => {
+                            const newPagination = { ...pagination, index: current, size: pageSize }
+                            updatePagination(newPagination)
+                            handleList(id, current, pageSize)
+                        }}
+                        scrollY={'calc(100vh - 270px)'}
+                        rowKey="ruleId"
+                        showTotal={HandleShowTotal}
+                        selectedRowKeys={selectedRowKeys}
+                        onSelectChange={handleSelectChange}
+                        selectAll={true}
+                    />
+
+                    {/* 导入抽屉 */}
+                    <Drawer
+                        title="导入规则"
+                        placement="right"
+                        width={500}
+                        onClose={() => setImportDrawerVisible(false)}
+                        open={importDrawerVisible}
+                        footer={
+                            <div style={{ textAlign: 'right' }}>
+                                <Button
+                                    type="primary"
+                                    style={{ backgroundColor: "#000000" }}
+                                    onClick={handleConfirmImport}
+                                >
+                                    确认导入
+                                </Button>
+                            </div>
+                        }
+                    >
+                        <div style={{ marginBottom: 20 }}>
+                            <Radio.Group
+                                value={importType}
+                                onChange={(e) => setImportType(e.target.value)}
+                                style={{ marginBottom: 16, display: "flex", width: "100%" }}
+                                buttonStyle="solid"
+                            >
+                                <Radio.Button value={1} style={{ flex: 1, textAlign: "center" }}>
+                                    WatchAlert JSON
+                                </Radio.Button>
+                                <Radio.Button value={0} style={{ flex: 1, textAlign: "center" }}>
+                                    Prometheus Rule YAML
+                                </Radio.Button>
+                            </Radio.Group>
+                        </div>
+                        {importType === 1 && (
+                            <VSCodeEditor
+                                height="75vh"
+                                language="Json"
+                                value={jsonContent}
+                                onChange={handleJsonContentChange}
+                            />
+                        )}
+                        {importType === 0 && (
+                            <div>
+                                <div style={{ marginBottom: 16 }}>
+                                    <VSCodeEditor
+                                        height="60vh"
+                                        language="Yaml"
+                                        value={`# 示例:
+rules:
+- alert: Exporter Componen is Down
+  expr: up == 0
+  for: 2m
+  labels:
+    severity: serious
+  annotations:
+    summary: 节点 Exporter Componen is Down
+    description: 节点 Exporter Componen is Down`}
+                                        onChange={handleYamlContentChange}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: 16 }}>
+                                    <div style={{ marginBottom: 8 }}>选择数据源：</div>
+                                    <Select
+                                        placeholder="请选择数据源"
+                                        style={{ width: "100%" }}
+                                        onChange={(value) => setSelectedDatasource(value)}
+                                        options={datasourceList
+                                            .filter((ds) => ds.type === "Prometheus")
+                                            .map((ds) => ({ label: ds.name, value: ds.id }))}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: 16 }}>
+                                    <div style={{ marginBottom: 8 }}>选择故障中心：</div>
+                                    <Select
+                                        placeholder="请选择故障中心"
+                                        style={{ width: "100%" }}
+                                        onChange={(value) => setSelectedFaultCenter(value)}
+                                        options={faultCenterList}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </Drawer>
+
+                    {/* 批量修改模态框 */}
+                    <Modal
+                        title="批量修改规则"
+                        open={batchModifyVisible}
+                        onOk={handleConfirmBatchModify}
+                        onCancel={() => setBatchModifyVisible(false)}
+                        width={600}
+                        okText="确认修改"
+                        cancelText="取消"
+                        okType="default"
+                    >
+                        <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                            <Form layout="vertical">
+                                {/* 字段选择器 —— 单选 */}
+                                <Form.Item label="请选择要修改的字段">
+                                    <Select
+                                        placeholder="选择一个字段进行批量修改"
+                                        value={batchModifyFields} // 现在是字符串，如 'enabled'
+                                        onChange={(value) => {
+                                            // 重置表单值，只保留当前字段
+                                            setBatchModifyForm(prev => ({
+                                                rule_group_id: null,
+                                                datasource_ids: null,
+                                                eval_interval: null,
+                                                eval_time_type: null,
+                                                severity: null,
+                                                fault_center_id: null,
+                                                enabled: null,
+                                                [value]: prev[value] // 保留之前填的值（可选优化）
+                                            }));
+                                            setBatchModifyFields(value); // 字符串
+                                        }}
+                                        allowClear
+                                        options={[
+                                            { label: '规则组', value: 'rule_group_id' },
+                                            { label: '数据源', value: 'datasource_ids' },
+                                            { label: '故障中心', value: 'fault_center_id' },
+                                            { label: '规则状态', value: 'enabled' },
+                                        ]}
+                                    />
+                                </Form.Item>
+
+                                {/* 动态渲染：仅当选中某个字段时显示 */}
+                                {batchModifyFields === 'rule_group_id' && (
+                                    <Form.Item label="规则组">
+                                        <Select
+                                            placeholder="选择新的规则组"
+                                            allowClear
+                                            value={batchModifyForm.rule_group_id}
+                                            onChange={(value) => handleBatchModifyFieldChange('rule_group_id', value)}
+                                            options={ruleGroupList}
+                                        />
+                                    </Form.Item>
+                                )}
+
+                                {batchModifyFields === 'datasource_ids' && (
+                                    <div>
+                                        <Form.Item label="数据源">
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <Select
+                                                        placeholder="选择数据源类型"
+                                                        allowClear
+                                                        value={batchModifyForm.datasource_type}
+                                                        onChange={(value) => {
+                                                            handleBatchModifyFieldChange('datasource_type', value);
+                                                            // 当数据源类型改变时，清空已选择的数据源
+                                                            handleBatchModifyFieldChange('datasource_ids', null);
+                                                        }}
+                                                        options={
+                                                            [
+                                                                {
+                                                                    label: 'Prometheus',
+                                                                    value: 'Prometheus'
+                                                                },
+                                                                {
+                                                                    label: 'Loki',
+                                                                    value: 'Loki'
+                                                                },
+                                                                {
+                                                                    label: 'ElasticSearch',
+                                                                    value: 'ElasticSearch'
+                                                                },
+                                                                {
+                                                                    label: 'VictoriaLogs',
+                                                                    value: 'VictoriaLogs'
+                                                                },
+                                                                {
+                                                                    label: 'ClickHouse',
+                                                                    value: 'ClickHouse'
+                                                                },
+                                                                {
+                                                                    label: 'AliCloudSLS',
+                                                                    value: 'AliCloudSLS'
+                                                                },
+                                                                {
+                                                                    label: 'Jaeger',
+                                                                    value: 'Jaeger'
+                                                                },
+                                                                {
+                                                                    label: 'Kubernetes',
+                                                                    value: 'Kubernetes'
+                                                                },
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                                <div style={{ flex: 2 }}>
+                                                    <Select
+                                                        mode="multiple"
+                                                        placeholder="选择新的数据源"
+                                                        allowClear
+                                                        value={batchModifyForm.datasource_ids}
+                                                        onChange={(value) => handleBatchModifyFieldChange('datasource_ids', value)}
+                                                        options={datasourceList
+                                                            .filter(ds => batchModifyForm.datasource_type ? ds.type === batchModifyForm.datasource_type : true)
+                                                            .map(ds => ({
+                                                                label: ds.name,
+                                                                value: ds.id
+                                                            }))
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div style={{ marginTop: '8px', fontSize: '12px', color: '#ff4d4f' }}>
+                                                注意：如果当前规则的数据源类型与选择的类型不匹配，修改将不生效
+                                            </div>
+                                        </Form.Item>
+                                    </div>
+                                )}
+
+                                {batchModifyFields === 'fault_center_id' && (
+                                    <Form.Item label="故障中心">
+                                        <Select
+                                            placeholder="选择故障中心"
+                                            allowClear
+                                            value={batchModifyForm.fault_center_id}
+                                            onChange={(value) => handleBatchModifyFieldChange('fault_center_id', value)}
+                                            options={faultCenterList}
+                                        />
+                                    </Form.Item>
+                                )}
+
+                                {batchModifyFields === 'enabled' && (
+                                    <Form.Item label="规则状态">
+                                        <Select
+                                            placeholder="选择启用状态"
+                                            allowClear
+                                            value={batchModifyForm.enabled}
+                                            onChange={(value) => handleBatchModifyFieldChange('enabled', value)}
+                                        >
+                                            <Option value={true}>启用</Option>
+                                            <Option value={false}>禁用</Option>
+                                        </Select>
+                                    </Form.Item>
+                                )}
+                            </Form>
+                        </div>
+                    </Modal>
+                </>
+            )
+        }
+
     return (
-        <div style={{ display: 'flex' }}>
-            {/* 左侧规则组列表 */}
-            <div style={{ width: '180px', flexShrink: 0 }}>
+        <>
+        <Breadcrumb items={['告警管理', '告警规则']} />
+        <div style={{ display: 'flex', height: '95%' }}>
+            <div style={{ width: '210px', flexShrink: 0, paddingRight: '12px' }}>
                 <RuleGroupSidebar
                     selectedRuleGroupId={selectedRuleGroupId}
                     onRuleGroupChange={handleRuleGroupChange}
+                    onRuleGroupChangeFromParent={handleRuleGroupChangeFromSidebar}
                 />
             </div>
 
-            {/* 右侧内容区域 */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginLeft: '20px' }}>
-                <div style={{ 
+                <div style={{
                     background: '#fff',
                     borderRadius: '8px',
                     height: '100%',
@@ -675,222 +1177,10 @@ export const AlertRuleList = () => {
                     flexDirection: 'column',
                     overflow: 'hidden'
                 }}>
-            <div style={{ 
-                display: "flex", 
-                justifyContent: "space-between",
-                marginBottom: "20px",
-                alignItems: "center"
-            }}>
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                    <Radio.Group
-                        options={[
-                            {
-                                label: "全部",
-                                value: "all",
-                            },
-                            {
-                                label: "开启",
-                                value: "enabled",
-                            },
-                            {
-                                label: "禁用",
-                                value: "disabled",
-                            },
-                        ]}
-                        defaultValue={selectRuleStatus}
-                        onChange={changeStatus}
-                        optionType="button"
-                    />
-
-                    <Search allowClear placeholder="输入搜索关键字" onSearch={onSearch} style={{ width: 300 }} />
-                    
-                    {/* 选择状态显示 */}
-                    {selectedRowKeys.length > 0 && (
-                        <div style={{ 
-                            color: '#1677ff', 
-                            fontSize: '14px',
-                        }}>
-                            已选择 {selectedRowKeys.length} 项
-                        </div>
-                    )}
-                </div>
-                <div style={{ display: "flex", gap: "10px" }}>
-                    {/* 批量操作按钮 */}
-                    <Dropdown menu={batchOperationMenu} disabled={selectedRowKeys.length === 0}>
-                        <Button>
-                            批量操作 <DownOutlined />
-                        </Button>
-                    </Dropdown>
-
-                    {/* 导入按钮 */}
-                    <Button
-                        type="primary"
-                        size="default"
-                        icon={<ImportOutlined />}
-                        onClick={handleImportClick}
-                        style={{
-                            backgroundColor: "#000000",
-                        }}
-                    >
-                        导入
-                    </Button>
-
-                    <Link to={`/ruleGroup/${id}/rule/add`}>
-                        <Button
-                            type="primary"
-                            size="default"
-                            style={{
-                                backgroundColor: "#000000",
-                            }}
-                            icon={<PlusOutlined />}
-                        >
-                            创建
-                        </Button>
-                    </Link>
-                </div>
-            </div>
-
-            <TableWithPagination
-                columns={columns}
-                dataSource={list}
-                pagination={pagination}
-                onPageChange={(page, pageSize) => {
-                    setPagination({ ...pagination, index: page, size: pageSize });
-                    handleList(id, page, pageSize);
-                }}
-                onPageSizeChange={(current, pageSize) => {
-                    setPagination({ ...pagination, index: current, size: pageSize });
-                    handleList(id, current, pageSize);
-                }}
-                scrollY={'calc(100vh - 300px)'}  // 动态计算表格高度
-                rowKey="ruleId"  // 使用 ruleId 作为唯一标识
-                showTotal={HandleShowTotal}
-                // 启用多选功能
-                selectedRowKeys={selectedRowKeys}
-                onSelectChange={handleSelectChange}
-                selectAll={true}  // 支持全选
-            />
-
-            {/* 导入抽屉 */}
-            <Drawer
-                title="导入规则"
-                placement="right"
-                width={500}
-                onClose={() => setImportDrawerVisible(false)}
-                open={importDrawerVisible}
-                footer={
-                    <div style={{ justifyContent: "space-between" }}>
-                        <Button
-                            style={{
-                                backgroundColor: "#000000",
-                            }}
-                            type="primary"
-                            onClick={() => {
-                                handleConfirmImport()
-                            }}
-                        >
-                            确认导入
-                        </Button>
-                    </div>
-                }
-            >
-                <div style={{ marginBottom: 20 }}>
-                    <Radio.Group
-                        value={importType}
-                        onChange={(e) => {
-                            setImportType(e.target.value)
-                        }}
-                        style={{ marginBottom: 16, display: "flex", width: "100%" }}
-                        buttonStyle="solid"
-                    >
-                        <Radio.Button value={1} style={{ flex: 1, textAlign: "center" }}>
-                            WatchAlert JSON
-                        </Radio.Button>
-                        <Radio.Button value={0} style={{ flex: 1, textAlign: "center" }}>
-                            Prometheus Rule YAML
-                        </Radio.Button>
-                    </Radio.Group>
-                </div>
-
-                {importType === 1 && (
-                    <div>
-                        <VSCodeEditor
-                            height="75vh"
-                            language="Json"
-                            value={jsonContent}
-                            onChange={handleJsonContentChange}
-                        />
-                    </div>
-                )}
-
-                {importType === 0 && (
-                    <div>
-                        <div style={{marginBottom: 16}}>
-                            <VSCodeEditor
-                                height="60vh"
-                                language="Yaml"
-                                value={`# 示例:
-rules:
-  - alert: Exporter Componen is Down
-    expr: up == 0
-    for: 2m
-    labels:
-      severity: serious
-    annotations:
-      summary: 节点 Exporter Componen is Down
-      description: 节点 Exporter Componen is Down`}
-                                onChange={handleYamlContentChange}
-                            />
-                        </div>
-                        <div style={{marginBottom: 16}}>
-                            <div style={{marginBottom: 8}}>选择数据源类型：</div>
-                            <Select
-                                placeholder="请选择数据源类型"
-                                style={{width: "100%"}}
-                                onChange={(value) => setSelectedDatasourceType(value)}
-                                options={[
-                                    {
-                                        label: "Prometheus",
-                                        value: "Prometheus",
-                                    },
-                                    {
-                                        label: "VictoriaMetrics",
-                                        value: "VictoriaMetrics",
-                                    }
-                                ]}
-                            />
-                        </div>
-
-                        <div style={{marginBottom: 16}}>
-                            <div style={{marginBottom: 8}}>选择数据源：</div>
-                            <Select
-                                placeholder="请选择数据源"
-                                style={{width: "100%"}}
-                                onChange={(value) => setSelectedDatasource(value)}
-                                options={datasourceList
-                                    .filter((ds) => ds.type === selectedDatasourceType)
-                                    .map((ds) => ({
-                                        label: ds.name,
-                                        value: ds.id,
-                                    }))}
-                            />
-                        </div>
-
-                        <div style={{marginBottom: 16}}>
-                            <div style={{marginBottom: 8}}>选择故障中心：</div>
-                            <Select
-                                placeholder="请选择故障中心"
-                                style={{width: "100%"}}
-                                onChange={(value) => setSelectedFaultCenter(value)}
-                                options={faultCenterList}
-                            />
-                        </div>
-                    </div>
-                )}
-            </Drawer>
+                    {renderContent()}
                 </div>
             </div>
         </div>
+        </>
     )
 }
-
