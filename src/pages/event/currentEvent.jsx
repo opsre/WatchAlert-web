@@ -405,7 +405,7 @@ export const AlertCurrentEvent = (props) => {
             },
         },
         {
-            title: "认领人",
+            title: "处理人",
             dataIndex: "confirmState",
             key: "confirmState",
             width: "100px",
@@ -1545,7 +1545,7 @@ export const AlertCurrentEvent = (props) => {
                                 },
                                 {
                                     key: 'confirm',
-                                    label: '认领人',
+                                    label: '处理人',
                                     children: (
                                         <Tag
                                             style={{
