@@ -345,9 +345,12 @@ export const PrometheusPromQL = (props) => {
     useEffect(() => {
         if (viewRef.current && props.value !== undefined) {
             const currentPosition = viewRef.current.state.selection.main.head;
+            // 外部 value 变化(如指标浏览器一键生成)时, 光标位置需收敛到新文档长度内,
+            // 否则新文档较短时会造成 "Selection points outside of document" 崩溃。
+            const anchor = Math.min(currentPosition, props.value.length);
             const transaction = viewRef.current.state.update({
                 changes: { from: 0, to: viewRef.current.state.doc.length, insert: props.value },
-                selection: { anchor: currentPosition } // 保持光标位置
+                selection: { anchor }
             });
             viewRef.current.dispatch(transaction);
         }
