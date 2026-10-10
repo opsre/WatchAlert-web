@@ -92,6 +92,36 @@ async function SearchLogs(params) {
     }
 }
 
+async function getMetricNames(params) {
+    try {
+        const res = await http('get', `/api/w8t/datasource/metricNames`, params);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
+async function getLabels(params) {
+    try {
+        const res = await http('get', `/api/w8t/datasource/labels`, params);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
+async function getLabelValues(params) {
+    try {
+        const res = await http('get', `/api/w8t/datasource/labelValues`, params);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
 export {
     getDatasourceList,
     createDatasource,
@@ -100,4 +130,7 @@ export {
     getDatasource,
     DatasourcePing,
     SearchLogs,
+    getMetricNames,
+    getLabels,
+    getLabelValues,
 }

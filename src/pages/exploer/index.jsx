@@ -34,6 +34,7 @@ import { EventMetricChart } from '../chart/eventMetricChart'
 import { queryMetrics, queryRangeMetrics } from '../../api/other'
 import { getDatasourceList } from '../../api/datasource'
 import { PrometheusPromQL } from '../promethues'
+import { MetricBuilder } from './MetricBuilder'
 import { Breadcrumb } from "../../components/Breadcrumb"
 import dayjs from 'dayjs'
 
@@ -332,9 +333,14 @@ export const DataAnalysis = () => {
                 }))
                 setDatasourceOptions(options)
                 
-                // 默认选择第一个数据源的地址
+                // 默认选择第一个数据源, 指标浏览器/查询即可直接使用
                 if (options.length > 0 && !queries[0]?.datasourceId?.[0]) {
                     setMetricAddress(options[0].url || '')
+                    setQueries(prev => {
+                        const next = [...prev]
+                        next[0] = { ...next[0], datasourceId: [options[0].value] }
+                        return next
+                    })
                 }
             }
         } catch (error) {
@@ -550,6 +556,10 @@ export const DataAnalysis = () => {
     // 渲染查询区域
     const renderQueryArea = () => (
         <div style={{ marginBottom: '24px' }}>
+            <MetricBuilder
+                datasourceId={queries[0]?.datasourceId?.[0]}
+                onApply={(promql) => handlePromQLChange(0, promql)}
+            />
             {queries.map((query, index) => (
                 <div key={index} style={{ 
                     border: '1px solid #f0f0f0',
