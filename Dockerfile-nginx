@@ -12,9 +12,15 @@ RUN yarn config set registry https://registry.npmmirror.com && \
     yarn build && \
     tar zcf build.tar.gz ./build
 
-FROM nginx:1.18.0 as release
+FROM nginx:1.28.0 as release
 
-RUN mkdir /app
+RUN sed -i "s@http://deb.debian.org/debian@http://mirrors.cloud.tencent.com/debian@g" /etc/apt/sources.list.d/debian.sources
+
+RUN apt-get update && \
+    apt-get install -y git && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && \
+    mkdir /app
 
 COPY --from=build /app/build.tar.gz /app
 
