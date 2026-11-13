@@ -4,8 +4,7 @@ import { deleteTenant, getTenantList } from '../../api/tenant';
 import { CreateTenant } from './CreateTenant';
 import { useNavigate, Link } from "react-router-dom";
 import {getUserInfo} from "../../api/user";
-import { DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined, CopyOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { copyToClipboard } from "../../utils/copyToClipboard";
+import { DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Breadcrumb } from "../../components/Breadcrumb";
 
 const { Search } = Input;

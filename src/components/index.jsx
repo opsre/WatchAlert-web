@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import {Layout, theme, Button, Typography, Spin, Result} from "antd"
-import { LeftOutlined, LoadingOutlined, HomeOutlined } from "@ant-design/icons"
+import { LoadingOutlined } from "@ant-design/icons"
 import "./index.css"
 import { ComponentSider } from "./sider"
 import Auth from "../utils/Auth"

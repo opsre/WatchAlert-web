@@ -21,14 +21,11 @@ import {
     Segmented
 } from "antd"
 import {
-    PlusOutlined,
     MinusCircleOutlined,
     SearchOutlined,
     LineChartOutlined,
     AppstoreOutlined,
     BarChartOutlined,
-    ClockCircleOutlined,
-    TagsOutlined,
 } from "@ant-design/icons"
 import { EventMetricChart } from '../chart/eventMetricChart'
 import { queryMetrics, queryRangeMetrics } from '../../api/other'

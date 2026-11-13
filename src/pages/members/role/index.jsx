@@ -7,9 +7,6 @@ import {HandleShowTotal} from "../../../utils/lib";
 import {copyToClipboard} from "../../../utils/copyToClipboard";
 import { Breadcrumb } from "../../../components/Breadcrumb";
 
-
-const { Search } = Input;
-
 export const UserRole = () => {
     const [selectedRow, setSelectedRow] = useState(null);
     const [updateVisible, setUpdateVisible] = useState(false);

@@ -12,16 +12,12 @@ import {
   Empty,
   Tooltip,
   Input,
-  Select
 } from 'antd';  // 添加 Empty 组件
 import { CreateSilenceModal } from './SilenceRuleCreateModal';
 import { deleteSilence, getSilenceList } from '../../api/silence';
 import {
-    BellOutlined,
     DeleteOutlined,
     ExclamationCircleOutlined,
-    MoreOutlined, 
-    PauseCircleOutlined,
     PlusOutlined,
     SearchOutlined // 添加搜索图标
 } from "@ant-design/icons";
@@ -30,7 +26,6 @@ import { FaultCenterList } from "../../api/faultCenter";
 import {HandleShowTotal} from "../../utils/lib";
 import { Breadcrumb } from "../../components/Breadcrumb";
 
-const { Title } = Typography
 const { Search } = Input
 const { confirm } = Modal;
 

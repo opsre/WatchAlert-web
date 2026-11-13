@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {Button, Table, Popconfirm, message, Input, Tag, Space, Tooltip, Drawer, Select, Dropdown, Modal} from 'antd';
+import {Button, Table, message, Input, Tag, Space, Tooltip, Drawer, Select, Dropdown, Modal} from 'antd';
 import { CreateNoticeObjectModal } from './NoticeObjectCreateModal';
-import { deleteNotice, getNoticeList, createNotice } from '../../api/notice';
+import { deleteNotice, getNoticeList } from '../../api/notice';
 import {getDutyManagerList} from "../../api/duty";
 import {CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/copyToClipboard";
 import {HandleShowTotal} from "../../utils/lib";
-import { noticeRecordList } from '../../api/notice';
 import { NoticeRecords } from './history';
 import { Breadcrumb } from "../../components/Breadcrumb";
 

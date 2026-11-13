@@ -9,7 +9,6 @@ import {
     ApartmentOutlined, 
 } from "@ant-design/icons"
 import VSCodeEditor from "../../utils/VSCodeEditor";
-const { TextArea } = Input
 const { Title, Text } = Typography
 const MyFormItemContext = React.createContext([])
 

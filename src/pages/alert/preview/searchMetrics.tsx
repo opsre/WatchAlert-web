@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react"
-import { Spin, Tag, Empty, Card, Typography, Space, Divider, Row, Col, Alert, Segmented, Table } from "antd"
+import { Spin, Tag, Empty, Typography, Space, Divider, Row, Col, Alert, Segmented, Table } from "antd"
 import {
     ClockCircleOutlined,
     TagsOutlined,
     BarChartOutlined,
-    FileTextOutlined,
     LineChartOutlined,
     AppstoreOutlined,
 } from "@ant-design/icons"

@@ -6,10 +6,8 @@ import {
     Tag,
     message,
     Tooltip,
-    Space,
     Switch,
     Radio,
-    Popconfirm,
     Empty,
     Typography,
     Dropdown,
@@ -17,7 +15,7 @@ import {
 } from "antd"
 import { Link, useNavigate } from "react-router-dom"
 import { useParams } from "react-router-dom"
-import { RecordingRuleUpdate, RecordingRuleDelete, RecordingRuleList, RecordingRuleGroupList, RecordingRuleChangeStatus } from "../../../api/recordingRule"
+import { RecordingRuleDelete, RecordingRuleList, RecordingRuleGroupList, RecordingRuleChangeStatus } from "../../../api/recordingRule"
 import {
     DeleteOutlined,
     CopyOutlined,
