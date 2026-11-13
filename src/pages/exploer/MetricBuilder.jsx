@@ -8,13 +8,10 @@ import {
     Segmented,
     Divider,
     Empty,
-    Tooltip,
 } from "antd"
 import {
     ThunderboltOutlined,
     FilterOutlined,
-    FunctionOutlined,
-    SearchOutlined,
 } from "@ant-design/icons"
 import { getMetricNames, getLabels, getLabelValues } from "../../api/datasource"
 
