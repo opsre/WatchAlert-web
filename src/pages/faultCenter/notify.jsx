@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, createContext, useContext, useMemo, useCallback } from "react"
+import { useState, useEffect, createContext, useContext, useCallback } from "react"
 import {
     Input,
     Button,
@@ -10,8 +10,6 @@ import {
     Form,
     Typography,
     Space,
-    Row,
-    Col,
     Empty,
     message,
     Spin,
@@ -30,15 +28,16 @@ import {
     InfoCircleOutlined,
     TeamOutlined,
     SettingOutlined,
-    BlockOutlined
+    BlockOutlined,
+    ThunderboltOutlined,
+    ArrowRightOutlined
 } from "@ant-design/icons"
-import { FaultCenterSearch, FaultCenterUpdate } from "../../api/faultCenter"
+import { FaultCenterSearch, FaultCenterUpdate, FaultCenterReset } from "../../api/faultCenter"
 import { useParams } from "react-router-dom"
 import { getNoticeList } from "../../api/notice"
-import { FaultCenterReset } from "../../api/faultCenter";
 import { AlarmUpgrade } from "./upgrade";
 
-const { Title, Text, Paragraph } = Typography
+const { Title, Text } = Typography
 const { Option } = Select
 
 // Form context for nested fields
@@ -48,19 +47,30 @@ function toArr(str) {
     return Array.isArray(str) ? str : [str]
 }
 
-// Form group component
-const MyFormItemGroup = ({ prefix, children }) => {
-    const prefixPath = useContext(MyFormItemContext)
-    const concatPath = useMemo(() => [...prefixPath, ...toArr(prefix)], [prefixPath, prefix])
-    return <MyFormItemContext.Provider value={concatPath}>{children}</MyFormItemContext.Provider>
-}
-
 // Form item component
 const MyFormItem = ({ name, ...props }) => {
     const prefixPath = useContext(MyFormItemContext)
     const concatName = name !== undefined ? [...prefixPath, ...toArr(name)] : undefined
     return <Form.Item name={concatName} {...props} />
 }
+
+// 左侧配置菜单分组定义
+const MENU_GROUPS = [
+    {
+        group: "通知设置",
+        items: [
+            { key: "basic", label: "基本配置", icon: <SettingOutlined /> },
+            { key: "routes", label: "通知路由", icon: <TagOutlined /> },
+        ],
+    },
+    {
+        group: "故障处理",
+        items: [
+            { key: "aggregation", label: "告警聚合", icon: <BlockOutlined /> },
+            { key: "upgrade", label: "告警升级", icon: <ThunderboltOutlined /> },
+        ],
+    },
+]
 
 export const FaultCenterNotify = () => {
     const { id } = useParams()
@@ -69,9 +79,16 @@ export const FaultCenterNotify = () => {
     const [selectedAggregationType, setSelectedAggregationType] = useState("None")
     const [noticeOptions, setNoticeOptions] = useState([])
     const [basicEditable, setBasicEditable] = useState(false)
-    const [routeEditable, setRouteEditable] = useState(false)
+    const [editingRouteIndex, setEditingRouteIndex] = useState(null) // 当前正在编辑的路由规则下标（null = 浏览态）
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    const [selectedKey, setSelectedKey] = useState("basic")
+    // 通知路由数据（供展示模式直接渲染，不依赖 Form.List 挂载时机）
+    const [routesData, setRoutesData] = useState([])
+
+    // 告警升级面板的编辑控件（由 AlarmUpgrade 通过 onControls 暴露，按钮渲染在面板头部）
+    const [upgradeControls, setUpgradeControls] = useState(null)
+    const handleUpgradeControls = useCallback((controls) => setUpgradeControls(controls), [])
 
     useEffect(() => {
         handleList()
@@ -84,7 +101,7 @@ export const FaultCenterNotify = () => {
             const params = { id }
             const res = await FaultCenterSearch(params)
             const data = res?.data
-            
+
             // 处理重复通知间隔数据结构
             let repeatNoticeInterval = data.repeatNoticeInterval
             if (repeatNoticeInterval && typeof repeatNoticeInterval === "object" && !Array.isArray(repeatNoticeInterval)) {
@@ -129,6 +146,7 @@ export const FaultCenterNotify = () => {
             })
 
             // Set form values
+            setRoutesData(routes)
             form.setFieldsValue({
                 noticeIds: data.noticeIds,
                 repeatNoticeInterval: repeatNoticeInterval,
@@ -150,62 +168,102 @@ export const FaultCenterNotify = () => {
         setBasicEditable(!basicEditable)
     }
 
-    // Toggle route edit mode
-    const toggleRouteEdit = () => {
-        setRouteEditable(!routeEditable)
+    // 进入某条路由规则的编辑模式（按卡片选择性编辑，而非全部规则同时进入编辑）
+    const handleRouteEdit = (routeIndex) => {
+        // 注入完整数据，确保 Form.List 挂载时能从 store 初始化
+        form.setFieldsValue({ noticeRoutes: routesData })
+        setEditingRouteIndex(routeIndex)
     }
 
-    // Save changes
+    // 取消某条路由规则的编辑
+    const handleRouteCancel = () => {
+        setEditingRouteIndex(null)
+        handleList()
+    }
+
+    // 新增路由规则
+    const handleRouteAdd = () => {
+        const next = [
+            ...routesData,
+            { labels: [{ key: "", operator: "==", value: "" }], noticeIds: [] },
+        ]
+        form.setFieldsValue({ noticeRoutes: next })
+        setRoutesData(next)
+        setEditingRouteIndex(next.length - 1)
+    }
+
+    // 移除某条路由规则
+    const handleRouteRemove = (routeIndex) => {
+        const rest = routesData.filter((_, i) => i !== routeIndex)
+        form.setFieldsValue({ noticeRoutes: rest })
+        setRoutesData(rest)
+        setEditingRouteIndex(null)
+    }
+
+    // 构造更新参数（getFieldsValue(true) 返回完整 store，含未挂载面板的保留值）
+    const buildUpdateParams = (values) => ({
+        ...detail,
+        ...values,
+        noticeRoutes: (values.noticeRoutes || []).map((route) => ({
+            noticeIds: route.noticeIds,
+            labels: route.labels,
+        })),
+        repeatNoticeInterval: Object.entries(values.repeatNoticeInterval || {}).reduce((acc, [key, value]) => {
+            acc[key] = Number(value)
+            return acc
+        }, {}),
+        recoverWaitTime: Number(values.recoverWaitTime) || 1,
+    })
+
+    const syncRoutesData = (values) => {
+        setRoutesData(
+            (values.noticeRoutes || []).map((route) => ({
+                noticeIds: route.noticeIds,
+                labels: route.labels,
+            })),
+        )
+    }
+
+    // Save changes（基本配置面板）
     const handleSave = async () => {
         try {
             setSaving(true)
+            await form.validateFields(["noticeIds", "repeatNoticeInterval", "recoverNotify", "recoverWaitTime"])
 
-            // 验证当前正在编辑的部分
-            if (basicEditable) {
-                await form.validateFields(["noticeIds", "repeatNoticeInterval", "recoverNotify", "recoverWaitTime"])
-            }
-            if (routeEditable) {
-                await form.validateFields(["noticeRoutes"])
-            }
+            const values = form.getFieldsValue(true)
+            await FaultCenterUpdate(buildUpdateParams(values))
+            syncRoutesData(values)
+            setBasicEditable(false)
+        } catch (error) {
+            console.error("Save failed:", error)
+        } finally {
+            setSaving(false)
+        }
+    }
 
-            const values = form.getFieldsValue()
+    // Save changes（单条路由规则）
+    const handleRouteSave = async (routeIndex) => {
+        try {
+            setSaving(true)
+            await form.validateFields([["noticeRoutes", routeIndex]])
 
-            // Validate noticeRoutes
-            const noticeRoutes = values.noticeRoutes || []
-            const hasEmptyFields = noticeRoutes.some(
-                (route) => {
-                    const labels = route.labels || []
-                    const hasEmptyLabels = labels.some(label => !label.key || !label.value)
-                    return hasEmptyLabels || !route.noticeIds || route.noticeIds.length === 0
-                },
-            )
-
-            if (noticeRoutes.length > 0 && hasEmptyFields) {
-                message.error("告警路由配置不完整，请检查所有字段")
+            const values = form.getFieldsValue(true)
+            const route = (values.noticeRoutes || [])[routeIndex] || {}
+            const labels = route.labels || []
+            if (
+                labels.some((label) => !label.key || !label.value) ||
+                !route.noticeIds ||
+                route.noticeIds.length === 0
+            ) {
+                message.error("路由规则配置不完整，请检查匹配条件与通知对象")
                 setSaving(false)
                 return
             }
 
-            // 处理 noticeRoutes，移除旧的 key/value 字段，只保留 labels
-            const processedRoutes = noticeRoutes.map(route => ({
-                noticeIds: route.noticeIds,
-                labels: route.labels
-            }))
-
-            const params = {
-                ...detail,
-                ...values,
-                noticeRoutes: processedRoutes,
-                repeatNoticeInterval: Object.entries(values.repeatNoticeInterval).reduce((acc, [key, value]) => {
-                    acc[key] = Number(value)
-                    return acc
-                }, {}),
-                recoverWaitTime: Number(values.recoverWaitTime) || 1,
-            }
-
-            await FaultCenterUpdate(params)
-            setBasicEditable(false)
-            setRouteEditable(false)
+            await FaultCenterUpdate(buildUpdateParams(values))
+            message.success("保存成功")
+            syncRoutesData(values)
+            setEditingRouteIndex(null)
         } catch (error) {
             console.error("Save failed:", error)
             message.error("保存失败")
@@ -217,7 +275,6 @@ export const FaultCenterNotify = () => {
     // Cancel editing
     const handleCancel = () => {
         setBasicEditable(false)
-        setRouteEditable(false)
         handleList()
     }
 
@@ -240,14 +297,29 @@ export const FaultCenterNotify = () => {
         setSelectedAggregationType(e.target.value)
         const params = {
             id,
-            ["aggregationType"]: e.target.value,
+            aggregationType: e.target.value,
         }
         await FaultCenterReset(params);
     };
 
+    // 切换左侧菜单项（若正在编辑则先取消编辑并还原数据）
+    const handleMenuClick = (key) => {
+        if (key === selectedKey) return
+        if (basicEditable) {
+            handleCancel()
+        }
+        if (editingRouteIndex !== null) {
+            handleRouteCancel()
+        }
+        if (selectedKey === "upgrade" && upgradeControls?.editable) {
+            upgradeControls.cancel()
+        }
+        setSelectedKey(key)
+    }
+
     const radioOptions = [
         {
-            label: '相同规则聚合',
+            label: '规则聚合',
             value: 'Rule',
         },
         {
@@ -255,6 +327,30 @@ export const FaultCenterNotify = () => {
             value: 'None',
         },
     ];
+
+    // 各配置面板的标题与描述
+    const panelMeta = {
+        aggregation: {
+            icon: <BlockOutlined />,
+            title: "告警聚合",
+            desc: "定义故障通知的聚合规则，相同规则的告警将合并为一条故障通知，避免重复打扰",
+        },
+        upgrade: {
+            icon: <ThunderboltOutlined />,
+            title: "告警升级",
+            desc: "配置告警认领超时后的自动升级策略，确保告警无人处理时及时通知上级",
+        },
+        basic: {
+            icon: <SettingOutlined />,
+            title: "基本配置",
+            desc: "配置默认通知对象、重复通知间隔与恢复通知等基础参数",
+        },
+        routes: {
+            icon: <TagOutlined />,
+            title: "通知路由",
+            desc: "根据告警标签将告警路由到特定的通知对象，优先级高于默认通知对象",
+        },
+    }
 
     if (loading) {
         return (
@@ -264,93 +360,200 @@ export const FaultCenterNotify = () => {
         )
     }
 
+    // 面板头部右侧工具栏
+    const renderToolbar = () => {
+        if (selectedKey === "basic") {
+            return basicEditable ? (
+                <Space size="small">
+                    <Button
+                        type="primary"
+                        size="small"
+                        icon={<CheckOutlined />}
+                        onClick={handleSave}
+                        loading={saving}
+                        style={{ backgroundColor: '#000', borderColor: '#000' }}
+                    >
+                        保存
+                    </Button>
+                    <Button size="small" icon={<CloseOutlined />} onClick={handleCancel}>
+                        取消
+                    </Button>
+                </Space>
+            ) : (
+                <Button type="text" icon={<EditOutlined />} onClick={toggleBasicEdit} size="small">
+                    编辑
+                </Button>
+            )
+        }
+        // 通知路由为按卡片编辑，按钮在各卡片头部，面板工具栏不渲染
+        if (selectedKey === "routes") {
+            return null
+        }
+        if (selectedKey === "upgrade") {
+            if (!upgradeControls) return null
+            return upgradeControls.editable ? (
+                <Space size="small">
+                    <Button
+                        type="primary"
+                        size="small"
+                        icon={<CheckOutlined />}
+                        onClick={upgradeControls.save}
+                        loading={upgradeControls.saving}
+                        style={{ backgroundColor: '#000', borderColor: '#000' }}
+                    >
+                        保存
+                    </Button>
+                    <Button size="small" icon={<CloseOutlined />} onClick={upgradeControls.cancel}>
+                        取消
+                    </Button>
+                </Space>
+            ) : (
+                <Button type="text" icon={<EditOutlined />} onClick={upgradeControls.edit} size="small">
+                    编辑
+                </Button>
+            )
+        }
+        return null
+    }
+
+    // 左侧菜单
+    const renderSideMenu = () => (
+        <div
+            style={{
+                width: 200,
+                flexShrink: 0,
+                position: "sticky",
+                top: 16,
+                background: "#fff",
+                borderRadius: 12,
+                border: "1px solid #f0f0f0",
+                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03)",
+                padding: "8px 8px 12px",
+                alignSelf: "flex-start",
+            }}
+        >
+            {MENU_GROUPS.map((group) => (
+                <div key={group.group}>
+                    <div
+                        style={{
+                            fontSize: 12,
+                            color: "#8c8c8c",
+                            padding: "10px 12px 6px",
+                        }}
+                    >
+                        {group.group}
+                    </div>
+                    {group.items.map((item) => {
+                        const isSelected = item.key === selectedKey
+                        return (
+                            <div
+                                key={item.key}
+                                onClick={() => handleMenuClick(item.key)}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    padding: "8px 12px",
+                                    borderRadius: 8,
+                                    cursor: "pointer",
+                                    fontSize: 13,
+                                    marginBottom: 2,
+                                    color: isSelected ? "#1f1f1f" : "#595959",
+                                    fontWeight: isSelected ? 600 : 400,
+                                    backgroundColor: isSelected ? "#f5f5f5" : "transparent",
+                                    transition: "background 0.2s",
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!isSelected) e.currentTarget.style.backgroundColor = "#fafafa"
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isSelected) e.currentTarget.style.backgroundColor = "transparent"
+                                }}
+                            >
+                                <span>
+                                    <span style={{ marginRight: 8 }}>{item.icon}</span>
+                                    {item.label}
+                                </span>
+                            </div>
+                        )
+                    })}
+                </div>
+            ))}
+        </div>
+    )
+
     return (
-        <div className="notify-config-container">
+        <div className="notify-config-container" style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+            {renderSideMenu()}
 
-            <div >
-                <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
-                    <BlockOutlined style={{ marginRight: "12px" }} />
-                    告警聚合
-                </Title>
-                <Radio.Group
-                    block
-                    options={radioOptions}
-                    defaultValue="None"
-                    value={selectedAggregationType}
-                    onChange={handleAggregationModeChange}
-                />
-            </div>
-
-            <div style={{ marginTop: "32px", paddingTop: "28px", borderTop: "1px solid #f0f0f0", marginBottom: "24px" }}>
-                <Title level={4} style={{ margin: 0, fontSize: "16px" }}>
-                    <BellOutlined style={{ marginRight: "12px" }} />
-                    通知配置
-                </Title>
-                <Text type="secondary">配置告警通知规则，确保告警信息能够及时送达相关人员</Text>
-            </div>
-
+            {/* 右侧内容面板 */}
             <Form
                 form={form}
                 layout="vertical"
                 requiredMark="optional"
-                className={(basicEditable || routeEditable) ? "form-editable" : ""}
+                className={basicEditable || editingRouteIndex !== null ? "form-editable" : ""}
+                style={{ flex: 1, minWidth: 0 }}
             >
-                <Row gutter={24}>
-                    <Col xs={24} lg={7}>
-                        <div
-                            style={{
-                                padding: "24px",
-                                background: "#fff",
-                                borderRadius: "12px",
-                                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
-                                marginBottom: "24px",
-                                border: "1px solid #f0f0f0"
-                            }}
-                        >
-                            <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                marginBottom: "16px",
-                                paddingBottom: "16px",
-                                borderBottom: "1px solid #f0f0f0"
-                            }}>
-                                <div>
-                                    <SettingOutlined style={{ marginRight: "8px", color: "#1677ff" }} />
-                                    <Text strong>基本配置</Text>
-                                </div>
-                                {basicEditable ? (
-                                    <Space size="small">
-                                        <Button
-                                            type="primary"
-                                            size="small"
-                                            icon={<CheckOutlined />}
-                                            onClick={handleSave}
-                                            loading={saving}
-                                            style={{ backgroundColor: '#000', borderColor: '#000' }}
-                                        >
-                                            保存
-                                        </Button>
-                                        <Button
-                                            size="small"
-                                            icon={<CloseOutlined />}
-                                            onClick={handleCancel}
-                                        >
-                                            取消
-                                        </Button>
-                                    </Space>
-                                ) : (
-                                    <Button
-                                        type="text"
-                                        icon={<EditOutlined />}
-                                        onClick={toggleBasicEdit}
-                                        size="small"
-                                    >
-                                        编辑
-                                    </Button>
-                                )}
-                            </div>
+                <div
+                    style={{
+                        background: "#fff",
+                        borderRadius: 12,
+                        border: "1px solid #f0f0f0",
+                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
+                        padding: 24,
+                        minHeight: 480,
+                    }}
+                >
+                    {/* 面板头部 */}
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            justifyContent: "space-between",
+                            gap: 16,
+                            marginBottom: 20,
+                            paddingBottom: 16,
+                            borderBottom: "1px solid #f0f0f0",
+                        }}
+                    >
+                        <div>
+                            <Title level={4} style={{ margin: 0, fontSize: 16, marginBottom: 4 }}>
+                                {panelMeta[selectedKey].icon}
+                                <span style={{ marginLeft: 10 }}>{panelMeta[selectedKey].title}</span>
+                            </Title>
+                            <Text type="secondary" style={{ fontSize: 13 }}>
+                                {panelMeta[selectedKey].desc}
+                            </Text>
+                        </div>
+                        <div style={{ flexShrink: 0 }}>{renderToolbar()}</div>
+                    </div>
 
+                    {/* 告警聚合面板 */}
+                    {selectedKey === "aggregation" && (
+                        <div style={{ maxWidth: 480 }}>
+                            <Radio.Group
+                                block
+                                options={radioOptions}
+                                value={selectedAggregationType}
+                                onChange={handleAggregationModeChange}
+                            />
+                            <div style={{ marginTop: 16 }}>
+                                <Text type="secondary" style={{ fontSize: 13 }}>
+                                    <BellOutlined style={{ marginRight: 6 }} />
+                                    选择「规则聚合」时，相同规则持续触发的告警将合并为一条故障；切换后立即生效
+                                </Text>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 告警升级面板 */}
+                    {selectedKey === "upgrade" && (
+                        <AlarmUpgrade hideToolbar onControls={handleUpgradeControls} />
+                    )}
+
+                    {/* 基本配置面板 */}
+                    {selectedKey === "basic" && (
+                        <>
                             <MyFormItem
                                 name="noticeIds"
                                 label={
@@ -388,15 +591,15 @@ export const FaultCenterNotify = () => {
                                 />
                             </MyFormItem>
 
-                            <div style={{marginBottom: '16px', marginTop: '-8px'}}>
-                                <div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
-                                    <ClockCircleOutlined style={{ marginRight: "8px", color: "#faad14" }} />
+                            <div style={{ marginBottom: 16 }}>
+                                <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+                                    <ClockCircleOutlined style={{ marginRight: 8, color: "#faad14" }} />
                                     <Text>重复通知间隔</Text>
                                     <Tooltip title="告警持续存在时，重复发送通知的时间间隔，按告警级别配置">
-                                        <InfoCircleOutlined style={{ color: "#8c8c8c", marginLeft: "8px" }} />
+                                        <InfoCircleOutlined style={{ color: "#8c8c8c", marginLeft: 8 }} />
                                     </Tooltip>
                                 </div>
-                                <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                                     {[
                                         { level: "P0" },
                                         { level: "P1" },
@@ -407,9 +610,9 @@ export const FaultCenterNotify = () => {
                                                 name={["repeatNoticeInterval", item.level]}
                                                 noStyle
                                                 rules={[
-                                                    { 
-                                                        required: true, 
-                                                        message: `请输入${item.level}的重复通知间隔` 
+                                                    {
+                                                        required: true,
+                                                        message: `请输入${item.level}的重复通知间隔`
                                                     }
                                                 ]}
                                             >
@@ -455,229 +658,276 @@ export const FaultCenterNotify = () => {
                                 />
                             </MyFormItem>
 
-                            <div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
+                            <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
                                 <MyFormItem name="recoverNotify" valuePropName="checked" noStyle>
                                     <Switch disabled={!basicEditable} />
                                 </MyFormItem>
-                                <Text style={{ marginLeft: "12px" }}>启用恢复通知</Text>
+                                <Text style={{ marginLeft: 12 }}>启用恢复通知</Text>
                                 <Tooltip title="当告警恢复时，是否发送恢复通知">
-                                    <InfoCircleOutlined style={{ color: "#8c8c8c", marginLeft: "8px" }} />
+                                    <InfoCircleOutlined style={{ color: "#8c8c8c", marginLeft: 8 }} />
                                 </Tooltip>
                             </div>
-                        </div>
-                    </Col>
+                        </>
+                    )}
 
-                    <Col xs={24} lg={17}>
-                        <div
-                            style={{
-                                padding: "24px",
-                                background: "#fff",
-                                borderRadius: "12px",
-                                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02)",
-                                border: "1px solid #f0f0f0",
-                                minHeight: "300px"
-                            }}
-                        >
-                            <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                marginBottom: "16px",
-                                paddingBottom: "16px",
-                                borderBottom: "1px solid #f0f0f0",
-                            }}>
-                                <div>
-                                    <TagOutlined style={{ marginRight: "8px", color: "#1677ff" }} />
-                                    <Text strong>告警路由</Text>
-                                    <Tooltip title="根据 Metric 标签路由到相应的通知对象">
-                                        <InfoCircleOutlined style={{ color: "#8c8c8c", marginLeft: "8px" }} />
-                                    </Tooltip>
-                                </div>
-                                {routeEditable ? (
-                                    <Space size="small">
-                                        <Button
-                                            type="primary"
-                                            size="small"
-                                            icon={<CheckOutlined />}
-                                            onClick={handleSave}
-                                            loading={saving}
-                                            style={{ backgroundColor: '#000', borderColor: '#000' }}
+                    {/* 通知路由面板 */}
+                    {selectedKey === "routes" && (
+                        <>
+                            {/* 展示模式：直接由 routesData 渲染，正在编辑的卡片由下方编辑卡片替代 */}
+                            {routesData.map((route, routeIndex) => (routeIndex === editingRouteIndex ? null : (
+                                        <div
+                                            key={routeIndex}
+                                            style={{
+                                                marginBottom: 16,
+                                                border: "1px solid #e8e8e8",
+                                                borderRadius: 10,
+                                                overflow: "hidden",
+                                            }}
                                         >
-                                            保存
-                                        </Button>
-                                        <Button
-                                            size="small"
-                                            icon={<CloseOutlined />}
-                                            onClick={handleCancel}
-                                        >
-                                            取消
-                                        </Button>
-                                    </Space>
-                                ) : (
-                                    <Button
-                                        type="text"
-                                        icon={<EditOutlined />}
-                                        onClick={toggleRouteEdit}
-                                        size="small"
-                                    >
-                                        编辑
-                                    </Button>
-                                )}
-                            </div>
+                                            {/* 卡片头 */}
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "space-between",
+                                                    padding: "10px 16px",
+                                                    background: "#fafafa",
+                                                    borderBottom: "1px solid #f0f0f0",
+                                                }}
+                                            >
+                                                <span style={{ fontSize: 13, fontWeight: 600, color: "#262626" }}>
+                                                    <TagOutlined style={{ marginRight: 8, color: "#1677ff" }} />
+                                                    路由规则 {routeIndex + 1}
+                                                </span>
+                                                <Button
+                                                    type="text"
+                                                    size="small"
+                                                    icon={<EditOutlined />}
+                                                    onClick={() => handleRouteEdit(routeIndex)}
+                                                >
+                                                    编辑
+                                                </Button>
+                                            </div>
+                                            <div style={{ padding: 16 }}>
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "flex-start",
+                                                        gap: 16,
+                                                        flexWrap: "wrap",
+                                                    }}
+                                                >
+                                                    {/* 匹配条件 */}
+                                                    <div style={{ flex: 1, minWidth: 260 }}>
+                                                        <div style={{ fontSize: 12, color: "#8c8c8c", marginBottom: 8 }}>
+                                                            匹配条件
+                                                        </div>
+                                                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                                            {(route.labels || []).filter((l) => l.key).map((label, idx) => (
+                                                                <Tag key={idx} color="blue" style={{ borderRadius: 4 }}>
+                                                                    {label.key} {label.operator} {label.value}
+                                                                </Tag>
+                                                            ))}
+                                                            {(route.labels || []).filter((l) => l.key).length === 0 && (
+                                                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                                                    任意告警
+                                                                </Text>
+                                                            )}
+                                                        </div>
+                                                    </div>
 
-                            <Paragraph style={{ marginBottom: "16px" }}>
-                                <Text type="secondary">
-                                    告警路由可以根据标签将告警发送给特定的通知对象，优先级高于默认通知对象
-                                </Text>
-                            </Paragraph>
+                                                    {/* 流转箭头 */}
+                                                    <ArrowRightOutlined
+                                                        style={{ color: "#bfbfbf", fontSize: 16, marginTop: 22, flexShrink: 0 }}
+                                                    />
 
-                            <Form.List name="noticeRoutes">
-                                {(fields, { add, remove }) => (
-                                    <>
-                                        {fields.map(({ key, name, ...restField }, routeIndex) => {
-                                            const labels = form.getFieldValue(["noticeRoutes", name, "labels"]) || []
+                                                    {/* 通知对象 */}
+                                                    <div style={{ flex: 1, minWidth: 200 }}>
+                                                        <div style={{ fontSize: 12, color: "#8c8c8c", marginBottom: 8 }}>
+                                                            通知对象
+                                                        </div>
+                                                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                                            {(route.noticeIds || []).map((nid, nidIndex) => (
+                                                                <Tag key={`${nid}-${nidIndex}`} color="geekblue" style={{ borderRadius: 4 }}>
+                                                                    {noticeOptions.find((o) => o.value === nid)?.label || nid}
+                                                                </Tag>
+                                                            ))}
+                                                            {(route.noticeIds || []).length === 0 && (
+                                                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                                                    未设置
+                                                                </Text>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )))}
 
-                                            return (
-                                                <div key={key} style={{ marginBottom: "16px" }}>
+                                    {routesData.length === 0 && editingRouteIndex === null && (
+                                        <Empty
+                                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                            description={
+                                                <span>
+                                                    <Text strong>暂无通知路由</Text>
+                                                    <br />
+                                                    <Text type="secondary" style={{ fontSize: 13 }}>
+                                                        点击下方「添加路由规则」新增路由规则
+                                                    </Text>
+                                                </span>
+                                            }
+                                            style={{ margin: "48px 0" }}
+                                        />
+                                    )}
+
+                                    {/* 编辑中的路由规则卡片（仅渲染当前编辑的那一条） */}
+                                    {editingRouteIndex !== null && (
+                                        <Form.List name="noticeRoutes">
+                                            {(fields) => {
+                                                const editingField = fields.find(({ name }) => name === editingRouteIndex)
+                                                if (!editingField) return null
+                                                const { key, name, ...restField } = editingField
+                                                return (
+                                                <div
+                                                    key={key}
+                                                    style={{
+                                                        marginBottom: 16,
+                                                        border: "1px solid #e8e8e8",
+                                                        borderRadius: 10,
+                                                        overflow: "hidden",
+                                                    }}
+                                                >
+                                                    {/* 卡片头 */}
                                                     <div
                                                         style={{
-                                                            padding: "16px",
-                                                            borderRadius: "12px",
-                                                            border: "1px solid #e8e8e8",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "space-between",
+                                                            padding: "10px 16px",
+                                                            background: "#fafafa",
+                                                            borderBottom: "1px solid #f0f0f0",
                                                         }}
                                                     >
-                                                        {/* 非编辑模式：使用 Tag 展示条件 */}
-                                                        {!routeEditable && labels.length > 0 && (
-                                                            <div style={{ marginBottom: "16px" }}>
-                                                                <div style={{ marginBottom: "8px" }}>
-                                                                    <Text type="secondary" style={{ fontSize: "12px" }}>匹配条件</Text>
-                                                                </div>
-                                                                <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
-                                                                    {labels.filter(l => l.key).map((label, idx) => (
-                                                                        <Tag
-                                                                            key={idx}
-                                                                            color="blue"
-                                                                            style={{
-                                                                                borderRadius: "4px",
-                                                                                fontSize: "10px"
-                                                                            }}
+                                                        <span style={{ fontSize: 13, fontWeight: 600, color: "#262626" }}>
+                                                            <TagOutlined style={{ marginRight: 8, color: "#1677ff" }} />
+                                                            路由规则 {editingRouteIndex + 1}
+                                                        </span>
+                                                        <Space size="small">
+                                                            <Button
+                                                                type="text"
+                                                                danger
+                                                                size="small"
+                                                                icon={<MinusCircleOutlined />}
+                                                                onClick={() => handleRouteRemove(editingRouteIndex)}
+                                                            >
+                                                                移除规则
+                                                            </Button>
+                                                            <Button
+                                                                size="small"
+                                                                icon={<CloseOutlined />}
+                                                                onClick={() => handleRouteCancel()}
+                                                            >
+                                                                取消
+                                                            </Button>
+                                                            <Button
+                                                                type="primary"
+                                                                size="small"
+                                                                icon={<CheckOutlined />}
+                                                                onClick={() => handleRouteSave(editingRouteIndex)}
+                                                                loading={saving}
+                                                                style={{ backgroundColor: '#000', borderColor: '#000' }}
+                                                            >
+                                                                保存
+                                                            </Button>
+                                                        </Space>
+                                                    </div>
+
+                                                    <div style={{ padding: 16 }}>
+                                                        {/* 匹配条件 */}
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                                                            <Text strong style={{ fontSize: 13 }}>匹配条件</Text>
+                                                            <Tooltip title="根据告警携带的标签进行匹配">
+                                                                <InfoCircleOutlined style={{ color: "#8c8c8c" }} />
+                                                            </Tooltip>
+                                                        </div>
+                                                        <Form.List name={[name, "labels"]}>
+                                                            {(labelFields, { add: addLabel, remove: removeLabel }) => (
+                                                                <>
+                                                                    {labelFields.map((labelField, labelIndex) => (
+                                                                        <div
+                                                                            key={labelField.key}
+                                                                            style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}
                                                                         >
-                                                                            {label.key} {label.operator} {label.value}
-                                                                        </Tag>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {/* 编辑模式：显示条件编辑区域 */}
-                                                        {routeEditable && (
-                                                            <div style={{ marginBottom: "16px" }}>
-                                                                <Form.List name={[name, "labels"]}>
-                                                                {(labelFields, { add: addLabel, remove: removeLabel }) => (
-                                                                    <>
-                                                                        {labelFields.map((labelField, labelIndex) => (
-                                                                            <div key={labelField.key} style={{
-                                                                                display: "flex",
-                                                                                alignItems: "center",
-                                                                                marginBottom: labelIndex < labelFields.length - 1 ? "12px" : "0",
-                                                                                gap: "8px"
-                                                                            }}>
-                                                                                {/* 标签 Key */}
-                                                                                <Form.Item
-                                                                                    {...labelField}
-                                                                                    name={[labelField.name, "key"]}
-                                                                                    rules={[{ required: true, message: "请输入" }]}
-                                                                                    noStyle
-                                                                                    style={{ flex: "0 0 120px" }}
-                                                                                    normalize={(value) => value?.replace(/\s/g, "")}
-                                                                                >
-                                                                                    <Input
-                                                                                        placeholder="标签 Key"
-                                                                                        disabled={!routeEditable}
-                                                                                        style={{ borderRadius: "6px" }}
-                                                                                    />
-                                                                                </Form.Item>
-
-                                                                                {/* 操作符 */}
-                                                                                <Form.Item
-                                                                                    {...labelField}
-                                                                                    name={[labelField.name, "operator"]}
-                                                                                    rules={[{ required: true, message: "请选择" }]}
-                                                                                    noStyle
-                                                                                    style={{ flex: "0 0 70px" }}
-                                                                                >
-                                                                                    <Select
-                                                                                        disabled={!routeEditable}
-                                                                                        style={{ width: "20%" }}
-                                                                                    >
-                                                                                        <Option value="==">==</Option>
-                                                                                        <Option value="=~">=~</Option>
-                                                                                        <Option value="!=">!=</Option>
-                                                                                        <Option value="!~">!~</Option>
-                                                                                    </Select>
-                                                                                </Form.Item>
-
-                                                                                {/* 标签 Value */}
-                                                                                <Form.Item
-                                                                                    {...labelField}
-                                                                                    name={[labelField.name, "value"]}
-                                                                                    rules={[{ required: true, message: "请输入" }]}
-                                                                                    noStyle
-                                                                                    style={{ flex: 1 }}
-                                                                                    normalize={(value) => value?.replace(/\s/g, "")}
-                                                                                >
-                                                                                    <Input
-                                                                                        placeholder="标签 Value"
-                                                                                        disabled={!routeEditable}
-                                                                                        style={{ borderRadius: "6px" }}
-                                                                                    />
-                                                                                </Form.Item>
-
-                                                                                {/* 删除条件按钮 */}
-                                                                                {routeEditable && labelFields.length > 1 && (
-                                                                                    <MinusCircleOutlined
-                                                                                        onClick={() => removeLabel(labelField.name)}
-                                                                                        style={{ color: "#ff4d4f", cursor: "pointer", fontSize: "16px", flexShrink: 0 }}
-                                                                                    />
-                                                                                )}
-                                                                            </div>
-                                                                        ))}
-
-                                                                        {routeEditable && (
-                                                                            <Button
-                                                                                type="dashed"
-                                                                                size="small"
-                                                                                onClick={() => addLabel({ key: "", operator: "==", value: "" })}
-                                                                                icon={<PlusOutlined />}
-                                                                                style={{ marginTop: "8px", width: "100%" }}
+                                                                            {/* 标签 Key */}
+                                                                            <Form.Item
+                                                                                name={[labelField.name, "key"]}
+                                                                                rules={[{ required: true, message: "请输入" }]}
+                                                                                noStyle
+                                                                                normalize={(value) => value?.replace(/\s/g, "")}
                                                                             >
-                                                                                添加条件
-                                                                            </Button>
-                                                                        )}
-                                                                    </>
-                                                                )}
-                                                            </Form.List>
-                                                            </div>
-                                                        )}
+                                                                                <Input
+                                                                                    placeholder="标签 Key"
+                                                                                    style={{ flex: "0 0 140px", borderRadius: "6px" }}
+                                                                                />
+                                                                            </Form.Item>
 
-                                                        {/* 通知对象选择 */}
-                                                        <div style={{
-                                                            paddingTop: "12px",
-                                                            borderTop: "1px dashed #e8e8e8",
-                                                            display: "flex",
-                                                            alignItems: "flex-start",
-                                                            gap: "8px"
-                                                        }}>
-                                                            <div style={{ flex: 1 }}>
-                                                                <div style={{
-                                                                    display: "flex",
-                                                                    alignItems: "center",
-                                                                    marginBottom: "8px"
-                                                                }}>
-                                                                    <TeamOutlined style={{ color: "#1677ff", marginRight: "6px" }} />
-                                                                    <Text strong style={{ fontSize: "13px" }}>通知对象</Text>
-                                                                </div>
-                                                                <Form.Item
+                                                                            {/* 操作符 */}
+                                                                            <Form.Item
+                                                                                name={[labelField.name, "operator"]}
+                                                                                rules={[{ required: true, message: "请选择" }]}
+                                                                                noStyle
+                                                                            >
+                                                                                <Select style={{ width: 80 }}>
+                                                                                    <Option value="==">==</Option>
+                                                                                    <Option value="=~">=~</Option>
+                                                                                    <Option value="!=">!=</Option>
+                                                                                    <Option value="!~">!~</Option>
+                                                                                </Select>
+                                                                            </Form.Item>
+
+                                                                            {/* 标签 Value */}
+                                                                            <Form.Item
+                                                                                name={[labelField.name, "value"]}
+                                                                                rules={[{ required: true, message: "请输入" }]}
+                                                                                noStyle
+                                                                                normalize={(value) => value?.replace(/\s/g, "")}
+                                                                            >
+                                                                                <Input
+                                                                                    placeholder="标签 Value"
+                                                                                    style={{ flex: 1, borderRadius: "6px" }}
+                                                                                />
+                                                                            </Form.Item>
+
+                                                                            {/* 删除条件 */}
+                                                                            {labelFields.length > 1 && (
+                                                                                <MinusCircleOutlined
+                                                                                    onClick={() => removeLabel(labelField.name)}
+                                                                                    style={{ color: "#ff4d4f", cursor: "pointer", fontSize: 16, flexShrink: 0 }}
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+
+                                                                    <Button
+                                                                        type="dashed"
+                                                                        size="small"
+                                                                        onClick={() => addLabel({ key: "", operator: "==", value: "" })}
+                                                                        icon={<PlusOutlined />}
+                                                                        style={{ width: "100%" }}
+                                                                    >
+                                                                        添加条件
+                                                                    </Button>
+                                                                </>
+                                                            )}
+                                                        </Form.List>
+
+                                                        {/* 通知对象 */}
+                                                        <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px dashed #e8e8e8" }}>
+                                                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                                                                <TeamOutlined style={{ color: "#1677ff" }} />
+                                                                <Text strong style={{ fontSize: 13 }}>通知对象</Text>
+                                                            </div>
+                                                            <Form.Item
                                                                 {...restField}
                                                                 name={[name, "noticeIds"]}
                                                                 rules={[{ required: true, message: "请选择通知对象" }]}
@@ -688,114 +938,72 @@ export const FaultCenterNotify = () => {
                                                                     placeholder="选择通知对象"
                                                                     allowClear
                                                                     options={noticeOptions}
-                                                                    disabled={!routeEditable}
                                                                     style={{ width: "100%", borderRadius: "6px" }}
                                                                     optionFilterProp="label"
                                                                     showSearch
-                                                                    tagRender={(props) => (
-                                                                        <span
-                                                                            style={{
-                                                                                display: "inline-block",
-                                                                                padding: "0 8px",
-                                                                                backgroundColor: "#e6f4ff",
-                                                                                borderRadius: "4px",
-                                                                                marginRight: "4px",
-                                                                                lineHeight: "22px",
-                                                                            }}
-                                                                        >
-                                                                            {props.label}
-                                                                        </span>
-                                                                    )}
                                                                 />
                                                             </Form.Item>
-                                                            </div>
-                                                            {routeEditable && (
-                                                                <MinusCircleOutlined
-                                                                    onClick={() => remove(name)}
-                                                                    style={{ color: "#ff4d4f", cursor: "pointer", fontSize: "18px", marginTop: "35px" }}
-                                                                />
-                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
-                                            )
-                                        })}
+                                                )
+                                            }}
+                                        </Form.List>
+                                    )}
 
-                                        {fields.length === 0 && !routeEditable && (
-                                            <Empty
-                                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                                description="暂无告警路由配置"
-                                                style={{ margin: "40px 0" }}
-                                            />
-                                        )}
-
-                                        {routeEditable && (
-                                            <Form.Item style={{ marginTop: "8px" }}>
-                                                <div
-                                                    onClick={() => add({ labels: [{ key: "", operator: "==", value: "" }], noticeIds: [] })}
-                                                    style={{
-                                                        border: "2px dashed #d9d9d9",
-                                                        borderRadius: "12px",
-                                                        padding: "16px",
-                                                        textAlign: "center",
-                                                        cursor: "pointer",
-                                                        transition: "all 0.3s",
-                                                        background: "#fafafa"
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.borderColor = "#1677ff"
-                                                        e.currentTarget.style.background = "#f0f5ff"
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.borderColor = "#d9d9d9"
-                                                        e.currentTarget.style.background = "#fafafa"
-                                                    }}
-                                                >
-                                                    <PlusOutlined style={{ color: "#8c8c8c", fontSize: "18px", marginRight: "8px" }} />
-                                                    <Text style={{ color: "#8c8c8c" }}>添加路由规则</Text>
-                                                </div>
-                                            </Form.Item>
-                                        )}
-                                    </>
-                                )}
-                            </Form.List>
-                        </div>
-                    </Col>
-                </Row>
+                                    {/* 添加路由规则 */}
+                                    {editingRouteIndex === null && (
+                                        <div
+                                            onClick={handleRouteAdd}
+                                            style={{
+                                                border: "2px dashed #d9d9d9",
+                                                borderRadius: 10,
+                                                padding: 16,
+                                                textAlign: "center",
+                                                cursor: "pointer",
+                                                transition: "all 0.3s",
+                                                background: "#fafafa",
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.borderColor = "#1677ff"
+                                                e.currentTarget.style.background = "#f0f5ff"
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.borderColor = "#d9d9d9"
+                                                e.currentTarget.style.background = "#fafafa"
+                                            }}
+                                        >
+                                            <PlusOutlined style={{ color: "#8c8c8c", fontSize: 18, marginRight: 8 }} />
+                                            <Text style={{ color: "#8c8c8c" }}>添加路由规则</Text>
+                                        </div>
+                                    )}
+                        </>
+                    )}
+                </div>
             </Form>
 
-            <div style={{ marginTop: "32px", paddingTop: "28px", borderTop: "1px solid #f0f0f0" }}>
-                <AlarmUpgrade />
-            </div>
-
-            <style jsx>{`
+            <style>{`
                 .notify-config-container .ant-form-item-label > label {
                     color: #262626;
                 }
-                
                 .notify-config-container .ant-input-number-group-wrapper {
                     width: 100%;
                 }
-                
                 .notify-config-container .ant-select-selection-item {
                     border-radius: 4px;
                 }
-                
                 .notify-config-container .form-editable .ant-input,
                 .notify-config-container .form-editable .ant-select-selector {
                     background-color: #ffffff;
                     border-color: #d9d9d9;
                 }
-                
                 .notify-config-container .form-editable .ant-input:hover,
                 .notify-config-container .form-editable .ant-select-selector:hover {
                     border-color: #40a9ff;
                 }
-                
                 .notify-config-container .ant-form-item {
                     margin-bottom: 24px;
                 }
-                
                 .notify-config-container .ant-form-item:last-child {
                     margin-bottom: 0;
                 }

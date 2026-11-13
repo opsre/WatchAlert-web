@@ -27,7 +27,7 @@ async function FaultCenterCreate(params) {
         const res = await http('post', '/api/w8t/faultCenter/faultCenterCreate', params);
         message.open({
             type: 'success',
-            content: '故障中心创建成功',
+            content: '创建成功',
         });
         return res;
     } catch (error) {
@@ -41,7 +41,7 @@ async function FaultCenterUpdate(params) {
         const res = await http('post', '/api/w8t/faultCenter/faultCenterUpdate', params);
         message.open({
             type: 'success',
-            content: '故障中心更新成功',
+            content: '更新成功',
         });
         return res;
     } catch (error) {
@@ -55,7 +55,7 @@ async function FaultCenterDelete(params) {
         const res = await http('post', '/api/w8t/faultCenter/faultCenterDelete', params);
         message.open({
             type: 'success',
-            content: '故障中心删除成功',
+            content: '删除成功',
         });
         return res;
     } catch (error) {
@@ -69,7 +69,7 @@ async function FaultCenterReset(params) {
         const res = await http('post', '/api/w8t/faultCenter/faultCenterReset', params);
         message.open({
             type: 'success',
-            content: '故障中心信息编辑成功',
+            content: '更新成功',
         });
         return res;
     } catch (error) {

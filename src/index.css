@@ -26,3 +26,8 @@
 * {
   -ms-overflow-style: none;
 }
+
+/* 全局：表格表头（列标题）字体调小 */
+.ant-table-thead > tr > th.ant-table-cell {
+  font-size: 13px !important;
+}

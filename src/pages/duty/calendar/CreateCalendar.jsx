@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Form, Modal, DatePicker, Select, Button, List, Avatar, Space, Drawer, Input, InputNumber, message } from "antd"
+import { Form, Modal, DatePicker, Select, Button, List, Avatar, Drawer, InputNumber, message } from "antd"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
-import { PlusOutlined, DeleteOutlined, MenuOutlined } from "@ant-design/icons"
+import { PlusOutlined, DeleteOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons"
 import { createCalendar, GetCalendarUsers } from "../../../api/duty" // 假设这些路径是正确的
 import Search from "antd/es/input/Search"
 import { v4 as uuidv4 } from "uuid"
@@ -23,16 +23,16 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
     // 新增状态，用于记录当前正在向哪个组添加人员
     const [currentGroupIndexForUserSelection, setCurrentGroupIndexForUserSelection] = useState(null)
     
-    // 定义值班组的颜色列表
+    // 定义值班组的颜色列表（与日历长条配色保持一致）
     const groupColors = [
-        "#E3F2FD", // 浅蓝色
-        "#F3E5F5", // 浅紫色
-        "#E8F5E9", // 浅绿色
-        "#FFF3E0", // 浅橙色
-        "#FCE4EC", // 浅粉色
-        "#F1F8E9", // 浅黄绿色
-        "#E0F2F1", // 浅青色
-        "#FBE9E7", // 浅珊瑚色
+        "#34C724", // 绿色
+        "#FFC60A", // 黄色
+        "#00D0D6", // 青色
+        "#7B61FF", // 紫色
+        "#FF7A9E", // 粉色
+        "#2E90FA", // 蓝色
+        "#FF6B6B", // 珊瑚红
+        "#F08626", // 橙色
     ]
 
     useEffect(() => {
@@ -208,8 +208,8 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
     const DutyUserGroupList = () => (
         <Form.Item name="dutyUserGroups" rules={[{ required: true, message: "请至少添加一个值班组" }]}>
             <div>
-                <Button type="dashed" onClick={handleAddGroup} style={{ marginBottom: 16 }}>
-                    + 添加值班组
+                <Button type="dashed" onClick={handleAddGroup} icon={<PlusOutlined />} style={{ marginBottom: 16 }}>
+                    添加值班组
                 </Button>
                 <DragDropContext onDragEnd={handleDragEnd}>
                     <Droppable droppableId="all-groups" type="groups">
@@ -224,93 +224,109 @@ export const CreateCalendarModal = ({ visible, onClose,onSuccess, dutyId }) => {
                                                 {...providedGroup.draggableProps}
                                                 style={{
                                                     position: "relative",
-                                                    padding: "16px",
-                                                    paddingLeft: "24px",
-                                                    marginBottom: "16px",
-                                                    border: "1px solid #e0e0e0",
-                                                    borderRadius: "8px",
-                                                    backgroundColor: "#f9f9f9",
+                                                    padding: "14px 16px 14px 20px",
+                                                    marginBottom: 16,
+                                                    border: "1px solid #e8e8e8",
+                                                    borderRadius: 10,
+                                                    backgroundColor: "#fff",
                                                     overflow: "hidden",
+                                                    boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
                                                     ...providedGroup.draggableProps.style,
                                                 }}
                                             >
-                                                {/* 左侧颜色条 */}
-                                                <div style={{ 
-                                                    position: "absolute",
-                                                    left: 0,
-                                                    top: 0,
-                                                    bottom: 0,
-                                                    width: "6px", 
-                                                    backgroundColor: group.color,
-                                                }} />
-                                                <Space style={{ width: "100%", justifyContent: "space-between", marginBottom: "12px" }}>
-                                                  <span {...providedGroup.dragHandleProps} style={{ cursor: "move" }}>
-                                                    <MenuOutlined />
-                                                  </span>
+                                                <div/>
+                                                {/* 组头部：拖拽手柄 + 组名 + 人数 + 删除 */}
+                                                <div className="flex items-center gap-2" style={{ marginBottom: 12 }}>
+                                                    <span
+                                                        {...providedGroup.dragHandleProps}
+                                                        style={{ cursor: "grab", color: "#999", fontSize: 14 }}
+                                                    >
+                                                        <MenuOutlined />
+                                                    </span>
+                                                    <span className="text-sm font-semibold text-gray-800">
+                                                        值班组 {groupIndex + 1}
+                                                    </span>
+                                                    <span className="text-xs text-gray-400">
+                                                        {group.users.length} 人
+                                                    </span>
                                                     <div style={{ flex: 1 }} />
                                                     <Button
                                                         type="text"
                                                         danger
+                                                        size="small"
                                                         icon={<DeleteOutlined />}
                                                         onClick={() => handleDeleteGroup(groupIndex)}
                                                     />
-                                                </Space>
-                                                <Button
-                                                    type="dashed"
-                                                    onClick={() => {
-                                                        handleSearchDutyUser()
-                                                        setCurrentGroupIndexForUserSelection(groupIndex) // 设置当前要添加人员的组索引
-                                                        setSearchVisible(true)
-                                                    }}
-                                                    style={{ marginBottom: 12, width: "100%" }}
-                                                    disabled={group.users.length >= 8} // 当成员数达到8时禁用按钮
-                                                >
-                                                    + 添加组内人员
-                                                </Button>
-                                                <Droppable droppableId={group.id} type="users">
-                                                    {/* 内层 Droppable 用于组内人员排序 */}
+                                                </div>
+                                                {/* 成员标签（可横向拖拽排序 / 跨组移动） */}
+                                                <Droppable droppableId={group.id} type="users" direction="horizontal">
                                                     {(providedUsers) => (
-                                                        <div {...providedUsers.droppableProps} ref={providedUsers.innerRef}>
+                                                        <div
+                                                            {...providedUsers.droppableProps}
+                                                            ref={providedUsers.innerRef}
+                                                            className="flex flex-wrap items-center"
+                                                            style={{ gap: 8, minHeight: 32 }}
+                                                        >
                                                             {group.users.map((user, userIndex) => (
-                                                                <Draggable key={user.userid} draggableId={user.userid} index={userIndex}>
+                                                                <Draggable
+                                                                    key={user.userid}
+                                                                    draggableId={user.userid}
+                                                                    index={userIndex}
+                                                                >
                                                                     {(providedUser) => (
-                                                                        <div
+                                                                        <span
                                                                             ref={providedUser.innerRef}
                                                                             {...providedUser.draggableProps}
+                                                                            {...providedUser.dragHandleProps}
                                                                             style={{
-                                                                                padding: "8px",
-                                                                                marginBottom: "8px",
-                                                                                border: "1px solid #f0f0f0",
-                                                                                borderRadius: "4px",
-                                                                                backgroundColor: "white",
+                                                                                display: "inline-flex",
+                                                                                alignItems: "center",
+                                                                                gap: 6,
+                                                                                padding: "4px 12px",
+                                                                                borderRadius: 999,
+                                                                                backgroundColor: group.color,
+                                                                                color: "#fff",
+                                                                                fontSize: 13,
+                                                                                fontWeight: 500,
+                                                                                cursor: "grab",
+                                                                                userSelect: "none",
+                                                                                boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
                                                                                 ...providedUser.draggableProps.style,
                                                                             }}
                                                                         >
-                                                                            <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                                                                                <Space>
-                                                                                    <span {...providedUser.dragHandleProps}>
-                                                                                      <MenuOutlined />
-                                                                                    </span>
-                                                                                    <Avatar style={{ backgroundColor: group.color, color: "#000" }}>
-                                                                                        {user.username[0]}
-                                                                                    </Avatar>
-                                                                                    {user.username}
-                                                                                </Space>
-                                                                                <Button
-                                                                                    type="text"
-                                                                                    danger
-                                                                                    icon={<DeleteOutlined />}
-                                                                                    onClick={() => handleDeleteUserFromGroup(groupIndex, userIndex)}
-                                                                                />
-                                                                            </Space>
-                                                                        </div>
+                                                                            {user.username}
+                                                                            <CloseOutlined
+                                                                                style={{ fontSize: 11, opacity: 0.85, cursor: "pointer" }}
+                                                                                onClick={() =>
+                                                                                    handleDeleteUserFromGroup(groupIndex, userIndex)
+                                                                                }
+                                                                            />
+                                                                        </span>
                                                                     )}
                                                                 </Draggable>
                                                             ))}
                                                             {providedUsers.placeholder}
+                                                            <Button
+                                                                type="dashed"
+                                                                size="small"
+                                                                icon={<PlusOutlined />}
+                                                                onClick={() => {
+                                                                    handleSearchDutyUser()
+                                                                    setCurrentGroupIndexForUserSelection(groupIndex)
+                                                                    setSearchVisible(true)
+                                                                }}
+                                                                disabled={group.users.length >= 8} // 当成员数达到8时禁用按钮
+                                                            >
+                                                                添加人员
+                                                            </Button>
                                                         </div>
                                                     )}
                                                 </Droppable>
+                                                {group.users.length === 0 && (
+                                                    <div className="text-xs text-gray-400" style={{ marginTop: 8 }}>
+                                                        点击「添加人员」选择值班成员（最多 8 人）
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </Draggable>

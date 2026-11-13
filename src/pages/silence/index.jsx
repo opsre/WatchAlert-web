@@ -246,7 +246,7 @@ export const Silences = () => {
             },
         },
         {
-            title: '时间范围',
+            title: '生效时间',
             key: 'timeRange',
             width: '20%',
             render: (_, record) => (
@@ -374,7 +374,7 @@ export const Silences = () => {
                         borderColor: '#000'
                     }}
                 >
-                    添加新规则
+                    创建
                 </Button>
             </div>
 
