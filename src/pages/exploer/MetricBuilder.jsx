@@ -8,6 +8,7 @@ import {
     Segmented,
     Divider,
     Empty,
+    Collapse,
 } from "antd"
 import {
     ThunderboltOutlined,
@@ -112,15 +113,22 @@ export const MetricBuilder = ({ datasourceId, onApply }) => {
     const metricOptions = useMemo(() => metricNames.map(m => ({ label: m, value: m })), [metricNames])
 
     return (
-        <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 16px', marginBottom: 16, background: '#fafafa' }}>
-            <Space align="center" style={{ marginBottom: 8 }}>
-                <ThunderboltOutlined style={{ color: '#1677ff' }} />
-                <Text strong>指标浏览器</Text>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                    不会写 PromQL？选指标 + 加过滤 + 选聚合，一键生成
-                </Text>
-            </Space>
-
+        <Collapse
+            defaultActiveKey={[]}
+            style={{ marginBottom: 16, background: '#fafafa' }}
+            items={[{
+                key: 'metric-browser',
+                label: (
+                    <Space align="center">
+                        <ThunderboltOutlined style={{ color: '#1677ff' }} />
+                        <Text strong>指标浏览器</Text>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                            不会写 PromQL？选指标 + 加过滤 + 选聚合，一键生成
+                        </Text>
+                    </Space>
+                ),
+                children: (
+                    <>
             {!datasourceId ? (
                 <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="请先在上方选择一个 Prometheus 数据源" />
             ) : (
@@ -233,6 +241,9 @@ export const MetricBuilder = ({ datasourceId, onApply }) => {
                     </div>
                 </>
             )}
-        </div>
+                    </>
+                )
+            }]}
+        />
     )
 }
