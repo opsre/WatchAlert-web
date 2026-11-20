@@ -77,6 +77,7 @@ export const FaultCenterNotify = () => {
     const [form] = Form.useForm()
     const [detail, setDetail] = useState({})
     const [selectedAggregationType, setSelectedAggregationType] = useState("None")
+    const [aggregationLabels, setAggregationLabels] = useState([])
     const [noticeOptions, setNoticeOptions] = useState([])
     const [basicEditable, setBasicEditable] = useState(false)
     const [editingRouteIndex, setEditingRouteIndex] = useState(null) // 当前正在编辑的路由规则下标（null = 浏览态）
@@ -124,6 +125,7 @@ export const FaultCenterNotify = () => {
 
             setDetail(data)
             setSelectedAggregationType(data?.aggregationType || "None")
+            setAggregationLabels(Array.isArray(data?.aggregationLabels) ? data.aggregationLabels : [])
 
             // 处理 noticeRoutes 数据，兼容旧数据和新的 labels 格式
             const routes = (data.noticeRoutes || []).map((route) => {
@@ -292,15 +294,42 @@ export const FaultCenterNotify = () => {
         }
     }
 
+    const saveAggregation = async (aggregationType, labels) => {
+        await FaultCenterReset({
+            id,
+            aggregationType,
+            aggregationLabels: labels,
+        })
+        setDetail((current) => ({
+            ...current,
+            aggregationType,
+            aggregationLabels: labels,
+        }))
+    }
+
     // 处理聚合模式变化
     const handleAggregationModeChange = async (e) => {
-        setSelectedAggregationType(e.target.value)
-        const params = {
-            id,
-            aggregationType: e.target.value,
+        const aggregationType = e.target.value
+        setSelectedAggregationType(aggregationType)
+        try {
+            await saveAggregation(aggregationType, aggregationType === "Label" ? aggregationLabels : [])
+        } catch (error) {
+            console.error("保存聚合配置失败:", error)
         }
-        await FaultCenterReset(params);
-    };
+    }
+
+    const handleAggregationLabelsChange = async (labels) => {
+        const normalizedLabels = [...new Set(labels.map((label) => label.trim()).filter(Boolean))]
+        setAggregationLabels(normalizedLabels)
+        if (selectedAggregationType !== "Label") {
+            return
+        }
+        try {
+            await saveAggregation("Label", normalizedLabels)
+        } catch (error) {
+            console.error("保存标签聚合配置失败:", error)
+        }
+    }
 
     // 切换左侧菜单项（若正在编辑则先取消编辑并还原数据）
     const handleMenuClick = (key) => {
@@ -317,14 +346,21 @@ export const FaultCenterNotify = () => {
         setSelectedKey(key)
     }
 
-    const radioOptions = [
+    const aggregationOptions = [
         {
-            label: '规则聚合',
-            value: 'Rule',
+            title: "规则聚合",
+            value: "Rule",
+            description: "按告警规则聚合，相同的告警聚合到一起。",
         },
         {
-            label: '不聚合',
-            value: 'None',
+            title: "标签聚合",
+            value: "Label",
+            description: "按自定义标签值聚合，相同标签值一致时聚合到一起。",
+        },
+        {
+            title: "不聚合",
+            value: "None",
+            description: "每条告警都会发送通知。",
         },
     ];
 
@@ -530,19 +566,70 @@ export const FaultCenterNotify = () => {
 
                     {/* 告警聚合面板 */}
                     {selectedKey === "aggregation" && (
-                        <div style={{ maxWidth: 480 }}>
+                        <div style={{ width: "100%", maxWidth: 760 }}>
                             <Radio.Group
-                                block
-                                options={radioOptions}
                                 value={selectedAggregationType}
                                 onChange={handleAggregationModeChange}
-                            />
-                            <div style={{ marginTop: 16 }}>
-                                <Text type="secondary" style={{ fontSize: 13 }}>
-                                    <BellOutlined style={{ marginRight: 6 }} />
-                                    选择「规则聚合」时，相同规则持续触发的告警将合并为一条故障；切换后立即生效
-                                </Text>
-                            </div>
+                                style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                                    gap: 8,
+                                    width: "100%",
+                                }}
+                            >
+                                {aggregationOptions.map((option) => {
+                                    const selected = selectedAggregationType === option.value
+                                    return (
+                                        <Radio
+                                            key={option.value}
+                                            value={option.value}
+                                            style={{
+                                                margin: 0,
+                                                minHeight: 100,
+                                                padding: "12px 14px 10px",
+                                                border: `1px solid #e5e5e5`,
+                                                borderRadius: 16,
+                                                alignItems: "flex-start",
+                                                boxShadow: selected ? `0 0 0 1px ${option.color}22` : "none",
+                                                transition: "all 0.2s ease",
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{
+                                                    color: selected && option.value === "Label" ? option.color : "#1f1f1f",
+                                                    fontSize: 14,
+                                                    fontWeight: 600,
+                                                    lineHeight: 1.4,
+                                                    marginBottom: 6,
+                                                }}>
+                                                    {option.title}
+                                                </div>
+                                                <Text type="secondary" style={{ fontSize: 12, lineHeight: 1.5 }}>
+                                                    {option.description}
+                                                </Text>
+                                            </div>
+                                        </Radio>
+                                    )
+                                })}
+                            </Radio.Group>
+
+                            {selectedAggregationType === "Label" && (
+                                <div style={{ marginTop: 22, maxWidth: 760 }}>
+                                    <Text strong style={{ display: "block", fontSize: 14, color: "#1f1f1f" }}>
+                                        聚合维度
+                                    </Text>
+                                    <Select
+                                        mode="tags"
+                                        value={aggregationLabels}
+                                        onChange={handleAggregationLabelsChange}
+                                        options={aggregationLabels.map((label) => ({ value: label, label }))}
+                                        tokenSeparators={[","]}
+                                        placeholder="请手动输入，例如：instance"
+                                        style={{ width: "100%", marginTop: "5px" }}
+                                        allowClear
+                                    />
+                                </div>
+                            )}
                         </div>
                     )}
 
