@@ -17,6 +17,7 @@ import PrometheusImg from "../rule/img/Prometheus.svg";
 import LokiImg from "../rule/img/L.svg";
 import AlicloudImg from "../rule/img/alicloud.svg";
 import JaegerImg from "../rule/img/jaeger.svg";
+import SkyWalkingImg from "../rule/img/SkyWalking.svg";
 
 import K8sImg from "../rule/img/Kubernetes.svg";
 import ESImg from "../rule/img/ElasticSearch.svg";
@@ -71,6 +72,10 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         },
 
         {
+            imgSrc: SkyWalkingImg,
+            text: 'SkyWalking',
+        },
+        {
             imgSrc: K8sImg,
             text: 'KubernetesEvent',
         },
@@ -107,10 +112,11 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         Loki: 1,
         AliCloudSLS: 2,
         Jaeger: 3,
-        KubernetesEvent: 4,
-        ElasticSearch: 5,
-        VictoriaLogs: 6,
-        ClickHouse: 7,
+        SkyWalking: 4,
+        KubernetesEvent: 5,
+        ElasticSearch: 6,
+        VictoriaLogs: 7,
+        ClickHouse: 8,
     };
 
     const datasourceCardMap = {
@@ -118,10 +124,11 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
         1: "Loki",
         2: "AliCloudSLS",
         3: "Jaeger",
-        4: "KubernetesEvent",
-        5: "ElasticSearch",
-        6: "VictoriaLogs",
-        7: "ClickHouse",
+        4: "SkyWalking",
+        5: "KubernetesEvent",
+        6: "ElasticSearch",
+        7: "VictoriaLogs",
+        8: "ClickHouse",
     };
 
     const handleInputChange = (e) => {
@@ -159,6 +166,11 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                     service: selectedRow.jaegerConfig.service,
                     tags: selectedRow.jaegerConfig.tags,
                     scope: selectedRow.jaegerConfig.scope,
+                },
+                skywalkingConfig: {
+                    service: selectedRow.skywalkingConfig?.service,
+                    tags: selectedRow.skywalkingConfig?.tags,
+                    scope: selectedRow.skywalkingConfig?.scope,
                 },
                 cloudwatchConfig: selectedRow.cloudwatchConfig,
                 kubernetesConfig: selectedRow.kubernetesConfig,
@@ -634,6 +646,41 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                     }
 
                     {selectedType === 4 &&
+                        <MyFormItemGroup prefix={['skywalkingConfig']}>
+                            <div style={{display: 'flex', gap: '10px'}}>
+                                <MyFormItem
+                                    name='service'
+                                    label="应用服务"
+                                    style={{width: '50%'}}
+                                    rules={[{required: true}]}
+                                >
+                                    <Input placeholder="SkyWalking 服务名称" />
+                                </MyFormItem>
+                                <MyFormItem
+                                    name='tags'
+                                    label="告警条件"
+                                    style={{width: '50%'}}
+                                    required={true}
+                                >
+                                    <Input placeholder='{"http.status_code":"500"}' />
+                                </MyFormItem>
+                            </div>
+                            <MyFormItem
+                                name="scope"
+                                label="查询区间"
+                                rules={[{required: true}]}
+                            >
+                                <InputNumber
+                                    style={{width: '100%'}}
+                                    addonAfter={'分钟'}
+                                    placeholder="10"
+                                    min={1}
+                                />
+                            </MyFormItem>
+                        </MyFormItemGroup>
+                    }
+
+                    {selectedType === 5 &&
                         <MyFormItemGroup prefix={['kubernetesConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -726,7 +773,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 5 &&
+                    {selectedType === 6 &&
                         <MyFormItemGroup prefix={['elasticSearchConfig']}>
                             {/*<div style={{display: 'flex', gap: '10px'}}>*/}
                                 {/*<MyFormItem*/}
@@ -891,7 +938,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 6 &&
+                    {selectedType === 7 &&
                         <MyFormItemGroup prefix={['victoriaLogsConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">
@@ -918,7 +965,7 @@ const RuleTemplateCreateModal = ({ visible, onClose, selectedRow, type, handleLi
                         </MyFormItemGroup>
                     }
 
-                    {selectedType === 7 &&
+                    {selectedType === 8 &&
                         <MyFormItemGroup prefix={['clickhouseConfig']}>
                             <span>规则配置</span>
                             <div className="log-rule-config-container">

@@ -49,6 +49,12 @@ const datasourceTypes = [
         description: "分布式追踪系统",
     },
     {
+        value: "SkyWalking",
+        label: "SkyWalking",
+        icon: <ApartmentOutlined />,
+        description: "分布式追踪系统",
+    },
+    {
         value: "Loki",
         label: "Loki",
         icon: <DatabaseOutlined />,
@@ -451,6 +457,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                     selectedType === "Loki" ||
                     selectedType === "VictoriaLogs" ||
                     selectedType === "Jaeger" ||
+                    selectedType === "SkyWalking" ||
                     selectedType === "ElasticSearch" ||
                     selectedType === "ClickHouse"
                 ) && (

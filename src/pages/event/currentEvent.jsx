@@ -64,6 +64,7 @@ import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
+import { ReactComponent as SWImg } from "../alert/rule/img/SkyWalking.svg"
 import { noticeRecordList } from "../../api/notice"
 import { NotificationTypeIcon } from "../notice/notification-type-icon"
 import { FaultCenterSlo } from "../../api/faultCenter"
@@ -237,6 +238,7 @@ export const AlertCurrentEvent = (props) => {
         VictoriaLogs: <VLogImg style={{ width: 16, height: 16 }} />,
         ClickHouse: <CkImg style={{ width: 16, height: 16 }} />,
         KubernetesEvent: <K8sImg style={{ width: 16, height: 16 }} />,
+        SkyWalking: <SWImg style={{ width: 16, height: 16 }} />,
     }
 
     const columns = [

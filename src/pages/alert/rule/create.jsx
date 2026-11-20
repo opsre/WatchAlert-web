@@ -16,7 +16,7 @@ import React, { useState, useEffect } from 'react'
 import {MinusCircleOutlined, PlusOutlined, RedoOutlined} from '@ant-design/icons'
 import {createRule, searchRuleInfo, updateRule} from '../../../api/rule'
 import {getDatasource, getDatasourceList} from '../../../api/datasource'
-import {getJaegerService} from '../../../api/other'
+import {getTraceService} from '../../../api/other'
 import {useParams} from 'react-router-dom'
 import dayjs from 'dayjs';
 import './index.css'
@@ -31,6 +31,7 @@ import {
 import PrometheusImg from "./img/Prometheus.svg"
 import AlicloudImg from "./img/alicloud.svg"
 import JaegerImg from "./img/jaeger.svg"
+import SkyWalkingImg from "./img/SkyWalking.svg"
 import AwsImg from "./img/AWSlogo.svg"
 import LokiImg from "./img/L.svg"
 
@@ -86,6 +87,7 @@ export const AlertRule = ({ type }) => {
     // 告警等级
     const [severityValue, setSeverityValue] = useState(1)
     const [jaegerServiceList, setJaegerServiceList] = useState([])
+    const [traceServiceList, setTraceServiceList] = useState([])
     const [selectedCard, setSelectedCard] = useState(0);
     const [exprRule, setExprRule] = useState([{}])
     // 初始化时间数据的状态
@@ -160,6 +162,7 @@ export const AlertRule = ({ type }) => {
         ElasticSearch: 6,
         VictoriaLogs: 7,
         ClickHouse: 8,
+        SkyWalking: 9,
     };
     const datasourceCardMap = {
         0: "Prometheus",
@@ -171,6 +174,7 @@ export const AlertRule = ({ type }) => {
         6: "ElasticSearch",
         7: "VictoriaLogs",
         8: "ClickHouse",
+        9: "SkyWalking",
     }
 
     useEffect(() => {
@@ -268,6 +272,11 @@ export const AlertRule = ({ type }) => {
                 service: selectedRow?.jaegerConfig?.service,
                 scope: selectedRow?.jaegerConfig?.scope,
                 tags: selectedRow?.jaegerConfig?.tags,
+            },
+            skywalkingConfig: {
+                service: selectedRow?.skywalkingConfig?.service,
+                scope: selectedRow?.skywalkingConfig?.scope,
+                tags: selectedRow?.skywalkingConfig?.tags,
             },
             cloudwatchConfig: {
                 namespace: selectedRow?.cloudwatchConfig?.namespace,
@@ -542,18 +551,20 @@ export const AlertRule = ({ type }) => {
         window.history.back()
     }
 
-    const handleGetJaegerService = async () => {
+    const handleGetTraceService = async () => {
         const params = {
             id: selectedItems
         }
-        const res = await getJaegerService(params)
-
+        const res = await getTraceService(params)
         const newData = res?.data?.data?.map((item) => ({
             label: item,
             value: item
-        }))
+        })) || []
+        setTraceServiceList(newData)
         setJaegerServiceList(newData)
     }
+
+    const handleGetJaegerService = handleGetTraceService
 
     const handleInputChange = (e) => {
         // 移除输入值中的空格
@@ -598,6 +609,10 @@ export const AlertRule = ({ type }) => {
         {
             imgSrc: CKImg,
             text: 'ClickHouse',
+        },
+        {
+            imgSrc: SkyWalkingImg,
+            text: 'SkyWalking',
         }
     ];
 
@@ -1425,6 +1440,51 @@ export const AlertRule = ({ type }) => {
                         </MyFormItemGroup>
                     }
 
+                    {selectedType === 9 &&
+                        <MyFormItemGroup prefix={['skywalkingConfig']}>
+                            <span>规则配置</span>
+                            <div className="log-rule-config-container">
+                                <div style={{display: 'flex', gap: '10px'}}>
+                                    <MyFormItem
+                                        name='service'
+                                        label="应用服务"
+                                        style={{width: '50%'}}
+                                        rules={[{required: true}]}
+                                    >
+                                        <Select
+                                            allowClear
+                                            showSearch
+                                            placeholder="选择需查询链路的服务"
+                                            options={traceServiceList}
+                                            onClick={handleGetTraceService}
+                                        />
+                                    </MyFormItem>
+                                    <MyFormItem
+                                        name='tags'
+                                        label="告警条件"
+                                        style={{width: '50%'}}
+                                        required={true}
+                                    >
+                                        <Input placeholder='{"http.status_code":"500"}' />
+                                    </MyFormItem>
+                                </div>
+                                <MyFormItem
+                                    name="scope"
+                                    label="查询区间"
+                                    rules={[{required: true}]}
+                                >
+                                    <InputNumber
+                                        style={{width: '100%'}}
+                                        addonBefore={'近'}
+                                        addonAfter={'分钟'}
+                                        placeholder="10"
+                                        min={1}
+                                    />
+                                </MyFormItem>
+                            </div>
+                        </MyFormItemGroup>
+                    }
+
                     {selectedType === 4 &&
                         <MyFormItemGroup prefix={['cloudwatchConfig']}>
                             <span>规则配置</span>
@@ -1980,38 +2040,6 @@ export const AlertRule = ({ type }) => {
 
                     </div>
 
-                    <MyFormItem
-                        name="effectiveTime"
-                        label="生效时间"
-                        style={{
-                            width: '100%',
-                        }}
-                    >
-                        <div style={{display: 'flex', gap: '10px'}}>
-                            <Select
-                                mode="multiple"
-                                allowClear
-                                style={{
-                                    width: '100%',
-                                }}
-                                placeholder="如果为空则表示全天候"
-                                value={week}
-                                onChange={handleChange}
-                                options={weekOptions}
-                            />
-                            <TimePicker
-                                placeholder={"开始"}
-                                format={format}
-                                onChange={handleStartTimeChange}
-                                value={secondsToDateObj(startTime)}/>
-                            <TimePicker
-                                placeholder={"结束"}
-                                format={format}
-                                onChange={handleEndTimeChange}
-                                value={secondsToDateObj(endTime)}
-                            />
-                        </div>
-                    </MyFormItem>
                 </section>
 
                 <section className="rule-form-section rule-delivery-section">
@@ -2090,6 +2118,41 @@ export const AlertRule = ({ type }) => {
                                     </a>
                                 </Tooltip>
                             </div>
+                        </div>
+                    </MyFormItem>
+                </div>
+
+                <div style={{marginTop: '20px'}}>
+                    <MyFormItem
+                        name="effectiveTime"
+                        label="生效时间"
+                        style={{
+                            width: '100%',
+                        }}
+                    >
+                        <div style={{display: 'flex', gap: '10px'}}>
+                            <Select
+                                mode="multiple"
+                                allowClear
+                                style={{
+                                    width: '100%',
+                                }}
+                                placeholder="如果为空则表示全天候"
+                                value={week}
+                                onChange={handleChange}
+                                options={weekOptions}
+                            />
+                            <TimePicker
+                                placeholder={"开始"}
+                                format={format}
+                                onChange={handleStartTimeChange}
+                                value={secondsToDateObj(startTime)}/>
+                            <TimePicker
+                                placeholder={"结束"}
+                                format={format}
+                                onChange={handleEndTimeChange}
+                                value={secondsToDateObj(endTime)}
+                            />
                         </div>
                     </MyFormItem>
                 </div>

@@ -26,6 +26,20 @@ async function getJaegerService(params) {
     }
 }
 
+async function getTraceService(params) {
+    try {
+        const queryString = Object.keys(params)
+            .map(key => params[key] !== undefined ? `${key}=${encodeURIComponent(params[key])}` : '')
+            .filter(Boolean)
+            .join('&');
+        const res = await http('get', `/api/w8t/c/getTraceService?${queryString}`);
+        return res;
+    } catch (error) {
+        HandleApiError(error)
+        return error
+    }
+}
+
 async function queryMetrics(params) {
     try {
         const res = await http('get', `/api/w8t/datasource/query`, params);
@@ -90,6 +104,7 @@ async function listAPIKeys(params) {
 export {
     getDashboardInfo,
     getJaegerService,
+    getTraceService,
     queryMetrics,
     queryRangeMetrics,
     createAPIKey,

@@ -47,6 +47,7 @@ import { ReactComponent as K8sImg } from "../alert/rule/img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "../alert/rule/img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "../alert/rule/img/victorialogs.svg"
 import { ReactComponent as CkImg } from "../alert/rule/img/clickhouse.svg"
+import { ReactComponent as SWImg } from "../alert/rule/img/SkyWalking.svg"
 import { EventMetricChart } from "../chart/eventMetricChart"
 import { queryRangeMetrics } from "../../api/other"
 import { noticeRecordList } from "../../api/notice"
@@ -104,11 +105,6 @@ export const AlertHistoryEvent = (props) => {
         P1: "#faad14",
         P2: "#b0e1fb",
     }
-    const SEVERITY_LABELS = {
-        P0: "P0",
-        P1: "P1",
-        P2: "P2",
-    }
 
     const logoMap = {
         Prometheus: <PrometheusImg style={{ width: 18, height: 18 }} />,
@@ -120,6 +116,7 @@ export const AlertHistoryEvent = (props) => {
         VictoriaLogs: <VLogImg style={{ width: 16, height: 16 }} />,
         ClickHouse: <CkImg style={{ width: 16, height: 16 }} />,
         KubernetesEvent: <K8sImg style={{ width: 16, height: 16 }} />,
+        SkyWalking: <SWImg style={{ width: 16, height: 16 }} />,
     }
     const [noticeSelectEventId, setNoticeSelectEventId] = useState('')
     const [noticeRecords, setNoticeRecords] = useState([])  

@@ -5,6 +5,7 @@ import { deleteDatasource, getDatasourceList } from '../../api/datasource';
 import { ReactComponent as PrometheusImg } from "../alert/rule/img/Prometheus.svg"
 import { ReactComponent as AlicloudImg } from "../alert/rule/img/alicloud.svg"
 import { ReactComponent as JaegerImg } from "../alert/rule/img/jaeger.svg"
+import { ReactComponent as SkyWalkingImg } from "../alert/rule/img/SkyWalking.svg"
 import { ReactComponent as AwsImg } from "../alert/rule/img/AWSlogo.svg"
 import { ReactComponent as LokiImg } from "../alert/rule/img/L.svg"
 
@@ -73,6 +74,9 @@ export const Datasources = () => {
                         )}
                         {text === "Jaeger" && (
                             <JaegerImg style={{height: "25px", width: "25px"}}/>
+                        )}
+                        {text === "SkyWalking" && (
+                            <SkyWalkingImg style={{height: "25px", width: "25px"}}/>
                         )}
                         {text === "AliCloudSLS" && (
                             <AlicloudImg style={{height: "25px", width: "25px"}}/>

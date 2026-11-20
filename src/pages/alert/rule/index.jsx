@@ -30,6 +30,7 @@ import { ReactComponent as K8sImg } from "./img/Kubernetes.svg"
 import { ReactComponent as ESImg } from "./img/ElasticSearch.svg"
 import { ReactComponent as VLogImg } from "./img/victorialogs.svg"
 import { ReactComponent as CkImg } from "./img/clickhouse.svg"
+import { ReactComponent as SWImg } from "./img/SkyWalking.svg"
 import { getDatasourceList } from "../../../api/datasource"
 import {
     DeleteOutlined,
@@ -203,6 +204,7 @@ export const AlertRuleList = () => {
                     "KubernetesEvent": <K8sImg style={{ height: "20px", width: "20px" }} />,
                     "ElasticSearch": <ESImg style={{ height: "20px", width: "20px" }} />,
                     "ClickHouse": <CkImg style={{ height: "20px", width: "20px" }} />,
+                    "SkyWalking": <SWImg style={{ height: "20px", width: "20px" }} />,
                 };
                 
                 const icon = iconMap[text] || null;
