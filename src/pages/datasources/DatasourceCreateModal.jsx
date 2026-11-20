@@ -149,6 +149,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 clickhouseConfig: {
                     addr: selectedRow.clickhouseConfig?.Addr || "",
                     timeout: selectedRow.clickhouseConfig?.Timeout || 10,
+                    tls: selectedRow.clickhouseConfig?.tls ?? selectedRow.clickhouseConfig?.TLS ?? false,
                 },
                 enabled: selectedRow.enabled
             })
@@ -203,6 +204,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
             clickhouseConfig: {
                 addr: values?.clickhouseConfig?.addr,
                 timeout: Number(values?.clickhouseConfig?.timeout),
+                tls: Boolean(values?.clickhouseConfig?.tls),
             },
             http: {
                 url: values?.http?.url,
@@ -272,6 +274,7 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                 clickhouseConfig: {
                     addr: values?.clickhouseConfig?.addr,
                     timeout: Number(values?.clickhouseConfig?.timeout),
+                    tls: Boolean(values?.clickhouseConfig?.tls),
                 },
                 http: {
                     url: values?.http?.url,
@@ -477,6 +480,10 @@ export const CreateDatasourceModal = ({ visible, onClose, selectedRow, type, han
                                     ]}
                                 >
                                     <Input type={"number"} style={{ width: "100%" }} addonAfter={<span>秒</span>} placeholder="10" min={1} />
+                                </MyFormItem>
+
+                                <MyFormItem name="tls" valuePropName="checked" initialValue={false}>
+                                    <Checkbox>启用 TLS</Checkbox>
                                 </MyFormItem>
                             </MyFormItemGroup>
                         ) || (
